@@ -10,7 +10,8 @@
  */
 import { db } from "../../db.js";
 import { and, eq, gte, sql } from "drizzle-orm";
-import { smartAlerts, smartHealthChecks } from "../schema.js";
+import { getHealthStatus } from "./health-monitor.js";
+import { smartAlerts } from "../schema.js";
 import { redirLogs, redirRules } from "../../redirection-engine/schema.js";
 import { annonces, annoncePhotos, payments, messages } from "../../schema.js";
 import { modules, notifications } from "../../modules/core.js";
@@ -39,6 +40,22 @@ function pct(part: number, total: number): number {
   return Math.round((part / total) * 100);
 }
 
+/** Même périmètre actif que Santé plateforme ; archives conservées à part. */
+export async function getButtonHealthCategory(): Promise<HealthCategory> {
+  const health = await getHealthStatus(["button", "link"]);
+  return {
+    key: "boutons",
+    label: "Boutons & liens",
+    level: health.broken > 2 ? "red" : health.broken > 0 || health.slow > 0 || health.unknown > 0 || health.total === 0 ? "yellow" : "green",
+    headline: health.total === 0 ? "—" : `${pct(health.ok, health.total)}% OK`,
+    detail: [
+      health.total === 0 ? "Aucun élément surveillé actif" : `${health.ok}/${health.total} OK parmi les éléments surveillés · ${health.broken} à corriger`,
+      `${health.slow} lents · ${health.unknown} non évalués`,
+      `${health.archived} anciens relevés archivés (hors taux)`,
+    ].join(" · "),
+  };
+}
+
 /** Agrège un instantané temps réel de l'état de la plateforme. */
 export async function getPlatformHealth(): Promise<PlatformHealth> {
   const now = Date.now();
@@ -52,25 +69,7 @@ export async function getPlatformHealth(): Promise<PlatformHealth> {
   const dbMs = Date.now() - tStart;
 
   // 1. Boutons fonctionnels (surveillance health-checks, type bouton/lien)
-  const [btn] = await db
-    .select({
-      total: sql<number>`count(*)::int`,
-      ok: sql<number>`count(*) filter (where ${smartHealthChecks.status} = 'ok')::int`,
-      broken: sql<number>`count(*) filter (where ${smartHealthChecks.status} in ('broken','missing'))::int`,
-    })
-    .from(smartHealthChecks)
-    .where(sql`${smartHealthChecks.elementType} in ('button','link')`);
-  {
-    const total = btn?.total ?? 0;
-    const broken = btn?.broken ?? 0;
-    categories.push({
-      key: "boutons",
-      label: "Boutons & liens",
-      level: broken > 0 ? (broken > 2 ? "red" : "yellow") : "green",
-      headline: total === 0 ? "—" : `${pct(btn.ok, total)}% OK`,
-      detail: total === 0 ? "Aucun élément surveillé" : `${btn.ok}/${total} fonctionnels · ${broken} à corriger`,
-    });
-  }
+  categories.push(await getButtonHealthCategory());
 
   // 2. APIs connectées — l'API répond (cette requête aboutit) ; on remonte les
   // erreurs serveur/API récentes.

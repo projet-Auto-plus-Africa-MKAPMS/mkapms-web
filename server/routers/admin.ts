@@ -1,4 +1,7 @@
+import { notifyPublishedAnnonce } from "../modules/search-alerts.js";
+import { deciderKyc } from "../modules/kyc-decision.js";
 import { z } from "zod";
+import { TRPCError } from "@trpc/server";
 import { desc, eq, sql, and } from "drizzle-orm";
 import { router, adminProcedure, directionProcedure } from "../trpc.js";
 import { db } from "../db.js";
@@ -217,6 +220,7 @@ export const adminRouter = router({
         .update(annonces)
         .set({ status: input.action, updatedAt: new Date() })
         .where(eq(annonces.id, input.id));
+      if (input.action === "publiee") await notifyPublishedAnnonce(input.id).catch(() => undefined);
       await logAction(ctx.user.uid, `annonce.${input.action}`, "annonce", input.id);
       return { ok: true };
     }),
@@ -274,20 +278,7 @@ export const adminRouter = router({
 
   validateKyc: adminProcedure
     .input(z.object({ profileId: z.number(), action: z.enum(["valide", "refuse"]), reason: z.string().optional() }))
-    .mutation(async ({ ctx, input }) => {
-      await db
-        .update(kycProfiles)
-        .set({
-          status: input.action,
-          validatedAt: new Date(),
-          validatedBy: ctx.user.uid,
-          rejectionReason: input.action === "refuse" ? (input.reason ?? null) : null,
-          updatedAt: new Date(),
-        })
-        .where(eq(kycProfiles.id, input.profileId));
-      await logAction(ctx.user.uid, `kyc.${input.action}`, "kyc_profile", input.profileId);
-      return { ok: true };
-    }),
+    .mutation(async ({ ctx, input }) => deciderKyc(ctx.user.uid, input)),
 
   // Suivi des paiements (§3.2)
   paymentsList: adminProcedure
@@ -350,17 +341,17 @@ export const adminRouter = router({
   createStaff: directionProcedure
     .input(
       z.object({
-        email: z.string().email(),
-        name: z.string().min(2),
+        email: z.string().trim().email().transform((value) => value.toLowerCase()),
+        name: z.string().trim().min(2).max(255),
         password: z.string().min(8),
         role: z.enum(["employee", "admin"]).default("employee"),
         staffPosition: z.enum(["directeur", "adjoint", "gerant", "chef_equipe", "agent"]).optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const existing = await db.select().from(users).where(eq(users.email, input.email)).limit(1);
+      const existing = await db.select().from(users).where(sql`lower(${users.email}) = ${input.email}`).limit(1);
       if (existing.length) {
-        throw new Error("Un compte existe déjà avec cet email");
+        throw new TRPCError({ code: "CONFLICT", message: "Un compte existe déjà avec cet email" });
       }
       const [u] = await db
         .insert(users)

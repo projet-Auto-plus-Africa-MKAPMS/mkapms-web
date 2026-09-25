@@ -270,12 +270,21 @@ export const reservationsRouter = router({
         .filter(Boolean)
         .join(" · ");
 
+      // vehiculeRef est un id réel d'annonce pour les écrans déjà reconnectés
+      // au catalogue (ProduitLocation.tsx, VehiculesCertifies.tsx…) — le
+      // stocker dans serviceId permet à un loueur d'agréger un jour ses
+      // propres demandes (jointure sur annonces.ownerId). Les catalogues pas
+      // encore reconnectés (ex. ListeAttente.tsx, tâche #63) ne fournissent
+      // pas un id réel : serviceId reste alors 0, jamais une valeur devinée.
+      const vehicleIdReel = Number(input.vehiculeRef);
+      const serviceId = Number.isInteger(vehicleIdReel) && vehicleIdReel > 0 ? vehicleIdReel : 0;
+
       const [created] = await db
         .insert(serviceTracking)
         .values({
           userId: ctx.user.uid,
           serviceType: "location",
-          serviceId: 0,
+          serviceId,
           titre: `Réservation ${input.vehiculeTitre}`,
           status: "nouveau",
           statusLabel: "Demande envoyée — en attente du loueur",

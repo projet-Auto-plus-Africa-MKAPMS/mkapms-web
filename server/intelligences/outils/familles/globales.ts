@@ -4,7 +4,7 @@
  * Règle de la direction : toutes les familles prévues doivent être
  * enregistrées dès maintenant, même sans implémentation réelle derrière.
  * L'absence de code n'est jamais une absence de fiche — chaque outil ici
- * porte `implementationStatus: "REGISTERED_NOT_IMPLEMENTED"` et reste
+ * non implémenté porte `implementationStatus: "REGISTERED_NOT_IMPLEMENTED"` et reste
  * `enabled: false` (rien ne s'exécute tant que personne n'a écrit son
  * executeur) jusqu'à son propre lot d'implémentation.
  *
@@ -167,7 +167,16 @@ export const OUTILS_GLOBAUX: OutilSpec[] = [
   fiche({ toolId: "railway_deploiement.rollbackDeployment", name: "rollbackDeployment", description: "Revient à un déploiement précédent.", category: "railway_deploiement", riskLevel: "CRITICAL", allowedRoles: PDG, requiredPermissions: ["INFRASTRUCTURE"], requiresHumanApproval: true, requiresStrongAuthentication: true, provider: "Railway (RAILWAY_TOKEN)" }),
 
   // ── Observabilité ──────────────────────────────────────────────────
-  fiche({ toolId: "observabilite.getSystemHealth", name: "getSystemHealth", description: "Consulte l'état de santé du système (registre des moteurs).", category: "observabilite", riskLevel: "READ_ONLY", allowedRoles: INTERNE, requiredPermissions: ["READ"], provider: "engine_registry" }),
+  {
+    ...fiche({ toolId: "observabilite.getSystemHealth", name: "getSystemHealth", description: "Lit les états réels des moteurs et leurs dépendances. Sans engine : inventaire global. Avec engine : détail des services et anomalies statiques, distincts de la santé observée. Ne répare ni n’active un moteur.", category: "observabilite", riskLevel: "READ_ONLY", allowedRoles: DIRECTION, requiredPermissions: ["READ"], provider: "engine_registry", schemaInput: { type: "object", properties: { engine: { type: "string", minLength: 1, maxLength: 64 } }, required: [], additionalProperties: false } }),
+    version: "1.0.0",
+    enabled: true,
+    implementationStatus: "IMPLEMENTED",
+    idempotent: true,
+    legalBasis: "Supervision interne Direction : mêmes rôles que engineRegistry.overview.",
+    fallback: "Erreur explicite si le registre est inaccessible ; aucun état sain inventé.",
+    internalReplacementStatus: "Registre propriétaire MKA.P-MS.",
+  },
   fiche({ toolId: "observabilite.getErrorLogs", name: "getErrorLogs", description: "Consulte les journaux d'erreur récents.", category: "observabilite", riskLevel: "LOW", allowedRoles: INTERNE, requiredPermissions: ["READ"], provider: "monitoring" }),
 
   // ── API externes ───────────────────────────────────────────────────

@@ -80,6 +80,7 @@ export const OBSERVED_KEYS: ObservedKey[] = [
 ];
 
 export const DEFAULT_REDIRECT_RULES: DefaultRule[] = [
+  { key: "bouton_location_devis_flotte", label: "Location — candidature flotte", kind: "button", target: "/louer/pro/candidature", priority: 90 },
   // ── Univers principaux ────────────────────────────────────────────────
   { key: "univers_acheter", label: "Univers — Acheter", kind: "route", target: "/acheter", priority: 100 },
   { key: "univers_louer", label: "Univers — Louer", kind: "route", target: "/louer", priority: 100 },
@@ -193,6 +194,10 @@ export const DEFAULT_REDIRECT_RULES: DefaultRule[] = [
   { key: "demarches_ouvrir_succession_vehicule", label: "Démarches — Succession", kind: "button", target: "/demarches/succession-vehicule", priority: 90 },
   { key: "demarches_ouvrir_ww_garage", label: "Démarches — W garage", kind: "button", target: "/demarches/w-w-garage", priority: 90 },
   { key: "demarches_ouvrir_plaques_immatriculation", label: "Démarches — Plaques d'immatriculation", kind: "button", target: "/demarches/plaques-immatriculation", priority: 90 },
+  { key: "bouton_atelier_planning", label: "Bouton — Planning atelier (Atelier Pro)", kind: "button", target: "/garage/planning-atelier", priority: 90 },
+  { key: "bouton_atelier_reappro", label: "Bouton — Réapprovisionnement (Atelier Pro)", kind: "button", target: "/garage/commandes-automatiques", priority: 90 },
+  { key: "bouton_atelier_catalogue", label: "Bouton — Catalogue technique (Atelier Pro)", kind: "button", target: "/catalogue-technique", priority: 90 },
+  { key: "bouton_atelier_pieces", label: "Bouton — Recherche de pièces (Atelier Pro)", kind: "button", target: "/garage/recherche-pieces", priority: 90 },
 
   // ── Alias de chemins (auto-résolution des 404) ────────────────────────
   // Un chemin obsolète/synonyme qui n'a pas de page propre est redirigé

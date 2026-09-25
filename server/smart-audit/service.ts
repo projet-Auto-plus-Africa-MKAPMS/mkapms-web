@@ -16,7 +16,7 @@ import path from "node:path";
 import { desc, eq, sql } from "drizzle-orm";
 import { db } from "../db.js";
 import { runAlertScan } from "../smart-engine/services/alert-engine.js";
-import { getPlatformHealth } from "../smart-engine/services/platform-health.js";
+import { getPlatformHealth, type PlatformHealth } from "../smart-engine/services/platform-health.js";
 import { generateOptimizations } from "../smart-engine/services/auto-optimization.js";
 import { generateEvolutionProposals } from "../smart-engine/services/autonomous-evolution.js";
 import { listEngines } from "../engine-registry/service.js";
@@ -29,6 +29,12 @@ import { CAPACITES, ETAT_LABELS, type CapaciteEtat, type CapaciteSpec } from "./
 import { smartAuditItems, smartAuditRuns, smartCycleRuns } from "./schema.js";
 
 const ROOT = process.cwd();
+
+/** Le contrat de santé utilise green/yellow/red, pas le statut de tâche ok. */
+export function observationSante(h: PlatformHealth): string {
+  const faibles = h.categories.filter((c) => c.level !== "green").length;
+  return `Santé plateforme relevée : ${h.categories.length} domaine(s) mesuré(s), ${faibles} hors état normal (état global : ${h.overall}).`;
+}
 
 interface TableStat {
   existe: boolean;
@@ -403,8 +409,7 @@ export async function runCycle(options?: {
 
   await etape("observer", async () => {
     const h = await getPlatformHealth();
-    const faibles = h.categories.filter((c) => c.level !== "ok").length;
-    return `Santé plateforme relevée : ${h.categories.length} domaine(s) mesuré(s), ${faibles} hors état normal (état global : ${h.overall}).`;
+    return observationSante(h);
   });
 
   await etape("lire_moteurs", async () => {

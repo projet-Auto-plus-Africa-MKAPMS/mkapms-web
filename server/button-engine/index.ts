@@ -20,3 +20,4 @@
 export { buttonEngineRouter } from "./router.js";
 export { ACTIONS_BOUTONS, actionParCode } from "./catalogue.js";
 export { resoudreAction, inventaire } from "./service.js";
+export { construireDiagnosticBouton, type DiagnosticBouton, type TypeErreurBouton } from "./diagnostic.js";

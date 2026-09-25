@@ -12,8 +12,11 @@ import { IMPLEMENTATIONS as IMPL_ESTIMATIONS } from "./familles/outils-estimatio
 import { IMPLEMENTATIONS as IMPL_MEMOIRE } from "./familles/outils-memoire.js";
 import { IMPLEMENTATIONS as IMPL_FICHIERS_RAG } from "./familles/outils-fichiers-rag.js";
 
+import { IMPLEMENTATIONS as IMPL_OBSERVABILITE } from "./familles/outils-observabilite.js";
+
 export const IMPLEMENTATIONS: Record<string, ImplementationOutil> = {
   ...IMPL_TEST,
+  ...IMPL_OBSERVABILITE,
   ...IMPL_VEHICULES,
   ...IMPL_CHANTIER,
   ...IMPL_ESTIMATIONS,

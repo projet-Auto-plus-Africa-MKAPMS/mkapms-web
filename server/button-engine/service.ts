@@ -15,8 +15,12 @@ import { isRoutablePath } from "../data/client-routes.js";
 import { BOUTONS_SANS_ACTION } from "../data/boutons-sans-action.js";
 import { emitSafe } from "../event-bus/service.js";
 import { heartbeat } from "../engine-registry/service.js";
+import { construireDiagnosticBouton, type DiagnosticBouton } from "./diagnostic.js";
 
 export interface ActionResolue {
+  moteur?: string;
+  procedure?: string;
+  dependances?: readonly string[];
   code: string;
   connue: boolean;
   genre: GenreAction | null;
@@ -54,7 +58,8 @@ export async function resoudreAction(
   let parRedirection = false;
 
   if (action.genre === "navigation" && action.cleRedirection) {
-    const regle = await resolveKey(action.cleRedirection, who);
+    // La journalisation auxiliaire ne doit pas neutraliser la destination cataloguée.
+    const regle = await resolveKey(action.cleRedirection, who).catch(() => ({ matched: false, target: null }));
     if (regle.matched && regle.target) {
       cible = regle.target;
       parRedirection = true;
@@ -66,6 +71,9 @@ export async function resoudreAction(
 
   return {
     code: action.code,
+    moteur: action.moteur,
+    procedure: action.procedure,
+    dependances: action.dependances,
     connue: true,
     genre: action.genre,
     libelle: action.libelle,
@@ -96,7 +104,7 @@ export interface ClicInput {
 export async function signalerClic(
   input: ClicInput,
   who?: { userId?: number; role?: string },
-): Promise<{ recorded: true }> {
+): Promise<{ recorded: true; diagnostic: DiagnosticBouton | null }> {
   const action = actionParCode(input.code);
 
   await reportOutcome(
@@ -110,7 +118,16 @@ export async function signalerClic(
     who,
   );
 
-  if (input.outcome !== "navigated") {
+  const diagnostic =
+    input.outcome === "navigated"
+      ? null
+      : construireDiagnosticBouton({
+          ...input,
+          outcome: input.outcome,
+          action,
+        });
+
+  if (diagnostic) {
     await emitSafe({
       type: "bouton.sans_action",
       source: "boutons",
@@ -123,18 +140,32 @@ export async function signalerClic(
           (action
             ? `Destination « ${input.resolvedTo ?? action.cible ?? "?"} » introuvable.`
             : "Bouton non déclaré au Moteur de boutons."),
+        moteur: diagnostic.moteur,
+        composant: diagnostic.composant,
+        typeErreur: diagnostic.typeErreur,
+        contexte: diagnostic.contexte,
+        route: diagnostic.route ?? "",
+        permission: diagnostic.permission,
+        evenement: diagnostic.evenement,
+        dependance: diagnostic.dependance,
+        elementsTechniques: diagnostic.elementsTechniques.join(" | "),
+        gravite: diagnostic.gravite,
+        actionPossible: diagnostic.actionPossible,
       },
     });
   }
 
-  await heartbeat("boutons", "ok", {
+  await heartbeat("boutons", input.outcome === "navigated" ? "ok" : "degraded", {
     message: `Dernier clic : ${input.code} (${input.outcome}).`,
-  });
+  }).catch(() => undefined);
 
-  return { recorded: true };
+  return { recorded: true, diagnostic };
 }
 
 export interface LigneInventaire {
+  moteur?: string;
+  procedure?: string;
+  dependances?: readonly string[];
   code: string;
   libelle: string;
   ecran: string;
@@ -169,6 +200,9 @@ export function inventaire(): InventaireBoutons {
 
   const ligne = (a: ActionBouton): LigneInventaire => ({
     code: a.code,
+    moteur: a.moteur,
+    procedure: a.procedure,
+    dependances: a.dependances,
     libelle: a.libelle,
     ecran: a.ecran,
     genre: a.genre,

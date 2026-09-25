@@ -178,7 +178,7 @@ export const smartHealthChecks = pgTable("smart_health_checks", {
   page: varchar("page", { length: 255 }).notNull(),
   element: varchar("element", { length: 128 }).notNull(), // "bouton_modifier" | "lien_voir_annonces" | "formulaire_depot" ...
   elementType: varchar("element_type", { length: 32 }).notNull(), // "button" | "link" | "form" | "image"
-  status: varchar("status", { length: 16 }).default("ok"), // "ok" | "broken" | "slow" | "missing"
+  status: varchar("status", { length: 16 }).default("ok"), // "ok" | "broken" | "slow" | "missing" | "archived"
   lastCheckedAt: timestamp("last_checked_at").defaultNow(),
   errorDetails: text("error_details"),
   suggestedFix: text("suggested_fix"),

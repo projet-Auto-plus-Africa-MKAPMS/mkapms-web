@@ -6,7 +6,7 @@
  */
 import { db } from "../../db.js";
 import { smartHealthChecks, smartAlerts } from "../schema.js";
-import { eq, desc, sql, and } from "drizzle-orm";
+import { eq, desc, sql, and, inArray } from "drizzle-orm";
 import { logActivity } from "./activity-log.js";
 import { BOUTONS_SANS_ACTION } from "../../data/boutons-sans-action.js";
 
@@ -20,33 +20,36 @@ interface HealthCheckInput {
 }
 
 export async function reportHealthCheck(input: HealthCheckInput) {
-  // Upsert : mise à jour si même page+element existe déjà
-  const [existing] = await db
-    .select()
-    .from(smartHealthChecks)
-    .where(and(eq(smartHealthChecks.page, input.page), eq(smartHealthChecks.element, input.element)))
-    .limit(1);
+  await db.transaction(async (tx) => {
+    await tx.execute(sql`SELECT pg_advisory_xact_lock(734921)`);
+    // Upsert : mise à jour si même page+element existe déjà
+    const [existing] = await tx
+      .select()
+      .from(smartHealthChecks)
+      .where(and(eq(smartHealthChecks.page, input.page), eq(smartHealthChecks.element, input.element)))
+      .limit(1);
 
-  if (existing) {
-    await db
-      .update(smartHealthChecks)
-      .set({
+    if (existing) {
+      await tx
+        .update(smartHealthChecks)
+        .set({
+          status: input.status,
+          lastCheckedAt: new Date(),
+          errorDetails: input.errorDetails ?? null,
+          suggestedFix: input.suggestedFix ?? null,
+        })
+        .where(eq(smartHealthChecks.id, existing.id));
+    } else {
+      await tx.insert(smartHealthChecks).values({
+        page: input.page,
+        element: input.element,
+        elementType: input.elementType,
         status: input.status,
-        lastCheckedAt: new Date(),
         errorDetails: input.errorDetails ?? null,
         suggestedFix: input.suggestedFix ?? null,
-      })
-      .where(eq(smartHealthChecks.id, existing.id));
-  } else {
-    await db.insert(smartHealthChecks).values({
-      page: input.page,
-      element: input.element,
-      elementType: input.elementType,
-      status: input.status,
-      errorDetails: input.errorDetails ?? null,
-      suggestedFix: input.suggestedFix ?? null,
-    });
-  }
+      });
+    }
+  });
 
   // Si cassé → alerte
   if (input.status === "broken" || input.status === "missing") {
@@ -67,12 +70,16 @@ export async function reportHealthCheck(input: HealthCheckInput) {
   }
 }
 
-export async function getHealthStatus() {
-  const all = await db.select().from(smartHealthChecks).orderBy(desc(smartHealthChecks.lastCheckedAt));
-  const broken = all.filter((h) => h.status === "broken" || h.status === "missing");
-  const slow = all.filter((h) => h.status === "slow");
-  const ok = all.filter((h) => h.status === "ok");
-  return { total: all.length, broken: broken.length, slow: slow.length, ok: ok.length, items: all };
+export async function getHealthStatus(elementTypes?: string[]) {
+  const all = await db.select().from(smartHealthChecks)
+    .where(elementTypes ? inArray(smartHealthChecks.elementType, elementTypes) : undefined)
+    .orderBy(desc(smartHealthChecks.lastCheckedAt));
+  const active = all.filter((h) => h.status !== "archived");
+  const archived = all.filter((h) => h.status === "archived");
+  const broken = active.filter((h) => h.status === "broken" || h.status === "missing");
+  const slow = active.filter((h) => h.status === "slow");
+  const ok = active.filter((h) => h.status === "ok");
+  return { total: active.length, broken: broken.length, slow: slow.length, ok: ok.length, unknown: active.length - broken.length - slow.length - ok.length, archived: archived.length, items: active };
 }
 
 export async function getBrokenElements(limit = 50) {
@@ -95,7 +102,7 @@ export async function getBrokenElements(limit = 50) {
  * table smart_health_checks est écrite ici, avec un élément préfixé
  * "static_L<ligne>" pour ne jamais toucher les lignes seedées par
  * registerCriticalElements(). Idempotent : un bouton toujours mort n'est pas
- * réécrit ; un bouton corrigé (disparu de l'inventaire) repasse à "ok".
+ * réécrit ; un relevé disparu est archivé, sans prétendre prouver une réussite métier.
  */
 /** Deux boutons morts peuvent partager la même ligne (JSX compact) : un compteur par fichier+ligne les distingue sans dépendre de l'ordre du tableau. */
 function elementsUniques(): { fichier: string; ligne: number; libelle: string; element: string }[] {
@@ -165,13 +172,13 @@ export async function syncBoutonsSansAction(): Promise<{ synced: number; resolve
     const errorDetails = `Bouton « ${b.libelle || "(sans texte)"} » sans gestionnaire de clic, sans type submit, hors formulaire soumis (détection statique gen-boutons-sans-action.mjs).`;
 
     const [existing] = await db
-      .select({ id: smartHealthChecks.id, status: smartHealthChecks.status })
+      .select({ id: smartHealthChecks.id, status: smartHealthChecks.status, errorDetails: smartHealthChecks.errorDetails })
       .from(smartHealthChecks)
       .where(and(eq(smartHealthChecks.page, b.fichier), eq(smartHealthChecks.element, element)))
       .limit(1);
 
     if (existing) {
-      if (existing.status !== "broken") {
+      if (existing.status !== "broken" || existing.errorDetails !== errorDetails) {
         await db
           .update(smartHealthChecks)
           .set({ status: "broken", lastCheckedAt: new Date(), errorDetails })
@@ -190,15 +197,8 @@ export async function syncBoutonsSansAction(): Promise<{ synced: number; resolve
     }
   }
 
-  // Un bouton toujours cassé qui a simplement changé de ligne (une modification
-  // ailleurs dans le même fichier décale toutes les lignes suivantes) ne doit
-  // jamais repasser « ok » : son libellé identifie le même bouton réapparu sous
-  // un nouvel élément static_L<ligne>, déjà inséré/mis à jour « broken »
-  // ci-dessus. Sans ce contrôle, l'ancienne ligne se refermait silencieusement
-  // en « ok » — un bouton jamais corrigé se comptait deux fois (une fois
-  // « broken » sous sa ligne actuelle, une fois « ok » sous son ancienne ligne),
-  // gonflant le nombre de boutons « OK » affiché à la direction sans qu'aucun
-  // code n'ait changé.
+  // Réconcilier aussi les anciennes lignes déjà marquées OK : conserver la trace
+  // sans gonfler les compteurs de réussite quand un bouton change de ligne.
   const libellesActuelsParFichier = libellesParFichier(boutons);
 
   const suivis = await db
@@ -209,7 +209,7 @@ export async function syncBoutonsSansAction(): Promise<{ synced: number; resolve
       errorDetails: smartHealthChecks.errorDetails,
     })
     .from(smartHealthChecks)
-    .where(and(sql`${smartHealthChecks.element} LIKE 'static_L%'`, sql`${smartHealthChecks.status} <> 'ok'`));
+    .where(and(sql`${smartHealthChecks.element} LIKE 'static_L%'`, sql`${smartHealthChecks.status} <> 'archived'`));
 
   let resolved = 0;
   let obsoletes = 0;
@@ -217,15 +217,16 @@ export async function syncBoutonsSansAction(): Promise<{ synced: number; resolve
     if (actuels.has(`${s.page}::${s.element}`)) continue;
 
     const deplace = boutonDeplace(s.page, s.errorDetails, libellesActuelsParFichier);
-    if (deplace) {
-      // Toujours cassé ailleurs dans le même fichier : la ligne actuelle porte
-      // déjà l'alerte, cette entrée obsolète est supprimée plutôt que menteuse.
-      await db.delete(smartHealthChecks).where(eq(smartHealthChecks.id, s.id));
-      obsoletes += 1;
-    } else {
-      await db.update(smartHealthChecks).set({ status: "ok", lastCheckedAt: new Date() }).where(eq(smartHealthChecks.id, s.id));
-      resolved += 1;
-    }
+    // L'absence du relevé ne prouve jamais que le parcours métier fonctionne.
+    // Conserver l'historique, sans le compter dans les réussites ni le supprimer.
+    await db.update(smartHealthChecks).set({
+      status: "archived",
+      lastCheckedAt: new Date(),
+      suggestedFix: deplace
+        ? "Relevé déplacé : consulter l'anomalie actuelle du même écran."
+        : "Relevé absent de l'inventaire actuel. Fonctionnement à confirmer par un test du parcours.",
+    }).where(eq(smartHealthChecks.id, s.id));
+    obsoletes += 1;
   }
 
   return { synced, resolved, obsoletes };
@@ -233,38 +234,49 @@ export async function syncBoutonsSansAction(): Promise<{ synced: number; resolve
 
 // Enregistrement initial des éléments critiques à surveiller
 export async function registerCriticalElements() {
-  const elements: HealthCheckInput[] = [
+  const elements: Pick<HealthCheckInput, "page" | "element" | "elementType">[] = [
     // Pages produit officiel
-    { page: "/acheter/mkapms-officiel/vehicule/:id", element: "bouton_modifier", elementType: "button", status: "ok" },
-    { page: "/acheter/mkapms-officiel/vehicule/:id", element: "bouton_prolonger", elementType: "button", status: "ok" },
-    { page: "/acheter/mkapms-officiel/vehicule/:id", element: "bouton_reserver", elementType: "button", status: "ok" },
-    { page: "/acheter/mkapms-officiel/vehicule/:id", element: "lien_voir_annonces", elementType: "link", status: "ok" },
-    { page: "/acheter/mkapms-officiel/vehicule/:id", element: "photos_categorie", elementType: "button", status: "ok" },
-    { page: "/acheter/mkapms-officiel/vehicule/:id", element: "signaler_annonce", elementType: "button", status: "ok" },
+    { page: "/acheter/mkapms-officiel/vehicule/:id", element: "bouton_modifier", elementType: "button" },
+    { page: "/acheter/mkapms-officiel/vehicule/:id", element: "bouton_prolonger", elementType: "button" },
+    { page: "/acheter/mkapms-officiel/vehicule/:id", element: "bouton_reserver", elementType: "button" },
+    { page: "/acheter/mkapms-officiel/vehicule/:id", element: "lien_voir_annonces", elementType: "link" },
+    { page: "/acheter/mkapms-officiel/vehicule/:id", element: "photos_categorie", elementType: "button" },
+    { page: "/acheter/mkapms-officiel/vehicule/:id", element: "signaler_annonce", elementType: "button" },
     // Pages produit pro
-    { page: "/acheter/professionnel/vehicule/:id", element: "bouton_modifier", elementType: "button", status: "ok" },
-    { page: "/acheter/professionnel/vehicule/:id", element: "bouton_prolonger", elementType: "button", status: "ok" },
-    { page: "/acheter/professionnel/vehicule/:id", element: "bouton_appel", elementType: "button", status: "ok" },
-    { page: "/acheter/professionnel/vehicule/:id", element: "bouton_message", elementType: "button", status: "ok" },
-    { page: "/acheter/professionnel/vehicule/:id", element: "lien_voir_annonces", elementType: "link", status: "ok" },
+    { page: "/acheter/professionnel/vehicule/:id", element: "bouton_modifier", elementType: "button" },
+    { page: "/acheter/professionnel/vehicule/:id", element: "bouton_prolonger", elementType: "button" },
+    { page: "/acheter/professionnel/vehicule/:id", element: "bouton_appel", elementType: "button" },
+    { page: "/acheter/professionnel/vehicule/:id", element: "bouton_message", elementType: "button" },
+    { page: "/acheter/professionnel/vehicule/:id", element: "lien_voir_annonces", elementType: "link" },
     // Pages produit particulier
-    { page: "/acheter/particulier/vehicule/:id", element: "bouton_modifier", elementType: "button", status: "ok" },
-    { page: "/acheter/particulier/vehicule/:id", element: "bouton_prolonger", elementType: "button", status: "ok" },
-    { page: "/acheter/particulier/vehicule/:id", element: "bouton_appel", elementType: "button", status: "ok" },
-    { page: "/acheter/particulier/vehicule/:id", element: "bouton_message", elementType: "button", status: "ok" },
-    { page: "/acheter/particulier/vehicule/:id", element: "lien_voir_annonces", elementType: "link", status: "ok" },
+    { page: "/acheter/particulier/vehicule/:id", element: "bouton_modifier", elementType: "button" },
+    { page: "/acheter/particulier/vehicule/:id", element: "bouton_prolonger", elementType: "button" },
+    { page: "/acheter/particulier/vehicule/:id", element: "bouton_appel", elementType: "button" },
+    { page: "/acheter/particulier/vehicule/:id", element: "bouton_message", elementType: "button" },
+    { page: "/acheter/particulier/vehicule/:id", element: "lien_voir_annonces", elementType: "link" },
     // Listing pages
-    { page: "/acheter/mkapms-officiel", element: "barre_recherche", elementType: "form", status: "ok" },
-    { page: "/acheter/professionnel", element: "barre_recherche", elementType: "form", status: "ok" },
-    { page: "/acheter/particulier", element: "barre_recherche", elementType: "form", status: "ok" },
+    { page: "/acheter/mkapms-officiel", element: "barre_recherche", elementType: "form" },
+    { page: "/acheter/professionnel", element: "barre_recherche", elementType: "form" },
+    { page: "/acheter/particulier", element: "barre_recherche", elementType: "form" },
     // Dépôt annonce
-    { page: "/vendre", element: "formulaire_depot", elementType: "form", status: "ok" },
-    { page: "/vendre", element: "upload_photos", elementType: "form", status: "ok" },
+    { page: "/vendre", element: "formulaire_depot", elementType: "form" },
+    { page: "/vendre", element: "upload_photos", elementType: "form" },
   ];
 
-  for (const el of elements) {
-    await reportHealthCheck(el);
-  }
+  // Registering a target is not a successful observation. Preserve every existing
+  // result (including failures and archives), even when initialization repeats.
+  await db.transaction(async (tx) => {
+    await tx.execute(sql`SELECT pg_advisory_xact_lock(734921)`);
+    for (const el of elements) {
+      const [existing] = await tx.select({ id: smartHealthChecks.id })
+        .from(smartHealthChecks)
+        .where(and(eq(smartHealthChecks.page, el.page), eq(smartHealthChecks.element, el.element)))
+        .limit(1);
+      if (!existing) await tx.insert(smartHealthChecks).values({
+        ...el, status: "unknown", lastCheckedAt: null,
+      });
+    }
+  });
 
   return elements.length;
 }

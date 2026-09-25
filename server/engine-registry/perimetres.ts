@@ -40,6 +40,10 @@ export interface PerimetreDeclare {
  * vraie procédure existe bel et bien, juste pas sous son propre nom.
  */
 export const ROUTEURS_PARTAGES: Record<string, string[]> = {
+  identity: ["admin"],
+  document: ["kyc", "admin"],
+  workflow: ["admin"],
+  notification: ["searches"],
   achat_officiel: ["annonces"],
   achat_pro: ["annonces"],
   achat_particulier: ["annonces"],
@@ -70,7 +74,7 @@ export const PERIMETRES: PerimetreDeclare[] = [
   // ── Transversaux fondateurs ────────────────────────────────────────────
   {
     moteur: "identity",
-    dossiers: ["identity-os", "auth.ts", "routers/auth.ts", "routers/kyc.ts", "account-deletion", "user-preferences"],
+    dossiers: ["identity-os", "auth.ts", "routers/auth.ts", "routers/kyc.ts", "modules/kyc-decision.ts", "account-deletion", "user-preferences"],
     routeurs: ["auth", "identity", "kyc", "suppressionCompte", "preferencesUtilisateur"],
     routes: ["/superadmin/identity-os", "/connexion", "/inscription", "/verify-email", "/suppression-compte", "/utilisateurs/*", "/compte", "/compte/*", "/parametres", "/parametres/*", "/mon-espace", "/superadmin/admin-utilisateurs", "/superadmin/admin-securite", "/admin/demandes-suppression", "/confidentialite"],
   },
@@ -95,7 +99,7 @@ export const PERIMETRES: PerimetreDeclare[] = [
   },
   {
     moteur: "notification",
-    dossiers: ["notification-os", "routers/notifications.ts", "services/email.ts"],
+    dossiers: ["notification-os", "routers/notifications.ts", "modules/search-alerts.ts", "services/email.ts"],
     routeurs: ["notifications", "notificationOs"],
     routes: ["/superadmin/notification-os", "/notifications", "/notifications/*"],
   },
@@ -329,7 +333,7 @@ export const PERIMETRES: PerimetreDeclare[] = [
   },
   {
     moteur: "workflow",
-    dossiers: ["modules/operations.ts", "routers/operations.ts"],
+    dossiers: ["modules/hr-direction.ts", "modules/operations.ts", "routers/operations.ts"],
     routeurs: ["governance", "platform", "quality", "hr", "procurement", "investor"],
     routes: ["/operations", "/operations/*", "/superadmin/admin-general", "/superadmin/admin-objectif", "/superadmin/centre-r-h", "/superadmin/admin-employes", "/superadmin/gestion-employes-m-k-a-p-m-s", "/investisseurs/*", "/recrutement", "/recrutement/*", "/corporate", "/corporate/*", "/mission"],
   },

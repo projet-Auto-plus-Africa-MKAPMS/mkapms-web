@@ -1,3 +1,4 @@
+import { staffDirectory, staffPlanning, saveStaffProfile, addStaffTask, cancelStaffTask, staffProfileInput, staffTaskInput } from "../modules/hr-direction.js";
 // Routers transverses Parties 7-18 : litiges, partenaires, entrepôts, pays,
 // fidélité, coffre-fort numérique, dossier véhicule.
 // Base unique : tout est relié aux mêmes users / logs / paiements.
@@ -430,28 +431,46 @@ export const countriesRouter = router({
       return { ok: true };
     }),
 
-  // Partie 19 §4 — objectifs / stats par pays (utilisateurs, annonces, abonnements).
+  // Carte mondiale : données métier réelles, pays normalisés, devises séparées.
   stats: adminProcedure.query(async () => {
-    const usersByCountry = await db
-      .select({ code: sql<string>`coalesce(${users.country}, 'NA')`, c: sql<number>`count(*)::int` })
-      .from(users)
-      .groupBy(sql`coalesce(${users.country}, 'NA')`);
-    const annoncesByCountry = await db
-      .select({ code: sql<string>`coalesce(${annonces.pays}, 'NA')`, c: sql<number>`count(*)::int` })
-      .from(annonces)
-      .groupBy(sql`coalesce(${annonces.pays}, 'NA')`);
-    const countries = await db.select().from(countryConfigs).orderBy(countryConfigs.name);
-    const uMap = new Map(usersByCountry.map((r) => [r.code, r.c]));
-    const aMap = new Map(annoncesByCountry.map((r) => [r.code, r.c]));
-    return countries.map((c) => ({
-      code: c.code,
-      name: c.name,
-      active: c.active,
-      currency: c.currency,
-      users: uMap.get(c.code) ?? 0,
-      annonces: aMap.get(c.code) ?? 0,
-    }));
+    const userCountry = sql<string>`upper(trim(coalesce(${users.country}, '')))`;
+    const annonceCountry = sql<string>`upper(trim(coalesce(${annonces.pays}, '')))`;
+    const [usersByCountry, annoncesByCountry, countries, paid] = await Promise.all([
+      db.select({ code: userCountry, c: sql<number>`count(*)::int` }).from(users).groupBy(userCountry),
+      db.select({ code: annonceCountry, c: sql<number>`count(*)::int` }).from(annonces).groupBy(annonceCountry),
+      db.select().from(countryConfigs).orderBy(countryConfigs.name),
+      db.select({ code: userCountry, currency: payments.currency, amount: sql<string>`sum(${payments.amount})::text`, count: sql<number>`count(*)::int` })
+        .from(payments).leftJoin(users, eq(payments.userId, users.id))
+        .where(eq(payments.status, "paid")).groupBy(userCountry, payments.currency),
+    ]);
+    const codes = new Set([...countries.map(c => c.code.toUpperCase()), ...usersByCountry.map(c => c.code), ...annoncesByCountry.map(c => c.code), ...paid.map(c => c.code)]);
+    return [...codes].map(code => {
+      const config = countries.find(c => c.code.toUpperCase() === code);
+      return {
+        code, name: config?.name ?? (code || "Pays non renseigné"), active: config?.active ?? false,
+        currency: config?.currency ?? null, configured: !!config,
+        users: usersByCountry.find(c => c.code === code)?.c ?? 0,
+        annonces: annoncesByCountry.find(c => c.code === code)?.c ?? 0,
+        encaissements: paid.filter(p => p.code === code).map(p => ({ currency: p.currency, amount: p.amount, count: p.count })),
+      };
+    });
   }),
+
+  activity: adminProcedure
+    .input(z.object({ code: z.string().max(4), usersOffset: z.number().int().min(0).default(0), annoncesOffset: z.number().int().min(0).default(0) }))
+    .query(async ({ input }) => {
+      const code = input.code.trim().toUpperCase();
+      const [accounts, listings] = await Promise.all([
+        db.select({ id: users.id, name: users.name, accountType: users.accountType, createdAt: users.createdAt })
+          .from(users).where(sql`upper(trim(coalesce(${users.country}, ''))) = ${code}`)
+          .orderBy(desc(users.id)).limit(51).offset(input.usersOffset),
+        db.select({ id: annonces.id, titre: annonces.titre, status: annonces.status, createdAt: annonces.createdAt })
+          .from(annonces).where(sql`upper(trim(coalesce(${annonces.pays}, ''))) = ${code}`)
+          .orderBy(desc(annonces.id)).limit(51).offset(input.annoncesOffset),
+      ]);
+      return { accounts: accounts.slice(0, 50), listings: listings.slice(0, 50), moreAccounts: accounts.length > 50, moreListings: listings.length > 50 };
+    }),
+
 });
 
 // ===================== PARTIE 19 — GOUVERNANCE (filiales, sites, franchises) =====================
@@ -937,6 +956,11 @@ export const procurementRouter = router({
 
 // ===================== PARTIE 25 — RH =====================
 export const hrRouter = router({
+  staffDirectory: directionProcedure.query(() => staffDirectory()),
+  staffPlanning: directionProcedure.input(z.object({userId:z.number().int().positive()})).query(({input})=>staffPlanning(input.userId)),
+  saveStaffProfile: directionProcedure.input(staffProfileInput).mutation(({ctx,input})=>saveStaffProfile(ctx.user,input)),
+  addStaffTask: directionProcedure.input(staffTaskInput).mutation(({ctx,input})=>addStaffTask(ctx.user,input)),
+  cancelStaffTask: directionProcedure.input(z.object({id:z.number().int().positive()})).mutation(({ctx,input})=>cancelStaffTask(ctx.user,input.id)),
   records: adminProcedure.query(async () => {
     return db.select().from(hrRecords);
   }),

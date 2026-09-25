@@ -1,3 +1,4 @@
+import { BoutonMoteur } from "../lib/boutonMoteur";
 import { useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { trpc } from "../lib/trpc";
@@ -608,9 +609,9 @@ export default function LocationPro() {
               </div>
             ))}
           </div>
-          <button className="mt-4 rounded-xl bg-blue-800 px-6 py-3 text-sm font-bold text-white active:scale-[0.98] transition shadow-md">
+          <BoutonMoteur code="location_devis_flotte" className="mt-4 inline-block rounded-xl bg-blue-800 px-6 py-3 text-sm font-bold text-white active:scale-[0.98] transition shadow-md">
             Demander un devis flotte
-          </button>
+          </BoutonMoteur>
         </div>
       </div>
 

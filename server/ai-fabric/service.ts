@@ -365,23 +365,60 @@ export const PROVIDER_CATALOG: {
 
 /** Le catalogue est la référence ; la base ne fait que porter l'état constaté. */
 export async function ensureProvidersSeeded(): Promise<number> {
-  const existing = await db.select({ code: afProviders.code }).from(afProviders);
+  const existing = await db.select().from(afProviders);
   const known = new Set(existing.map((r) => r.code));
   const missing = PROVIDER_CATALOG.filter((p) => !known.has(p.code));
-  if (missing.length === 0) return 0;
-  await db.insert(afProviders).values(
-    missing.map((p) => ({
-      code: p.code,
-      label: p.label,
-      capability: p.capability,
-      envKeys: p.envKeys,
-      dataResidency: p.dataResidency,
-      confidentialityMax: p.confidentialityMax,
-      unitCostCents: p.unitCostCents,
-      unitLabel: p.unitLabel,
-      switchingNote: p.switchingNote,
-    })),
-  );
+  if (missing.length > 0) {
+    await db.insert(afProviders).values(
+      missing.map((p) => ({
+        code: p.code,
+        label: p.label,
+        capability: p.capability,
+        envKeys: p.envKeys,
+        dataResidency: p.dataResidency,
+        confidentialityMax: p.confidentialityMax,
+        unitCostCents: p.unitCostCents,
+        unitLabel: p.unitLabel,
+        switchingNote: p.switchingNote,
+      })),
+    );
+  }
+
+  // Le catalogue versionne le contrat de branchement. Jusqu'ici seules les
+  // lignes absentes étaient créées : une ligne déjà présente conservait donc
+  // indéfiniment d'anciennes `envKeys`/capacités. Le routeur pouvait annoncer
+  // un fournisseur configuré alors que provider.ts attendait une autre
+  // variable, puis chaque message échouait au moment de l'appel. On resynchronise
+  // uniquement les métadonnées de contrat ; l'état piloté par la direction,
+  // lastUsedAt et l'historique restent intacts.
+  for (const ligne of existing) {
+    const catalogue = PROVIDER_CATALOG.find((p) => p.code === ligne.code);
+    if (!catalogue) continue;
+    const contratIdentique =
+      ligne.label === catalogue.label &&
+      ligne.capability === catalogue.capability &&
+      JSON.stringify(ligne.envKeys) === JSON.stringify(catalogue.envKeys) &&
+      ligne.dataResidency === catalogue.dataResidency &&
+      ligne.confidentialityMax === catalogue.confidentialityMax &&
+      ligne.unitCostCents === catalogue.unitCostCents &&
+      ligne.unitLabel === catalogue.unitLabel &&
+      ligne.switchingNote === catalogue.switchingNote;
+    if (contratIdentique) continue;
+    await db
+      .update(afProviders)
+      .set({
+        label: catalogue.label,
+        capability: catalogue.capability,
+        envKeys: catalogue.envKeys,
+        dataResidency: catalogue.dataResidency,
+        confidentialityMax: catalogue.confidentialityMax,
+        unitCostCents: catalogue.unitCostCents,
+        unitLabel: catalogue.unitLabel,
+        switchingNote: catalogue.switchingNote,
+        updatedAt: new Date(),
+      })
+      .where(eq(afProviders.id, ligne.id));
+  }
   return missing.length;
 }
 

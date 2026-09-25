@@ -35,6 +35,10 @@ export interface ActionBouton {
   /** Écran où vit le bouton. */
   readonly ecran: string;
   readonly genre: GenreAction;
+  /** Moteur métier responsable et procédure réelle, pour le diagnostic. */
+  readonly moteur?: string;
+  readonly dependances?: readonly string[];
+  readonly procedure?: string;
   /**
    * Destination (`navigation`), gabarit de contact (`appel`, `email`) ou
    * identifiant de document (`document`). Vide pour `formulaire` et
@@ -51,6 +55,33 @@ export interface ActionBouton {
 }
 
 export const ACTIONS_BOUTONS: readonly ActionBouton[] = [
+  { code: "admin_garage_details", libelle: "Détails intervention", ecran: "/superadmin/admin-garage", genre: "formulaire", moteur: "garage", procedure: "garages.adminIntervention", dependances: ["atelier", "identity"] },
+  { code: "admin_garage_terminer", libelle: "terminer intervention", ecran: "/superadmin/admin-garage", genre: "formulaire", moteur: "garage", procedure: "garages.adminAction", dependances: ["atelier", "identity", "notification"] },
+  { code: "admin_garage_annuler", libelle: "annuler intervention", ecran: "/superadmin/admin-garage", genre: "formulaire", moteur: "garage", procedure: "garages.adminAction", dependances: ["atelier", "identity", "notification"] },
+  { code: "admin_garage_archive", libelle: "archive intervention", ecran: "/superadmin/admin-garage", genre: "formulaire", moteur: "garage", procedure: "garages.adminAction", dependances: ["atelier", "identity", "notification"] },
+  { code: "admin_garage_restore", libelle: "restore intervention", ecran: "/superadmin/admin-garage", genre: "formulaire", moteur: "garage", procedure: "garages.adminAction", dependances: ["atelier", "identity", "notification"] },
+  { code: "admin_employes_enregistrer", libelle: "Enregistrer le profil RH", ecran: "/superadmin/admin-employes", genre: "formulaire", moteur: "workflow", procedure: "hr.saveStaffProfile", dependances: ["identity"] },
+  { code: "admin_employes_ajouter_mission", libelle: "Ajouter une mission RH", ecran: "/superadmin/admin-employes", genre: "formulaire", moteur: "workflow", procedure: "hr.addStaffTask", dependances: ["identity"] },
+  { code: "admin_employes_filtrer", libelle: "Filtrer les employés", ecran: "/superadmin/admin-employes", genre: "formulaire", moteur: "workflow", procedure: "hr.staffDirectory", dependances: ["identity"] },
+  { code: "admin_employes_retirer_mission", libelle: "Retirer une mission du planning", ecran: "/superadmin/admin-employes", genre: "formulaire", moteur: "workflow", procedure: "hr.cancelStaffTask", dependances: ["identity"] },
+  { code: "admin_pays_activite", libelle: "Utilisateurs et annonces du pays", ecran: "/superadmin/admin-carte-moniale", genre: "formulaire", moteur: "country", procedure: "countries.activity", dependances: ["identity", "achat", "payment"] },
+  { code: "vehicule_recommandation_favori", libelle: "Ajouter / retirer des favoris", ecran: "/vehicule/:id", genre: "formulaire", moteur: "achat", dependances: ["identity"], procedure: "favoris.set", cible: "favoris.set" },
+  { code: "vente_alerte_creer", libelle: "Créer l’alerte", ecran: "/vente/centre-alertes-recherche", genre: "formulaire", moteur: "search", dependances: ["notification", "vente"], procedure: "searches.create", cible: "searches.create" },
+  { code: "vente_alerte_activer", libelle: "Activer / désactiver", ecran: "/vente/centre-alertes-recherche", genre: "formulaire", moteur: "search", dependances: ["notification", "vente"], procedure: "searches.setAlert", cible: "searches.setAlert" },
+  { code: "admin_employe_ajouter", libelle: "Ajouter un employé", ecran: "/superadmin/gestion-employes-m-k-a-p-m-s", genre: "formulaire", moteur: "identity", dependances: ["permission", "workflow"], procedure: "admin.createStaff", cible: "formulaire_creation_compte" },
+  { code: "admin_employe_enregistrer", libelle: "Créer le compte", ecran: "/superadmin/gestion-employes-m-k-a-p-m-s", genre: "formulaire", moteur: "identity", dependances: ["permission", "workflow"], procedure: "admin.createStaff", cible: "admin.createStaff" },
+  { code: "admin_kyc_valider", libelle: "Valider", ecran: "/superadmin/validation-documents-complete", genre: "formulaire", moteur: "identity", dependances: ["permission", "document"], procedure: "admin.validateKyc", cible: "admin.validateKyc" },
+  { code: "admin_kyc_refuser", libelle: "Refuser", ecran: "/superadmin/validation-documents-complete", genre: "formulaire", moteur: "identity", dependances: ["permission", "document"], procedure: "admin.validateKyc", cible: "admin.validateKyc" },
+  {
+    code: "location_devis_flotte",
+    libelle: "Demander un devis flotte",
+    ecran: "/louer/pro",
+    genre: "navigation",
+    moteur: "location",
+    procedure: "rentalApplications.create → updateStep → submit",
+    cible: "/louer/pro/candidature",
+    cleRedirection: "bouton_location_devis_flotte",
+  },
   // ── Garage — réception, restitution, contrôle ─────────────────────────
   {
     code: "garage_reception_fiche",
@@ -492,6 +523,122 @@ export const ACTIONS_BOUTONS: readonly ActionBouton[] = [
     genre: "navigation",
     cible: "/demarches/plaques-immatriculation",
     cleRedirection: "demarches_ouvrir_plaques_immatriculation",
+  // ── Atelier Pro (/atelier-pro) — hub de l'atelier sur données serveur ──
+  {
+    code: "atelier_intervention_etape",
+    libelle: "Changer l'étape de l'intervention",
+    ecran: "/atelier-pro",
+    genre: "formulaire",
+  },
+  {
+    code: "atelier_stock_mouvement",
+    libelle: "Entrée / sortie de stock",
+    ecran: "/atelier-pro",
+    genre: "formulaire",
+  },
+  {
+    code: "atelier_ouvrir_planning",
+    libelle: "Ouvrir le planning atelier",
+    ecran: "/atelier-pro",
+    genre: "navigation",
+    cible: "/garage/planning-atelier",
+    cleRedirection: "bouton_atelier_planning",
+  },
+  {
+    code: "atelier_ouvrir_stock",
+    libelle: "Gérer le stock de pièces",
+    ecran: "/atelier-pro",
+    genre: "navigation",
+    cible: "/garage/stock-pieces",
+    cleRedirection: "bouton_garage_stock",
+  },
+  {
+    code: "atelier_ouvrir_reappro",
+    libelle: "Réapprovisionnement",
+    ecran: "/atelier-pro",
+    genre: "navigation",
+    cible: "/garage/commandes-automatiques",
+    cleRedirection: "bouton_atelier_reappro",
+  },
+  {
+    code: "atelier_ouvrir_catalogue",
+    libelle: "Catalogue technique",
+    ecran: "/atelier-pro",
+    genre: "navigation",
+    cible: "/catalogue-technique",
+    cleRedirection: "bouton_atelier_catalogue",
+  },
+  {
+    code: "atelier_ouvrir_pieces",
+    libelle: "Rechercher une pièce",
+    ecran: "/atelier-pro",
+    genre: "navigation",
+    cible: "/garage/recherche-pieces",
+    cleRedirection: "bouton_atelier_pieces",
+  },
+  {
+    code: "atelier_client_appeler",
+    libelle: "Appeler le client",
+    ecran: "/atelier-pro",
+    genre: "appel",
+  },
+  {
+    code: "atelier_client_ecrire",
+    libelle: "Écrire au client",
+    ecran: "/atelier-pro",
+    genre: "email",
+  },
+  {
+    code: "atelier_devis_garage",
+    libelle: "Devis émis par l'atelier",
+    ecran: "/atelier-pro",
+    genre: "non_branchee",
+    manque:
+      "Les demandes de devis (devis_garage_requests) sont déposées par les clients sans garage destinataire : aucun devis n'est encore rattaché à un garage côté serveur, l'atelier ne peut donc ni lister ni émettre de devis.",
+  },
+  {
+    code: "atelier_factures",
+    libelle: "Factures de l'atelier",
+    ecran: "/atelier-pro",
+    genre: "non_branchee",
+    manque:
+      "Aucune facture d'atelier n'est émise côté serveur : les interventions garage n'ont ni montant facturé ni document rattaché, seul leur suivi d'étape est enregistré.",
+  },
+  {
+    code: "atelier_ordres_reparation",
+    libelle: "Ordres de réparation",
+    ecran: "/atelier-pro",
+    genre: "non_branchee",
+    manque:
+      "Aucune table d'ordre de réparation côté serveur : l'intervention est suivie par étape (rdv_garage) mais sans ordre signé, photos de réception ni lignes de travaux.",
+  },
+  {
+    code: "atelier_employes",
+    libelle: "Équipe de l'atelier",
+    ecran: "/atelier-pro",
+    genre: "non_branchee",
+    manque:
+      "Aucune table d'employés ou de mécaniciens rattachés à un garage côté serveur : impossible d'affecter une intervention ou de lire un planning par employé.",
+  },
+  {
+    code: "catalogue_technique_rechercher",
+    libelle: "Identifier le véhicule (plaque / VIN)",
+    ecran: "/catalogue-technique",
+    genre: "formulaire",
+  },
+  {
+    code: "catalogue_technique_commander_piece",
+    libelle: "Commander la pièce dans l'univers Pièces",
+    ecran: "/catalogue-technique",
+    genre: "navigation",
+    cible: "/garage/recherche-pieces",
+    cleRedirection: "bouton_atelier_pieces",
+  },
+  {
+    code: "catalogue_technique_imprimer_couples",
+    libelle: "Imprimer les couples de serrage",
+    ecran: "/catalogue-technique",
+    genre: "document",
   },
 ];
 

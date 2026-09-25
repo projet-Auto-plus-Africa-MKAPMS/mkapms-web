@@ -2356,13 +2356,13 @@ function BadgesTab() {
    ═══════════════════════════════════════════════════════════ */
 function SanteTab() {
   const { data, isLoading } = trpc.smartEngine.healthStatus.useQuery();
-  const [statusFilter, setStatusFilter] = useState<"ok" | "broken" | "slow" | null>(null);
+  const [statusFilter, setStatusFilter] = useState<"ok" | "broken" | "slow" | "unknown" | null>(null);
 
   if (isLoading) return <Loading />;
   if (!data) return <Empty msg="Aucune donnée de santé" />;
 
-  const items = statusFilter ? data.items.filter((h: any) => h.status === statusFilter) : data.items;
-  const toggle = (s: "ok" | "broken" | "slow") => setStatusFilter((cur) => (cur === s ? null : s));
+  const items = statusFilter ? data.items.filter((h: any) => statusFilter === "broken" ? ["broken", "missing"].includes(h.status) : statusFilter === "unknown" ? !["ok", "broken", "missing", "slow"].includes(h.status) : h.status === statusFilter) : data.items;
+  const toggle = (s: "ok" | "broken" | "slow" | "unknown") => setStatusFilter((cur) => (cur === s ? null : s));
 
   return (
     <div className="space-y-3">
@@ -2374,11 +2374,13 @@ function SanteTab() {
           </button>
         )}
       </div>
-      <div className="grid grid-cols-3 gap-2">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
         <StatCard label="OK" value={data.ok} color="green" icon={CheckCircle2} onClick={() => toggle("ok")} active={statusFilter === "ok"} />
         <StatCard label="Cassés" value={data.broken} color="red" icon={XCircle} onClick={() => toggle("broken")} active={statusFilter === "broken"} />
         <StatCard label="Lents" value={data.slow} color="yellow" icon={Clock} onClick={() => toggle("slow")} active={statusFilter === "slow"} />
+        <StatCard label="Non évalués" value={data.unknown} color="yellow" icon={Clock} onClick={() => toggle("unknown")} active={statusFilter === "unknown"} />
       </div>
+      <p className="text-xs text-slate-600">{data.archived} anciens relevés archivés, exclus des compteurs. Une détection statique ne remplace pas un test du parcours.</p>
       {statusFilter && items.length === 0 && <Empty msg="Aucun élément dans cette catégorie" />}
       <div className="space-y-2">
         {items.map((h: any) => (
@@ -2389,7 +2391,7 @@ function SanteTab() {
                 <p className="text-[10px] text-[#6B7280]">{h.page}</p>
               </div>
               <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${h.status === "ok" ? "bg-emerald-100 text-emerald-700" : h.status === "broken" ? "bg-red-100 text-red-700" : "bg-orange-100 text-orange-700"}`}>
-                {h.status}
+                {h.status === "unknown" ? "Non évalué" : h.status}
               </span>
             </div>
             {h.errorDetails && <p className="mt-1 text-[10px] text-red-600">{h.errorDetails}</p>}
