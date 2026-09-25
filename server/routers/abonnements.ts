@@ -1,7 +1,7 @@
 import { z } from "zod";
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq, gte, sql } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
-import { router, publicProcedure, protectedProcedure } from "../trpc.js";
+import { router, publicProcedure, protectedProcedure, adminProcedure } from "../trpc.js";
 import { db } from "../db.js";
 import { subscriptions, payments, kycProfiles, users } from "../schema.js";
 import { ALL_PLANS, getPlan } from "@shared/plans.js";
@@ -159,5 +159,70 @@ export const abonnementsRouter = router({
         return_url: returnUrl,
       });
       return { url: session.url };
+    }),
+
+  // ─── Back-office (superadmin/AdminAbonnements.tsx) ─────────────────────
+  // Changer un statut ou un montant ici modifierait la base sans jamais
+  // toucher le vrai abonnement Stripe — la gestion (annulation, changement
+  // de plan) reste au client via openPortal, jamais imitée côté admin.
+  adminList: adminProcedure
+    .input(z.object({ status: z.enum(["pending", "active", "cancelled", "past_due", "expired"]).optional() }).default({}))
+    .query(async ({ input }) => {
+      const conds = input.status ? [eq(subscriptions.status, input.status)] : [];
+      return db
+        .select({
+          id: subscriptions.id,
+          userId: subscriptions.userId,
+          userName: users.name,
+          userEmail: users.email,
+          planCode: subscriptions.planCode,
+          category: subscriptions.category,
+          status: subscriptions.status,
+          amount: subscriptions.amount,
+          currency: subscriptions.currency,
+          currentPeriodEnd: subscriptions.currentPeriodEnd,
+          createdAt: subscriptions.createdAt,
+          quotaAnnonces: subscriptions.quotaAnnonces,
+          quotaPhotos: subscriptions.quotaPhotos,
+          quotaVehicules: subscriptions.quotaVehicules,
+          quotaEmployes: subscriptions.quotaEmployes,
+        })
+        .from(subscriptions)
+        .leftJoin(users, eq(users.id, subscriptions.userId))
+        .where(conds.length ? and(...conds) : undefined)
+        .orderBy(desc(subscriptions.createdAt))
+        .limit(200);
+    }),
+
+  adminStats: adminProcedure.query(async () => {
+    const debutMois = new Date();
+    debutMois.setDate(1);
+    debutMois.setHours(0, 0, 0, 0);
+    const [actifs] = await db.select({ n: sql<number>`count(*)::int` }).from(subscriptions).where(eq(subscriptions.status, "active"));
+    const [expires] = await db.select({ n: sql<number>`count(*)::int` }).from(subscriptions).where(eq(subscriptions.status, "expired"));
+    const [nouveaux] = await db.select({ n: sql<number>`count(*)::int` }).from(subscriptions).where(gte(subscriptions.createdAt, debutMois));
+    const mrrParDevise = await db
+      .select({ currency: subscriptions.currency, total: sql<string>`coalesce(sum(${subscriptions.amount}), 0)` })
+      .from(subscriptions)
+      .where(eq(subscriptions.status, "active"))
+      .groupBy(subscriptions.currency);
+    return { actifs: actifs?.n ?? 0, expires: expires?.n ?? 0, nouveauxCeMois: nouveaux?.n ?? 0, mrrParDevise };
+  }),
+
+  // Historique de facturation réel d'un abonnement — jamais un montant recalculé.
+  adminHistory: adminProcedure
+    .input(z.object({ subscriptionId: z.number() }))
+    .query(async ({ input }) => {
+      return db
+        .select({
+          id: payments.id,
+          amount: payments.amount,
+          currency: payments.currency,
+          status: payments.status,
+          createdAt: payments.createdAt,
+        })
+        .from(payments)
+        .where(eq(payments.subscriptionId, input.subscriptionId))
+        .orderBy(desc(payments.createdAt));
     }),
 });
