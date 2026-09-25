@@ -1162,6 +1162,12 @@ export const users = pgTable("users", {
   reviewCount: integer("review_count").notNull().default(0),
   logoUrl: text("logo_url"),
   horaires: text("horaires"),
+  /** userStatusEnum était déclaré mais jamais posé sur une colonne — aucune
+   * suspension de compte n'était donc réellement possible. Vérifiée à
+   * chaque requête authentifiée (server/trpc.ts) : un compte suspendu ou
+   * supprimé perd l'accès immédiatement, pas seulement à la prochaine
+   * connexion. */
+  status: userStatusEnum("status").notNull().default("active"),
 });
 
 export const vehicleAvailabilitySubscriptions = pgTable("vehicle_availability_subscriptions", {
