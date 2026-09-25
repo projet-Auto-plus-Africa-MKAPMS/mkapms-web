@@ -370,7 +370,7 @@ function RapportTab({ onNavigate }: { onNavigate: (t: Tab) => void }) {
       <div className="grid grid-cols-3 gap-2">
         <StatCard label="Anomalies" value={data.summary.anomalies} color="orange" icon={AlertTriangle} onClick={() => onNavigate("etat")} />
         <StatCard label="Critiques" value={data.summary.criticalAnomalies} color="red" icon={XCircle} onClick={() => onNavigate("alertes")} />
-        <StatCard label="Propositions" value={data.summary.suggestions} color="blue" icon={Lightbulb} onClick={() => onNavigate("optimisation")} />
+        <StatCard label="Propositions" value={data.summary.suggestions} color="blue" icon={Lightbulb} onClick={() => document.getElementById("propositions-amelioration")?.scrollIntoView({ behavior: "smooth", block: "start" })} />
         <StatCard label="Éléments cassés" value={data.summary.brokenElements} color="red" icon={FileWarning} onClick={() => onNavigate("sante")} />
         <StatCard label="Alertes ouvertes" value={data.summary.openAlerts} color="orange" icon={Shield} onClick={() => onNavigate("alertes")} />
         <StatCard label="Score qualité" value={data.summary.qualityScore} color="green" icon={Gauge} onClick={() => onNavigate("qualite")} />
@@ -420,8 +420,14 @@ function RapportTab({ onNavigate }: { onNavigate: (t: Tab) => void }) {
         )}
       </div>
 
-      {/* Propositions d'amélioration */}
-      <div className="space-y-2">
+      {/* Propositions d'amélioration — même liste que celle comptée par la
+          carte "Propositions" ci-dessus : ce ne sont pas les propositions
+          d'Évolution autonome (table smart_staging), un système de décision
+          PDG séparé. La carte pointait à tort vers cet autre écran, où le
+          nombre affiché ne correspondait jamais à ce compteur ni ne changeait
+          quand une décision y était prise — corrigé pour rester sur la même
+          liste que celle réellement comptée. */}
+      <div id="propositions-amelioration" className="space-y-2 scroll-mt-4">
         <h3 className="text-sm font-bold text-[#111]">Propositions d'amélioration</h3>
         {data.suggestions.length === 0 ? (
           <div className="rounded-xl border border-[#E5E7EB] bg-white p-3 text-xs text-[#9CA3AF]">
