@@ -2116,6 +2116,19 @@ export const LIVRAISONS: Livraison[] = [
       "Vérifié directement contre la base réelle (server/routers/__tests__/abonnements-admin.test.ts, 6/6) : les compteurs actifs/expirés reflètent les statuts réels, le MRR EUR correspond exactement au montant du seul abonnement actif inséré, la liste filtrée par statut n'inclut jamais un abonnement d'un autre statut, le nom du client est bien joint depuis users, et l'historique ne renvoie que le paiement réellement lié à cet abonnement (jamais un paiement d'un autre abonnement ou d'un autre type). Vérifié en TypeScript strict. Compteur de boutons sans action : 56 → 53. npm run build vert de bout en bout.\n\nCette tâche fait partie d'un lot de reconnexion plus large (tâche #55, ~19 écrans encore fabriqués recensés par l'audit externe du 24 septembre) — traité un écran à la fois, jamais en bloc, pour permettre une vérification réelle de chacun.",
     domaine: "confiance",
   },
+  {
+    cle: "admin-objectif-indicateurs-reels-plus-cible-direction",
+    titre: "AdminObjectif.tsx : 6 indicateurs fabriqués remplacés par un calcul réel, la cible restant une décision de la Direction",
+    moteurs: ["workflow"],
+    quoi:
+      "AdminObjectif.tsx affichait 6 indicateurs 100% fabriqués (CA mensuel, nouveaux inscrits, taux rétention, annonces actives, NPS, temps réponse support) avec une valeur ACTUELLE et une CIBLE toutes deux inventées. Les deux ne se traitent pas pareil : nouveau routeur server/routers/objectifs.ts avec list (calcule l'actuel en direct depuis les données réelles — payments pour le CA mensuel du mois en cours par devise, users pour les nouveaux inscrits, annonces pour les annonces publiées, support_tickets pour le temps de réponse moyen via respondedAt-createdAt — jamais stocké, toujours recalculé) et setCible (adminProcedure, persiste la cible fixée par un agent dans la nouvelle table objectifsPlateforme, NULL tant qu'elle n'a jamais été réglée).\n\nDeux indicateurs de la maquette (taux de rétention, NPS) n'ont aucune méthode de calcul réelle dans le dépôt aujourd'hui : pas de cohortes de réactivation pour la rétention, pas de question 0-10 « recommanderiez-vous » pour un vrai NPS (le système d'avis existant note de 1 à 5, une échelle différente qu'on ne peut pas convertir honnêtement en NPS). Affichés « Non mesuré » plutôt qu'approximés par une autre donnée disponible.",
+    pourquoi:
+      "Un CA mensuel ou un taux de rétention inventés auraient pu orienter une vraie décision de pilotage — le même risque déjà traité sur ComptaDirigeant.tsx, TableauBordLoueur.tsx et AdminAbonnements.tsx dans ce chantier. Convertir une note sur 5 en un NPS sur une échelle 0-10 aurait été une fabrication déguisée en calcul : plus trompeur qu'une case vide, puisqu'un chiffre présenté comme réel invite à lui faire confiance.",
+    ou: ["server/schema.ts", "drizzle/0140_objectifs_plateforme.sql", "server/routers/objectifs.ts", "server/router.ts", "server/engine-registry/perimetres.ts", "client/src/pages/superadmin/AdminObjectif.tsx"],
+    lecon:
+      "Vérifié directement contre la base réelle (server/routers/__tests__/objectifs.test.ts, 6/6) : le CA mensuel reflète exactement le paiement réel du mois en cours, les annonces actives comptent l'annonce publiée insérée, le temps de réponse support calcule un vrai écart en heures depuis un ticket réel avec réponse, taux_retention et nps restent explicitement nonMesure=true avec actuel=null (jamais approximés), et une cible fixée par un admin est bien persistée et relue à l'appel suivant. node scripts/check-migrations.mjs : 139 migrations, ordre cohérent. Compteur de boutons sans action : 53 → 52. npm run build vert de bout en bout.",
+    domaine: "confiance",
+  },
 ];
 
 /**

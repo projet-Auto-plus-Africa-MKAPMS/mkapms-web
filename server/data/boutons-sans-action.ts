@@ -60,7 +60,6 @@ export const BOUTONS_SANS_ACTION: readonly BoutonSansAction[] = [
   { fichier: "client/src/pages/ReservationRecurrente.tsx", ligne: 76, libelle: "Modifier" },
   { fichier: "client/src/pages/ReservationRecurrente.tsx", ligne: 106, libelle: "Choisir un véhicule →" },
   { fichier: "client/src/pages/superadmin/AdminBadges.tsx", ligne: 36, libelle: "Gerer criteres" },
-  { fichier: "client/src/pages/superadmin/AdminObjectif.tsx", ligne: 35, libelle: "Modifier objectif" },
   { fichier: "client/src/pages/superadmin/AdminPaiements.tsx", ligne: 216, libelle: "Relancer" },
   { fichier: "client/src/pages/superadmin/AdminStatistiques.tsx", ligne: 40, libelle: "Voir rapport complet" },
   { fichier: "client/src/pages/superadmin/AdminUtilisateurs.tsx", ligne: 90, libelle: "" },

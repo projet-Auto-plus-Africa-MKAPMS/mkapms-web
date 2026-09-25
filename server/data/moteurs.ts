@@ -102,12 +102,12 @@ export interface PerimetreMoteur {
 export const MOTEURS_TOTAL = 94;
 export const MANQUES_TOTAL = 509;
 export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
-  "ecran_sans_contenu": 340,
+  "ecran_sans_contenu": 341,
   "dependance_non_declaree": 50,
   "sans_logique_serveur": 10,
   "sans_ecran": 8,
   "dependance_sans_preuve": 39,
-  "bouton_sans_action": 54,
+  "bouton_sans_action": 53,
   "bouton_declare_absent_ecran": 6,
   "emission_dynamique": 2
 };
@@ -6652,6 +6652,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "modules",
       "newsletter_subscribers",
       "notifications",
+      "objectifs_plateforme",
       "parts_catalog",
       "parts_compatibility",
       "parts_invoices",
@@ -23811,7 +23812,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "dossiers": [
       "modules/hr-direction.ts",
       "modules/operations.ts",
-      "routers/operations.ts"
+      "routers/operations.ts",
+      "routers/objectifs.ts"
     ],
     "routeurs": [
       "governance",
@@ -23819,9 +23821,10 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "quality",
       "hr",
       "procurement",
-      "investor"
+      "investor",
+      "objectifs"
     ],
-    "fichiersServeur": 3,
+    "fichiersServeur": 4,
     "dependancesDeclarees": [
       "audit",
       "core",
@@ -23861,11 +23864,12 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "client/src/pages/superadmin/GestionEmployesMKAPMS.tsx embarque lib/boutonMoteur.tsx (trpc.buttonEngine)"
       ],
       "core": [
-        "routers/operations.ts importe trpc.ts",
-        "routers/operations.ts importe db.ts",
-        "routers/operations.ts importe schema.ts"
+        "routers/objectifs.ts importe trpc.ts",
+        "routers/objectifs.ts importe db.ts",
+        "routers/objectifs.ts importe schema.ts"
       ],
       "identity": [
+        "routers/objectifs.ts exige une session Identity (procédure protégée)",
         "routers/operations.ts exige une session Identity (procédure protégée)"
       ],
       "notification": [
@@ -23873,6 +23877,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routers/operations.ts déclenche notifyEvent"
       ],
       "permission": [
+        "routers/objectifs.ts filtre par rôle (procédure pro/admin/direction/PDG)",
         "routers/operations.ts filtre par rôle (procédure pro/admin/direction/PDG)"
       ]
     },
@@ -24346,11 +24351,11 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/superadmin/admin-objectif"
         ],
-        "cliquables": 2,
+        "cliquables": 1,
         "parMoteur": 0,
-        "sansAction": 1,
-        "textes": 10,
-        "mots": 21
+        "sansAction": 0,
+        "textes": 4,
+        "mots": 34
       },
       {
         "fichier": "client/src/pages/superadmin/CentreRH.tsx",
@@ -24452,6 +24457,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "saveStaffProfile",
       "setActive",
       "setCenterActive",
+      "setCible",
       "setFranchiseStatus",
       "setKartStatus",
       "setMaintenance",
@@ -24501,8 +24507,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "direction",
       "public"
     ],
-    "textes": 252,
-    "mots": 755,
+    "textes": 246,
+    "mots": 768,
     "battement": "sonde",
     "manques": [
       {
@@ -24622,8 +24628,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "detail": "client/src/pages/recrutement/RechercheTalents.tsx (3 texte(s))"
       },
       {
-        "genre": "bouton_sans_action",
-        "detail": "« Modifier objectif » client/src/pages/superadmin/AdminObjectif.tsx:35"
+        "genre": "ecran_sans_contenu",
+        "detail": "client/src/pages/superadmin/AdminObjectif.tsx (4 texte(s))"
       },
       {
         "genre": "dependance_non_declaree",

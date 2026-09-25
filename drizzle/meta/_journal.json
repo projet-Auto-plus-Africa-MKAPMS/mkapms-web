@@ -967,6 +967,13 @@
       "when": 1788404829000,
       "tag": "0139_hr_staff_planning",
       "breakpoints": true
+    },
+    {
+      "idx": 138,
+      "version": "7",
+      "when": 1788404830000,
+      "tag": "0140_objectifs_plateforme",
+      "breakpoints": true
     }
   ]
 }
