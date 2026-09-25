@@ -1,23 +1,40 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { ChevronLeft, Euro, ArrowDown, ArrowUp, AlertCircle, ChevronDown, Check, Clock, ShieldCheck, X } from "lucide-react";
+import { ChevronLeft, Euro, ArrowDown, AlertCircle, ChevronDown, Check, Clock, ShieldCheck, X, RotateCcw } from "lucide-react";
 import { DocumentView, buildFactureData } from "../../components/DocumentPDF";
 import { trpc } from "../../lib/trpc";
+import type { inferRouterOutputs } from "@trpc/server";
+import type { AppRouter } from "@server/router.js";
 
-const PAIEMENTS = [
-  { id: 1, ref: "PAY-20250609-001", client: "Garage Auto 93", montant: "89 EUR", type: "abonnement", statut: "reussi", date: "09/06/2025 14:32", methode: "Carte bancaire", plan: "Pro Premium" },
-  { id: 2, ref: "PAY-20250609-002", client: "Martin D.", montant: "24.90 EUR", type: "boost", statut: "reussi", date: "09/06/2025 12:15", methode: "Carte bancaire", plan: "Premium 30j" },
-  { id: 3, ref: "PAY-20250609-003", client: "LuxDrive VTC", montant: "249.99 EUR", type: "abonnement", statut: "reussi", date: "09/06/2025 10:00", methode: "Prelevement", plan: "VTC Max" },
-  { id: 4, ref: "PAY-20250608-004", client: "Sophie L.", montant: "6.90 EUR", type: "boost", statut: "echoue", date: "08/06/2025 22:45", methode: "Carte bancaire", plan: "Boost 7j" },
-  { id: 5, ref: "PAY-20250608-005", client: "Carrosserie SD", montant: "99 EUR", type: "abonnement", statut: "reussi", date: "08/06/2025 09:00", methode: "Prelevement", plan: "Garage Elite" },
-  { id: 6, ref: "PAY-20250607-006", client: "Ahmed K.", montant: "5.90 EUR", type: "pack_photos", statut: "rembourse", date: "07/06/2025 16:20", methode: "Carte bancaire", plan: "Pack 5 photos" },
-];
+/* ══════════════════════════════════════════════════════════════════════════
+   GESTION PAIEMENTS (superadmin)
+   Données réelles : trpc.admin.paymentsList/paymentsStats (server/routers/
+   admin.ts), qui lisent la table payments jointe à users pour le vrai nom du
+   client. "Relancer" envoie une vraie notification in-app au client
+   (admin.relancerPaiement) — jamais une nouvelle session Stripe recréée à
+   partir d'un identifiant deviné : l'audit externe du 24 septembre a signalé
+   ce risque précis (ne jamais réutiliser un identifiant de paiement de
+   démonstration pour une relance). La référence affichée est soit le vrai
+   identifiant Stripe de la transaction, soit l'id interne réel du paiement —
+   jamais une référence "PAY-20250609-001" inventée.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+const STATUT_LABEL: Record<string, string> = { paid: "réussi", failed: "échoué", refunded: "remboursé", pending: "en attente", cancelled: "annulé" };
+const STATUT_STYLE: Record<string, string> = {
+  paid: "bg-green-50 text-green-700", failed: "bg-red-50 text-red-700", refunded: "bg-amber-50 text-amber-700", pending: "bg-slate-100 text-slate-600", cancelled: "bg-slate-100 text-slate-600",
+};
+
+type Paiement = inferRouterOutputs<AppRouter>["admin"]["paymentsList"][number];
+
+function reference(p: Paiement) {
+  return p.stripePaymentIntentId || `PAY-${p.id}`;
+}
 
 export default function AdminPaiements() {
   const [expanded, setExpanded] = useState<number | null>(null);
-  const [filter, setFilter] = useState<string>("tous");
-  const [viewFacture, setViewFacture] = useState<typeof PAIEMENTS[0] | null>(null);
-  const [selectedPaiement, setSelectedPaiement] = useState<typeof PAIEMENTS[0] | null>(null);
+  const [filter, setFilter] = useState<"tous" | "paid" | "failed" | "refunded" | "pending">("tous");
+  const [viewFacture, setViewFacture] = useState<Paiement | null>(null);
+  const [selectedPaiement, setSelectedPaiement] = useState<Paiement | null>(null);
   const [showAudit, setShowAudit] = useState(false);
   const audit = trpc.paymentEngine.audit.useQuery(undefined, { enabled: showAudit });
   const [showRegistry, setShowRegistry] = useState(false);
@@ -27,7 +44,15 @@ export default function AdminPaiements() {
     onSuccess: () => utils.paymentEngine.productsAll.invalidate(),
   });
 
-  const filtered = filter === "tous" ? PAIEMENTS : PAIEMENTS.filter((p) => p.statut === filter);
+  const statsQ = trpc.admin.paymentsStats.useQuery();
+  const listQ = trpc.admin.paymentsList.useQuery({ limit: 100, status: filter === "tous" ? undefined : filter });
+  const relancer = trpc.admin.relancerPaiement.useMutation({
+    onSuccess: () => { setActionDone("Notification envoyée au client"); setTimeout(() => setActionDone(null), 2500); },
+    onError: (e) => alert(e.message),
+  });
+  const [actionDone, setActionDone] = useState<string | null>(null);
+
+  const paiements = listQ.data ?? [];
 
   return (
     <div className="min-h-screen bg-[#F5F3EF] pb-24">
@@ -47,6 +72,12 @@ export default function AdminPaiements() {
           <Euro size={14} className="text-[#D4AF37]" /> Registre produits & tarifs (prix serveur)
         </button>
       </div>
+
+      {actionDone && (
+        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[100] rounded-xl bg-green-600 text-white px-5 py-2.5 text-sm font-bold shadow-lg flex items-center gap-2">
+          <Check size={16} /> {actionDone}
+        </div>
+      )}
 
       {showRegistry && (
         <div className="fixed inset-0 z-[70] flex items-end justify-center bg-black/60" onClick={() => setShowRegistry(false)}>
@@ -160,14 +191,14 @@ export default function AdminPaiements() {
       {/* Stats grille */}
       <div className="px-4 mt-4 grid grid-cols-2 gap-2">
         {[
-          { id: "reussi", l: "CA du jour", v: "4 230 EUR", icon: ArrowDown, c: "text-green-500", bg: "bg-green-50" },
-          { id: "reussi", l: "CA du mois", v: "198 450 EUR", icon: Euro, c: "text-[#D4AF37]", bg: "bg-[#D4AF37]/10" },
-          { id: "echoue", l: "Echoues", v: "3", icon: AlertCircle, c: "text-red-500", bg: "bg-red-50" },
-          { id: "rembourse", l: "En attente", v: "7", icon: Clock, c: "text-amber-500", bg: "bg-amber-50" },
-        ].map((s) => {
+          { id: "paid" as const, l: "CA du jour", v: statsQ.data ? `${Number(statsQ.data.caJourEur).toLocaleString("fr-FR")} EUR` : "—", icon: ArrowDown, c: "text-green-500", bg: "bg-green-50" },
+          { id: "paid" as const, l: "CA du mois", v: statsQ.data ? `${Number(statsQ.data.caMoisEur).toLocaleString("fr-FR")} EUR` : "—", icon: Euro, c: "text-[#D4AF37]", bg: "bg-[#D4AF37]/10" },
+          { id: "failed" as const, l: "Échoués", v: statsQ.data ? String(statsQ.data.echoues) : "—", icon: AlertCircle, c: "text-red-500", bg: "bg-red-50" },
+          { id: "pending" as const, l: "En attente", v: statsQ.data ? String(statsQ.data.enAttente) : "—", icon: Clock, c: "text-amber-500", bg: "bg-amber-50" },
+        ].map((s, i) => {
           const Icon = s.icon;
           return (
-            <button key={s.l} onClick={() => setFilter(s.id)} className={`rounded-xl bg-white border p-3 flex items-center gap-3 active:scale-[0.97] ${filter === s.id ? "border-[#D4AF37] ring-1 ring-[#D4AF37]" : "border-[#E5E7EB]"}`}>
+            <button key={i} onClick={() => setFilter(s.id)} className={`rounded-xl bg-white border p-3 flex items-center gap-3 active:scale-[0.97] ${filter === s.id ? "border-[#D4AF37] ring-1 ring-[#D4AF37]" : "border-[#E5E7EB]"}`}>
               <div className={`h-9 w-9 rounded-lg ${s.bg} grid place-items-center`}><Icon size={16} className={s.c} /></div>
               <div className="text-left"><p className="text-[10px] text-[#6B7280]">{s.l}</p><p className={`text-sm font-black ${s.c}`}>{s.v}</p></div>
             </button>
@@ -177,45 +208,50 @@ export default function AdminPaiements() {
 
       {/* Filtres */}
       <div className="px-4 mt-3 flex gap-2">
-        {["tous", "reussi", "echoue", "rembourse"].map((f) => (
+        {(["tous", "paid", "failed", "refunded"] as const).map((f) => (
           <button key={f} onClick={() => setFilter(f)} className={`rounded-full px-3 py-1 text-xs font-bold ${filter === f ? "bg-[#111] text-[#D4AF37]" : "bg-white text-[#6B7280] border border-[#E5E7EB]"}`}>
-            {f === "tous" ? "Tous" : f === "reussi" ? "Reussis" : f === "echoue" ? "Echoues" : "Rembourses"}
+            {f === "tous" ? "Tous" : f === "paid" ? "Réussis" : f === "failed" ? "Échoués" : "Remboursés"}
           </button>
         ))}
       </div>
 
       {/* Liste paiements */}
       <div className="px-4 mt-3 space-y-2">
-        {filtered.map((p) => {
+        {listQ.isLoading && <p className="text-center text-xs text-[#9CA3AF] py-8">Chargement…</p>}
+        {!listQ.isLoading && paiements.length === 0 && <p className="text-center text-xs text-[#9CA3AF] py-8">Aucun paiement trouvé.</p>}
+        {paiements.map((p) => {
           const isExp = expanded === p.id;
           return (
             <div key={p.id} className="rounded-xl bg-white border border-[#E5E7EB] overflow-hidden">
               <button onClick={() => setExpanded(isExp ? null : p.id)} className="w-full text-left p-3 flex items-center gap-3">
-                <div className={`h-8 w-8 rounded-full grid place-items-center ${p.statut === "reussi" ? "bg-green-50" : p.statut === "echoue" ? "bg-red-50" : "bg-amber-50"}`}>
-                  {p.statut === "reussi" ? <Check size={14} className="text-green-600" /> : p.statut === "echoue" ? <AlertCircle size={14} className="text-red-500" /> : <ArrowUp size={14} className="text-amber-500" />}
+                <div className={`h-8 w-8 rounded-full grid place-items-center ${p.status === "paid" ? "bg-green-50" : p.status === "failed" ? "bg-red-50" : "bg-amber-50"}`}>
+                  {p.status === "paid" ? <Check size={14} className="text-green-600" /> : p.status === "failed" ? <AlertCircle size={14} className="text-red-500" /> : <Clock size={14} className="text-amber-500" />}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-bold text-[#111]">{p.client}</p>
-                  <p className="text-[10px] text-[#6B7280]">{p.date}</p>
+                  <p className="text-sm font-bold text-[#111] truncate">{p.clientName || p.clientEmail || `Utilisateur #${p.userId}`}</p>
+                  <p className="text-[10px] text-[#6B7280]">{new Date(p.createdAt).toLocaleString("fr-FR")}</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-sm font-bold text-[#D4AF37]">{p.montant}</p>
+                  <p className="text-sm font-bold text-[#D4AF37]">{Number(p.amount).toLocaleString("fr-FR")} {p.currency}</p>
                   <ChevronDown size={12} className={`text-[#9CA3AF] transition ml-auto ${isExp ? "rotate-180" : ""}`} />
                 </div>
               </button>
               {isExp && (
                 <div className="px-3 pb-3 border-t border-[#E5E7EB] pt-2">
                   <div className="grid grid-cols-2 gap-2 text-[10px]">
-                    <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-[#6B7280]">Reference</span><p className="font-bold text-[#111]">{p.ref}</p></div>
+                    <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-[#6B7280]">Référence</span><p className="font-bold text-[#111] truncate">{reference(p)}</p></div>
                     <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-[#6B7280]">Type</span><p className="font-bold text-[#111]">{p.type}</p></div>
-                    <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-[#6B7280]">Methode</span><p className="font-bold text-[#111]">{p.methode}</p></div>
-                    <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-[#6B7280]">Plan</span><p className="font-bold text-[#D4AF37]">{p.plan}</p></div>
+                    <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-[#6B7280]">Statut</span><p className={`inline-block rounded-full px-2 py-0.5 font-bold ${STATUT_STYLE[p.status]}`}>{STATUT_LABEL[p.status] ?? p.status}</p></div>
+                    <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-[#6B7280]">Client</span><p className="font-bold text-[#D4AF37] truncate">{p.clientEmail || "—"}</p></div>
                   </div>
                   <div className="flex gap-2 mt-2">
-	                    <button onClick={() => setSelectedPaiement(p)} className="flex-1 rounded-lg bg-[#D4AF37] py-1.5 text-[9px] font-bold text-white active:scale-[0.97]">Voir details</button>
-	                    {p.statut === "echoue" && <button className="flex-1 rounded-lg bg-red-50 py-1.5 text-[9px] font-bold text-red-600 active:scale-[0.97]">Relancer</button>}
-	                    {p.statut === "reussi" && <button onClick={() => setViewFacture(p)} className="flex-1 rounded-lg bg-[#111] py-1.5 text-[9px] font-bold text-[#D4AF37] active:scale-[0.97]">Facture</button>}
-	                    {p.statut === "rembourse" && <button onClick={() => setSelectedPaiement(p)} className="flex-1 rounded-lg bg-slate-100 py-1.5 text-[9px] font-bold text-slate-600 active:scale-[0.97]">Historique</button>}
+                    <button onClick={() => setSelectedPaiement(p)} className="flex-1 rounded-lg bg-[#D4AF37] py-1.5 text-[9px] font-bold text-white active:scale-[0.97]">Voir détails</button>
+                    {p.status === "failed" && (
+                      <button disabled={relancer.isPending} onClick={() => relancer.mutate({ paymentId: p.id })} className="flex-1 flex items-center justify-center gap-1 rounded-lg bg-red-50 py-1.5 text-[9px] font-bold text-red-600 active:scale-[0.97] disabled:opacity-50">
+                        <RotateCcw size={10} /> Relancer
+                      </button>
+                    )}
+                    {(p.status === "paid" || p.status === "refunded") && <button onClick={() => setViewFacture(p)} className="flex-1 rounded-lg bg-[#111] py-1.5 text-[9px] font-bold text-[#D4AF37] active:scale-[0.97]">Facture</button>}
                   </div>
                 </div>
               )}
@@ -225,7 +261,15 @@ export default function AdminPaiements() {
       </div>
       {viewFacture && (
         <DocumentView
-          doc={buildFactureData({ ref: viewFacture.ref, objet: `${viewFacture.type} — ${viewFacture.plan}`, client: viewFacture.client, montant: viewFacture.montant, date: viewFacture.date, statut: viewFacture.statut === "reussi" ? "Paye" : viewFacture.statut, type: "Paiement" })}
+          doc={buildFactureData({
+            ref: reference(viewFacture),
+            objet: viewFacture.type,
+            client: viewFacture.clientName || viewFacture.clientEmail || `Utilisateur #${viewFacture.userId}`,
+            montant: `${viewFacture.amount} ${viewFacture.currency}`,
+            date: new Date(viewFacture.createdAt).toLocaleString("fr-FR"),
+            statut: viewFacture.status === "paid" ? "Payé" : viewFacture.status === "refunded" ? "Remboursé" : viewFacture.status,
+            type: "Paiement",
+          })}
           onClose={() => setViewFacture(null)}
         />
       )}
@@ -235,47 +279,44 @@ export default function AdminPaiements() {
           <div className="w-full max-w-sm rounded-t-3xl bg-white p-6 animate-in slide-in-from-bottom" onClick={(e) => e.stopPropagation()}>
             <div className="w-12 h-1 bg-slate-200 rounded-full mx-auto mb-4" />
             <div className="flex items-center gap-4 mb-6">
-              <div className={`h-14 w-14 rounded-2xl grid place-items-center ${selectedPaiement.statut === "reussi" ? "bg-green-50" : selectedPaiement.statut === "echoue" ? "bg-red-50" : "bg-amber-50"}`}>
-                <Euro size={28} className={selectedPaiement.statut === "reussi" ? "text-green-600" : selectedPaiement.statut === "echoue" ? "text-red-500" : "text-amber-500"} />
+              <div className={`h-14 w-14 rounded-2xl grid place-items-center ${selectedPaiement.status === "paid" ? "bg-green-50" : selectedPaiement.status === "failed" ? "bg-red-50" : "bg-amber-50"}`}>
+                <Euro size={28} className={selectedPaiement.status === "paid" ? "text-green-600" : selectedPaiement.status === "failed" ? "text-red-500" : "text-amber-500"} />
               </div>
               <div>
-                <h3 className="text-lg font-black text-[#111]">{selectedPaiement.client}</h3>
-                <p className="text-xs text-[#6B7280]">{selectedPaiement.ref}</p>
+                <h3 className="text-lg font-black text-[#111]">{selectedPaiement.clientName || selectedPaiement.clientEmail}</h3>
+                <p className="text-xs text-[#6B7280]">{reference(selectedPaiement)}</p>
               </div>
             </div>
 
             <div className="space-y-3 mb-8">
               <div className="flex justify-between items-center py-2 border-b border-slate-50">
                 <span className="text-xs text-[#6B7280]">Montant</span>
-                <span className="text-sm font-black text-[#D4AF37]">{selectedPaiement.montant}</span>
+                <span className="text-sm font-black text-[#D4AF37]">{selectedPaiement.amount} {selectedPaiement.currency}</span>
               </div>
               <div className="flex justify-between items-center py-2 border-b border-slate-50">
                 <span className="text-xs text-[#6B7280]">Date & Heure</span>
-                <span className="text-sm font-bold text-[#111]">{selectedPaiement.date}</span>
+                <span className="text-sm font-bold text-[#111]">{new Date(selectedPaiement.createdAt).toLocaleString("fr-FR")}</span>
               </div>
               <div className="flex justify-between items-center py-2 border-b border-slate-50">
                 <span className="text-xs text-[#6B7280]">Statut</span>
-                <span className={`rounded-full px-2 py-0.5 text-[9px] font-bold ${selectedPaiement.statut === "reussi" ? "bg-green-50 text-green-700" : selectedPaiement.statut === "echoue" ? "bg-red-50 text-red-700" : "bg-amber-50 text-amber-700"}`}>
-                  {selectedPaiement.statut.toUpperCase()}
+                <span className={`rounded-full px-2 py-0.5 text-[9px] font-bold ${STATUT_STYLE[selectedPaiement.status]}`}>
+                  {(STATUT_LABEL[selectedPaiement.status] ?? selectedPaiement.status).toUpperCase()}
                 </span>
               </div>
               <div className="flex justify-between items-center py-2 border-b border-slate-50">
-                <span className="text-xs text-[#6B7280]">Mode de paiement</span>
-                <span className="text-sm font-bold text-[#111]">{selectedPaiement.methode}</span>
+                <span className="text-xs text-[#6B7280]">Type</span>
+                <span className="text-sm font-bold text-[#111]">{selectedPaiement.type}</span>
               </div>
               <div className="flex justify-between items-center py-2 border-b border-slate-50">
-                <span className="text-xs text-[#6B7280]">Offre / Plan</span>
-                <span className="text-sm font-bold text-[#111]">{selectedPaiement.plan}</span>
+                <span className="text-xs text-[#6B7280]">Client</span>
+                <span className="text-sm font-bold text-[#111]">{selectedPaiement.clientEmail || "—"}</span>
               </div>
             </div>
 
             <div className="flex gap-3">
               <button onClick={() => setSelectedPaiement(null)} className="flex-1 rounded-xl border border-[#E5E7EB] py-3 text-xs font-bold text-[#6B7280]">Fermer</button>
-              {selectedPaiement.statut === "reussi" && (
-                <button onClick={() => { setViewFacture(selectedPaiement); setSelectedPaiement(null); }} className="flex-1 rounded-xl bg-[#111] py-3 text-xs font-bold text-[#D4AF37]">Telecharger Facture</button>
-              )}
-              {selectedPaiement.statut === "rembourse" && (
-                <button onClick={() => { setViewFacture({...selectedPaiement, statut: "Remboursé"}); setSelectedPaiement(null); }} className="flex-1 rounded-xl bg-[#D4AF37] py-3 text-xs font-bold text-white">Preuve Remboursement</button>
+              {(selectedPaiement.status === "paid" || selectedPaiement.status === "refunded") && (
+                <button onClick={() => { setViewFacture(selectedPaiement); setSelectedPaiement(null); }} className="flex-1 rounded-xl bg-[#111] py-3 text-xs font-bold text-[#D4AF37]">Voir la facture</button>
               )}
             </div>
           </div>
