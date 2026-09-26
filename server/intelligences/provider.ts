@@ -151,20 +151,35 @@ export interface AppelResultat {
  * garde ce nom s'il apparaît dans la liste réelle du compte), et comme repli
  * final si cette découverte échoue (réseau indisponible, clé sans droit de
  * lister les modèles). Il doit donc TOUJOURS être un identifiant de modèle
- * réel chez le fournisseur : "gpt-5.6-terra" (avant ce correctif) n'a jamais
- * existé chez OpenAI, ce qui ne cassait rien tant que la découverte
- * réussissait, mais garantissait un appel voué à l'échec dès qu'elle ratait.
+ * réel chez le fournisseur : "gpt-5.6-terra" (avant un premier correctif)
+ * n'a jamais existé chez OpenAI, ce qui ne cassait rien tant que la
+ * découverte réussissait, mais garantissait un appel voué à l'échec dès
+ * qu'elle ratait.
+ *
+ * "gpt-4o-mini" (avant ce correctif) a cessé d'exister sur le compte OpenAI
+ * réel de MKA.P-MS (vérifié le 2026-09-26 par un vrai appel à /v1/models) :
+ * la préférence exacte ne matchait donc plus jamais, et modeleDisponible()
+ * retombait sur « le premier identifiant contenant gpt/mistral/claude/llama »
+ * — un tirage au sort parmi ~30 modèles réels, dont la plupart (recherche
+ * web contrainte, transcription, audio, image, temps réel...) ne sont même
+ * pas des modèles de conversation. C'est la cause racine, jamais corrigée
+ * jusqu'ici, derrière des pannes différentes à chaque expiration du cache
+ * (1h) : "gpt-5.6-sol" un jour, potentiellement "gpt-4o-search-preview" ou
+ * pire le lendemain. "gpt-5.5" est vérifié réellement (appel réel, pas une
+ * supposition) répondre correctement aux outils ET aux images sans aucun
+ * réglage spécial (0 jeton de raisonnement, ~800ms) — voir livraison
+ * provider-selection-modele-non-conversationnel-tirage-au-sort.
  */
 const ENDPOINTS: Record<string, { url: string; envKey: string; modeleParDefaut: string }> = {
   openai: {
     url: "https://api.openai.com/v1/chat/completions",
     envKey: "OPENAI_API_KEY",
-    modeleParDefaut: "gpt-4o-mini",
+    modeleParDefaut: "gpt-5.5",
   },
   openai_vision: {
     url: "https://api.openai.com/v1/chat/completions",
     envKey: "OPENAI_API_KEY",
-    modeleParDefaut: "gpt-4o-mini",
+    modeleParDefaut: "gpt-5.5",
   },
   mistral: {
     url: "https://api.mistral.ai/v1/chat/completions",
@@ -214,6 +229,24 @@ async function resoudre(
 
 const cacheModele = new Map<string, { modele: string; expire: number }>();
 
+/**
+ * Catégories de modèles réellement vérifiées (appel direct à /v1/models puis
+ * à /v1/chat/completions sur le compte OpenAI réel, le 2026-09-26) comme
+ * n'étant PAS des modèles de conversation générale, même quand leur nom
+ * contient « gpt » : recherche web contrainte, transcription, temps réel,
+ * audio, image/vidéo, synthèse vocale, embeddings, modération, complétion
+ * héritée. Sans cette exclusion, « le premier identifiant contenant
+ * gpt/mistral/claude/llama » retombait au hasard sur l'un de ces modèles
+ * selon l'ordre — non garanti stable — renvoyé par /v1/models : c'est la
+ * cause racine derrière des pannes différentes à chaque expiration du cache
+ * (1h), jamais un vrai choix de modèle. Liste non exhaustive par construction
+ * (un compte réel peut proposer un nom jamais vu ici) : elle réduit le risque
+ * sans prétendre l'éliminer, cohérent avec le reste de ce fichier qui ne
+ * masque jamais un échec réel derrière une supposition.
+ */
+const MOTIFS_MODELE_NON_CONVERSATIONNEL =
+  /search-preview|search-api|transcribe|realtime|embedding|moderation|^gpt-audio|^gpt-image|^chatgpt-image|^sora-|^tts-|^whisper-|^babbage-|^davinci-/i;
+
 async function modeleDisponible(
   providerCode: string,
   spec: { url: string; modeleParDefaut: string },
@@ -229,9 +262,11 @@ async function modeleDisponible(
     if (reponse.ok) {
       const corps = (await reponse.json()) as { data?: { id?: string }[] };
       const ids = (corps.data ?? []).map((m) => m.id ?? "").filter(Boolean);
+      const eligibles = ids.filter((id) => !MOTIFS_MODELE_NON_CONVERSATIONNEL.test(id));
       const choisi =
-        ids.find((id) => id === spec.modeleParDefaut) ??
-        ids.find((id) => /gpt|mistral|claude|llama/i.test(id)) ??
+        eligibles.find((id) => id === spec.modeleParDefaut) ??
+        eligibles.find((id) => /gpt|mistral|claude|llama/i.test(id)) ??
+        eligibles[0] ??
         ids[0];
       if (choisi) {
         cacheModele.set(providerCode, { modele: choisi, expire: Date.now() + 3600 * 1000 });
@@ -243,6 +278,21 @@ async function modeleDisponible(
     // l'erreur réelle remontera de l'appel lui-même.
   }
   return spec.modeleParDefaut;
+}
+
+/** Modèle → valeur de reasoning_effort prouvée nécessaire pour que les outils fonctionnent. */
+const cacheReasoningEffort = new Map<string, { valeur: string; expire: number }>();
+
+/**
+ * Extrait la liste réelle des valeurs acceptées quand le fournisseur répond
+ * « Unsupported value: 'reasoning_effort' does not support 'none' with this
+ * model. Supported values are: 'low', 'medium', 'high', and 'xhigh'. » —
+ * jamais une liste supposée, uniquement ce que l'erreur énonce elle-même.
+ */
+function valeursReasoningEffortSupportees(message: string): string[] {
+  const m = message.match(/[Ss]upported values are:?\s*(.+)/);
+  if (!m) return [];
+  return Array.from(m[1].matchAll(/'([a-z]+)'/gi)).map((mm) => mm[1]);
 }
 
 /**
@@ -427,26 +477,57 @@ export async function appeler(input: AppelInput, fetchImpl: typeof fetch = fetch
   };
 
   try {
-    let reponse = await envoyer(corpsBase);
-    let brut = await reponse.text();
-
     /**
      * Certains modèles de raisonnement découverts dynamiquement (ex. la
-     * famille "gpt-5.*" — voir modeleDisponible ci-dessus, jamais codée en
-     * dur ici) refusent l'appel d'outils sur /v1/chat/completions tant que
-     * reasoning_effort n'est pas explicitement "none". On ne devine jamais à
-     * l'avance quel modèle est concerné : c'est le fournisseur lui-même qui
-     * le dit dans l'erreur réelle ("Function tools with reasoning_effort are
-     * not supported ... set reasoning_effort to 'none'"). On ne rejoue donc
-     * qu'une seule fois, et seulement quand cette erreur précise se produit
-     * avec des outils réellement envoyés.
+     * famille "gpt-5.*"/"gpt-6-*" — voir modeleDisponible ci-dessus, jamais
+     * codée en dur ici) refusent l'appel d'outils sur /v1/chat/completions
+     * tant que reasoning_effort n'a pas la bonne valeur. On ne devine jamais
+     * à l'avance ni le modèle concerné ni la valeur attendue : c'est le
+     * fournisseur lui-même qui le dit dans l'erreur réelle — soit
+     * "...set reasoning_effort to 'none'", soit, si "none" est lui-même
+     * refusé (vérifié réellement sur un modèle réel : "none" n'est pas
+     * toujours accepté), "...Supported values are: 'low', 'medium'...". La
+     * valeur suivante à essayer vient donc toujours du texte réel de
+     * l'erreur, jamais d'une liste supposée. Borné à deux rejeux au
+     * maximum : jamais une boucle, et un modèle réellement incompatible avec
+     * les outils (constaté : certains le sont, quelle que soit la valeur)
+     * échoue honnêtement au bout de ces deux tentatives, comme n'importe
+     * quel autre échec réel. La valeur qui a fonctionné est mise en cache
+     * par modèle (1h, même durée que la découverte du modèle) pour ne pas
+     * rejouer ces mêmes échecs à chaque appel suivant.
      */
-    if (!reponse.ok && input.outils?.length) {
+    const dejaEssaye = new Set<string>();
+    const connu = input.outils?.length ? cacheReasoningEffort.get(resolu.modele) : undefined;
+    let corpsCourant = corpsBase;
+    if (connu && connu.expire > Date.now()) {
+      corpsCourant = { ...corpsBase, reasoning_effort: connu.valeur };
+      dejaEssaye.add(connu.valeur);
+    }
+
+    let reponse = await envoyer(corpsCourant);
+    let brut = await reponse.text();
+
+    const MAX_REJEUX_REASONING_EFFORT = 2;
+    for (let rejeu = 0; rejeu < MAX_REJEUX_REASONING_EFFORT && !reponse.ok && input.outils?.length; rejeu++) {
       const message = extraireMessageErreur(brut);
-      if (/reasoning_effort/i.test(message) && /tools?/i.test(message)) {
-        reponse = await envoyer({ ...corpsBase, reasoning_effort: "none" });
-        brut = await reponse.text();
+      if (!/reasoning_effort/i.test(message)) break;
+
+      let prochaine: string | null = null;
+      if (!dejaEssaye.has("none") && /tools?/i.test(message)) {
+        prochaine = "none";
+      } else {
+        prochaine = valeursReasoningEffortSupportees(message).find((v) => !dejaEssaye.has(v)) ?? null;
       }
+      if (!prochaine) break;
+
+      dejaEssaye.add(prochaine);
+      reponse = await envoyer({ ...corpsBase, reasoning_effort: prochaine });
+      brut = await reponse.text();
+    }
+
+    if (reponse.ok && input.outils?.length && dejaEssaye.size > 0) {
+      const valeurRetenue = [...dejaEssaye].pop()!;
+      cacheReasoningEffort.set(resolu.modele, { valeur: valeurRetenue, expire: Date.now() + 3600 * 1000 });
     }
 
     if (!reponse.ok) {
