@@ -34,6 +34,10 @@ const AUTORISES = new Set([
   // variables de clé pour exercer chooseProvider() dans des scénarios réels,
   // fetch toujours injecté, jamais un appel réseau réel.
   join("server", "market-price-intelligence", "__tests__", "service.test.ts"),
+  // Panne « reasoning_effort not supported » (chat IA toujours en panne après
+  // le correctif des noms d'outils) : même principe, mêmes garanties (fetch
+  // injecté, jamais un appel réseau réel) que les tests ci-dessus.
+  join("server", "intelligences", "__tests__", "reasoning-effort-outils.test.ts"),
 ]);
 
 const INTERDITS = [

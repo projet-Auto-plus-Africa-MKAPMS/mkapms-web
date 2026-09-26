@@ -381,47 +381,76 @@ export async function appeler(input: AppelInput, fetchImpl: typeof fetch = fetch
       ]
     : input.message;
 
-  try {
-    const reponse = await fetchImpl(resolu.url, {
+  const corpsBase: Record<string, unknown> = {
+    model: resolu.modele,
+    messages: [
+      { role: "system", content: input.systeme },
+      ...(input.historique ?? [{ role: "user", content: contenu }]),
+    ],
+    max_completion_tokens: input.maxTokens ?? 1200,
+    ...(input.temperature === undefined ? {} : { temperature: input.temperature }),
+    ...(input.outils?.length ? { tools: input.outils, tool_choice: "auto" } : {}),
+    ...(input.sortieStructuree
+      ? {
+          response_format: {
+            type: "json_schema",
+            json_schema: {
+              name: input.sortieStructuree.nom,
+              schema: input.sortieStructuree.schema,
+              strict: input.sortieStructuree.strict ?? true,
+            },
+          },
+        }
+      : {}),
+  };
+
+  const envoyer = (corps: Record<string, unknown>) =>
+    fetchImpl(resolu.url, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         ...(resolu.cle ? { Authorization: `Bearer ${resolu.cle}` } : {}),
       },
-      body: JSON.stringify({
-        model: resolu.modele,
-        messages: [
-          { role: "system", content: input.systeme },
-          ...(input.historique ?? [{ role: "user", content: contenu }]),
-        ],
-        max_completion_tokens: input.maxTokens ?? 1200,
-        ...(input.temperature === undefined ? {} : { temperature: input.temperature }),
-        ...(input.outils?.length ? { tools: input.outils, tool_choice: "auto" } : {}),
-        ...(input.sortieStructuree
-          ? {
-              response_format: {
-                type: "json_schema",
-                json_schema: {
-                  name: input.sortieStructuree.nom,
-                  schema: input.sortieStructuree.schema,
-                  strict: input.sortieStructuree.strict ?? true,
-                },
-              },
-            }
-          : {}),
-      }),
+      body: JSON.stringify(corps),
       signal: AbortSignal.timeout(input.isolation === "SHOP" ? 45_000 : 90_000),
     });
 
-    const brut = await reponse.text();
-    if (!reponse.ok) {
-      let message = brut.slice(0, 400);
-      try {
-        const j = JSON.parse(brut) as { error?: { message?: string } };
-        if (j.error?.message) message = j.error.message;
-      } catch {
-        // corps non JSON : on garde le texte brut tronqué.
+  const extraireMessageErreur = (brutErreur: string): string => {
+    let message = brutErreur.slice(0, 400);
+    try {
+      const j = JSON.parse(brutErreur) as { error?: { message?: string } };
+      if (j.error?.message) message = j.error.message;
+    } catch {
+      // corps non JSON : on garde le texte brut tronqué.
+    }
+    return message;
+  };
+
+  try {
+    let reponse = await envoyer(corpsBase);
+    let brut = await reponse.text();
+
+    /**
+     * Certains modèles de raisonnement découverts dynamiquement (ex. la
+     * famille "gpt-5.*" — voir modeleDisponible ci-dessus, jamais codée en
+     * dur ici) refusent l'appel d'outils sur /v1/chat/completions tant que
+     * reasoning_effort n'est pas explicitement "none". On ne devine jamais à
+     * l'avance quel modèle est concerné : c'est le fournisseur lui-même qui
+     * le dit dans l'erreur réelle ("Function tools with reasoning_effort are
+     * not supported ... set reasoning_effort to 'none'"). On ne rejoue donc
+     * qu'une seule fois, et seulement quand cette erreur précise se produit
+     * avec des outils réellement envoyés.
+     */
+    if (!reponse.ok && input.outils?.length) {
+      const message = extraireMessageErreur(brut);
+      if (/reasoning_effort/i.test(message) && /tools?/i.test(message)) {
+        reponse = await envoyer({ ...corpsBase, reasoning_effort: "none" });
+        brut = await reponse.text();
       }
+    }
+
+    if (!reponse.ok) {
+      const message = extraireMessageErreur(brut);
       return replier(
         `${providerLabel} a refusé l'appel (HTTP ${reponse.status}) : ${message}`,
         Date.now() - debut,
