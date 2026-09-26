@@ -376,7 +376,20 @@ export async function appeler(input: AppelInput, fetchImpl: typeof fetch = fetch
    * que soit le nombre de replis essayés : le détail (qui a été essayé,
    * pourquoi) reste dans `motif`, jamais dans `motifPublic`.
    */
-  const replier = async (motifEchec: string, dureeEchec: number): Promise<AppelResultat> => {
+  /**
+   * `modeleTente` : quand `resoudre()` a réussi avant l'échec (l'appel HTTP
+   * lui-même a échoué, ou la réponse était inutilisable), le nom réel du
+   * modèle interrogé est déjà connu et doit apparaître dans le résultat —
+   * sinon les journaux internes (PDG, audit) affichent « OPENAI / NULL »
+   * alors qu'un modèle précis a bel et bien été appelé et a échoué. Absent
+   * (undefined) uniquement quand l'échec précède la résolution du modèle
+   * (ex. clé API absente) : là, aucun modèle n'a réellement été tenté.
+   */
+  const replier = async (
+    motifEchec: string,
+    dureeEchec: number,
+    modeleTente?: string,
+  ): Promise<AppelResultat> => {
     const tentative: Tentative = {
       fournisseur: providerCode ?? "inconnu",
       rang,
@@ -391,6 +404,7 @@ export async function appeler(input: AppelInput, fetchImpl: typeof fetch = fetch
       return {
         ...vide,
         fournisseur: providerCode,
+        modele: modeleTente ?? null,
         motif: motifEchec,
         dureeMs: Date.now() - debut,
         tentatives: [tentative],
@@ -535,6 +549,7 @@ export async function appeler(input: AppelInput, fetchImpl: typeof fetch = fetch
       return replier(
         `${providerLabel} a refusé l'appel (HTTP ${reponse.status}) : ${message}`,
         Date.now() - debut,
+        resolu.modele,
       );
     }
 
@@ -581,6 +596,7 @@ export async function appeler(input: AppelInput, fetchImpl: typeof fetch = fetch
       return replier(
         `${providerLabel} a répondu sans contenu utilisable${cause}.`,
         Date.now() - debut,
+        resolu.modele,
       );
     }
 
@@ -626,6 +642,7 @@ export async function appeler(input: AppelInput, fetchImpl: typeof fetch = fetch
         e instanceof Error ? e.message : "erreur inconnue"
       }`,
       Date.now() - debut,
+      resolu.modele,
     );
   }
 }

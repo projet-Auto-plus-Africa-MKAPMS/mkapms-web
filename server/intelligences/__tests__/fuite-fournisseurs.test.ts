@@ -167,6 +167,46 @@ async function main() {
     verif("9. fallback échoué : motifPublic sans détail fournisseur", neContientAucunDetailFournisseur(r.motifPublic));
   }
 
+  // ── 9b. Échec après résolution du modèle : `modele` porte le nom réel tenté, jamais null ──
+  // Régression signalée par le PDG : l'écran de conversation (PDG uniquement,
+  // jamais public — voir 10-11 ci-dessous) affichait « OPENAI / NULL » lors
+  // d'un échec, alors qu'un modèle réel avait bien été résolu et appelé.
+  // Cause : `replier()` renvoyait toujours `modele: null` (hérité de l'objet
+  // `vide`) même quand `resoudre()` avait déjà trouvé un modèle réel avant
+  // l'échec de l'appel lui-même (HTTP, contenu inutilisable ou exception).
+  // "modele_local" ne passe jamais par la découverte dynamique (/v1/models,
+  // mise en cache 1h par fournisseur) : son modèle est fixe ("local"), ce qui
+  // isole ce scénario de toute pollution de cache par les scénarios voisins
+  // qui résolvent réellement "openai"/"mistral" plus haut dans ce fichier.
+  restaurerEnv();
+  process.env.LOCAL_LLM_URL = "http://local-test:11434";
+  {
+    const r = await appeler({ ...ENTREE_BASE, fournisseurImpose: "modele_local" }, async () =>
+      reponseJson(500, { error: { message: "Panne fournisseur" } }),
+    );
+    verif("9b. échec HTTP après résolution : ok=false", r.ok === false);
+    verif("9b. échec HTTP après résolution : fournisseur transmis (jamais null)", r.fournisseur === "modele_local");
+    verif("9b. échec HTTP après résolution : modele transmis (jamais null malgré l'échec)", r.modele === "local");
+  }
+  {
+    const r = await appeler({ ...ENTREE_BASE, fournisseurImpose: "modele_local" }, async () => {
+      throw new Error("Réseau inaccessible");
+    });
+    verif("9b. exception réseau après résolution : ok=false", r.ok === false);
+    verif("9b. exception réseau après résolution : modele transmis (jamais null)", r.modele === "local");
+  }
+  {
+    // Résolution elle-même impossible (variable absente) : aucun modèle n'a
+    // jamais été tenté — `modele` reste honnêtement null, ce n'est pas une fuite.
+    restaurerEnv();
+    delete process.env.OPENAI_API_KEY;
+    delete process.env.MISTRAL_API_KEY;
+    delete process.env.ANTHROPIC_API_KEY;
+    delete process.env.LOCAL_LLM_URL;
+    const r = await appeler({ ...ENTREE_BASE, fournisseurImpose: "modele_local" });
+    verif("9b. variable absente : modele reste null (aucun modèle n'a jamais été tenté)", r.modele === null);
+  }
+
   // ── 10-11. Utilisateur public (anonyme et connecté) via demander() réel, base réelle ──
   restaurerEnv();
   delete process.env.OPENAI_API_KEY;
