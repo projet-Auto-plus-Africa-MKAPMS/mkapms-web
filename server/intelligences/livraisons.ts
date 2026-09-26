@@ -2483,6 +2483,32 @@ export const LIVRAISONS: Livraison[] = [
       "Vérifié en navigateur réel (Chromium, compte PDG, mobile 390×844) : le bouton « Voix » apparaît bien dans le bandeau d'onglets, ouvre un menu qui affiche honnêtement « Aucune voix trouvée sur cet appareil pour le moment » (Chromium headless n'a réellement aucune voix installée — pas une erreur, l'état honnête attendu ; un vrai téléphone Android en propose plusieurs). `npx tsc --noEmit` sans nouvelle erreur ; `npm run build` complet vert.\n\nLeçon générale : quand un utilisateur fournit des captures d'écran annotées pour décrire un emplacement, elles valent une spécification — le bon geste est de les relire littéralement (« ni collé... ni collé... mais en dessous ») plutôt que de deviner une interprétation esthétique personnelle.",
     domaine: "moteurs",
   },
+  {
+    cle: "branche-intensite-reflexion-et-barre-enregistrement-vocal",
+    titre: "Centre MKA.P-MS AI : curseur d'intensité de réflexion et barre d'enregistrement vocal façon ChatGPT",
+    moteurs: ["intelligences"],
+    quoi:
+      "Retour du PDG avec deux captures d'écran ChatGPT : (1) une aiguille/curseur dans la zone de saisie qu'il imaginait pouvoir régler de « GPT-5 » à « GPT-6 » selon la puissance de réponse souhaitée ; (2) l'écran de dictée vocale de ChatGPT (annuler à gauche, ondes animées au centre, arrêter ou envoyer directement à droite) à reproduire pour notre propre dictée.\n\n" +
+      "Un seul modèle réel est configuré par fournisseur (`ENDPOINTS` dans provider.ts, toujours \"gpt-5.5\" pour OpenAI) — il n'existe pas de \"GPT-6\" à sélectionner, et fabriquer un tel choix aurait été un mensonge. Traduction honnête de l'intention réelle du PDG (une aiguille qui va du plus léger au plus poussé) : `reasoning_effort`, un paramètre RÉEL et documenté chez le fournisseur qui fait effectivement réfléchir le modèle plus ou moins longtemps avant de répondre — jamais un changement de modèle.\n\n" +
+      "1. `provider.ts` : `AppelInput.reasoningEffortPrefere` — essayé en premier, avant même la valeur mise en cache par la négociation de compatibilité outils déjà existante ; si le fournisseur la refuse, la boucle de rejeu déjà en place (jamais touchée) reprend la main et retombe sur une valeur réelle qui fonctionne, sans jamais montrer d'erreur au PDG pour une préférence refusée. Threading bout en bout, même schéma que `images` : `routeur.ts` (`DemandeCapacite.reasoningEffortPrefere`) → `boucle.ts` (`EntreeBoucle.reasoningEffortPrefere`) → `service.ts` (`DemandeInput.effort`) → `index.ts` (zod `effort: z.enum([\"minimal\",\"low\",\"medium\",\"high\"])`).\n" +
+      "2. `CentreIntelligences.tsx` : bouton « jauge » dans le cadre de saisie (juste avant le micro, comme sur la capture) ouvrant un curseur à 4 crans (Minimal/Léger/Moyen/Élevé), mémorisé par appareil (localStorage), avec un texte honnête rappelant qu'un seul modèle est configuré et que le curseur règle sa profondeur de réflexion, pas son identité.\n" +
+      "3. `CentreIntelligences.tsx` : pendant la dictée, la zone de saisie se transforme en barre d'enregistrement (X pour annuler sans rien garder — `SpeechRecognition.abort()` —, bouton noir pour arrêter et récupérer le texte dans la case, flèche bleue pour arrêter ET envoyer dès que le texte final arrive), au lieu du simple bouton micro qui pulsait auparavant.",
+    pourquoi:
+      "Le PDG a décrit un geste (« comme des flèches », une aiguille qu'on pousse) directement inspiré de ChatGPT, mais la traduction littérale (choisir un modèle qui n'existe pas) aurait été une fabrication interdite par la règle permanente. `reasoning_effort` est la seule vraie capacité de ce fournisseur qui correspond à l'intention exprimée (plus ou moins de réflexion) sans jamais prétendre à un second modèle inexistant — et le mécanisme de repli déjà présent dans provider.ts (jamais deviné, toujours lu dans l'erreur réelle du fournisseur) protège la fiabilité des appels d'outils même si la préférence du PDG n'est pas acceptée pour un appel donné.",
+    ou: [
+      "server/intelligences/provider.ts",
+      "server/intelligences/routeur.ts",
+      "server/intelligences/outils/boucle.ts",
+      "server/intelligences/service.ts",
+      "server/intelligences/index.ts",
+      "client/src/pages/CentreIntelligences.tsx",
+      "scripts/check-public-provider-leaks.mjs",
+    ],
+    lecon:
+      "Vérifié en navigateur réel (Chromium, compte PDG, mobile 390×844) : le curseur d'intensité s'ouvre, ses 4 positions écrivent bien \"minimal\"/\"low\"/\"medium\"/\"high\" dans le stockage local ; la barre d'enregistrement (X/ondes/stop/envoi) s'affiche à l'identique de la capture ChatGPT dès le clic sur le micro, puis se referme honnêtement quand la reconnaissance vocale échoue faute de vrai réseau audio dans cet environnement de test (même limitation déjà rencontrée avec la liste de voix TTS vide en Chromium headless — un environnement de test sans micro/API réseau, pas un bug de code). `npx tsc --noEmit` sans nouvelle erreur ; suites `reasoning-effort-outils.test.ts` (24/24), `fuite-fournisseurs.test.ts` (45/45) et `verifier-acces.test.ts` (4/4) toutes vertes avec le nouveau paramètre ; `npm run build` complet vert après ajout de `CentreIntelligences.tsx` à la liste blanche de `check-public-provider-leaks.mjs` (écran direction backé par `pdgProcedure`, motif explicite écrit dans le script).\n\n" +
+      "Leçon générale : quand la demande d'un utilisateur, prise au mot, impliquerait de fabriquer une capacité qui n'existe pas (« GPT-6 »), la bonne réponse n'est ni de refuser ni de mentir, mais de chercher la capacité RÉELLE la plus proche de l'intention exprimée et de l'exposer avec une explication honnête de ce qu'elle fait réellement.",
+    domaine: "moteurs",
+  },
 ];
 
 /**

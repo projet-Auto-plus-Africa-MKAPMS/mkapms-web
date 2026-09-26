@@ -78,6 +78,20 @@ export interface AppelInput {
   images?: string[];
   maxTokens?: number;
   temperature?: number;
+  /**
+   * Préférence PDG pour la profondeur de réflexion du modèle (bouton
+   * « Intensité » côté client) — une valeur réelle de `reasoning_effort`
+   * documentée chez le fournisseur (famille gpt-5.*), jamais un changement
+   * de modèle : un seul modèle est configuré par fournisseur (voir
+   * ENDPOINTS), il n'y a rien d'autre à « monter ». Essayée en premier,
+   * avant même la valeur mise en cache par `modeleDisponible` ; si le
+   * fournisseur la refuse (valeur inconnue pour ce modèle, ou incompatible
+   * avec les outils), la boucle de rejeu existante juste en dessous reprend
+   * la main exactement comme aujourd'hui et retombe sur une valeur réelle
+   * qui fonctionne — jamais d'erreur montrée au PDG pour une préférence
+   * refusée.
+   */
+  reasoningEffortPrefere?: string;
   /** Fonctions que le modèle peut demander d'exécuter (capacité "outils"). */
   outils?: OutilFonction[];
   /** Réponse garantie conforme à ce schéma (capacité "sortie_structuree"). */
@@ -513,7 +527,10 @@ export async function appeler(input: AppelInput, fetchImpl: typeof fetch = fetch
     const dejaEssaye = new Set<string>();
     const connu = input.outils?.length ? cacheReasoningEffort.get(resolu.modele) : undefined;
     let corpsCourant = corpsBase;
-    if (connu && connu.expire > Date.now()) {
+    if (input.reasoningEffortPrefere) {
+      corpsCourant = { ...corpsBase, reasoning_effort: input.reasoningEffortPrefere };
+      dejaEssaye.add(input.reasoningEffortPrefere);
+    } else if (connu && connu.expire > Date.now()) {
       corpsCourant = { ...corpsBase, reasoning_effort: connu.valeur };
       dejaEssaye.add(connu.valeur);
     }
