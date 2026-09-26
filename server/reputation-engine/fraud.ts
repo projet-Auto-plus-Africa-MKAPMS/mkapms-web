@@ -10,11 +10,20 @@
  *    une heure est suspect, un avis 1/5 isolé ne l'est pas).
  * 2. **Tout signal est traçable** : type, gravité, explication, date. Une
  *    modération sans motif écrit n'est pas exploitable plus tard.
+ *
+ * Jusqu'ici, tout ce fichier n'analysait que le COMPORTEMENT (rafales,
+ * doublons, conflit d'intérêt) — jamais le CONTENU réel d'un commentaire.
+ * Un avis à la note plausible et au rythme de dépôt normal, mais dont le
+ * texte contient du harcèlement ou du contenu à caractère sexuel, passait
+ * entièrement inaperçu. `modererTexte()` (server/intelligences/provider.ts,
+ * Moderation API OpenAI) comble ce point précis, sans jamais remplacer les
+ * signaux comportementaux ci-dessus ni décider seul d'une suppression.
  */
 import { and, desc, eq, gte, ne, sql } from "drizzle-orm";
 import { db } from "../db.js";
 import { reviewFraudSignals, reviewsV2 } from "../modules/reviews.js";
 import { isTargetOwner } from "./ownership.js";
+import { modererTexte } from "../intelligences/provider.js";
 
 export type FraudSeverity = "info" | "attention" | "critique";
 
@@ -136,6 +145,19 @@ export async function analyzeNewReview(input: {
         detail: "Un commentaire strictement identique existe déjà sur cette cible.",
       });
     }
+
+    // Contenu réel du texte, jamais seulement son rythme de dépôt — voir l'en-tête du fichier.
+    const moderation = await modererTexte(input.comment);
+    if (moderation.disponible && moderation.signale) {
+      signals.push({
+        type: "contenu_signale_moderation",
+        severity: "critique",
+        detail: `Modération OpenAI a signalé ce commentaire (catégories : ${moderation.categories.join(", ") || "non précisées"}).`,
+      });
+    }
+    // moderation.disponible === false (clé absente, panne réseau) : aucun signal ajouté,
+    // jamais interprété comme "contenu sain" — les signaux comportementaux ci-dessus
+    // continuent de s'appliquer normalement, exactement comme avant ce correctif.
   }
 
   // Conflit d'intérêt le plus direct : l'auteur note sa propre fiche.

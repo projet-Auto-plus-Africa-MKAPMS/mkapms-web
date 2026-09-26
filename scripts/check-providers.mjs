@@ -38,6 +38,9 @@ const AUTORISES = new Set([
   // le correctif des noms d'outils) : même principe, mêmes garanties (fetch
   // injecté, jamais un appel réseau réel) que les tests ci-dessus.
   join("server", "intelligences", "__tests__", "reasoning-effort-outils.test.ts"),
+  // Moderation API (contenu réel des avis, jamais seulement leur rythme de
+  // dépôt) : mêmes garanties, fetch toujours injecté, jamais un appel réseau réel.
+  join("server", "intelligences", "__tests__", "moderation.test.ts"),
 ]);
 
 const INTERDITS = [

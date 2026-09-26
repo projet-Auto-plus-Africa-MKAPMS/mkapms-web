@@ -100,10 +100,10 @@ export interface PerimetreMoteur {
 }
 
 export const MOTEURS_TOTAL = 94;
-export const MANQUES_TOTAL = 506;
+export const MANQUES_TOTAL = 507;
 export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
   "ecran_sans_contenu": 341,
-  "dependance_non_declaree": 51,
+  "dependance_non_declaree": 52,
   "sans_logique_serveur": 10,
   "sans_ecran": 8,
   "dependance_sans_preuve": 39,
@@ -3514,6 +3514,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "core",
       "depannage",
       "identity",
+      "intelligences",
       "livraison",
       "notification",
       "smart",
@@ -3524,6 +3525,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "core",
       "depannage",
       "identity",
+      "intelligences",
       "livraison",
       "notification",
       "pieces",
@@ -3549,6 +3551,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "reputation-engine/index.ts exige une session Identity (procédure protégée)",
         "routers/app-feedback.ts exige une session Identity (procédure protégée)",
         "routers/reviews.ts importe identity-os/identite-officielle.ts"
+      ],
+      "intelligences": [
+        "reputation-engine/fraud.ts importe intelligences/provider.ts"
       ],
       "livraison": [
         "reputation-engine/ownership.ts importe modules/livraison.ts",
@@ -3818,6 +3823,10 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "mots": 637,
     "battement": "sonde",
     "manques": [
+      {
+        "genre": "dependance_non_declaree",
+        "detail": "intelligences — reputation-engine/fraud.ts importe intelligences/provider.ts"
+      },
       {
         "genre": "dependance_sans_preuve",
         "detail": "pieces"
@@ -10776,6 +10785,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "dependants": [
       "ai_fabric",
       "auto_branchement",
+      "avis_reputation",
       "command_center",
       "continuous_test",
       "event_bus",

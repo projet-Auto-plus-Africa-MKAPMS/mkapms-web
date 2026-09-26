@@ -744,3 +744,65 @@ export async function verifierAcces(): Promise<{
     modele: r.modele,
   };
 }
+
+export interface ResultatModeration {
+  /** false quand l'appel n'a pas eu lieu (clé absente, panne réseau, HTTP en échec) — jamais confondu avec "contenu sain". */
+  disponible: boolean;
+  /** Vrai uniquement si OpenAI a réellement classé ce texte comme signalé. Toujours false quand disponible=false. */
+  signale: boolean;
+  /** Catégories réellement retournées par OpenAI (ex. "harassment", "sexual") — jamais une liste supposée. */
+  categories: string[];
+  /** Motif de l'échec, vide quand disponible=true. */
+  motif: string;
+}
+
+/**
+ * Moderation API OpenAI (/v1/moderations) — classification de contenu réelle,
+ * jamais un mot-clé interdit codé en dur. Endpoint gratuit chez OpenAI, sans
+ * routage Fabrique Intelligence (pas de choix de fournisseur ni de coût à
+ * arbitrer ici) : provider.ts reste néanmoins le seul fichier à connaître
+ * OPENAI_API_KEY, conformément à scripts/check-providers.mjs — un moteur
+ * métier (ex. server/reputation-engine/fraud.ts) importe cette fonction, il
+ * ne parle jamais lui-même au fournisseur.
+ *
+ * Absence de clé, panne réseau ou réponse illisible → disponible=false,
+ * signale=false : jamais un contenu "silencieusement approuvé" par défaut
+ * pris pour une vraie vérification. L'appelant décide quoi faire d'une
+ * modération indisponible (aujourd'hui : ne pas bloquer, cohérent avec le
+ * reste de reputation-engine/fraud.ts où rien n'est supprimé sans preuve).
+ */
+export async function modererTexte(
+  texte: string,
+  fetchImpl: typeof fetch = fetch,
+): Promise<ResultatModeration> {
+  const vide: ResultatModeration = { disponible: false, signale: false, categories: [], motif: "" };
+  const cle = process.env.OPENAI_API_KEY?.trim();
+  if (!cle) {
+    return { ...vide, motif: "OPENAI_API_KEY absente : modération réellement indisponible, jamais un texte supposé sain." };
+  }
+  try {
+    const reponse = await fetchImpl("https://api.openai.com/v1/moderations", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${cle}` },
+      body: JSON.stringify({ model: "omni-moderation-latest", input: texte }),
+      signal: AbortSignal.timeout(10_000),
+    });
+    if (!reponse.ok) {
+      const brut = await reponse.text();
+      return { ...vide, motif: `OpenAI a refusé l'appel de modération (HTTP ${reponse.status}) : ${brut.slice(0, 200)}` };
+    }
+    const corps = (await reponse.json()) as {
+      results?: { flagged?: boolean; categories?: Record<string, boolean> }[];
+    };
+    const resultat = corps.results?.[0];
+    if (!resultat) {
+      return { ...vide, motif: "Réponse de modération illisible (aucun résultat renvoyé)." };
+    }
+    const categories = Object.entries(resultat.categories ?? {})
+      .filter(([, signalee]) => signalee === true)
+      .map(([categorie]) => categorie);
+    return { disponible: true, signale: resultat.flagged === true, categories, motif: "" };
+  } catch (e) {
+    return { ...vide, motif: `Appel de modération impossible : ${e instanceof Error ? e.message : "erreur inconnue"}` };
+  }
+}
