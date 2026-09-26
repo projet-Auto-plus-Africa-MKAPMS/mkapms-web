@@ -3553,6 +3553,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routers/reviews.ts importe identity-os/identite-officielle.ts"
       ],
       "intelligences": [
+        "reputation-engine/fraud.ts importe intelligences/fonctions.ts",
         "reputation-engine/fraud.ts importe intelligences/provider.ts"
       ],
       "livraison": [
@@ -3825,7 +3826,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "manques": [
       {
         "genre": "dependance_non_declaree",
-        "detail": "intelligences — reputation-engine/fraud.ts importe intelligences/provider.ts"
+        "detail": "intelligences — reputation-engine/fraud.ts importe intelligences/fonctions.ts"
       },
       {
         "genre": "dependance_sans_preuve",
@@ -10626,7 +10627,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "routeurs": [
       "intelligences"
     ],
-    "fichiersServeur": 82,
+    "fichiersServeur": 83,
     "dependancesDeclarees": [
       "ai_fabric",
       "code_graph",

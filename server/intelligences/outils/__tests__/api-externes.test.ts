@@ -9,12 +9,21 @@
  * absente pendant ce test, donc `modererTexte()` répond honnêtement sans
  * jamais tenter `fetch`).
  *
+ * `moderateContent` est gouverné par le catalogue des fonctionnalités
+ * (server/intelligences/fonctions.ts, code "moderation" — le même écran PDG
+ * Centre Intelligence → onglet Fonctions) : « rien ne s'allume tout seul ».
+ * Ce test vérifie donc les DEUX portes, dans l'ordre réel d'exécution :
+ * fonction éteinte par défaut → refus honnête sans même regarder la clé ;
+ * puis fonction activée par la direction → la clé absente devient le vrai
+ * motif. Utilise la vraie base de test locale (comme independance-openai.test.ts).
+ *
  * Lancement : `npx tsx server/intelligences/outils/__tests__/api-externes.test.ts`
  */
 import assert from "node:assert/strict";
 import { trouver, listerActifs } from "../registre.js";
 import { executer } from "../executeur.js";
 import { evaluer, type VerifierPermission } from "../politique.js";
+import { regler as reglerFonction } from "../../fonctions.js";
 
 let ok = 0;
 let total = 0;
@@ -45,14 +54,46 @@ async function main() {
     const sansArgument = await executer(moderation, "{}", { role: "employee", moteur: "test" });
     verif("moderateContent : argument 'texte' manquant → arguments_invalides", sansArgument.statut === "arguments_invalides");
 
-    const resultat = await executer(moderation, JSON.stringify({ texte: "un commentaire quelconque" }), {
+    // Porte 1 — fonction "moderation" éteinte par défaut (activeParDefaut: false) : refus honnête, jamais un appel tenté.
+    const avantActivation = await executer(moderation, JSON.stringify({ texte: "un commentaire quelconque" }), {
       role: "employee",
       moteur: "test",
     });
-    verif("moderateContent : exécution réussie (statut=execute)", resultat.statut === "execute");
-    const payload = resultat.resultat as { disponible: boolean; signale: boolean; motif: string };
-    verif("moderateContent : sans clé OpenAI → disponible=false, jamais un texte supposé sain", payload.disponible === false && payload.signale === false);
-    verif("moderateContent : motif réel explique l'absence de clé", payload.motif.includes("OPENAI_API_KEY"));
+    verif("moderateContent : exécution réussie même éteinte (statut=execute, réponse honnête)", avantActivation.statut === "execute");
+    const payloadEteint = avantActivation.resultat as { disponible: boolean; signale: boolean; motif: string };
+    verif("moderateContent : fonction éteinte par défaut → disponible=false, jamais un texte supposé sain", payloadEteint.disponible === false && payloadEteint.signale === false);
+    verif("moderateContent : un motif réel et non vide est renvoyé (jamais un silence)", payloadEteint.motif.length > 0);
+
+    // Porte 2 — on ne peut pas activer une fonction dont le fournisseur n'est pas joignable
+    // (propriété de sécurité réelle de fonctions.ts::regler, jamais contournée ici).
+    const activationRefusee = await reglerFonction({ fonction: "moderation", active: true, motif: "Tentative sans fournisseur joignable." });
+    verif("moderateContent : impossible d'activer sans fournisseur ia_vision joignable (sécurité réelle)", activationRefusee.ok === false);
+
+    // Porte 3 — avec un fournisseur joignable (clé présente, aucun appel réseau tenté ici :
+    // seule sa PRÉSENCE est vérifiée par providerStates(), jamais une requête), l'activation réussit réellement.
+    process.env.OPENAI_API_KEY = "sk-test-1234";
+    const activationReussie = await reglerFonction({ fonction: "moderation", active: true, motif: "Test réel : activation possible." });
+    verif("moderateContent : activation réelle réussie une fois le fournisseur joignable", activationReussie.ok === true);
+
+    // Porte 4 — la clé redevient absente : même avec la décision "active" déjà enregistrée,
+    // le fournisseur redevient injoignable en temps réel → refus honnête, aucun appel réseau tenté.
+    delete process.env.OPENAI_API_KEY;
+    const apresActivationSansCle = await executer(moderation, JSON.stringify({ texte: "un commentaire quelconque" }), {
+      role: "employee",
+      moteur: "test",
+    });
+    verif("moderateContent : exécution réussie (statut=execute)", apresActivationSansCle.statut === "execute");
+    const payloadSansCle = apresActivationSansCle.resultat as { disponible: boolean; signale: boolean; motif: string };
+    verif(
+      "moderateContent : décision 'active' enregistrée mais fournisseur injoignable → disponible=false, jamais un texte supposé sain",
+      payloadSansCle.disponible === false && payloadSansCle.signale === false,
+    );
+    verif("moderateContent : un motif réel explique l'échec, jamais un silence", payloadSansCle.motif.length > 0);
+
+    // Nettoyage : remettre la fonction dans son état par défaut pour ne pas polluer d'autres tests/l'environnement.
+    process.env.OPENAI_API_KEY = "sk-test-1234";
+    await reglerFonction({ fonction: "moderation", active: false, motif: "Fin de test : retour à l'état par défaut." });
+    delete process.env.OPENAI_API_KEY;
   }
 
   // ── api_externes.getGoogleMerchantStatus ────────────────────────────────

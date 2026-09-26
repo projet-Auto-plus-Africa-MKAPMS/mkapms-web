@@ -27,6 +27,7 @@ import { OUTILS_ESTIMATIONS } from "./familles/estimations.js";
 import { OUTILS_MEMOIRE } from "./familles/memoire.js";
 import { OUTILS_FICHIERS_RAG } from "./familles/fichiers-rag.js";
 import { OUTILS_API_EXTERNES } from "./familles/api-externes.js";
+import { OUTILS_A_ACTIVER } from "./familles/capacites-a-activer.js";
 
 export const NIVEAUX_RISQUE = ["READ_ONLY", "LOW", "MEDIUM", "HIGH", "CRITICAL"] as const;
 export type NiveauRisque = (typeof NIVEAUX_RISQUE)[number];
@@ -86,6 +87,11 @@ export const CATEGORIES = [
   "developpement", // Chantier de développement — code/shell/build/test/preview (server/intelligences/chantier/)
   "estimations", // LOT IA02E — Estimate Gateway (server/estimate-gateway/) : porte d'entrée unique vers les moteurs de prix
   "memoire", // LOT IA02F — mémoire utilisateur et mémoire projet (server/intelligences/memoire-utilisateur.ts, memoire-projet.ts)
+  "voix", // Speech-to-Text / Text-to-Speech / Realtime — demande PDG, aucune implémentation à ce jour
+  "images", // Génération/retouche d'image (gpt-image) — demande PDG, aucune implémentation à ce jour
+  "mcp", // Connecteurs Model Context Protocol vers des outils tiers — demande PDG, aucune implémentation à ce jour
+  "agents_autonomes", // Tâches IA déclenchées sans supervision humaine à chaque appel — demande PDG, capacité sensible, aucune implémentation à ce jour
+  "batch", // Traitement en lot (OpenAI Batch API) — demande PDG, aucune implémentation à ce jour
 ] as const;
 export type Categorie = (typeof CATEGORIES)[number];
 
@@ -295,6 +301,7 @@ export const OUTILS: OutilSpec[] = [
   ...OUTILS_MEMOIRE,
   ...OUTILS_FICHIERS_RAG,
   ...OUTILS_API_EXTERNES,
+  ...OUTILS_A_ACTIVER,
 ];
 
 export function trouver(toolId: string): OutilSpec | null {

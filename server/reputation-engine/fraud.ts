@@ -18,11 +18,20 @@
  * entièrement inaperçu. `modererTexte()` (server/intelligences/provider.ts,
  * Moderation API OpenAI) comble ce point précis, sans jamais remplacer les
  * signaux comportementaux ci-dessus ni décider seul d'une suppression.
+ *
+ * Cette vérification de contenu passe par le catalogue des fonctionnalités
+ * (server/intelligences/fonctions.ts, code "moderation") — le même écran
+ * PDG (Centre Intelligence → onglet Fonctions) qui gouverne déjà chaque
+ * capacité native du fournisseur. « Rien ne s'allume tout seul » : tant que
+ * la direction n'a pas explicitement activé « Filtrage des contenus »,
+ * aucun appel à modererTexte() n'est tenté ici — seuls les signaux
+ * comportementaux continuent de s'appliquer, exactement comme avant.
  */
 import { and, desc, eq, gte, ne, sql } from "drizzle-orm";
 import { db } from "../db.js";
 import { reviewFraudSignals, reviewsV2 } from "../modules/reviews.js";
 import { isTargetOwner } from "./ownership.js";
+import { activee } from "../intelligences/fonctions.js";
 import { modererTexte } from "../intelligences/provider.js";
 
 export type FraudSeverity = "info" | "attention" | "critique";
@@ -147,7 +156,11 @@ export async function analyzeNewReview(input: {
     }
 
     // Contenu réel du texte, jamais seulement son rythme de dépôt — voir l'en-tête du fichier.
-    const moderation = await modererTexte(input.comment);
+    // Gouverné par la direction (fonctions.ts, code "moderation") : rien ne s'allume tout seul.
+    const capaciteModeration = await activee("moderation");
+    const moderation = capaciteModeration.ok
+      ? await modererTexte(input.comment)
+      : { disponible: false, signale: false, categories: [] as string[], motif: capaciteModeration.motif };
     if (moderation.disponible && moderation.signale) {
       signals.push({
         type: "contenu_signale_moderation",
