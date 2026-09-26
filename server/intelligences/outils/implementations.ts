@@ -13,6 +13,7 @@ import { IMPLEMENTATIONS as IMPL_MEMOIRE } from "./familles/outils-memoire.js";
 import { IMPLEMENTATIONS as IMPL_FICHIERS_RAG } from "./familles/outils-fichiers-rag.js";
 
 import { IMPLEMENTATIONS as IMPL_OBSERVABILITE } from "./familles/outils-observabilite.js";
+import { IMPLEMENTATIONS as IMPL_API_EXTERNES } from "./familles/outils-api-externes.js";
 
 export const IMPLEMENTATIONS: Record<string, ImplementationOutil> = {
   ...IMPL_TEST,
@@ -22,4 +23,5 @@ export const IMPLEMENTATIONS: Record<string, ImplementationOutil> = {
   ...IMPL_ESTIMATIONS,
   ...IMPL_MEMOIRE,
   ...IMPL_FICHIERS_RAG,
+  ...IMPL_API_EXTERNES,
 };

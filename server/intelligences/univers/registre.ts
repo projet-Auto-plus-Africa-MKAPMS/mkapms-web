@@ -64,6 +64,11 @@ const CATEGORIE_OUTIL_VERS_UNIVERS: Record<Categorie, string> = {
   developpement: "intelligence_produit",
   estimations: "intelligence_produit",
   memoire: "intelligence_produit",
+  voix: "intelligence_produit",
+  images: "intelligence_produit",
+  mcp: "plateforme_infrastructure",
+  agents_autonomes: "plateforme_infrastructure",
+  batch: "plateforme_infrastructure",
 };
 
 export type StatutConnexion =
