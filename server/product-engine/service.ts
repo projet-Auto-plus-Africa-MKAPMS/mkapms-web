@@ -25,6 +25,7 @@ import {
 } from "./schema.js";
 import { annonces } from "../schema.js";
 import { getCountry } from "../country-os/index.js";
+import { credentialsFromEnv, synchroniserFiche } from "./merchant-center.js";
 import {
   empreinte,
   evaluerEligibilite,
@@ -81,9 +82,10 @@ export interface MerchantState {
 }
 
 export function merchantState(): MerchantState {
-  const brut =
-    process.env.GOOGLE_MERCHANT_CREDENTIALS ?? process.env.GOOGLE_MERCHANT_ACCOUNT_ID ?? null;
-  if (!brut) {
+  // Une seule source de vérité pour "configuré" : credentialsFromEnv() exige
+  // les DEUX variables réelles et un JSON de compte de service valide —
+  // jamais "configuré" sur la base d'une seule variable à moitié renseignée.
+  if (!credentialsFromEnv()) {
     return {
       configure: false,
       detail:
@@ -92,7 +94,7 @@ export function merchantState(): MerchantState {
   }
   return {
     configure: true,
-    detail: "Compte Merchant Center connecté : les états envoyé / approuvé / visible peuvent être relevés.",
+    detail: "Compte Merchant Center connecté : chaque fiche éligible est réellement soumise et son statut réel relevé auprès de Google.",
   };
 }
 
@@ -291,10 +293,61 @@ export async function syncProduit(
     )
     .limit(1);
 
+  const offerId = `${candidat.source}-${candidat.sourceId}`;
+  const eligiblePourEnvoi = verdict.eligible && disponibilite !== "indisponible";
+
+  // Approuvé / visible : jamais supposés. Sans identifiants réels, ils restent
+  // faux. Avec des identifiants réels, la fiche est réellement soumise et son
+  // vrai statut relevé auprès de Google — jamais recopié d'un ancien état sans
+  // le revérifier, sinon une désapprobation ultérieure resterait invisible.
+  let approuve = false;
+  let visible = false;
+  let etatCanal = merchant.detail;
+  let statutMerchant: "approuve" | "rejete" | "en_attente" | "echec_technique" | null = null;
+  if (merchant.configure && eligiblePourEnvoi) {
+    const credentials = credentialsFromEnv();
+    if (credentials) {
+      const statut = await Promise.race([
+        synchroniserFiche(credentials, {
+          offerId,
+          titre: candidat.titre,
+          description: candidat.description,
+          url: candidat.url,
+          imageUrl: candidat.imageUrl,
+          prix: candidat.prix,
+          devise: candidat.devise,
+          disponibilite,
+          etat: candidat.etat,
+          marque: candidat.marque,
+          gtin: candidat.gtin,
+          mpn: candidat.mpn,
+          pays: candidat.pays,
+          langue: candidat.langue,
+        }),
+        new Promise<{ approuve: boolean; visible: boolean; etat: "echec_technique"; motif: string }>((resolve) =>
+          setTimeout(
+            () =>
+              resolve({
+                approuve: false,
+                visible: false,
+                etat: "echec_technique",
+                motif: "Délai dépassé en attendant Google Merchant Center.",
+              }),
+            10000,
+          ),
+        ),
+      ]);
+      approuve = statut.approuve;
+      visible = statut.visible;
+      etatCanal = statut.motif;
+      statutMerchant = statut.etat;
+    }
+  }
+
   const valeurs = {
     source: candidat.source,
     sourceId: candidat.sourceId,
-    offerId: `${candidat.source}-${candidat.sourceId}`,
+    offerId,
     titre: candidat.titre.slice(0, 255),
     description: candidat.description,
     url: candidat.url.slice(0, 512),
@@ -309,15 +362,14 @@ export async function syncProduit(
     pays: candidat.pays,
     langue: candidat.langue,
     categorie: candidat.categorie,
-    eligible: verdict.eligible && disponibilite !== "indisponible",
+    eligible: eligiblePourEnvoi,
     motifIneligible: verdict.eligible ? "" : verdict.motif,
     attributsManquants: [...verdict.manquants, ...verdict.recommandesManquants],
     // Envoyé : le flux public contient réellement la fiche.
-    envoye: verdict.eligible && disponibilite !== "indisponible",
-    // Approuvé / visible : inconnus sans retour Merchant Center. Jamais supposés.
-    approuve: merchant.configure ? (existant[0]?.approuve ?? false) : false,
-    visible: merchant.configure ? (existant[0]?.visible ?? false) : false,
-    etatCanal: merchant.detail,
+    envoye: eligiblePourEnvoi,
+    approuve,
+    visible,
+    etatCanal,
     empreinte: emp,
     majLe: new Date(),
   };
@@ -351,8 +403,14 @@ export async function syncProduit(
   );
   await note(
     "merchant",
-    verdict.eligible ? (merchant.configure ? "attente" : "attente") : "ignore",
-    verdict.eligible ? merchant.detail : verdict.motif,
+    !eligiblePourEnvoi
+      ? "ignore"
+      : statutMerchant === "approuve"
+        ? "ok"
+        : statutMerchant === "rejete" || statutMerchant === "echec_technique"
+          ? "echec"
+          : "attente",
+    eligiblePourEnvoi ? etatCanal : verdict.motif,
   );
   await note("audience", "ok", "Fiche disponible pour le moteur d'Audience.");
   await note("social", "ok", "Fiche disponible pour le Social Content Engine.");
