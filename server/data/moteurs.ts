@@ -10837,11 +10837,11 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/admin/intelligences"
         ],
-        "cliquables": 18,
+        "cliquables": 20,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 191,
-        "mots": 1149
+        "textes": 195,
+        "mots": 1244
       },
       {
         "fichier": "client/src/pages/intelligence/index.tsx",
@@ -11013,8 +11013,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "pdg",
       "public"
     ],
-    "textes": 221,
-    "mots": 1442,
+    "textes": 225,
+    "mots": 1537,
     "battement": "sonde",
     "manques": [
       {

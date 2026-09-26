@@ -2470,6 +2470,19 @@ export const LIVRAISONS: Livraison[] = [
       "Vérifié en navigateur réel (Chromium, compte PDG, mobile 390×844), capture zoomée sur le seul cadre de saisie : trombone, micro (gris) et flèche d'envoi (rond noir) bien positionnés dans les coins inférieurs, texte qui occupe toute la largeur et s'enroule normalement sur plusieurs lignes, focus doré visible sur tout le cadre. `npx tsc --noEmit` sans nouvelle erreur ; `npm run build` complet vert ; aucun fichier généré (cliquables/boutons/moteurs) n'a changé de contenu (aucun nouveau bouton net, seulement un déplacement visuel des mêmes boutons).\n\nLeçon générale : quand un utilisateur décrit une disposition en pointant un exemple concret déjà montré (« comme là »), la fidélité au modèle cité prime sur l'interprétation esthétique personnelle — la bonne réponse était déjà dans la capture d'écran fournie plus tôt dans la conversation.",
     domaine: "moteurs",
   },
+  {
+    cle: "branche-icones-reponse-en-bas-choix-voix-lecture",
+    titre: "Centre MKA.P-MS AI : actions (copier/écouter/partager) sous la réponse, choix de la voix de lecture",
+    moteurs: ["intelligences"],
+    quoi:
+      "Retour du PDG avec trois captures d'écran (une de notre écran montrant l'espace vide entre le message et la saisie, une autre montrant les icônes collées en haut du message, une de ChatGPT en référence) et une demande explicite : les boutons copier/écouter/partager doivent se poser SOUS la réponse (comme dans ChatGPT, juste après le texte), jamais collés au bandeau du haut du message ni à la zone de saisie. Demande complémentaire : pouvoir choisir la voix de lecture, la voix par défaut du navigateur ne lui plaisant pas.\n\n1. `CentreIntelligences.tsx` : la ligne d'actions (copier/écouter/partager) est déplacée de l'en-tête de chaque bulle de réponse (à côté de « MKA.P-MS AI — fournisseur/modèle ») vers son pied, juste après le texte de la réponse et après le bloc « Contexte réellement lu » quand il existe — avec un simple espacement (`mt-2`), sans bordure qui la collerait visuellement à quoi que ce soit.\n2. Nouveau bouton « Voix » dans le bandeau d'onglets (à côté de « Échange »/« Menu »), affiché uniquement si la synthèse vocale est supportée. Il ouvre un petit menu listant les voix réellement installées sur l'appareil (`speechSynthesis.getVoices()`, jamais une liste inventée — vide tant que le navigateur ne les a pas chargées, réactualisée sur l'évènement `voiceschanged`). Le choix est mémorisé dans le stockage local de l'appareil et réutilisé à chaque lecture (`SpeechSynthesisUtterance.voice`).",
+    pourquoi:
+      "Le PDG a decrit un emplacement précis avec des captures d'écran à l'appui (« pas collé à la case des messages, ni collé à la case texte, mais en dessous du message, comme une cellule de ChatGPT ») — un choix de disposition documenté, pas une préférence vague. Le choix de voix répond à une plainte concrète et immédiatement vérifiable (la voix par défaut ne convient pas), résolue avec la même API navigateur déjà utilisée pour la lecture (aucune nouvelle dépendance, aucun appel à un fournisseur IA).",
+    ou: ["client/src/pages/CentreIntelligences.tsx"],
+    lecon:
+      "Vérifié en navigateur réel (Chromium, compte PDG, mobile 390×844) : le bouton « Voix » apparaît bien dans le bandeau d'onglets, ouvre un menu qui affiche honnêtement « Aucune voix trouvée sur cet appareil pour le moment » (Chromium headless n'a réellement aucune voix installée — pas une erreur, l'état honnête attendu ; un vrai téléphone Android en propose plusieurs). `npx tsc --noEmit` sans nouvelle erreur ; `npm run build` complet vert.\n\nLeçon générale : quand un utilisateur fournit des captures d'écran annotées pour décrire un emplacement, elles valent une spécification — le bon geste est de les relire littéralement (« ni collé... ni collé... mais en dessous ») plutôt que de deviner une interprétation esthétique personnelle.",
+    domaine: "moteurs",
+  },
 ];
 
 /**
