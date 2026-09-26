@@ -10837,11 +10837,11 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/admin/intelligences"
         ],
-        "cliquables": 12,
+        "cliquables": 13,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 176,
-        "mots": 1066
+        "textes": 186,
+        "mots": 1094
       },
       {
         "fichier": "client/src/pages/intelligence/index.tsx",
@@ -10856,6 +10856,13 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       }
     ],
     "ecransHotes": [
+      {
+        "fichier": "client/src/pages/Compte.tsx",
+        "route": "/compte/*",
+        "composants": [
+          "trpc.intelligences"
+        ]
+      },
       {
         "fichier": "client/src/pages/CentreCommandes.tsx",
         "route": "/admin/commandes",
@@ -11006,8 +11013,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "pdg",
       "public"
     ],
-    "textes": 206,
-    "mots": 1359,
+    "textes": 216,
+    "mots": 1387,
     "battement": "sonde",
     "manques": [
       {

@@ -45,6 +45,11 @@ const AUTORISES = new Set([
   // OPENAI_API_KEY volontairement absente pendant ce test pour vérifier la
   // dégradation honnête, jamais un appel réseau réel.
   join("server", "intelligences", "outils", "__tests__", "api-externes.test.ts"),
+  // Fuite « OPENAI / NULL » côté conversation + budget de jetons du test de
+  // bout en bout (verifierAcces) : même principe, fetch toujours injecté
+  // (via globalThis.fetch, monkey-patché puis restauré), jamais un appel
+  // réseau réel.
+  join("server", "intelligences", "__tests__", "verifier-acces.test.ts"),
 ]);
 
 const INTERDITS = [
