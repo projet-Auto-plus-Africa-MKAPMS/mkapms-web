@@ -13,11 +13,14 @@ import {
   AlertTriangle,
   Archive,
   Brain,
+  Check,
   ChevronLeft,
   Code2,
+  Copy,
   Cpu,
   Gauge,
   ListChecks,
+  Menu,
   Network,
   Play,
   Search,
@@ -25,6 +28,7 @@ import {
   SlidersHorizontal,
   ShieldCheck,
   Sparkles,
+  X,
 } from "lucide-react";
 import { trpc } from "../lib/trpc";
 import { useAuth } from "../lib/auth";
@@ -74,6 +78,24 @@ const ONGLETS: { cle: Onglet; label: string }[] = [
   { cle: "developpement", label: "Développement" },
 ];
 
+/**
+ * L'onglet « Échange » reste toujours visible en premier (c'est la
+ * conversation elle-même) ; les 19 autres étaient auparavant listés à plat
+ * dans un bandeau qui poussait la zone de saisie loin sous la ligne de
+ * flottaison sur mobile — signalé par le PDG. Ils sont désormais rangés par
+ * thème dans un menu déroulant (bouton ☰), à la manière du panneau latéral
+ * d'un client de conversation classique : la liste elle-même ne change pas,
+ * seule sa présentation change.
+ */
+const GROUPES_MENU: { titre: string; onglets: Onglet[] }[] = [
+  { titre: "Gouvernance", onglets: ["fonctions", "permissions", "commandes", "capacites"] },
+  { titre: "Pilotage", onglets: ["pilotage", "missions", "plan", "autonomie"] },
+  { titre: "Moteurs", onglets: ["moteurs", "connexion", "surveillance", "support"] },
+  { titre: "Qualité", onglets: ["evaluation", "shadow"] },
+  { titre: "Développement", onglets: ["developpeur", "developpement"] },
+  { titre: "Autres", onglets: ["assistance", "memoire", "couts"] },
+];
+
 const SANTE: Record<string, { pastille: string; texte: string; libelle: string }> = {
   up: { pastille: "bg-emerald-500", texte: "text-emerald-700", libelle: "Répond" },
   ok: { pastille: "bg-emerald-500", texte: "text-emerald-700", libelle: "Normal" },
@@ -96,6 +118,8 @@ export default function CentreIntelligences() {
   const { user } = useAuth();
   const estPdg = user?.role === "super_admin";
   const [onglet, setOnglet] = useState<Onglet>("echange");
+  const [menuOuvert, setMenuOuvert] = useState(false);
+  const [copie, setCopie] = useState<number | null>(null);
   const [question, setQuestion] = useState("");
   const [sessionId, setSessionId] = useState<number | null>(null);
   const [fil, setFil] = useState<Bulle[]>([]);
@@ -451,6 +475,17 @@ export default function CentreIntelligences() {
     demander.mutate({ question: q, sessionId });
   }
 
+  /** Copie honnête : le texte réellement reçu, rien de plus (pas de pouce, pas de partage — aucun moteur de note ou de partage n'existe côté serveur). */
+  async function copierTexte(index: number, texte: string) {
+    try {
+      await navigator.clipboard.writeText(texte);
+      setCopie(index);
+      setTimeout(() => setCopie((c) => (c === index ? null : c)), 1500);
+    } catch {
+      // Presse-papiers indisponible (permission navigateur) : silencieux, rien à signaler au PDG.
+    }
+  }
+
   return (
     <div className="mx-auto max-w-5xl px-3 py-4">
       <Link
@@ -485,19 +520,70 @@ export default function CentreIntelligences() {
           </div>
         </div>
 
-        <nav className="mt-4 flex flex-wrap gap-2">
-          {ONGLETS.map((o) => (
+        <nav className="mt-4 flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setOnglet("echange")}
+            className={`rounded-full px-3 py-1.5 text-xs font-bold transition ${
+              onglet === "echange" ? "bg-[#111] text-white" : "bg-black/5 text-black/60"
+            }`}
+          >
+            Échange
+          </button>
+          <div className="relative">
             <button
-              key={o.cle}
               type="button"
-              onClick={() => setOnglet(o.cle)}
-              className={`rounded-full px-3 py-1.5 text-xs font-bold transition ${
-                onglet === o.cle ? "bg-[#111] text-white" : "bg-black/5 text-black/60"
+              onClick={() => setMenuOuvert((v) => !v)}
+              className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold transition ${
+                onglet !== "echange" ? "bg-[#111] text-white" : "bg-black/5 text-black/60"
               }`}
             >
-              {o.label}
+              <Menu className="h-3.5 w-3.5" />
+              {onglet !== "echange" ? ONGLETS.find((o) => o.cle === onglet)?.label : "Menu"}
             </button>
-          ))}
+            {menuOuvert ? (
+              <>
+                <button
+                  type="button"
+                  aria-label="Fermer le menu"
+                  onClick={() => setMenuOuvert(false)}
+                  className="fixed inset-0 z-10 cursor-default"
+                />
+                <div className="absolute left-0 z-20 mt-2 max-h-[70vh] w-72 overflow-y-auto rounded-2xl border border-black/10 bg-white p-2 shadow-xl">
+                  <div className="flex items-center justify-between px-2 py-1">
+                    <p className="text-[11px] font-black uppercase tracking-wide text-black/40">Sections</p>
+                    <button type="button" onClick={() => setMenuOuvert(false)} className="rounded-full p-1 hover:bg-black/5">
+                      <X className="h-3.5 w-3.5 text-black/40" />
+                    </button>
+                  </div>
+                  {GROUPES_MENU.map((g) => (
+                    <div key={g.titre} className="mt-1">
+                      <p className="px-2 py-1 text-[10px] font-black uppercase tracking-wide text-black/30">{g.titre}</p>
+                      {g.onglets.map((cle) => {
+                        const o = ONGLETS.find((x) => x.cle === cle);
+                        if (!o) return null;
+                        return (
+                          <button
+                            key={cle}
+                            type="button"
+                            onClick={() => {
+                              setOnglet(cle);
+                              setMenuOuvert(false);
+                            }}
+                            className={`block w-full rounded-lg px-2 py-1.5 text-left text-xs font-bold transition ${
+                              onglet === cle ? "bg-[#111] text-white" : "text-black/70 hover:bg-black/5"
+                            }`}
+                          >
+                            {o.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  ))}
+                </div>
+              </>
+            ) : null}
+          </div>
         </nav>
       </header>
 
@@ -509,7 +595,15 @@ export default function CentreIntelligences() {
 
       {onglet === "echange" ? (
         <section className="mt-3 rounded-2xl border border-black/5 bg-white p-4">
-          <div className="space-y-3">
+          {/*
+           * Bandeau non borné auparavant : la zone de saisie descendait d'autant
+           * que la conversation s'allongeait, jusqu'à disparaître complètement de
+           * l'écran sur mobile (signalé par le PDG). La liste des échanges reste
+           * désormais dans une zone de hauteur bornée et défilante ; la saisie,
+           * elle, reste toujours juste en dessous, visible dès l'ouverture de
+           * l'onglet.
+           */}
+          <div className="max-h-[55vh] space-y-3 overflow-y-auto pr-1">
             {fil.length === 0 ? (
               <p className="text-sm text-black/50">
                 Pose ta question. Exemples : « où en est la plateforme ? », « quels moteurs sont en
@@ -527,10 +621,23 @@ export default function CentreIntelligences() {
                       : "border-red-200 bg-red-50/40"
                 }`}
               >
-                <p className="mb-1 text-[11px] font-bold uppercase tracking-wide text-black/40">
-                  {b.role === "moi" ? "Vous" : "MKA.P-MS AI"}
-                  {b.role === "moteur" && b.fournisseur ? ` — ${b.fournisseur} / ${b.modele}` : ""}
-                </p>
+                <div className="mb-1 flex items-center justify-between gap-2">
+                  <p className="text-[11px] font-bold uppercase tracking-wide text-black/40">
+                    {b.role === "moi" ? "Vous" : "MKA.P-MS AI"}
+                    {b.role === "moteur" && b.fournisseur ? ` — ${b.fournisseur} / ${b.modele}` : ""}
+                  </p>
+                  {b.role === "moteur" && b.ok ? (
+                    <button
+                      type="button"
+                      onClick={() => copierTexte(i, b.texte)}
+                      className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold text-black/40 hover:bg-black/5 hover:text-black/60"
+                      title="Copier la réponse"
+                    >
+                      {copie === i ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
+                      {copie === i ? "Copié" : "Copier"}
+                    </button>
+                  ) : null}
+                </div>
                 {b.ok ? (
                   <p className="whitespace-pre-wrap text-[#111]">{b.texte}</p>
                 ) : (
@@ -555,7 +662,7 @@ export default function CentreIntelligences() {
             ))}
           </div>
 
-          <div className="mt-3 flex items-end gap-2">
+          <div className="mt-3 flex items-end gap-2 border-t border-black/5 pt-3">
             <textarea
               value={question}
               onChange={(e) => setQuestion(e.target.value)}

@@ -743,7 +743,16 @@ export async function verifierAcces(): Promise<{
     moteur: "intelligences",
     systeme: "Réponds exactement le mot OK, sans ponctuation.",
     message: "Test d'accès MKA.P-MS AI.",
-    maxTokens: 16,
+    // 16 jetons a été vérifié réellement insuffisant : un modèle de raisonnement
+    // découvert dynamiquement (ex. gpt-5.5, compte réel, 2026-09-26) consomme
+    // déjà 10 à 18 jetons de raisonnement internes avant même d'écrire « OK »,
+    // ce qui fait échouer l'appel avec un vrai HTTP 400 OpenAI (« Could not
+    // finish the message because max_tokens... ») — ce test de bout en bout
+    // signalait alors un accès « dégradé » alors que le fournisseur répond
+    // normalement aux vraies conversations (budgets 900-4000 ailleurs dans ce
+    // fichier). 64 jetons est vérifié réellement suffisant (marge ~3x sur le
+    // maximum observé) sans changer ce que ce contrôle mesure.
+    maxTokens: 64,
   });
 
   if (r.ok) {

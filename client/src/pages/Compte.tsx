@@ -244,6 +244,12 @@ export default function Compte() {
   // Avis reçus sur les fiches professionnelles réellement détenues (point 50)
   const avisRecus = trpc.reputationEngine.avisDeMesCibles.useQuery(undefined);
   const nbAvisSansReponse = (avisRecus.data?.avis ?? []).filter((a) => !a.responseText).length;
+  // Réglages MKA.P-MS AI (fonctions/règles réellement activées ou éteintes) —
+  // même registre que l'onglet "Fonctionnalités" du Centre Intelligence, pas
+  // un second système : juste un résumé visible depuis le Compte.
+  const iaFonctions = trpc.intelligences.fonctions.useQuery(undefined, {
+    enabled: user?.role === "super_admin",
+  });
 
   function handlePhotoChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -349,6 +355,7 @@ export default function Compte() {
               { label: "Favoris", to: "/favoris", emoji: "\u2764\ufe0f" },
               { label: "Comparateur", to: "/comparateur", emoji: "\ud83d\udd0d" },
               { label: "Abonnements", to: "/abonnements", emoji: "\ud83d\udcb3" },
+              { label: "MKA.P-MS AI", to: "/admin/intelligences", emoji: "\u2728" },
             ].map((m) => (
               <Link key={m.to} to={m.to} className="flex flex-col items-center gap-1 rounded-xl bg-white/5 border border-white/10 p-2.5 text-center transition hover:bg-white/10 hover:border-[#D4AF37]/50">
                 <span className="text-lg">{m.emoji}</span>
@@ -356,6 +363,52 @@ export default function Compte() {
               </Link>
             ))}
           </div>
+        </div>
+      )}
+
+      {/*
+       * R\u00e9glages MKA.P-MS AI \u2014 demand\u00e9 explicitement par le PDG (\u00ab quand tu
+       * cliques sur le compte, il y a des param\u00e8tres, des r\u00e9glages et des
+       * r\u00e8gles qui sont activ\u00e9es \u00bb). Ce n'est pas un second panneau de
+       * r\u00e9glages : ce r\u00e9sum\u00e9 lit le m\u00eame registre que l'onglet
+       * \u00ab Fonctionnalit\u00e9s \u00bb du Centre Intelligence (server/intelligences/
+       * fonctions.ts) et y renvoie pour tout changement \u2014 rien n'est r\u00e9glable
+       * depuis cette carte elle-m\u00eame, pour ne jamais avoir deux endroits qui
+       * d\u00e9cident de la m\u00eame chose.
+       */}
+      {user.role === "super_admin" && (
+        <div className="mt-4 rounded-2xl border border-black/5 bg-white p-5">
+          <div className="flex items-center justify-between gap-3">
+            <h2 className="flex items-center gap-2 text-sm font-black text-[#111]">
+              <Settings className="h-4 w-4 text-[#8B7500]" /> {"MKA.P-MS AI \u2014 R\u00e9glages & r\u00e8gles"}
+            </h2>
+            <Link to="/admin/intelligences" className="text-xs font-bold text-[#8B7500] hover:underline">
+              {"Ouvrir \u2192"}
+            </Link>
+          </div>
+          {iaFonctions.data ? (
+            <div className="mt-3 grid grid-cols-3 gap-2 text-center">
+              <div className="rounded-xl bg-emerald-50 p-2">
+                <p className="text-lg font-black text-emerald-700">{iaFonctions.data.resume.actives}</p>
+                <p className="text-[10px] font-bold uppercase tracking-wide text-emerald-700/70">{"Activ\u00e9e(s)"}</p>
+              </div>
+              <div className="rounded-xl bg-black/5 p-2">
+                <p className="text-lg font-black text-black/60">{iaFonctions.data.resume.eteintes}</p>
+                <p className="text-[10px] font-bold uppercase tracking-wide text-black/40">{"\u00c9teinte(s)"}</p>
+              </div>
+              <div className="rounded-xl bg-amber-50 p-2">
+                <p className="text-lg font-black text-amber-700">{iaFonctions.data.resume.impossibles}</p>
+                <p className="text-[10px] font-bold uppercase tracking-wide text-amber-700/70">Impossible(s)</p>
+              </div>
+            </div>
+          ) : (
+            <p className="mt-2 text-xs text-black/40">{"Chargement de l'\u00e9tat r\u00e9el des fonctions\u2026"}</p>
+          )}
+          <p className="mt-3 text-[11px] text-black/50">
+            {
+              "Chaque fonction est \u00e9teinte par d\u00e9faut : rien ne consomme ni ne s'ex\u00e9cute tant qu'elle n'est pas activ\u00e9e ici, avec une raison. Activer, d\u00e9sactiver et lire le d\u00e9tail se fait depuis l'onglet \u00ab Fonctionnalit\u00e9s \u00bb du Centre Intelligence."
+            }
+          </p>
         </div>
       )}
 
