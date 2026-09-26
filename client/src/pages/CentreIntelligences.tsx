@@ -7,7 +7,7 @@
  *
  * L'ancienne appellation n'apparaît pas : le moteur s'appelle MKA.P-MS AI.
  */
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, Navigate } from "react-router-dom";
 import {
   AlertTriangle,
@@ -27,6 +27,7 @@ import {
   Play,
   Search,
   Send,
+  Settings,
   Share2,
   SlidersHorizontal,
   ShieldCheck,
@@ -158,6 +159,40 @@ export default function CentreIntelligences() {
   const vocalSupporte = useMemo(() => constructeurVocal() !== null, []);
   const ttsSupporte = typeof window !== "undefined" && "speechSynthesis" in window;
   const partageSupporte = typeof navigator !== "undefined" && typeof navigator.share === "function";
+  /**
+   * Choix de la voix de lecture — demandé par le PDG (« la voix là, ça ne me
+   * plaît pas du tout »). Liste réelle des voix installées sur l'appareil
+   * (`speechSynthesis.getVoices()`) : jamais une liste inventée, et souvent
+   * vide au tout premier rendu tant que le navigateur ne les a pas chargées
+   * (évènement `voiceschanged`). Le choix est mémorisé localement (par
+   * appareil, comme le reste des préférences d'affichage) et réutilisé à
+   * chaque lecture.
+   */
+  const [voixDisponibles, setVoixDisponibles] = useState<SpeechSynthesisVoice[]>([]);
+  const [voixChoisie, setVoixChoisie] = useState<string>(() => {
+    try {
+      return localStorage.getItem("mkapms_voix_tts") ?? "";
+    } catch {
+      return "";
+    }
+  });
+  const [voixMenuOuvert, setVoixMenuOuvert] = useState(false);
+  useEffect(() => {
+    if (!ttsSupporte) return;
+    const rafraichir = () => setVoixDisponibles(window.speechSynthesis.getVoices());
+    rafraichir();
+    window.speechSynthesis.addEventListener("voiceschanged", rafraichir);
+    return () => window.speechSynthesis.removeEventListener("voiceschanged", rafraichir);
+  }, [ttsSupporte]);
+  function choisirVoix(nom: string) {
+    setVoixChoisie(nom);
+    setVoixMenuOuvert(false);
+    try {
+      localStorage.setItem("mkapms_voix_tts", nom);
+    } catch {
+      // Stockage local indisponible (navigation privée) : le choix reste actif pour cette session.
+    }
+  }
   const [question, setQuestion] = useState("");
   const [sessionId, setSessionId] = useState<number | null>(null);
   const [fil, setFil] = useState<Bulle[]>([]);
@@ -568,7 +603,9 @@ export default function CentreIntelligences() {
       return;
     }
     const u = new SpeechSynthesisUtterance(texte);
-    u.lang = "fr-FR";
+    const choisie = voixDisponibles.find((v) => v.name === voixChoisie);
+    u.lang = choisie?.lang ?? "fr-FR";
+    if (choisie) u.voice = choisie;
     u.onend = () => setLectureIndex((c) => (c === index ? null : c));
     u.onerror = () => setLectureIndex((c) => (c === index ? null : c));
     window.speechSynthesis.speak(u);
@@ -704,6 +741,57 @@ export default function CentreIntelligences() {
               </>
             ) : null}
           </div>
+          {ttsSupporte ? (
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setVoixMenuOuvert((v) => !v)}
+                title="Choisir la voix de lecture"
+                className="inline-flex items-center gap-1.5 rounded-full bg-black/5 px-3 py-1.5 text-xs font-bold text-black/60"
+              >
+                <Settings className="h-3.5 w-3.5" />
+                Voix
+              </button>
+              {voixMenuOuvert ? (
+                <>
+                  <button
+                    type="button"
+                    aria-label="Fermer le choix de voix"
+                    onClick={() => setVoixMenuOuvert(false)}
+                    className="fixed inset-0 z-10 cursor-default"
+                  />
+                  <div className="absolute right-0 z-20 mt-2 max-h-[60vh] w-64 overflow-y-auto rounded-2xl border border-black/10 bg-white p-2 shadow-xl">
+                    <div className="flex items-center justify-between px-2 py-1">
+                      <p className="text-[11px] font-black uppercase tracking-wide text-black/40">
+                        Voix de lecture
+                      </p>
+                      <button type="button" onClick={() => setVoixMenuOuvert(false)} className="rounded-full p-1 hover:bg-black/5">
+                        <X className="h-3.5 w-3.5 text-black/40" />
+                      </button>
+                    </div>
+                    {voixDisponibles.length === 0 ? (
+                      <p className="px-2 py-2 text-[11px] text-black/50">
+                        Aucune voix trouvée sur cet appareil pour le moment.
+                      </p>
+                    ) : (
+                      voixDisponibles.map((v) => (
+                        <button
+                          key={v.name}
+                          type="button"
+                          onClick={() => choisirVoix(v.name)}
+                          className={`block w-full rounded-lg px-2 py-1.5 text-left text-xs font-bold transition ${
+                            voixChoisie === v.name ? "bg-[#111] text-white" : "text-black/70 hover:bg-black/5"
+                          }`}
+                        >
+                          {v.name} <span className="font-normal opacity-60">({v.lang})</span>
+                        </button>
+                      ))
+                    )}
+                  </div>
+                </>
+              ) : null}
+            </div>
+          ) : null}
         </nav>
       </header>
 
@@ -741,46 +829,10 @@ export default function CentreIntelligences() {
                       : "border-red-200 bg-red-50/40"
                 }`}
               >
-                <div className="mb-1 flex items-center justify-between gap-2">
-                  <p className="text-[11px] font-bold uppercase tracking-wide text-black/40">
-                    {b.role === "moi" ? "Vous" : "MKA.P-MS AI"}
-                    {b.role === "moteur" && b.fournisseur ? ` — ${b.fournisseur} / ${b.modele}` : ""}
-                  </p>
-                  {b.role === "moteur" && b.ok ? (
-                    <div className="flex shrink-0 items-center gap-1">
-                      <button
-                        type="button"
-                        onClick={() => copierTexte(i, b.texte)}
-                        className="inline-flex items-center gap-1 rounded-full p-1 text-black/40 hover:bg-black/5 hover:text-black/60"
-                        title="Copier la réponse"
-                      >
-                        {copie === i ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
-                      </button>
-                      {ttsSupporte ? (
-                        <button
-                          type="button"
-                          onClick={() => lireTexte(i, b.texte)}
-                          className={`inline-flex items-center gap-1 rounded-full p-1 hover:bg-black/5 ${
-                            lectureIndex === i ? "text-[#8B7500]" : "text-black/40 hover:text-black/60"
-                          }`}
-                          title={lectureIndex === i ? "Arrêter la lecture" : "Écouter la réponse"}
-                        >
-                          <Volume2 className="h-3.5 w-3.5" />
-                        </button>
-                      ) : null}
-                      {partageSupporte ? (
-                        <button
-                          type="button"
-                          onClick={() => partagerTexte(b.texte)}
-                          className="inline-flex items-center gap-1 rounded-full p-1 text-black/40 hover:bg-black/5 hover:text-black/60"
-                          title="Partager la réponse"
-                        >
-                          <Share2 className="h-3.5 w-3.5" />
-                        </button>
-                      ) : null}
-                    </div>
-                  ) : null}
-                </div>
+                <p className="mb-1 text-[11px] font-bold uppercase tracking-wide text-black/40">
+                  {b.role === "moi" ? "Vous" : "MKA.P-MS AI"}
+                  {b.role === "moteur" && b.fournisseur ? ` — ${b.fournisseur} / ${b.modele}` : ""}
+                </p>
                 {b.ok ? (
                   <p className="whitespace-pre-wrap text-[#111]">{b.texte}</p>
                 ) : (
@@ -800,6 +852,48 @@ export default function CentreIntelligences() {
                       ))}
                     </ul>
                   </details>
+                ) : null}
+                {/*
+                 * Signalé par le PDG (capture d'écran de ChatGPT à l'appui) :
+                 * ces boutons doivent se poser SOUS la réponse, jamais collés
+                 * au bandeau du haut ni à la zone de saisie — comme dans
+                 * l'app de référence, où la ligne d'actions suit directement
+                 * le texte de la réponse, séparée par un peu d'espace, pas
+                 * une bordure.
+                 */}
+                {b.role === "moteur" && b.ok ? (
+                  <div className="mt-2 flex items-center gap-1">
+                    <button
+                      type="button"
+                      onClick={() => copierTexte(i, b.texte)}
+                      className="inline-flex items-center gap-1 rounded-full p-1 text-black/40 hover:bg-black/5 hover:text-black/60"
+                      title="Copier la réponse"
+                    >
+                      {copie === i ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+                    </button>
+                    {ttsSupporte ? (
+                      <button
+                        type="button"
+                        onClick={() => lireTexte(i, b.texte)}
+                        className={`inline-flex items-center gap-1 rounded-full p-1 hover:bg-black/5 ${
+                          lectureIndex === i ? "text-[#8B7500]" : "text-black/40 hover:text-black/60"
+                        }`}
+                        title={lectureIndex === i ? "Arrêter la lecture" : "Écouter la réponse"}
+                      >
+                        <Volume2 className="h-3.5 w-3.5" />
+                      </button>
+                    ) : null}
+                    {partageSupporte ? (
+                      <button
+                        type="button"
+                        onClick={() => partagerTexte(b.texte)}
+                        className="inline-flex items-center gap-1 rounded-full p-1 text-black/40 hover:bg-black/5 hover:text-black/60"
+                        title="Partager la réponse"
+                      >
+                        <Share2 className="h-3.5 w-3.5" />
+                      </button>
+                    ) : null}
+                  </div>
                 ) : null}
               </div>
             ))}
