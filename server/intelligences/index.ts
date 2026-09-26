@@ -426,6 +426,8 @@ export const intelligencesRouter = router({
         domaine: z.string().max(48).optional(),
         sessionId: z.number().int().positive().nullable().optional(),
         countryCode: z.string().max(8).nullable().optional(),
+        /** Photos/documents joints en data URI — 4 maximum (voir provider.ts). */
+        images: z.array(z.string().max(8_000_000)).max(4).optional(),
       }),
     )
     .mutation(async ({ input, ctx }) => {
@@ -439,6 +441,7 @@ export const intelligencesRouter = router({
         userId: ctx.user?.uid ?? null,
         role: ctx.user?.role ?? null,
         countryCode: input.countryCode ?? null,
+        images: input.images,
       });
     }),
 

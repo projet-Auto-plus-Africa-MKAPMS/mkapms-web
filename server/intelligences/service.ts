@@ -314,6 +314,8 @@ export interface DemandeInput {
   visiteur?: string | null;
   countryCode?: string | null;
   langue?: string | null;
+  /** Photos/documents joints en data URI (côté direction uniquement pour l'instant) — voir provider.ts pour la limite réelle (4). */
+  images?: string[];
 }
 
 export interface DemandeResultat {
@@ -607,6 +609,7 @@ export async function demander(input: DemandeInput): Promise<DemandeResultat> {
       role: input.role ?? null,
       systeme: CONSIGNE_DIRECTION,
       message,
+      images: input.images,
       outilsProposes: listerActifs().map((o) => o.toolId),
       confidentialite: "interne",
       countryCode: input.countryCode ?? null,
