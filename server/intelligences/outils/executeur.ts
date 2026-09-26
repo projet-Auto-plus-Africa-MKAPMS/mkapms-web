@@ -65,17 +65,19 @@ export async function executer(
 
   const implementation = IMPLEMENTATIONS[outil.toolId];
   if (!implementation) {
-    // Statut distinct de "erreur" : REGISTERED_NOT_IMPLEMENTED est un état
-    // du registre assumé (la fiche existe, le code n'est pas encore écrit),
-    // pas un bug — sauf si le registre le déclare pourtant IMPLEMENTED, ce
-    // que le motif dit explicitement pour distinguer les deux cas.
-    const attendu = outil.implementationStatus !== "REGISTERED_NOT_IMPLEMENTED";
+    // Statut distinct de "erreur" : REGISTERED_NOT_IMPLEMENTED et
+    // WAITING_EXTERNAL_ACCESS sont des états du registre assumés (la fiche
+    // existe, aucune exécution attendue), pas un bug — sauf si le registre
+    // déclare pourtant IMPLEMENTED, ce que le motif dit explicitement pour
+    // distinguer les deux cas.
+    const statutsAssumes: typeof outil.implementationStatus[] = ["REGISTERED_NOT_IMPLEMENTED", "WAITING_EXTERNAL_ACCESS"];
+    const attendu = !statutsAssumes.includes(outil.implementationStatus);
     return {
       statut: "non_implemente",
       resultat: null,
       motif: attendu
         ? `« ${outil.name} » est déclaré « ${outil.implementationStatus} » au registre mais n'a aucune implémentation : incohérence à corriger.`
-        : `« ${outil.name} » est enregistré (REGISTERED_NOT_IMPLEMENTED) mais pas encore câblé.`,
+        : `« ${outil.name} » est enregistré (${outil.implementationStatus}) mais pas encore câblé.`,
       dureeMs: Date.now() - debut,
     };
   }

@@ -69,6 +69,9 @@ const CATEGORIE_OUTIL_VERS_UNIVERS: Record<Categorie, string> = {
   mcp: "plateforme_infrastructure",
   agents_autonomes: "plateforme_infrastructure",
   batch: "plateforme_infrastructure",
+  vector_stores: "intelligence_produit",
+  computer_use: "plateforme_infrastructure",
+  evals: "plateforme_infrastructure",
 };
 
 export type StatutConnexion =

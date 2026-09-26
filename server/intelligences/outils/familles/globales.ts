@@ -31,6 +31,9 @@ function fiche(partiel: {
   requiresHumanApproval?: boolean;
   requiresStrongAuthentication?: boolean;
   provider: string;
+  providerCapability?: string;
+  verifiedAccessible?: boolean;
+  lastVerifiedAt?: string;
   legalBasis?: string;
 }): OutilSpec {
   return {
@@ -54,6 +57,9 @@ function fiche(partiel: {
     riskLevel: partiel.riskLevel,
     legalBasis: partiel.legalBasis ?? "À qualifier lors de l'implémentation réelle.",
     provider: partiel.provider,
+    providerCapability: partiel.providerCapability,
+    verifiedAccessible: partiel.verifiedAccessible,
+    lastVerifiedAt: partiel.lastVerifiedAt,
     fallback: "Aucun — famille pas encore implémentée.",
     internalReplacementStatus: "Sans objet tant que la famille n'est pas implémentée.",
     idempotent: false,
@@ -122,7 +128,20 @@ export const OUTILS_GLOBAUX: OutilSpec[] = [
   fiche({ toolId: "fichiers.deleteFile", name: "deleteFile", description: "Supprime un fichier déposé.", category: "fichiers", riskLevel: "HIGH", allowedRoles: DIRECTION, requiredPermissions: ["WRITE"], requiresHumanApproval: true, provider: "mkapms" }),
 
   // ── Recherche ──────────────────────────────────────────────────────
-  fiche({ toolId: "recherche.webSearch", name: "webSearch", description: "Recherche web sourcée.", category: "recherche", riskLevel: "LOW", allowedRoles: METIER, requiredPermissions: ["ANALYZE"], provider: "recherche_web_externe (absent, WEB_SEARCH_API_KEY)" }),
+  fiche({ toolId: "recherche.webSearch", name: "webSearch", description: "Recherche web sourcée (Brave Search, via market-price-intelligence).", category: "recherche", riskLevel: "LOW", allowedRoles: METIER, requiredPermissions: ["ANALYZE"], provider: "recherche_web_externe (absent, WEB_SEARCH_API_KEY)" }),
+  fiche({
+    toolId: "recherche.webSearchNatifOpenAI",
+    name: "webSearchNatifOpenAI",
+    description: "Recherche web sourcée via l'outil web_search natif d'OpenAI (Responses API) — alternative à recherche.webSearch qui ne nécessite AUCUNE clé supplémentaire (réutilise la clé déjà configurée pour le fournisseur de texte) ; nécessite de migrer l'appel concerné de /v1/chat/completions vers /v1/responses.",
+    category: "recherche",
+    riskLevel: "LOW",
+    allowedRoles: METIER,
+    requiredPermissions: ["ANALYZE"],
+    provider: "openai",
+    providerCapability: "responses.tools[web_search]",
+    verifiedAccessible: true,
+    lastVerifiedAt: "2026-09-26",
+  }),
   fiche({ toolId: "recherche.internalSearch", name: "internalSearch", description: "Recherche interne à la plateforme.", category: "recherche", riskLevel: "READ_ONLY", allowedRoles: METIER, requiredPermissions: ["READ"], provider: "search_os" }),
 
   // ── Communication ──────────────────────────────────────────────────

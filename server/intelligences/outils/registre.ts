@@ -43,12 +43,19 @@ export type NiveauRisque = (typeof NIVEAUX_RISQUE)[number];
  *   valeur aujourd'hui (ex. LOA, VTC, droits de douane). Distinct de
  *   `REGISTERED_NOT_IMPLEMENTED` : ici l'outil s'exécute et déclare
  *   honnêtement l'absence, il n'attend pas d'être câblé.
+ * `WAITING_EXTERNAL_ACCESS` : demandé par le PDG — distinct de
+ *   `REGISTERED_NOT_IMPLEMENTED` sur un point précis : ici, même en écrivant
+ *   le code aujourd'hui, le compte/projet réel n'a pas accès à la capacité
+ *   chez le fournisseur (vérifié par appel réel, jamais supposé). Écrire le
+ *   code ne suffirait pas à la rendre exécutable — l'accès externe doit
+ *   d'abord être obtenu.
  */
 export const STATUTS_IMPLEMENTATION = [
   "IMPLEMENTED",
   "IMPLEMENTED_NOT_CONNECTED",
   "REGISTERED_NOT_IMPLEMENTED",
   "BUSINESS_ENGINE_MISSING",
+  "WAITING_EXTERNAL_ACCESS",
 ] as const;
 export type StatutImplementation = (typeof STATUTS_IMPLEMENTATION)[number];
 
@@ -92,6 +99,9 @@ export const CATEGORIES = [
   "mcp", // Connecteurs Model Context Protocol vers des outils tiers — demande PDG, aucune implémentation à ce jour
   "agents_autonomes", // Tâches IA déclenchées sans supervision humaine à chaque appel — demande PDG, capacité sensible, aucune implémentation à ce jour
   "batch", // Traitement en lot (OpenAI Batch API) — demande PDG, aucune implémentation à ce jour
+  "vector_stores", // File Search / Vector Stores OpenAI natifs — distinct de notre propre RAG (fichiers-rag.ts), déjà actif
+  "computer_use", // Contrôle d'un ordinateur/navigateur par le modèle — vérifié WAITING_EXTERNAL_ACCESS sur ce compte
+  "evals", // OpenAI Evals — distinct de notre propre évaluation réelle (point 148, evaluation.ts), déjà active
 ] as const;
 export type Categorie = (typeof CATEGORIES)[number];
 
@@ -139,6 +149,25 @@ export interface OutilSpec {
   auditCategory: string;
   /** Fixture du banc de test, jamais proposée à un modèle en exploitation. */
   testOnly?: boolean;
+  /**
+   * Nom exact de la capacité chez le fournisseur (ex. "web_search",
+   * "file_search", "vector_stores", "computer_use_preview",
+   * "moderations") — distinct de `provider` (le nom du fournisseur
+   * lui-même). Optionnel : sans objet pour les outils propriétaires
+   * MKA.P-MS qui n'ont pas de fournisseur externe.
+   */
+  providerCapability?: string;
+  /**
+   * Vrai seulement si un appel réel (jamais une supposition) a confirmé que
+   * le compte/projet actuel peut atteindre cette capacité chez le
+   * fournisseur — indépendant du fait qu'elle soit déjà câblée ou non.
+   * `false` avec `implementationStatus: "WAITING_EXTERNAL_ACCESS"` signifie
+   * qu'un appel réel a confirmé l'ABSENCE d'accès (ex. aucun modèle
+   * compatible Computer Use sur ce compte au 2026-09-26).
+   */
+  verifiedAccessible?: boolean;
+  /** Date ISO de la dernière vérification réelle (appel direct au fournisseur), pas une estimation. */
+  lastVerifiedAt?: string;
 }
 
 const OUTILS_TEST: OutilSpec[] = [

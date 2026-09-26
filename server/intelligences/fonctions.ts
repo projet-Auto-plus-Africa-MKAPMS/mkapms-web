@@ -38,7 +38,8 @@ export type CodeFonction =
   | "edition_image"
   | "recherche_web"
   | "traduction"
-  | "distillation";
+  | "distillation"
+  | "recherche_documentaire_vectorielle";
 
 export interface SpecFonction {
   code: CodeFonction;
@@ -305,6 +306,21 @@ export const FONCTIONS: SpecFonction[] = [
     precaution: "Une traduction automatique d'engagement contractuel doit être relue avant publication.",
     activeParDefaut: false,
     autonomie: "Internalisable : forte valeur, volume élevé et donc coût élevé.",
+  },
+  {
+    code: "recherche_documentaire_vectorielle",
+    libelle: "Mémoire documentaire vectorielle (File Search / Vector Stores)",
+    apport:
+      "Interroger de vrais documents via l'infrastructure gérée par OpenAI (Vector Stores + outil file_search) — alternative native à notre propre RAG déjà actif (files.*/knowledge.search/rag.* — server/intelligences/outils/familles/fichiers-rag.ts), utile si un jour le volume dépasse ce que notre implémentation propriétaire couvre.",
+    capacite: "recherche",
+    capaciteFabrique: "ia_texte",
+    permission: "ANALYZE",
+    beneficiaires: ["knowledge_engine", "document_os"],
+    exigence: "Créer un Vector Store OpenAI et y téléverser les fichiers réels — vérifié accessible sur ce compte (2026-09-26), aucun code d'exécution écrit à ce jour.",
+    precaution:
+      "Un doublon de notre propre RAG, déjà réel et actif : n'activer que si un besoin précis dépasse sa couverture, jamais par défaut.",
+    activeParDefaut: false,
+    autonomie: "Nous possédons déjà l'équivalent interne (fichiers-rag.ts) : cette fonctionnalité reste externe par choix, pas par nécessité.",
   },
   {
     code: "distillation",
