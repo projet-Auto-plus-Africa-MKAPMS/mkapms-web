@@ -823,7 +823,17 @@ export default function CentreIntelligences() {
                 ))}
               </div>
             ) : null}
-            <div className="flex items-end gap-2">
+            {/*
+             * Signalé par le PDG : avec le trombone et le micro/envoyer placés
+             * à côté de la zone de saisie, celle-ci restait étroite en
+             * hauteur et perdait de la largeur utile. Les trois boutons sont
+             * désormais intégrés À L'INTÉRIEUR d'un seul cadre autour du
+             * texte (comme un assistant vocal classique) : le texte occupe
+             * toute la largeur et toute la hauteur disponibles, les icônes
+             * flottent simplement en bas du cadre. Le bouton d'envoi devient
+             * une flèche seule, sans texte « Envoyer ».
+             */}
+            <div className="relative rounded-2xl border border-black/10 focus-within:border-[#8B7500]">
               <input
                 ref={fichierRef}
                 type="file"
@@ -832,32 +842,32 @@ export default function CentreIntelligences() {
                 className="hidden"
                 onChange={surFichierChoisi}
               />
-              <button
-                type="button"
-                onClick={() => fichierRef.current?.click()}
-                disabled={pieces.length >= 4}
-                title="Joindre une photo ou une image"
-                className="mb-1 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-black/10 text-black/50 hover:bg-black/5 disabled:opacity-30"
-              >
-                <Paperclip className="h-4 w-4" />
-              </button>
               <textarea
                 value={question}
                 onChange={(e) => setQuestion(e.target.value)}
-                rows={4}
+                rows={5}
                 placeholder={ecoute ? "Je t'écoute…" : "Écris ta demande…"}
-                className="min-h-[112px] flex-1 rounded-xl border border-black/10 p-3 text-sm outline-none focus:border-[#8B7500]"
+                className="min-h-[150px] w-full resize-none rounded-2xl border-0 p-3 pb-12 text-sm outline-none"
               />
-              <div className="flex flex-col gap-2">
+              <div className="absolute bottom-2 left-2">
+                <button
+                  type="button"
+                  onClick={() => fichierRef.current?.click()}
+                  disabled={pieces.length >= 4}
+                  title="Joindre une photo ou une image"
+                  className="inline-flex h-9 w-9 items-center justify-center rounded-full text-black/50 hover:bg-black/5 disabled:opacity-30"
+                >
+                  <Paperclip className="h-4 w-4" />
+                </button>
+              </div>
+              <div className="absolute bottom-2 right-2 flex items-center gap-1">
                 {vocalSupporte ? (
                   <button
                     type="button"
                     onClick={basculerEcoute}
                     title={ecoute ? "Arrêter la dictée" : "Dicter au lieu d'écrire"}
-                    className={`inline-flex h-9 w-9 items-center justify-center rounded-full border transition ${
-                      ecoute
-                        ? "animate-pulse border-red-200 bg-red-50 text-red-600"
-                        : "border-black/10 text-black/50 hover:bg-black/5"
+                    className={`inline-flex h-9 w-9 items-center justify-center rounded-full transition ${
+                      ecoute ? "animate-pulse bg-red-50 text-red-600" : "text-black/50 hover:bg-black/5"
                     }`}
                   >
                     <Mic className="h-4 w-4" />
@@ -867,10 +877,10 @@ export default function CentreIntelligences() {
                   type="button"
                   onClick={envoyer}
                   disabled={demander.isPending || (question.trim().length < 2 && pieces.length === 0)}
-                  className="inline-flex h-9 items-center justify-center gap-1 rounded-xl bg-[#111] px-4 text-sm font-bold text-white disabled:opacity-40"
+                  title="Envoyer"
+                  className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-[#111] text-white disabled:opacity-40"
                 >
                   <Send className="h-4 w-4" />
-                  {demander.isPending ? "…" : "Envoyer"}
                 </button>
               </div>
             </div>
