@@ -316,6 +316,12 @@ export interface DemandeInput {
   langue?: string | null;
   /** Photos/documents joints en data URI (côté direction uniquement pour l'instant) — voir provider.ts pour la limite réelle (4). */
   images?: string[];
+  /**
+   * Préférence PDG d'intensité de réflexion du modèle (« minimal » à « high »,
+   * voir provider.ts reasoningEffortPrefere) — jamais un choix de modèle,
+   * un seul est configuré par fournisseur. Côté direction uniquement.
+   */
+  effort?: string;
 }
 
 export interface DemandeResultat {
@@ -610,6 +616,7 @@ export async function demander(input: DemandeInput): Promise<DemandeResultat> {
       systeme: CONSIGNE_DIRECTION,
       message,
       images: input.images,
+      reasoningEffortPrefere: input.effort,
       outilsProposes: listerActifs().map((o) => o.toolId),
       confidentialite: "interne",
       countryCode: input.countryCode ?? null,

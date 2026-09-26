@@ -68,6 +68,8 @@ export interface DemandeCapacite {
   countryCode?: string | null;
   images?: string[];
   maxTokens?: number;
+  /** Préférence PDG d'intensité de réflexion (voir provider.ts, reasoningEffortPrefere). */
+  reasoningEffortPrefere?: string;
   /** Domaine du curseur d'autonomie, quand l'appelant en connaît un plus précis. */
   domaineAutonomie?: string;
   /** Fonctions que le modèle peut demander d'exécuter (capacité "outils"). */
@@ -212,6 +214,7 @@ export async function router(demande: DemandeCapacite): Promise<ResultatCapacite
     countryCode: demande.countryCode ?? null,
     images: demande.images,
     maxTokens: demande.maxTokens,
+    reasoningEffortPrefere: demande.reasoningEffortPrefere,
     outils: demande.outils,
     sortieStructuree: demande.sortieStructuree,
     historique: demande.historique,

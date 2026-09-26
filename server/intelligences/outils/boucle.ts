@@ -62,6 +62,8 @@ export interface EntreeBoucle {
   message: string;
   /** Images en data URI jointes au message d'origine (voir provider.ts) — jamais réattachées après le premier tour, l'historique les porte ensuite. */
   images?: string[];
+  /** Préférence PDG d'intensité de réflexion (voir provider.ts, reasoningEffortPrefere). */
+  reasoningEffortPrefere?: string;
   /** tool_id autorisés à être proposés au modèle pour cet appel — filtre en amont de la politique. */
   outilsProposes: string[];
   confidentialite?: Confidentiality;
@@ -123,6 +125,7 @@ export async function executerAvecOutils(
       confidentialite: input.confidentialite,
       countryCode: input.countryCode,
       maxTokens: input.maxTokens,
+      reasoningEffortPrefere: input.reasoningEffortPrefere,
     });
     jetonsEntree += res.jetonsEntree;
     jetonsSortie += res.jetonsSortie;

@@ -32,6 +32,7 @@ import {
   SlidersHorizontal,
   ShieldCheck,
   Sparkles,
+  Square,
   Volume2,
   X,
 } from "lucide-react";
@@ -49,6 +50,7 @@ interface ReconnaissanceVocale extends EventTarget {
   interimResults: boolean;
   start: () => void;
   stop: () => void;
+  abort: () => void;
   onresult: ((evenement: { results: { [i: number]: { [j: number]: { transcript: string } } } }) => void) | null;
   onerror: (() => void) | null;
   onend: (() => void) | null;
@@ -127,6 +129,31 @@ const GROUPES_MENU: { titre: string; onglets: Onglet[] }[] = [
   { titre: "Autres", onglets: ["assistance", "memoire", "couts"] },
 ];
 
+/**
+ * Retour du PDG : un curseur pour régler la puissance de réponse, comme sur
+ * ChatGPT. Un seul modèle réel est configuré par fournisseur (voir
+ * server/intelligences/provider.ts, ENDPOINTS) : ce curseur ne change donc
+ * jamais de modèle (pas de « GPT-6 » à choisir), il règle une valeur réelle
+ * et documentée chez le fournisseur — `reasoning_effort` — qui fait
+ * réellement réfléchir le modèle plus ou moins longtemps avant de répondre
+ * (plus lent et plus approfondi quand on monte le curseur, plus rapide et
+ * plus direct quand on le baisse). Si la valeur choisie n'est pas acceptée
+ * pour cet appel précis, le serveur retombe honnêtement sur une valeur qui
+ * fonctionne (voir provider.ts, reasoningEffortPrefere) — jamais d'erreur
+ * visible pour ça.
+ */
+type Intensite = "minimal" | "low" | "medium" | "high";
+const NIVEAUX_INTENSITE: { valeur: Intensite; libelle: string }[] = [
+  { valeur: "minimal", libelle: "Minimal" },
+  { valeur: "low", libelle: "Léger" },
+  { valeur: "medium", libelle: "Moyen" },
+  { valeur: "high", libelle: "Élevé" },
+];
+const INTENSITE_VALIDE = new Set<string>(NIVEAUX_INTENSITE.map((n) => n.valeur));
+function intensiteValide(valeur: string | null): Intensite {
+  return valeur && INTENSITE_VALIDE.has(valeur) ? (valeur as Intensite) : "medium";
+}
+
 const SANTE: Record<string, { pastille: string; texte: string; libelle: string }> = {
   up: { pastille: "bg-emerald-500", texte: "text-emerald-700", libelle: "Répond" },
   ok: { pastille: "bg-emerald-500", texte: "text-emerald-700", libelle: "Normal" },
@@ -155,6 +182,8 @@ export default function CentreIntelligences() {
   const [ecoute, setEcoute] = useState(false);
   const [lectureIndex, setLectureIndex] = useState<number | null>(null);
   const reconnaissanceRef = useRef<ReconnaissanceVocale | null>(null);
+  /** Vrai entre le clic sur la flèche d'envoi pendant la dictée et l'arrivée du texte final (onresult est asynchrone). */
+  const envoyerApresDicteeRef = useRef(false);
   const fichierRef = useRef<HTMLInputElement>(null);
   const vocalSupporte = useMemo(() => constructeurVocal() !== null, []);
   const ttsSupporte = typeof window !== "undefined" && "speechSynthesis" in window;
@@ -189,6 +218,23 @@ export default function CentreIntelligences() {
     setVoixMenuOuvert(false);
     try {
       localStorage.setItem("mkapms_voix_tts", nom);
+    } catch {
+      // Stockage local indisponible (navigation privée) : le choix reste actif pour cette session.
+    }
+  }
+  /** Intensité de réflexion demandée (voir NIVEAUX_INTENSITE) — mémorisée comme le choix de voix. */
+  const [intensite, setIntensite] = useState<Intensite>(() => {
+    try {
+      return intensiteValide(localStorage.getItem("mkapms_intensite_ia"));
+    } catch {
+      return "medium";
+    }
+  });
+  const [intensiteMenuOuvert, setIntensiteMenuOuvert] = useState(false);
+  function choisirIntensite(valeur: Intensite) {
+    setIntensite(valeur);
+    try {
+      localStorage.setItem("mkapms_intensite_ia", valeur);
     } catch {
       // Stockage local indisponible (navigation privée) : le choix reste actif pour cette session.
     }
@@ -546,8 +592,9 @@ export default function CentreIntelligences() {
   const acces = etat.data?.acces;
   const styleAcces = SANTE[acces?.status ?? "unknown"];
 
-  function envoyer() {
-    const q = question.trim();
+  /** `texteForce` : envoi immédiat après dictée, avant que l'état `question` n'ait fini de se mettre à jour (voir onresult de basculerEcoute). */
+  function envoyer(texteForce?: string) {
+    const q = (texteForce ?? question).trim();
     if ((q.length < 2 && pieces.length === 0) || demander.isPending) return;
     const texteEnvoye = q.length >= 2 ? q : "Analyse la ou les pièce(s) jointe(s).";
     setFil((f) => [
@@ -557,7 +604,7 @@ export default function CentreIntelligences() {
     setQuestion("");
     const images = pieces;
     setPieces([]);
-    demander.mutate({ question: texteEnvoye, sessionId, images: images.length ? images : undefined });
+    demander.mutate({ question: texteEnvoye, sessionId, images: images.length ? images : undefined, effort: intensite });
   }
 
   /** Copie honnête : le texte réellement reçu, rien de plus. */
@@ -585,13 +632,36 @@ export default function CentreIntelligences() {
     r.interimResults = false;
     r.onresult = (evenement) => {
       const transcript = evenement.results[0]?.[0]?.transcript ?? "";
-      if (transcript) setQuestion((q) => (q.trim().length ? `${q.trim()} ${transcript}` : transcript));
+      setQuestion((q) => {
+        const fusion = transcript ? (q.trim().length ? `${q.trim()} ${transcript}` : transcript) : q;
+        if (envoyerApresDicteeRef.current) {
+          envoyerApresDicteeRef.current = false;
+          if (fusion.trim().length >= 2) queueMicrotask(() => envoyer(fusion));
+        }
+        return fusion;
+      });
     };
-    r.onerror = () => setEcoute(false);
+    r.onerror = () => {
+      envoyerApresDicteeRef.current = false;
+      setEcoute(false);
+    };
     r.onend = () => setEcoute(false);
     reconnaissanceRef.current = r;
     r.start();
     setEcoute(true);
+  }
+
+  /** Annule la dictée en cours sans conserver le moindre mot capté (bouton « X », distinct du bouton stop qui garde le texte). */
+  function annulerEcoute() {
+    envoyerApresDicteeRef.current = false;
+    reconnaissanceRef.current?.abort();
+    setEcoute(false);
+  }
+
+  /** Arrête la dictée et envoie directement dès que le texte final arrive (bouton flèche pendant l'écoute). */
+  function arreterEtEnvoyerDictee() {
+    envoyerApresDicteeRef.current = true;
+    reconnaissanceRef.current?.stop();
   }
 
   /** Lecture à voix haute réelle (synthèse vocale du navigateur, standard) — bascule play/stop sur la même réponse. */
@@ -936,47 +1006,144 @@ export default function CentreIntelligences() {
                 className="hidden"
                 onChange={surFichierChoisi}
               />
-              <textarea
-                value={question}
-                onChange={(e) => setQuestion(e.target.value)}
-                rows={5}
-                placeholder={ecoute ? "Je t'écoute…" : "Écris ta demande…"}
-                className="min-h-[150px] w-full resize-none rounded-2xl border-0 p-3 pb-12 text-sm outline-none"
-              />
-              <div className="absolute bottom-2 left-2">
-                <button
-                  type="button"
-                  onClick={() => fichierRef.current?.click()}
-                  disabled={pieces.length >= 4}
-                  title="Joindre une photo ou une image"
-                  className="inline-flex h-9 w-9 items-center justify-center rounded-full text-black/50 hover:bg-black/5 disabled:opacity-30"
-                >
-                  <Paperclip className="h-4 w-4" />
-                </button>
-              </div>
-              <div className="absolute bottom-2 right-2 flex items-center gap-1">
-                {vocalSupporte ? (
+              {ecoute ? (
+                /*
+                 * Signalé par le PDG (capture ChatGPT à l'appui) : pendant la
+                 * dictée, la zone de saisie devient une barre d'enregistrement
+                 * — annuler (X, rien n'est gardé), arrêter (le texte capté
+                 * revient dans la zone de saisie) ou envoyer directement dès
+                 * que le texte final arrive.
+                 */
+                <div className="flex items-center gap-2 p-3">
+                  <button
+                    type="button"
+                    onClick={annulerEcoute}
+                    title="Annuler la dictée"
+                    className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-black/50 hover:bg-black/5"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                  <div className="flex flex-1 items-center justify-center gap-1 py-2" aria-hidden="true">
+                    {[0, 1, 2, 3, 4].map((i) => (
+                      <span
+                        key={i}
+                        className="h-2 w-2 animate-bounce rounded-full bg-red-500"
+                        style={{ animationDelay: `${i * 0.12}s` }}
+                      />
+                    ))}
+                  </div>
                   <button
                     type="button"
                     onClick={basculerEcoute}
-                    title={ecoute ? "Arrêter la dictée" : "Dicter au lieu d'écrire"}
-                    className={`inline-flex h-9 w-9 items-center justify-center rounded-full transition ${
-                      ecoute ? "animate-pulse bg-red-50 text-red-600" : "text-black/50 hover:bg-black/5"
-                    }`}
+                    title="Arrêter la dictée"
+                    className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#111] text-white"
                   >
-                    <Mic className="h-4 w-4" />
+                    <Square className="h-3.5 w-3.5 fill-current" />
                   </button>
-                ) : null}
-                <button
-                  type="button"
-                  onClick={envoyer}
-                  disabled={demander.isPending || (question.trim().length < 2 && pieces.length === 0)}
-                  title="Envoyer"
-                  className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-[#111] text-white disabled:opacity-40"
-                >
-                  <Send className="h-4 w-4" />
-                </button>
-              </div>
+                  <button
+                    type="button"
+                    onClick={arreterEtEnvoyerDictee}
+                    title="Arrêter et envoyer"
+                    className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-blue-600 text-white"
+                  >
+                    <Send className="h-4 w-4" />
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <textarea
+                    value={question}
+                    onChange={(e) => setQuestion(e.target.value)}
+                    rows={5}
+                    placeholder="Écris ta demande…"
+                    className="min-h-[150px] w-full resize-none rounded-2xl border-0 p-3 pb-12 text-sm outline-none"
+                  />
+                  <div className="absolute bottom-2 left-2">
+                    <button
+                      type="button"
+                      onClick={() => fichierRef.current?.click()}
+                      disabled={pieces.length >= 4}
+                      title="Joindre une photo ou une image"
+                      className="inline-flex h-9 w-9 items-center justify-center rounded-full text-black/50 hover:bg-black/5 disabled:opacity-30"
+                    >
+                      <Paperclip className="h-4 w-4" />
+                    </button>
+                  </div>
+                  <div className="absolute bottom-2 right-2 flex items-center gap-1">
+                    <div className="relative">
+                      <button
+                        type="button"
+                        onClick={() => setIntensiteMenuOuvert((v) => !v)}
+                        title="Régler l'intensité de réflexion"
+                        className="inline-flex h-9 w-9 items-center justify-center rounded-full text-black/50 hover:bg-black/5"
+                      >
+                        <Gauge className="h-4 w-4" />
+                      </button>
+                      {intensiteMenuOuvert ? (
+                        <>
+                          <button
+                            type="button"
+                            aria-label="Fermer le réglage d'intensité"
+                            onClick={() => setIntensiteMenuOuvert(false)}
+                            className="fixed inset-0 z-10 cursor-default"
+                          />
+                          <div className="absolute bottom-full right-0 z-20 mb-2 w-60 rounded-2xl border border-black/10 bg-white p-3 shadow-xl">
+                            <div className="flex items-center justify-between">
+                              <p className="text-[11px] font-black uppercase tracking-wide text-black/40">
+                                Intensité de réflexion
+                              </p>
+                              <button
+                                type="button"
+                                onClick={() => setIntensiteMenuOuvert(false)}
+                                className="rounded-full p-1 hover:bg-black/5"
+                              >
+                                <X className="h-3.5 w-3.5 text-black/40" />
+                              </button>
+                            </div>
+                            <input
+                              type="range"
+                              min={0}
+                              max={NIVEAUX_INTENSITE.length - 1}
+                              step={1}
+                              value={Math.max(0, NIVEAUX_INTENSITE.findIndex((n) => n.valeur === intensite))}
+                              onChange={(e) => choisirIntensite(NIVEAUX_INTENSITE[Number(e.target.value)].valeur)}
+                              className="mt-2 w-full accent-[#8B7500]"
+                            />
+                            <div className="mt-1 flex justify-between text-[9px] font-bold text-black/40">
+                              {NIVEAUX_INTENSITE.map((n) => (
+                                <span key={n.valeur}>{n.libelle}</span>
+                              ))}
+                            </div>
+                            <p className="mt-2 text-[10px] leading-snug text-black/45">
+                              Un seul modèle est configuré ({"gpt-5.5"}) : ce réglage ne le change pas, il le fait
+                              réfléchir plus ou moins longtemps avant de répondre.
+                            </p>
+                          </div>
+                        </>
+                      ) : null}
+                    </div>
+                    {vocalSupporte ? (
+                      <button
+                        type="button"
+                        onClick={basculerEcoute}
+                        title="Dicter au lieu d'écrire"
+                        className="inline-flex h-9 w-9 items-center justify-center rounded-full text-black/50 hover:bg-black/5"
+                      >
+                        <Mic className="h-4 w-4" />
+                      </button>
+                    ) : null}
+                    <button
+                      type="button"
+                      onClick={() => envoyer()}
+                      disabled={demander.isPending || (question.trim().length < 2 && pieces.length === 0)}
+                      title="Envoyer"
+                      className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-[#111] text-white disabled:opacity-40"
+                    >
+                      <Send className="h-4 w-4" />
+                    </button>
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </section>
