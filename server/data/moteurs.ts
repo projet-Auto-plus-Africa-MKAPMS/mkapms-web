@@ -100,10 +100,10 @@ export interface PerimetreMoteur {
 }
 
 export const MOTEURS_TOTAL = 94;
-export const MANQUES_TOTAL = 507;
+export const MANQUES_TOTAL = 508;
 export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
   "ecran_sans_contenu": 341,
-  "dependance_non_declaree": 52,
+  "dependance_non_declaree": 53,
   "sans_logique_serveur": 10,
   "sans_ecran": 8,
   "dependance_sans_preuve": 39,
@@ -10626,7 +10626,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "routeurs": [
       "intelligences"
     ],
-    "fichiersServeur": 80,
+    "fichiersServeur": 82,
     "dependancesDeclarees": [
       "ai_fabric",
       "code_graph",
@@ -10661,6 +10661,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "livraison_vehicule",
       "monitoring",
       "payment",
+      "product_engine",
       "resilience",
       "risque_import",
       "smart",
@@ -10685,6 +10686,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "livraison_vehicule",
       "monitoring",
       "payment",
+      "product_engine",
       "resilience",
       "risque_import",
       "smart",
@@ -10759,6 +10761,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       ],
       "payment": [
         "intelligences/livraisons.ts déclenche un paiement"
+      ],
+      "product_engine": [
+        "intelligences/outils/familles/outils-api-externes.ts importe product-engine/service.ts"
       ],
       "resilience": [
         "intelligences/actions.ts importe resilience/service.ts",
@@ -11027,6 +11032,10 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "genre": "dependance_non_declaree",
         "detail": "payment — intelligences/livraisons.ts déclenche un paiement"
+      },
+      {
+        "genre": "dependance_non_declaree",
+        "detail": "product_engine — intelligences/outils/familles/outils-api-externes.ts importe product-engine/service.ts"
       },
       {
         "genre": "dependance_non_declaree",
@@ -17010,6 +17019,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     },
     "dependants": [
       "event_bus",
+      "intelligences",
       "pieces"
     ],
     "evenementsPublies": [],

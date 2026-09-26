@@ -41,6 +41,10 @@ const AUTORISES = new Set([
   // Moderation API (contenu réel des avis, jamais seulement leur rythme de
   // dépôt) : mêmes garanties, fetch toujours injecté, jamais un appel réseau réel.
   join("server", "intelligences", "__tests__", "moderation.test.ts"),
+  // Famille d'outils "api_externes" (moderateContent) : même principe,
+  // OPENAI_API_KEY volontairement absente pendant ce test pour vérifier la
+  // dégradation honnête, jamais un appel réseau réel.
+  join("server", "intelligences", "outils", "__tests__", "api-externes.test.ts"),
 ]);
 
 const INTERDITS = [
