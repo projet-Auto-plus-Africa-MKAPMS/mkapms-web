@@ -7,7 +7,7 @@
  *
  * L'ancienne appellation n'apparaît pas : le moteur s'appelle MKA.P-MS AI.
  */
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { Link, Navigate } from "react-router-dom";
 import {
   AlertTriangle,
@@ -21,15 +21,45 @@ import {
   Gauge,
   ListChecks,
   Menu,
+  Mic,
   Network,
+  Paperclip,
   Play,
   Search,
   Send,
+  Share2,
   SlidersHorizontal,
   ShieldCheck,
   Sparkles,
+  Volume2,
   X,
 } from "lucide-react";
+
+/**
+ * L'API de reconnaissance vocale (dictée) n'est pas standardisée : elle
+ * n'existe pas dans les types DOM fournis par TypeScript, contrairement à la
+ * synthèse vocale (SpeechSynthesisUtterance, elle, standard). On ne déclare
+ * ici que le strict nécessaire à son usage réel, jamais un type "any" —
+ * jamais câblée si le navigateur ne l'expose pas (voir `vocalSupporte`).
+ */
+interface ReconnaissanceVocale extends EventTarget {
+  lang: string;
+  continuous: boolean;
+  interimResults: boolean;
+  start: () => void;
+  stop: () => void;
+  onresult: ((evenement: { results: { [i: number]: { [j: number]: { transcript: string } } } }) => void) | null;
+  onerror: (() => void) | null;
+  onend: (() => void) | null;
+}
+type ConstructeurReconnaissanceVocale = new () => ReconnaissanceVocale;
+function constructeurVocal(): ConstructeurReconnaissanceVocale | null {
+  const w = window as unknown as {
+    SpeechRecognition?: ConstructeurReconnaissanceVocale;
+    webkitSpeechRecognition?: ConstructeurReconnaissanceVocale;
+  };
+  return w.SpeechRecognition ?? w.webkitSpeechRecognition ?? null;
+}
 import { trpc } from "../lib/trpc";
 import { useAuth } from "../lib/auth";
 
@@ -115,11 +145,19 @@ interface Bulle {
 }
 
 export default function CentreIntelligences() {
-  const { user } = useAuth();
+  const { user, isSessionLoading } = useAuth();
   const estPdg = user?.role === "super_admin";
   const [onglet, setOnglet] = useState<Onglet>("echange");
   const [menuOuvert, setMenuOuvert] = useState(false);
   const [copie, setCopie] = useState<number | null>(null);
+  const [pieces, setPieces] = useState<string[]>([]);
+  const [ecoute, setEcoute] = useState(false);
+  const [lectureIndex, setLectureIndex] = useState<number | null>(null);
+  const reconnaissanceRef = useRef<ReconnaissanceVocale | null>(null);
+  const fichierRef = useRef<HTMLInputElement>(null);
+  const vocalSupporte = useMemo(() => constructeurVocal() !== null, []);
+  const ttsSupporte = typeof window !== "undefined" && "speechSynthesis" in window;
+  const partageSupporte = typeof navigator !== "undefined" && typeof navigator.share === "function";
   const [question, setQuestion] = useState("");
   const [sessionId, setSessionId] = useState<number | null>(null);
   const [fil, setFil] = useState<Bulle[]>([]);
@@ -444,6 +482,15 @@ export default function CentreIntelligences() {
     return [...groupes.entries()];
   }, [etat.data]);
 
+  /*
+   * `user` reste null le temps que la session s'hydrate au chargement d'une
+   * page rechargée (AuthProvider vérifie le jeton stocké de façon
+   * asynchrone) — rediriger avant que cette vérification se termine
+   * renverrait un compte PDG réel vers /connexion à chaque rechargement
+   * direct de cette page. `isSessionLoading` distingue « pas encore su » de
+   * « réellement pas connecté ».
+   */
+  if (isSessionLoading) return null;
   if (!user) return <Navigate to="/connexion" replace />;
   if (!estPdg) {
     return (
@@ -466,16 +513,19 @@ export default function CentreIntelligences() {
 
   function envoyer() {
     const q = question.trim();
-    if (q.length < 2 || demander.isPending) return;
+    if ((q.length < 2 && pieces.length === 0) || demander.isPending) return;
+    const texteEnvoye = q.length >= 2 ? q : "Analyse la ou les pièce(s) jointe(s).";
     setFil((f) => [
       ...f,
-      { role: "moi", texte: q, ok: true, motif: "", fournisseur: null, modele: null, contexte: [] },
+      { role: "moi", texte: texteEnvoye, ok: true, motif: "", fournisseur: null, modele: null, contexte: [] },
     ]);
     setQuestion("");
-    demander.mutate({ question: q, sessionId });
+    const images = pieces;
+    setPieces([]);
+    demander.mutate({ question: texteEnvoye, sessionId, images: images.length ? images : undefined });
   }
 
-  /** Copie honnête : le texte réellement reçu, rien de plus (pas de pouce, pas de partage — aucun moteur de note ou de partage n'existe côté serveur). */
+  /** Copie honnête : le texte réellement reçu, rien de plus. */
   async function copierTexte(index: number, texte: string) {
     try {
       await navigator.clipboard.writeText(texte);
@@ -484,6 +534,68 @@ export default function CentreIntelligences() {
     } catch {
       // Presse-papiers indisponible (permission navigateur) : silencieux, rien à signaler au PDG.
     }
+  }
+
+  /** Dictée réelle (Web Speech API du navigateur) — jamais câblée si le navigateur ne l'expose pas (vocalSupporte). */
+  function basculerEcoute() {
+    if (ecoute) {
+      reconnaissanceRef.current?.stop();
+      return;
+    }
+    const Ctor = constructeurVocal();
+    if (!Ctor) return;
+    const r = new Ctor();
+    r.lang = "fr-FR";
+    r.continuous = false;
+    r.interimResults = false;
+    r.onresult = (evenement) => {
+      const transcript = evenement.results[0]?.[0]?.transcript ?? "";
+      if (transcript) setQuestion((q) => (q.trim().length ? `${q.trim()} ${transcript}` : transcript));
+    };
+    r.onerror = () => setEcoute(false);
+    r.onend = () => setEcoute(false);
+    reconnaissanceRef.current = r;
+    r.start();
+    setEcoute(true);
+  }
+
+  /** Lecture à voix haute réelle (synthèse vocale du navigateur, standard) — bascule play/stop sur la même réponse. */
+  function lireTexte(index: number, texte: string) {
+    if (!ttsSupporte) return;
+    window.speechSynthesis.cancel();
+    if (lectureIndex === index) {
+      setLectureIndex(null);
+      return;
+    }
+    const u = new SpeechSynthesisUtterance(texte);
+    u.lang = "fr-FR";
+    u.onend = () => setLectureIndex((c) => (c === index ? null : c));
+    u.onerror = () => setLectureIndex((c) => (c === index ? null : c));
+    window.speechSynthesis.speak(u);
+    setLectureIndex(index);
+  }
+
+  /** Partage réel (API navigateur standard) — jamais câblé si le navigateur ne l'expose pas (partageSupporte). */
+  async function partagerTexte(texte: string) {
+    if (!navigator.share) return;
+    try {
+      await navigator.share({ text: texte, title: "MKA.P-MS AI" });
+    } catch {
+      // Partage annulé par l'utilisateur ou refusé par le système : rien à signaler.
+    }
+  }
+
+  /** Pièces jointes réelles : lues en data URI côté navigateur, transmises telles quelles à `appeler()` (capacité vision déjà réelle côté serveur). */
+  function surFichierChoisi(e: React.ChangeEvent<HTMLInputElement>) {
+    const fichiers = Array.from(e.target.files ?? []).slice(0, Math.max(0, 4 - pieces.length));
+    for (const f of fichiers) {
+      const lecteur = new FileReader();
+      lecteur.onload = () => {
+        if (typeof lecteur.result === "string") setPieces((p) => [...p, lecteur.result as string].slice(0, 4));
+      };
+      lecteur.readAsDataURL(f);
+    }
+    e.target.value = "";
   }
 
   return (
@@ -496,10 +608,18 @@ export default function CentreIntelligences() {
       </Link>
 
       <header className="rounded-2xl border border-black/5 bg-white p-4">
-        <div className="flex items-start justify-between gap-3">
+        {/*
+         * Signalé par le PDG (capture d'écran) : sur mobile, le bandeau d'état
+         * (à droite, largeur fixe) et le titre (à gauche, largeur libre)
+         * refusaient tous deux de rétrécir dans une rangée sans retour à la
+         * ligne — la moitié du bandeau d'état sortait de l'écran. Empilés et
+         * centrés sur mobile (côte à côte, alignés à gauche/droite, seulement
+         * à partir d'un écran large) : plus aucun débordement possible.
+         */}
+        <div className="flex flex-col items-center gap-3 text-center md:flex-row md:items-start md:justify-between md:text-left">
           <div>
             <p className="text-[11px] uppercase tracking-wide text-black/40">Côté direction — PDG</p>
-            <h1 className="flex items-center gap-2 text-xl font-black text-[#111]">
+            <h1 className="flex items-center justify-center gap-2 text-xl font-black text-[#111] md:justify-start">
               <Sparkles className="h-5 w-5 text-[#8B7500]" /> MKA.P-MS AI
             </h1>
             <p className="mt-1 text-sm text-black/60">
@@ -507,14 +627,14 @@ export default function CentreIntelligences() {
               Ce qu'elle ne sait pas, elle le dit.
             </p>
           </div>
-          <div className="shrink-0 rounded-xl border border-black/5 bg-[#FAFAFA] p-3 text-right">
-            <div className="flex items-center justify-end gap-2">
+          <div className="w-full rounded-xl border border-black/5 bg-[#FAFAFA] p-3 md:w-auto md:shrink-0">
+            <div className="flex items-center justify-center gap-2 md:justify-end">
               <span className={`h-2.5 w-2.5 rounded-full ${styleAcces.pastille}`} />
               <span className={`text-sm font-bold ${styleAcces.texte}`}>
                 {styleAcces.libelle}
               </span>
             </div>
-            <p className="mt-1 max-w-[240px] text-[11px] text-black/50">
+            <p className="mt-1 text-[11px] text-black/50 md:max-w-[240px]">
               {acces?.message ?? "Vérification de l'accès fournisseur…"}
             </p>
           </div>
@@ -627,15 +747,38 @@ export default function CentreIntelligences() {
                     {b.role === "moteur" && b.fournisseur ? ` — ${b.fournisseur} / ${b.modele}` : ""}
                   </p>
                   {b.role === "moteur" && b.ok ? (
-                    <button
-                      type="button"
-                      onClick={() => copierTexte(i, b.texte)}
-                      className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold text-black/40 hover:bg-black/5 hover:text-black/60"
-                      title="Copier la réponse"
-                    >
-                      {copie === i ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
-                      {copie === i ? "Copié" : "Copier"}
-                    </button>
+                    <div className="flex shrink-0 items-center gap-1">
+                      <button
+                        type="button"
+                        onClick={() => copierTexte(i, b.texte)}
+                        className="inline-flex items-center gap-1 rounded-full p-1 text-black/40 hover:bg-black/5 hover:text-black/60"
+                        title="Copier la réponse"
+                      >
+                        {copie === i ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+                      </button>
+                      {ttsSupporte ? (
+                        <button
+                          type="button"
+                          onClick={() => lireTexte(i, b.texte)}
+                          className={`inline-flex items-center gap-1 rounded-full p-1 hover:bg-black/5 ${
+                            lectureIndex === i ? "text-[#8B7500]" : "text-black/40 hover:text-black/60"
+                          }`}
+                          title={lectureIndex === i ? "Arrêter la lecture" : "Écouter la réponse"}
+                        >
+                          <Volume2 className="h-3.5 w-3.5" />
+                        </button>
+                      ) : null}
+                      {partageSupporte ? (
+                        <button
+                          type="button"
+                          onClick={() => partagerTexte(b.texte)}
+                          className="inline-flex items-center gap-1 rounded-full p-1 text-black/40 hover:bg-black/5 hover:text-black/60"
+                          title="Partager la réponse"
+                        >
+                          <Share2 className="h-3.5 w-3.5" />
+                        </button>
+                      ) : null}
+                    </div>
                   ) : null}
                 </div>
                 {b.ok ? (
@@ -662,23 +805,75 @@ export default function CentreIntelligences() {
             ))}
           </div>
 
-          <div className="mt-3 flex items-end gap-2 border-t border-black/5 pt-3">
-            <textarea
-              value={question}
-              onChange={(e) => setQuestion(e.target.value)}
-              rows={2}
-              placeholder="Écris ta demande…"
-              className="flex-1 rounded-xl border border-black/10 p-2 text-sm outline-none focus:border-[#8B7500]"
-            />
-            <button
-              type="button"
-              onClick={envoyer}
-              disabled={demander.isPending || question.trim().length < 2}
-              className="inline-flex items-center gap-1 rounded-xl bg-[#111] px-4 py-2 text-sm font-bold text-white disabled:opacity-40"
-            >
-              <Send className="h-4 w-4" />
-              {demander.isPending ? "…" : "Envoyer"}
-            </button>
+          <div className="mt-3 border-t border-black/5 pt-3">
+            {pieces.length > 0 ? (
+              <div className="mb-2 flex flex-wrap gap-2">
+                {pieces.map((p, i) => (
+                  <div key={i} className="relative">
+                    <img src={p} alt="Pièce jointe" className="h-14 w-14 rounded-lg border border-black/10 object-cover" />
+                    <button
+                      type="button"
+                      onClick={() => setPieces((ps) => ps.filter((_, j) => j !== i))}
+                      className="absolute -right-1.5 -top-1.5 rounded-full bg-[#111] p-0.5 text-white"
+                      title="Retirer cette pièce jointe"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            ) : null}
+            <div className="flex items-end gap-2">
+              <input
+                ref={fichierRef}
+                type="file"
+                accept="image/*"
+                multiple
+                className="hidden"
+                onChange={surFichierChoisi}
+              />
+              <button
+                type="button"
+                onClick={() => fichierRef.current?.click()}
+                disabled={pieces.length >= 4}
+                title="Joindre une photo ou une image"
+                className="mb-1 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-black/10 text-black/50 hover:bg-black/5 disabled:opacity-30"
+              >
+                <Paperclip className="h-4 w-4" />
+              </button>
+              <textarea
+                value={question}
+                onChange={(e) => setQuestion(e.target.value)}
+                rows={4}
+                placeholder={ecoute ? "Je t'écoute…" : "Écris ta demande…"}
+                className="min-h-[112px] flex-1 rounded-xl border border-black/10 p-3 text-sm outline-none focus:border-[#8B7500]"
+              />
+              <div className="flex flex-col gap-2">
+                {vocalSupporte ? (
+                  <button
+                    type="button"
+                    onClick={basculerEcoute}
+                    title={ecoute ? "Arrêter la dictée" : "Dicter au lieu d'écrire"}
+                    className={`inline-flex h-9 w-9 items-center justify-center rounded-full border transition ${
+                      ecoute
+                        ? "animate-pulse border-red-200 bg-red-50 text-red-600"
+                        : "border-black/10 text-black/50 hover:bg-black/5"
+                    }`}
+                  >
+                    <Mic className="h-4 w-4" />
+                  </button>
+                ) : null}
+                <button
+                  type="button"
+                  onClick={envoyer}
+                  disabled={demander.isPending || (question.trim().length < 2 && pieces.length === 0)}
+                  className="inline-flex h-9 items-center justify-center gap-1 rounded-xl bg-[#111] px-4 text-sm font-bold text-white disabled:opacity-40"
+                >
+                  <Send className="h-4 w-4" />
+                  {demander.isPending ? "…" : "Envoyer"}
+                </button>
+              </div>
+            </div>
           </div>
         </section>
       ) : null}

@@ -60,6 +60,8 @@ export interface EntreeBoucle {
   role: string | null;
   systeme: string;
   message: string;
+  /** Images en data URI jointes au message d'origine (voir provider.ts) — jamais réattachées après le premier tour, l'historique les porte ensuite. */
+  images?: string[];
   /** tool_id autorisés à être proposés au modèle pour cet appel — filtre en amont de la politique. */
   outilsProposes: string[];
   confidentialite?: Confidentiality;
@@ -114,6 +116,7 @@ export async function executerAvecOutils(
       role: input.role,
       systeme: input.systeme,
       message: input.message,
+      images: input.images,
       historique,
       outils: outils.length > 0 ? outils : undefined,
       sortieStructuree: input.sortieStructuree,
