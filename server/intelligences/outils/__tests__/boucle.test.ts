@@ -100,7 +100,7 @@ async function main() {
   verif("registre : les fixtures de test sont exclues de l'exploitation", listerActifs().every((o) => o.testOnly !== true));
   verif("registre : le banc de test peut les demander explicitement", listerActifs({ inclureTests: true }).filter((o) => o.testOnly).length === 5);
   verif("registre : outil inconnu introuvable", trouver("test.nexiste_pas") === null);
-  verif("registre : au moins 30 familles couvertes (demande de la direction)", resume().parCategorie.length >= 30 - 1 && resume().parCategorie.length === 38);
+  verif("registre : au moins 30 familles couvertes (demande de la direction)", resume().parCategorie.length >= 30 - 1 && resume().parCategorie.length === 41);
   verif("registre : aucun outil absent faute d'implémentation (statut assumé)", OUTILS.every((o) => o.implementationStatus !== undefined));
   verif("registre : famille véhicules complète (17 outils demandés)", listerParCategorie("vehicules").length === 17);
   verif(
