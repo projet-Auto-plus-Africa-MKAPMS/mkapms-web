@@ -19,7 +19,7 @@ import type { JournaliserFn, RouterFn } from "../boucle.js";
 import { executerAvecOutils } from "../boucle.js";
 import { evaluer, type GetCountryFn, type VerifierPermission } from "../politique.js";
 import { executer } from "../executeur.js";
-import { trouver, listerActifs, listerParCategorie, resume, OUTILS } from "../registre.js";
+import { trouver, trouverParNomFournisseur, nomFournisseur, versOutilFonction, listerActifs, listerParCategorie, resume, OUTILS } from "../registre.js";
 import { validerArguments } from "../validation.js";
 import { decoderVin } from "../familles/outils-vehicules.js";
 
@@ -361,6 +361,52 @@ async function main() {
     verif("getWholesaleValue : enregistré mais désactivé (aucune règle inventée)", outilGros.enabled === false);
     const politique = await evaluer(outilGros, { role: "pro", moteur: "test" }, AUTORISE_TOUT, PAYS_INCONNU);
     verif("getWholesaleValue : refusé par la politique (registre non implémenté)", politique.verdict === "refuse");
+  }
+
+  // ── Nom fournisseur : OpenAI a refusé HTTP 400 tools[0].function.name car
+  // les toolId internes contiennent des points ("vehicules.decodeVIN"), un
+  // caractère hors du motif exigé par OpenAI (^[a-zA-Z0-9_-]+$) — chaque appel
+  // avec des outils échouait, quel que soit le message. ──────────────────
+  {
+    const patternOpenAI = /^[a-zA-Z0-9_-]+$/;
+    const nomsGeneres = new Set<string>();
+    for (const outil of OUTILS) {
+      const nom = nomFournisseur(outil.toolId);
+      verif(`nom fournisseur : "${nom}" (depuis "${outil.toolId}") respecte le motif OpenAI`, patternOpenAI.test(nom));
+      verif(`nom fournisseur : "${nom}" ne dépasse pas 64 caractères (limite OpenAI)`, nom.length <= 64);
+      nomsGeneres.add(nom);
+    }
+    verif("nom fournisseur : aucune collision sur l'ensemble réel du registre", nomsGeneres.size === OUTILS.length);
+
+    verif("nom fournisseur : point remplacé par underscore", nomFournisseur("vehicules.decodeVIN") === "vehicules_decodeVIN");
+    verif(
+      "nom fournisseur : round-trip retrouve le même outil qu'avec le vrai toolId",
+      trouverParNomFournisseur(nomFournisseur("vehicules.decodeVIN"))?.toolId === "vehicules.decodeVIN",
+    );
+    verif(
+      "nom fournisseur : un nom inconnu du fournisseur ne fait planter la résolution (retombe proprement sur null)",
+      trouverParNomFournisseur("ceci_nexiste_nulle_part") === null,
+    );
+
+    verif(
+      "versOutilFonction : le nom envoyé au fournisseur est déjà la version sans point",
+      versOutilFonction(trouver("vehicules.decodeVIN")!).function.name === "vehicules_decodeVIN",
+    );
+
+    // Bout en bout : la boucle reçoit exactement ce qu'OpenAI renverrait
+    // réellement après la correction (le nom encodé, jamais le toolId brut).
+    const routeur = routeurScripte([
+      { appelsOutils: [{ id: "call_1", nom: "vehicules_decodeVIN", arguments: JSON.stringify({ vin: "VF1RFB00X12345678" }) }] },
+      { texte: "VIN décodé." },
+    ]);
+    const res = await executerAvecOutils(
+      { moteur: "test", role: "super_admin", systeme: "test", message: "décode ce VIN", outilsProposes: ["vehicules.decodeVIN"] },
+      routeur,
+      AUTORISE_TOUT,
+      JOURNAL_MUET,
+    );
+    verif("nom fournisseur bout en bout : l'outil réel est retrouvé depuis le nom encodé", res.appelsOutils[0]?.toolId === "vehicules.decodeVIN");
+    verif("nom fournisseur bout en bout : exécuté avec succès (avant le correctif : « Outil inconnu »)", res.appelsOutils[0]?.statutExecution === "execute");
   }
 
   console.log(`\n${ok}/${total} vérifications réussies.`);

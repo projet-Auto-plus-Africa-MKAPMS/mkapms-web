@@ -299,6 +299,42 @@ export function trouver(toolId: string): OutilSpec | null {
   return OUTILS.find((o) => o.toolId === toolId) ?? null;
 }
 
+/**
+ * Les `toolId` internes utilisent un point comme séparateur hiérarchique
+ * (ex. "vehicules.decodeVIN", "estimate.vehicle.marketValue") — un caractère
+ * qu'OpenAI refuse dans `tools[0].function.name` (motif exigé :
+ * `^[a-zA-Z0-9_-]+$`). Chaque appel avec des outils échouait donc en HTTP 400
+ * dès qu'au moins un outil actif était proposé, quel que soit le message.
+ *
+ * Correction : le nom envoyé au fournisseur remplace les points par des
+ * underscores ; le `toolId` réel (avec points) reste la seule clé utilisée
+ * partout ailleurs (politique, exécution, audit) — jamais renommé côté
+ * registre pour ne pas casser les journaux déjà écrits.
+ */
+const NOMS_FOURNISSEUR = new Map<string, string>();
+const TOOLID_PAR_NOM_FOURNISSEUR = new Map<string, string>();
+for (const outil of OUTILS) {
+  const nom = outil.toolId.replace(/\./g, "_");
+  const collision = TOOLID_PAR_NOM_FOURNISSEUR.get(nom);
+  if (collision && collision !== outil.toolId) {
+    throw new Error(
+      `Collision de nom d'outil pour le fournisseur : "${collision}" et "${outil.toolId}" produisent tous deux "${nom}".`,
+    );
+  }
+  NOMS_FOURNISSEUR.set(outil.toolId, nom);
+  TOOLID_PAR_NOM_FOURNISSEUR.set(nom, outil.toolId);
+}
+
+export function nomFournisseur(toolId: string): string {
+  return NOMS_FOURNISSEUR.get(toolId) ?? toolId.replace(/\./g, "_");
+}
+
+/** Retrouve le vrai toolId (avec points) depuis le nom renvoyé par le fournisseur. */
+export function trouverParNomFournisseur(nom: string): OutilSpec | null {
+  const toolId = TOOLID_PAR_NOM_FOURNISSEUR.get(nom) ?? nom;
+  return trouver(toolId);
+}
+
 export function listerActifs(options: { inclureTests?: boolean } = {}): OutilSpec[] {
   return OUTILS.filter((o) => o.enabled && (options.inclureTests === true || o.testOnly !== true));
 }
@@ -336,7 +372,7 @@ export function versOutilFonction(outil: OutilSpec): OutilFonction {
   return {
     type: "function",
     function: {
-      name: outil.toolId,
+      name: nomFournisseur(outil.toolId),
       description: outil.description,
       parameters: outil.schemaInput,
     },

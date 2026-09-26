@@ -17,7 +17,7 @@
 import { router } from "../routeur.js";
 import type { MessageConversation, SortieStructuree } from "../provider.js";
 import type { Confidentiality } from "../../ai-fabric/service.js";
-import { listerActifs, trouver, versOutilFonction } from "./registre.js";
+import { listerActifs, trouver, trouverParNomFournisseur, versOutilFonction } from "./registre.js";
 import { evaluer, type GetCountryFn, type VerifierPermission } from "./politique.js";
 import { executer } from "./executeur.js";
 import { journaliser } from "./audit.js";
@@ -177,7 +177,10 @@ export async function executerAvecOutils(
 
     for (const appel of res.appelsOutils) {
       const debut = Date.now();
-      const outil = trouver(appel.nom);
+      // appel.nom est le nom tel que renvoyé par le fournisseur (points
+      // remplacés par des underscores, voir registre.ts nomFournisseur) —
+      // jamais le vrai toolId directement.
+      const outil = trouverParNomFournisseur(appel.nom);
 
       if (!outil) {
         const motif = `Outil inconnu : « ${appel.nom} ».`;
