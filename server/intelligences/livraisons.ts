@@ -2522,6 +2522,19 @@ export const LIVRAISONS: Livraison[] = [
       "Vérifié en navigateur réel (Chromium, compte PDG, mobile 390×844) : l'ouverture du menu affiche bien « QUALITÉ » (Évaluation, Moteur candidat) puis « DÉVELOPPEMENT » (Plateforme développeur, Développement) en tout premier, avant les quatre autres groupes. `npx tsc --noEmit` sans nouvelle erreur ; `npm run build` complet vert, aucun fichier généré (cliquables/boutons/moteurs/sections) n'a changé de contenu — un réordonnancement pur ne crée ni ne supprime aucun cliquable.\n\nLeçon générale : une demande de réorganisation de menu peut être résolue par un simple réordonnancement de tableau, sans toucher au contenu ni à la logique — la solution la plus honnête est souvent la plus petite.",
     domaine: "moteurs",
   },
+  {
+    cle: "branche-admin-mkapms-ai-commandes-remontees-sous-vo",
+    titre: "Page Administration : sections « MKA.P-MS AI » et « Commandes & agent développeur » remontées sous le VO Interne",
+    moteurs: ["intelligences"],
+    quoi:
+      "Retour du PDG (trois captures d'écran de la page Administration, onglet Direction/PDG) : les sections « MKA.P-MS AI » (accès au chat direction) et « Commandes & agent développeur » étaient noyées une dizaine de sections plus bas (après Moteurs, Demandes de suppression, Réputation & Avis, Centre d'Actions, Mémoire automobile, Règles par pays, Résilience, Fournisseurs/coûts, Audit d'activation, Indexation Google, Produits Google, Bus d'événements, Contrôle continu, Auto-branchement, Completion Center, Mémoire technique, Système Intelligent). Il pensait le changement précédent (menu réordonné dans le chat lui-même) non pris en compte, alors qu'il regardait un écran différent — la page Administration générale, pas le menu interne du chat.\n\n`Admin.tsx` (onglet Direction/PDG) : les deux sections déplacées juste après « VO Interne MKA.P-MS », avant « Moteurs MKA.P-MS ». Conditions d'accès inchangées (MKA.P-MS AI reste réservé à `super_admin`, Commandes & agent développeur reste ouvert à `super_admin`/`admin`) : seul l'ordre d'affichage bouge.",
+    pourquoi:
+      "Le PDG consulte le VO Interne et l'IA/agent développeur ensemble, mais devait faire défiler toute la page pour atteindre ces deux dernières après le VO — friction identique à celle déjà corrigée dans le menu interne du chat, mais sur un écran différent que le PDG a confondu avec le premier.",
+    ou: ["client/src/pages/Admin.tsx"],
+    lecon:
+      "Vérifié en navigateur réel (Chromium, compte PDG, mobile 390×844, onglet « Direction / PDG ») : l'ordre devient VO Interne MKA.P-MS → MKA.P-MS AI → Commandes & agent développeur → Moteurs MKA.P-MS. `npx tsc --noEmit` sans nouvelle erreur ; `npm run build` complet vert, aucun fichier généré n'a changé de contenu (réordonnancement pur).\n\nLeçon générale : quand le PDG dit « je ne vois pas le changement », vérifier D'ABORD sur QUEL écran il regarde avant de supposer un échec de déploiement — cette plateforme a plusieurs portails PDG/administrateur (page Administration à onglets, écran de chat direction, superadmin/*) et une confusion d'écran ressemble exactement à un changement non pris en compte.",
+    domaine: "moteurs",
+  },
 ];
 
 /**
