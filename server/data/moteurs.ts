@@ -10840,8 +10840,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "cliquables": 25,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 202,
-        "mots": 1311
+        "textes": 205,
+        "mots": 1332
       },
       {
         "fichier": "client/src/pages/intelligence/index.tsx",
@@ -11017,8 +11017,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "pdg",
       "public"
     ],
-    "textes": 232,
-    "mots": 1604,
+    "textes": 235,
+    "mots": 1625,
     "battement": "sonde",
     "manques": [
       {

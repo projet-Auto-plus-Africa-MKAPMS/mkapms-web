@@ -40,7 +40,7 @@ async function main() {
   await nettoyer();
 
   const premierMemoire = await seedFondations();
-  verif("1. seedFondations() écrit bien les 9 fondations la première fois", premierMemoire.nouvelles === 9);
+  verif("1. seedFondations() écrit toutes les fondations sourcées la première fois", premierMemoire.nouvelles === FONDATIONS.length);
 
   const secondMemoire = await seedFondations();
   verif("2. seedFondations() est idempotent : rien de nouveau au second appel", secondMemoire.nouvelles === 0);

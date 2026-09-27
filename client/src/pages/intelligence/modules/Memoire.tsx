@@ -15,7 +15,7 @@ import { useState } from "react";
 import { Brain, Search, Trash2, User } from "lucide-react";
 import { trpc } from "../../../lib/trpc";
 
-function MemoireUtilisateur() {
+export function MemoireUtilisateur() {
   const [categorie, setCategorie] = useState("preference");
   const [cle, setCle] = useState("");
   const [contenu, setContenu] = useState("");
@@ -68,6 +68,10 @@ function MemoireUtilisateur() {
         </button>
       </form>
 
+      {liste.isLoading && <p role="status">Chargement des connaissances…</p>}
+      {liste.isError && <p role="alert">Lecture impossible : {liste.error.message}</p>}
+      {ecrire.isError && <p role="alert">Enregistrement impossible : {ecrire.error.message}. Votre saisie est conservée.</p>}
+      {supprimer.isError && <p role="alert">Suppression impossible : {supprimer.error.message}</p>}
       {liste.data?.length === 0 && <p className="text-sm text-black/40">Aucune entrée.</p>}
       <div className="space-y-2">
         {liste.data?.map((e) => (
