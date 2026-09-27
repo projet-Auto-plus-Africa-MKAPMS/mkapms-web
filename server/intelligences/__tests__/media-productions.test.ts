@@ -1,0 +1,31 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {produireMediaNatif} from '../provider.js';
+import {texteMediaAutorise,demandeMedia} from '../media-productions.js';
+const config={cle:'unit-test-only',modele:'configured-model'};
+const png='iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/l9sAAAAASUVORK5CYII=';
+test('image native uses completed image output, never text as a rendered file',async()=>{
+ let calls=0;
+ const result=await produireMediaNatif(config,'image','Une illustration',async(_url,init)=>{
+  calls++;const body=JSON.parse(String(init?.body));assert.equal(body.store,false);assert.equal(body.model,config.modele);assert.equal(body.tool_choice.type,'image_generation');assert.equal(init?.redirect,'error');
+  return Response.json({status:'completed',output:[{type:'image_generation_call',status:'completed',result:png}]});
+ });
+ assert.equal(calls,1);assert.equal(result.mime,'image/png');assert.equal(result.base64,png);
+ await assert.rejects(produireMediaNatif(config,'image','Une illustration',async()=>Response.json({status:'completed',output:[{type:'message',content:[{type:'output_text',text:'image done'}]}]})));
+ await assert.rejects(produireMediaNatif(config,'image','Une illustration',async()=>Response.json({status:'incomplete',output:[{type:'image_generation_call',status:'completed',result:png}]})));
+});
+test('speech creates audio and refuses HTML, failed requests and oversized streams',async()=>{
+ const audio=Buffer.concat([Buffer.from('ID3'),Buffer.alloc(32)]);
+ const r=await produireMediaNatif(config,'voix','Bonjour',async(_url,init)=>{
+  const b=JSON.parse(String(init?.body));assert.equal(b.model,'tts-1');assert.equal(b.response_format,'mp3');return new Response(audio);
+ });assert.equal(r.mime,'audio/mpeg');assert.equal(r.base64,audio.toString('base64'));
+ for(const response of [new Response('<html>not audio</html>'),new Response('provider secret detail',{status:403}),new Response(Buffer.alloc(13*1024*1024))]){
+  await assert.rejects(produireMediaNatif(config,'voix','Bonjour',async()=>response));
+ }
+});
+test('rights, limits and recognizable credentials checked before inference',()=>{
+ assert.equal(texteMediaAutorise('Description publique'),true);
+ assert.equal(texteMediaAutorise('api_key=confidentiel'),false);
+ assert.equal(texteMediaAutorise('ck_'+'a'.repeat(30)),false);
+ assert.equal(demandeMedia.safeParse({requestId:'31c67eaa-5372-4e8e-b8d4-f6cb61bbd79f',operation:'image',texte:'Test',droitsConfirmes:false}).success,false);
+});

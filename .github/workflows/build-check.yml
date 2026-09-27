@@ -67,3 +67,8 @@ jobs:
         run: node --import tsx --test server/intelligences/__tests__/shop-analysis.test.ts server/intelligences/__tests__/shop-analysis.integration.test.ts
         env:
           SHOP_KNOWLEDGE_TEST_DB: postgresql://core_ai_test:disposable_ci_fixture@localhost:5432/core_ai_test
+
+      - name: Private image and speech productions
+        run: node --import tsx --test server/intelligences/__tests__/media-productions.test.ts server/intelligences/__tests__/media-productions.integration.test.ts
+        env:
+          SHOP_KNOWLEDGE_TEST_DB: postgresql://core_ai_test:disposable_ci_fixture@localhost:5432/core_ai_test

@@ -1,12 +1,2 @@
-import { Image } from "lucide-react";
-import { ModulePlaceholder } from "./ModulePlaceholder";
-
-export function Images() {
-  return (
-    <ModulePlaceholder
-      icone={Image}
-      titre="Images"
-      description="Comprendre, générer et retoucher des images avec MKA.P-MS AI."
-    />
-  );
-}
+import { ProductionMedia } from "./ProductionMedia";
+export function Images() { return <ProductionMedia operation="image"/>; }
