@@ -458,6 +458,7 @@ export default function Vendre() {
       carburant: d.carburant || "essence",
       boite: d.boite || "manuelle",
       categorie: d.categorie || "berline",
+      segmentLocation: d.segmentLocation || "",
       ville: d.ville || "",
       codePostal: d.codePostal || "",
       contactTelephone: d.contactTelephone || "",

@@ -124,7 +124,7 @@ export default function ProduitParticulier() {
     }
     const anyPhoto = Object.values(cats).some((a) => a.length > 0);
     const titre = [r.marque, r.modele].filter(Boolean).join(" ").trim() || DEMO_VEHICLE.titre;
-    const sousTitre = [r.categorie, r.annee, r.carburant, r.boiteVitesses].filter(Boolean).join(" | ") || DEMO_VEHICLE.sousTitre;
+    const sousTitre = [r.categorie, r.annee, r.carburant, r.boite].filter(Boolean).join(" | ") || DEMO_VEHICLE.sousTitre;
     // Tarifs location : si l'annonce contient prixJour/Semaine/Mois (schéma futur),
     // on les utilise ; sinon on garde ceux du DEMO pour ne pas casser l'affichage.
     const asAny = r as unknown as Record<string, unknown>;
@@ -137,10 +137,10 @@ export default function ProduitParticulier() {
       prixSemaine: num(asAny.prixSemaine, DEMO_VEHICLE.prixSemaine),
       prixMois: num(asAny.prixMois, DEMO_VEHICLE.prixMois),
       annee: num(r.annee, DEMO_VEHICLE.annee),
-      km: num(r.km, DEMO_VEHICLE.km),
+      km: num(r.kilometrage, DEMO_VEHICLE.km),
       carburant: typeof r.carburant === "string" && r.carburant ? r.carburant : DEMO_VEHICLE.carburant,
-      transmission: typeof r.boiteVitesses === "string" && r.boiteVitesses ? r.boiteVitesses : DEMO_VEHICLE.transmission,
-      puissance: typeof r.puissance === "string" && r.puissance ? r.puissance : DEMO_VEHICLE.puissance,
+      transmission: typeof r.boite === "string" && r.boite ? r.boite : DEMO_VEHICLE.transmission,
+      puissance: r.puissanceCv != null ? `${r.puissanceCv} ch` : DEMO_VEHICLE.puissance,
       places: num(r.places, DEMO_VEHICLE.places),
       portes: num(r.portes, DEMO_VEHICLE.portes),
       photoCategories: anyPhoto ? cats : DEMO_VEHICLE.photoCategories,

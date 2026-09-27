@@ -38,6 +38,11 @@ jobs:
       - name: Dépendances npm
         run: npm ci
 
+      - name: Contrats TypeScript complets
+        run: npm run typecheck
+        env:
+          NODE_OPTIONS: --max-old-space-size=6144
+
       - name: Build complet (identique à railway.json)
         run: npm run build
 

@@ -109,6 +109,8 @@ assert.equal(tryRate("user:2", { max: 1, windowMs: 60_000 }), false, "2e appel r
 // ── Sanitize teach message ─────────────────────────────────────────────
 assert.equal(sanitizeTeachMessage("  hello  "), "hello");
 assert.equal(sanitizeTeachMessage(""), null);
-assert.equal(sanitizeTeachMessage("x".repeat(5000)).length, MAX_TEACH_MESSAGE_LENGTH);
+const longMessage = sanitizeTeachMessage("x".repeat(5000));
+assert.ok(longMessage !== null);
+assert.equal(longMessage.length, MAX_TEACH_MESSAGE_LENGTH);
 
 console.log("✅ Tous les tests Smart Engine hardening passent.");
