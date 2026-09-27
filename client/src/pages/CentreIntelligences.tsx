@@ -1,3 +1,6 @@
+import {ProductionMedia} from "./intelligence/modules/ProductionMedia";
+import {TranscriptionAudio} from "./intelligence/modules/TranscriptionAudio";
+import {MemoireUtilisateur} from "./intelligence/modules/Memoire";
 /**
  * MKA.P-MS AI — côté direction (PDG seul).
  *
@@ -67,6 +70,7 @@ import { trpc } from "../lib/trpc";
 import { useAuth } from "../lib/auth";
 
 type Onglet =
+  | "medias"
   | "echange"
   | "pilotage"
   | "permissions"
@@ -89,6 +93,7 @@ type Onglet =
   | "developpement";
 
 const ONGLETS: { cle: Onglet; label: string }[] = [
+  { cle: "medias", label: "Images, voix et transcription" },
   { cle: "echange", label: "Échange" },
   { cle: "pilotage", label: "Actions de direction" },
   { cle: "permissions", label: "Permissions" },
@@ -133,6 +138,7 @@ const GROUPES_MENU: { titre: string; onglets: Onglet[] }[] = [
   { titre: "Gouvernance", onglets: ["fonctions", "permissions", "commandes", "capacites"] },
   { titre: "Pilotage", onglets: ["pilotage", "missions", "plan", "autonomie"] },
   { titre: "Moteurs", onglets: ["moteurs", "connexion", "surveillance", "support"] },
+  { titre: "Création", onglets: ["medias"] },
   { titre: "Autres", onglets: ["assistance", "memoire", "couts"] },
 ];
 
@@ -2522,8 +2528,13 @@ export default function CentreIntelligences() {
         </section>
       ) : null}
 
+      {onglet === "medias" ? <section className="mt-3 space-y-4"><h2 className="text-lg font-bold">Images, voix et transcription</h2><p className="text-sm">Productions privées MAIN, conservées avec leur historique. Aucune publication automatique.</p><ProductionMedia operation="image"/><ProductionMedia operation="voix"/><TranscriptionAudio/></section> : null}
+
       {onglet === "memoire" ? (
         <section className="mt-3 space-y-3">
+          <MemoireUtilisateur />
+          {memoire.isLoading && <p role="status">Chargement des mémoires…</p>}
+          {memoire.isError && <p role="alert">Les mémoires ne peuvent pas être lues : {memoire.error.message}. Cela ne signifie pas qu’elles sont vides.</p>}
           <div className="rounded-2xl border border-black/5 bg-white p-4">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <h2 className="flex items-center gap-2 text-sm font-black uppercase tracking-wide text-black/50">
