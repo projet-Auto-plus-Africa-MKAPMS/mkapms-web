@@ -1,12 +1,2 @@
-import { Mic } from "lucide-react";
-import { ModulePlaceholder } from "./ModulePlaceholder";
-
-export function VoixTempsReel() {
-  return (
-    <ModulePlaceholder
-      icone={Mic}
-      titre="Voix & temps réel"
-      description="Conversation vocale continue avec MKA.P-MS AI — dictée, réponse parlée, échange en temps réel."
-    />
-  );
-}
+import { ProductionMedia } from "./ProductionMedia";
+export function VoixTempsReel() { return <ProductionMedia operation="voix"/>; }

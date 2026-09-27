@@ -10627,7 +10627,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "routeurs": [
       "intelligences"
     ],
-    "fichiersServeur": 83,
+    "fichiersServeur": 84,
     "dependancesDeclarees": [
       "ai_fabric",
       "code_graph",
@@ -10935,6 +10935,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "journalPermissions",
       "lancerMission",
       "marquerEtape",
+      "mediaLire",
+      "mediaListe",
+      "mediaProduire",
       "memoire",
       "memoireArchiver",
       "memoireEcrire",
@@ -10992,6 +10995,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "in_fichier_morceaux",
       "in_fichiers",
       "in_fonctions",
+      "in_media_productions",
       "in_memoire",
       "in_memoire_projet",
       "in_memoire_utilisateur",

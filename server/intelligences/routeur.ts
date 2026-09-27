@@ -53,6 +53,8 @@ const DOMAINE_AUTONOMIE: Partial<Record<CodeCapacite, string>> = {
 const NIVEAUX: Confidentiality[] = ["publique", "interne", "personnelle", "confidentielle"];
 
 export interface DemandeCapacite {
+  /** Réservé au service privé de productions : quota et idempotence déjà contrôlés. */
+  productionMedia?: boolean;
   /** Server-only service boundary; never accepted from public capability inputs. */
   isolation?: "SHOP";
   capacite: CodeCapacite;
@@ -124,6 +126,9 @@ function refus(
  */
 export async function router(demande: DemandeCapacite): Promise<ResultatCapacite> {
   const s = spec(demande.capacite);
+  if ((demande.capacite === 'image' || demande.capacite === 'voix') && !demande.productionMedia) {
+    return refus(demande.capacite, 'Utilisez l’espace Images ou Voix pour créer une production privée.', s.repliInterne);
+  }
 
   if (!demande.moteur.trim()) {
     return refus(
@@ -199,11 +204,13 @@ export async function router(demande: DemandeCapacite): Promise<ResultatCapacite
     );
   }
 
-  const shadow = demande.isolation === "SHOP" ? null : await configuration(demande.capacite);
+  const media = demande.capacite === "image" || demande.capacite === "voix" ? demande.capacite : undefined;
+  const shadow = media || demande.isolation === "SHOP" ? null : await configuration(demande.capacite);
   const parCandidat = candidatSert(shadow);
 
   const commun = {
     isolation: demande.isolation,
+    media,
     capacite: s.capaciteFabrique,
     tache: demande.capacite,
     capaciteMka: demande.capacite,

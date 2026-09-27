@@ -61,7 +61,14 @@ export interface MessageConversation {
   tool_call_id?: string;
 }
 
+export interface MediaProduit {
+  mime: "image/png" | "audio/mpeg";
+  base64: string;
+}
+
 export interface AppelInput {
+  /** Opération média explicite, exécutée sans outils métier ni shadow. */
+  media?: "image" | "voix";
   isolation?: "SHOP";
   /** Capacité Fabrique Intelligence : "ia_texte" ou "ia_vision". */
   capacite: "ia_texte" | "ia_vision";
@@ -127,6 +134,7 @@ export interface Tentative {
 }
 
 export interface AppelResultat {
+  media?: MediaProduit;
   ok: boolean;
   /** Texte produit par le modèle. Vide quand `ok` est faux. */
   texte: string;
@@ -450,6 +458,31 @@ export async function appeler(input: AppelInput, fetchImpl: typeof fetch = fetch
       `${providerLabel} est routable mais l'appel est impossible : ${resolu.erreur}`,
       Date.now() - debut,
     );
+  }
+
+  if (input.media) {
+    if (input.isolation === "SHOP" || !["openai", "openai_vision"].includes(providerCode)) {
+      return { ...vide, motif: "Ce fournisseur ne possède pas d’adaptateur média natif dans cette plateforme.", dureeMs: Date.now() - debut };
+    }
+    try {
+      const media = await produireMediaNatif(resolu, input.media, input.message, fetchImpl);
+      await markProviderUsed(providerCode);
+      await db.insert(afCostEntries).values({
+        engine: input.moteur, taskType: input.media, providerCode,
+        capability: input.capacite, units: 1, unitLabel: input.media === "image" ? "image" : "synthèse vocale",
+        costCents: 0, measured: false, countryCode: input.countryCode ?? null,
+        note: "Média natif généré. Tarif non renseigné ; zéro n’est pas un coût gratuit.",
+      });
+      const tentative: Tentative = { fournisseur: providerCode, rang, ok: true, motif: "", dureeMs: Date.now() - debut };
+      await mesurer(input, tentative, 0, 0);
+      return { ...vide, ok: true, motifPublic: "", fournisseur: providerCode,
+        modele: input.media === "voix" ? "tts-1" : resolu.modele, media, tentatives: [tentative], dureeMs: tentative.dureeMs };
+    } catch {
+      // Aucun corps fournisseur, prompt ni donnée binaire dans les journaux/erreurs.
+      const tentative: Tentative = { fournisseur: providerCode, rang, ok: false, motif: "Génération média refusée ou indisponible.", dureeMs: Date.now() - debut };
+      await mesurer(input, tentative, 0, 0);
+      return { ...vide, motif: tentative.motif, fournisseur: providerCode, modele: resolu.modele, tentatives: [tentative], dureeMs: tentative.dureeMs };
+    }
   }
 
   const contenu: unknown = input.images?.length
@@ -848,4 +881,47 @@ export async function modererTexte(
   } catch (e) {
     return { ...vide, motif: `Appel de modération impossible : ${e instanceof Error ? e.message : "erreur inconnue"}` };
   }
+}
+
+/** Adaptateur borné, appelé exclusivement après les contrôles du routeur. Export pour test injecté. */
+export async function produireMediaNatif(
+  resolu: { cle: string; modele: string }, operation: "image" | "voix", texte: string,
+  fetchImpl: typeof fetch = fetch,
+): Promise<MediaProduit> {
+  if (!resolu.cle || !texte.trim() || texte.length > 4000) throw new Error("MEDIA_INPUT_INVALID");
+  const image = operation === "image";
+  const response = await fetchImpl(image ? "https://api.openai.com/v1/responses" : "https://api.openai.com/v1/audio/speech", {
+    method: "POST", redirect: "error", signal: AbortSignal.timeout(150_000),
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${resolu.cle}` },
+    body: JSON.stringify(image ? {
+      model: resolu.modele, store: false,
+      instructions: "Créer une illustration clairement synthétique selon la demande. Aucune preuve de test, certification, performance technique ou caractéristique produit inventée. Respecter les droits des contenus et la politique commerciale halal MKA.P-MS. Aucun outil autre que la génération d’image.",
+      input: texte, tools: [{ type: "image_generation", size: "1024x1024", quality: "low", output_format: "png" }],
+      tool_choice: { type: "image_generation" }, max_output_tokens: 1200,
+    } : { model: "tts-1", input: texte, voice: "alloy", response_format: "mp3" }),
+  });
+  if (!response.ok) { await response.body?.cancel(); throw new Error("MEDIA_PROVIDER_UNAVAILABLE"); }
+  if (!response.body) throw new Error("MEDIA_EMPTY");
+  const reader = response.body.getReader(); const chunks: Uint8Array[] = []; let size = 0;
+  try {
+    while (true) {
+      const { done, value } = await reader.read(); if (done) break;
+      size += value.length;
+      if (size > 12 * 1024 * 1024) { await reader.cancel(); throw new Error("MEDIA_TOO_LARGE"); }
+      chunks.push(value);
+    }
+  } finally { reader.releaseLock(); }
+  const bytes = Buffer.concat(chunks);
+  if (image) {
+    const parsed = JSON.parse(bytes.toString("utf8"));
+    const outputs = parsed.output?.filter((x: {type?: string}) => x.type === "image_generation_call");
+    if (parsed.status !== "completed" || outputs?.length !== 1 || outputs[0].status !== "completed") throw new Error("MEDIA_INCOMPLETE");
+    const encoded = outputs[0].result;
+    if (typeof encoded !== "string" || !/^[A-Za-z0-9+/]+={0,2}$/.test(encoded)) throw new Error("MEDIA_INVALID");
+    const png = Buffer.from(encoded, "base64");
+    if (png.length < 32 || png.length > 8 * 1024 * 1024 || png.subarray(0, 8).toString("hex") !== "89504e470d0a1a0a") throw new Error("MEDIA_INVALID");
+    return { mime: "image/png", base64: png.toString("base64") };
+  }
+  if (bytes.length < 16 || !(bytes.subarray(0,3).toString() === "ID3" || (bytes[0] === 255 && (bytes[1] & 224) === 224))) throw new Error("MEDIA_INVALID");
+  return { mime: "audio/mpeg", base64: bytes.toString("base64") };
 }

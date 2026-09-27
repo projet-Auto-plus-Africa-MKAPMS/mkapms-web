@@ -143,6 +143,7 @@ import {
 import * as memoireUtilisateur from "./memoire-utilisateur.js";
 import * as memoireProjet from "./memoire-projet.js";
 import * as fichiers from "./fichiers.js";
+import * as productionsMedia from "./media-productions.js";
 import * as connaissance from "./connaissance.js";
 import { rechercherGlobale, type SourceRecherche } from "./recherche-globale.js";
 import { retrieve as ragRetrieveInterne, answer as ragAnswerInterne } from "./rag.js";
@@ -176,6 +177,12 @@ async function exigerProprieteConversation(sessionId: number, userId: number): P
 }
 
 export const intelligencesRouter = router({
+  mediaProduire: pdgProcedure.input(productionsMedia.demandeMedia)
+    .mutation(({input,ctx}) => productionsMedia.produire(ctx.user.uid,ctx.user.role,input)),
+  mediaListe: pdgProcedure.query(({ctx})=>productionsMedia.lister(ctx.user.uid)),
+  mediaLire: pdgProcedure.input(z.object({id:z.string().uuid()}))
+    .query(({input,ctx})=>productionsMedia.lire(input.id,ctx.user.uid)),
+
   /** Nom, commandes et règles : lisibles par tous, appliquées par le serveur. */
   presentation: publicProcedure.query(() => ({
     nom: NOM_MOTEUR,

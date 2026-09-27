@@ -21,6 +21,7 @@ import {
   timestamp,
   uniqueIndex,
   varchar,
+  uuid,
 } from "drizzle-orm/pg-core";
 
 export const inSessions = pgTable("in_sessions", {
@@ -737,3 +738,12 @@ export const inRetrievalAudit = pgTable(
     parTrace: index("in_retrieval_audit_trace_idx").on(t.traceId),
   }),
 );
+
+/** Brouillons médias privés ; jamais inclus dans le RAG ou un flux public. */
+export const inMediaProductions = pgTable("in_media_productions", {
+  id: uuid("id").primaryKey(), ownerId: integer("owner_id").notNull(),
+  operation: text("operation").notNull(), inputHash: text("input_hash").notNull(),
+  texte: text("texte").notNull(), statut: text("statut").notNull(),
+  mime: text("mime"), donnees: text("donnees"), motif: text("motif").notNull().default(""),
+  createdAt: timestamp("created_at", {withTimezone:true}).notNull().defaultNow(),
+}, t=>({parProprietaire:index("in_media_productions_owner_date").on(t.ownerId,t.createdAt)}));
