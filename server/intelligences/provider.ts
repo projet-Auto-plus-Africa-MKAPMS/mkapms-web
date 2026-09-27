@@ -61,14 +61,17 @@ export interface MessageConversation {
   tool_call_id?: string;
 }
 
+import { lireAudio, type FichierAudio } from "./audio-input.js";
+
 export interface MediaProduit {
-  mime: "image/png" | "audio/mpeg";
+  mime: "image/png" | "audio/mpeg" | "text/plain";
   base64: string;
 }
 
 export interface AppelInput {
   /** Opération média explicite, exécutée sans outils métier ni shadow. */
-  media?: "image" | "voix";
+  media?: "image" | "voix" | "transcription";
+  audio?: FichierAudio;
   isolation?: "SHOP";
   /** Capacité Fabrique Intelligence : "ia_texte" ou "ia_vision". */
   capacite: "ia_texte" | "ia_vision";
@@ -465,18 +468,20 @@ export async function appeler(input: AppelInput, fetchImpl: typeof fetch = fetch
       return { ...vide, motif: "Ce fournisseur ne possède pas d’adaptateur média natif dans cette plateforme.", dureeMs: Date.now() - debut };
     }
     try {
-      const media = await produireMediaNatif(resolu, input.media, input.message, fetchImpl);
+      const media = input.media === "transcription"
+        ? await transcrireAudioNatif(resolu, input.audio!, fetchImpl)
+        : await produireMediaNatif(resolu, input.media, input.message, fetchImpl);
       await markProviderUsed(providerCode);
       await db.insert(afCostEntries).values({
         engine: input.moteur, taskType: input.media, providerCode,
-        capability: input.capacite, units: 1, unitLabel: input.media === "image" ? "image" : "synthèse vocale",
+        capability: input.capacite, units: 1, unitLabel: input.media === "image" ? "image" : input.media === "transcription" ? "transcription" : "synthèse vocale",
         costCents: 0, measured: false, countryCode: input.countryCode ?? null,
         note: "Média natif généré. Tarif non renseigné ; zéro n’est pas un coût gratuit.",
       });
       const tentative: Tentative = { fournisseur: providerCode, rang, ok: true, motif: "", dureeMs: Date.now() - debut };
       await mesurer(input, tentative, 0, 0);
       return { ...vide, ok: true, motifPublic: "", fournisseur: providerCode,
-        modele: input.media === "voix" ? "tts-1" : resolu.modele, media, tentatives: [tentative], dureeMs: tentative.dureeMs };
+        modele: input.media === "voix" ? "tts-1" : input.media === "transcription" ? "whisper-1" : resolu.modele, media, tentatives: [tentative], dureeMs: tentative.dureeMs };
     } catch {
       // Aucun corps fournisseur, prompt ni donnée binaire dans les journaux/erreurs.
       const tentative: Tentative = { fournisseur: providerCode, rang, ok: false, motif: "Génération média refusée ou indisponible.", dureeMs: Date.now() - debut };
@@ -924,4 +929,20 @@ export async function produireMediaNatif(
   }
   if (bytes.length < 16 || !(bytes.subarray(0,3).toString() === "ID3" || (bytes[0] === 255 && (bytes[1] & 224) === 224))) throw new Error("MEDIA_INVALID");
   return { mime: "audio/mpeg", base64: bytes.toString("base64") };
+}
+
+/** Bounded file transcription; audio never enters prompts, telemetry or fallback calls. */
+export async function transcrireAudioNatif(resolu:{cle:string}, input:FichierAudio, fetchImpl:typeof fetch=fetch):Promise<MediaProduit>{
+ const bytes=lireAudio(input);if(!resolu.cle)throw Error('AUDIO_CREDENTIAL_REQUIRED');
+ const form=new FormData();form.append('model','whisper-1');form.append('response_format','json');
+ const mime={mp3:'audio/mpeg',wav:'audio/wav',webm:'audio/webm',mp4:'audio/mp4'}[input.format];
+ form.append('file',new Blob([new Uint8Array(bytes)],{type:mime}),`recording.${input.format}`);
+ const response=await fetchImpl('https://api.openai.com/v1/audio/transcriptions',{method:'POST',redirect:'error',signal:AbortSignal.timeout(150_000),headers:{Authorization:`Bearer ${resolu.cle}`},body:form});
+ if(!response.ok){await response.body?.cancel();throw Error('AUDIO_PROVIDER_UNAVAILABLE');}
+ if(!response.body)throw Error('AUDIO_EMPTY');
+ const reader=response.body.getReader(),chunks:Uint8Array[]=[];let size=0;
+ try{while(true){const {done,value}=await reader.read();if(done)break;size+=value.length;if(size>256*1024){await reader.cancel();throw Error('AUDIO_RESULT_TOO_LARGE');}chunks.push(value);}}finally{reader.releaseLock();}
+ const parsed=JSON.parse(Buffer.concat(chunks).toString('utf8'));
+ if(typeof parsed.text!=='string'||!parsed.text.trim()||parsed.text.length>60000)throw Error('AUDIO_EMPTY');
+ return {mime:'text/plain',base64:Buffer.from(parsed.text.trim(),'utf8').toString('base64')};
 }

@@ -1,2 +1,3 @@
 import { ProductionMedia } from "./ProductionMedia";
-export function VoixTempsReel() { return <ProductionMedia operation="voix"/>; }
+import { TranscriptionAudio } from "./TranscriptionAudio";
+export function VoixTempsReel() { return <><ProductionMedia operation="voix"/><TranscriptionAudio/></>; }

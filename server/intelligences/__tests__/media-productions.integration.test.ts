@@ -5,6 +5,7 @@ test('private media persistence, isolation, idempotence, quota and failure',asyn
  const base=new pg.Pool({connectionString:u.href});
  try{
  await base.query('DROP TABLE IF EXISTS in_media_productions');await base.query(await readFile('drizzle/0147_intelligence_media_productions.sql','utf8'));
+ await base.query(await readFile('drizzle/0148_intelligence_audio_transcription.sql','utf8'));
  let calls=0;
  const exec=async()=>{calls++;return {ok:true,media:{mime:'image/png' as const,base64:'private-image'}} as any;};
  const input={requestId:randomUUID(),operation:'image' as const,texte:'Une illustration',droitsConfirmes:true as const};
@@ -18,6 +19,12 @@ test('private media persistence, isolation, idempotence, quota and failure',asyn
  assert.equal((await lire(failed.requestId,7,base)).donnees,null);
  assert.ok(!(await lire(failed.requestId,7,base)).motif.includes('private provider'));
  await assert.rejects(produire(7,'super_admin',{...input,requestId:randomUUID(),texte:'api_key=secret'},base,exec));
+ const audio={format:'wav' as const,base64:Buffer.concat([Buffer.from('RIFF0000WAVE'),Buffer.alloc(32)]).toString('base64')};
+ const ai={requestId:randomUUID(),operation:'transcription' as const,texte:'Transcription audio',audio,droitsConfirmes:true as const};
+ const transcript=await produire(8,'super_admin',ai,base,async d=>{assert.equal(d.capacite,'transcription');assert.equal(d.audio?.base64,audio.base64);return {ok:true,media:{mime:'text/plain',base64:Buffer.from('Bonjour').toString('base64')}} as any;});
+ assert.equal(transcript.statut,'READY');await assert.rejects(lire(ai.requestId,7,base));
+ assert.equal((await lister(8,base))[0].texte,'Transcription audio');
+ await assert.rejects(produire(8,'super_admin',{...ai,audio:{...audio,base64:Buffer.concat([Buffer.from('RIFF0000WAVE'),Buffer.alloc(64)]).toString('base64')}},base,exec));
  for(let i=0;i<18;i++)await base.query("INSERT INTO in_media_productions(id,owner_id,operation,input_hash,texte,statut) VALUES($1,7,'image','test','test','FAILED')",[randomUUID()]);
  await assert.rejects(produire(7,'super_admin',{...input,requestId:randomUUID()},base,exec),/20 productions/);assert.equal(calls,1);
  }finally{await base.end();}
