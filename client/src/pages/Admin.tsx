@@ -282,6 +282,50 @@ export default function Admin() {
       </section>
       )}
 
+      {/*
+       * Retour du PDG : « MKA.P-MS AI » et « Commandes & agent développeur »
+       * étaient trop bas dans la page (après une dizaine d'autres sections) —
+       * remontés juste sous le VO Interne, qu'il consulte en même temps.
+       */}
+      {/* MKA.P-MS AI — côté direction, PDG uniquement */}
+      {user?.role === "super_admin" && (
+      <section className="mt-10">
+        <h2 className="text-lg font-bold text-slate-800">MKA.P-MS AI</h2>
+        <p className="text-xs text-slate-500">Vue compl&egrave;te des moteurs, commandes, r&egrave;gles, consommation et &eacute;criture de code &mdash; c&ocirc;t&eacute; direction r&eacute;serv&eacute; au PDG</p>
+        <Link to="/admin/intelligences" className="mt-3 flex items-center gap-4 rounded-xl border-2 border-[#D4AF37] bg-gradient-to-r from-[#111] to-[#1a1a1a] p-5 shadow-lg hover:shadow-xl transition group">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#D4AF37]/20">
+            <span className="text-2xl">&#x2728;</span>
+          </div>
+          <div className="flex-1">
+            <p className="text-base font-bold text-[#D4AF37]">Parler au syst&egrave;me et lui donner des ordres</p>
+            <p className="text-xs text-white/60">Aucun code n&apos;est appliqu&eacute; sans ta validation &mdash; un appel impossible affiche son motif</p>
+          </div>
+          <ChevronDown size={18} className="text-[#D4AF37] -rotate-90" />
+        </Link>
+        <Link to="/intelligences" className="mt-2 inline-block text-xs font-bold text-slate-600 hover:text-slate-900">
+          Voir le c&ocirc;t&eacute; utilisateurs (assistant automobile public) &rarr;
+        </Link>
+      </section>
+      )}
+
+      {/* Centre de Commandes — PDG + Directeur (points 71-72-75) */}
+      {(user?.role === "super_admin" || user?.role === "admin") && (
+      <section className="mt-10">
+        <h2 className="text-lg font-bold text-slate-800">Commandes &amp; agent d&eacute;veloppeur</h2>
+        <p className="text-xs text-slate-500">Demandes en langage naturel, commandes vocales PDG, dossiers de d&eacute;veloppement</p>
+        <Link to="/admin/commandes" className="mt-3 flex items-center gap-4 rounded-xl border-2 border-[#D4AF37] bg-gradient-to-r from-[#111] to-[#1a1a1a] p-5 shadow-lg hover:shadow-xl transition group">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#D4AF37]/20">
+            <span className="text-2xl">&#x1F5E3;&#xFE0F;</span>
+          </div>
+          <div className="flex-1">
+            <p className="text-base font-bold text-[#D4AF37]">Centre de Commandes</p>
+            <p className="text-xs text-white/60">Une phrase devient une action trac&eacute;e &mdash; jamais une op&eacute;ration critique sans confirmation</p>
+          </div>
+          <ChevronDown size={18} className="text-[#D4AF37] -rotate-90" />
+        </Link>
+      </section>
+      )}
+
       {/* Registre & Contrôle des Moteurs — PDG + Directeur */}
       {(user?.role === "super_admin" || user?.role === "admin") && (
       <section className="mt-10">
@@ -402,24 +446,6 @@ export default function Admin() {
           <div className="flex-1">
             <p className="text-base font-bold text-[#D4AF37]">Centre de R&eacute;silience</p>
             <p className="text-xs text-white/60">Fermer au public sans rien d&eacute;truire &mdash; et ne jamais ex&eacute;cuter une action critique sur un clic</p>
-          </div>
-          <ChevronDown size={18} className="text-[#D4AF37] -rotate-90" />
-        </Link>
-      </section>
-      )}
-
-      {/* Centre de Commandes — PDG + Directeur (points 71-72-75) */}
-      {(user?.role === "super_admin" || user?.role === "admin") && (
-      <section className="mt-10">
-        <h2 className="text-lg font-bold text-slate-800">Commandes &amp; agent d&eacute;veloppeur</h2>
-        <p className="text-xs text-slate-500">Demandes en langage naturel, commandes vocales PDG, dossiers de d&eacute;veloppement</p>
-        <Link to="/admin/commandes" className="mt-3 flex items-center gap-4 rounded-xl border-2 border-[#D4AF37] bg-gradient-to-r from-[#111] to-[#1a1a1a] p-5 shadow-lg hover:shadow-xl transition group">
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#D4AF37]/20">
-            <span className="text-2xl">&#x1F5E3;&#xFE0F;</span>
-          </div>
-          <div className="flex-1">
-            <p className="text-base font-bold text-[#D4AF37]">Centre de Commandes</p>
-            <p className="text-xs text-white/60">Une phrase devient une action trac&eacute;e &mdash; jamais une op&eacute;ration critique sans confirmation</p>
           </div>
           <ChevronDown size={18} className="text-[#D4AF37] -rotate-90" />
         </Link>
@@ -602,27 +628,6 @@ export default function Admin() {
             <p className="text-xs text-white/60">Du code qui existe n&apos;est pas une capacit&eacute; active</p>
           </div>
           <ChevronDown size={18} className="text-[#D4AF37] -rotate-90" />
-        </Link>
-      </section>
-      )}
-
-      {/* MKA.P-MS AI — côté direction, PDG uniquement */}
-      {user?.role === "super_admin" && (
-      <section className="mt-10">
-        <h2 className="text-lg font-bold text-slate-800">MKA.P-MS AI</h2>
-        <p className="text-xs text-slate-500">Vue compl&egrave;te des moteurs, commandes, r&egrave;gles, consommation et &eacute;criture de code &mdash; c&ocirc;t&eacute; direction r&eacute;serv&eacute; au PDG</p>
-        <Link to="/admin/intelligences" className="mt-3 flex items-center gap-4 rounded-xl border-2 border-[#D4AF37] bg-gradient-to-r from-[#111] to-[#1a1a1a] p-5 shadow-lg hover:shadow-xl transition group">
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#D4AF37]/20">
-            <span className="text-2xl">&#x2728;</span>
-          </div>
-          <div className="flex-1">
-            <p className="text-base font-bold text-[#D4AF37]">Parler au syst&egrave;me et lui donner des ordres</p>
-            <p className="text-xs text-white/60">Aucun code n&apos;est appliqu&eacute; sans ta validation &mdash; un appel impossible affiche son motif</p>
-          </div>
-          <ChevronDown size={18} className="text-[#D4AF37] -rotate-90" />
-        </Link>
-        <Link to="/intelligences" className="mt-2 inline-block text-xs font-bold text-slate-600 hover:text-slate-900">
-          Voir le c&ocirc;t&eacute; utilisateurs (assistant automobile public) &rarr;
         </Link>
       </section>
       )}
