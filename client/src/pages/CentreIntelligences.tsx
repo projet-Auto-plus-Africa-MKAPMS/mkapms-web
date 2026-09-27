@@ -120,12 +120,19 @@ const ONGLETS: { cle: Onglet; label: string }[] = [
  * d'un client de conversation classique : la liste elle-même ne change pas,
  * seule sa présentation change.
  */
+/**
+ * Retour du PDG : « Qualité » (Évaluation — le « Maître Juge » qui note les
+ * réponses) et « Développement » (Plateforme développeur — l'agent qui
+ * écrit les correctifs) étaient trop bas dans le menu, obligeant à fouiller
+ * toute la pile pour les trouver. Remontés en tête, sans réordonner le
+ * reste : mêmes groupes, même contenu, seule leur position change.
+ */
 const GROUPES_MENU: { titre: string; onglets: Onglet[] }[] = [
+  { titre: "Qualité", onglets: ["evaluation", "shadow"] },
+  { titre: "Développement", onglets: ["developpeur", "developpement"] },
   { titre: "Gouvernance", onglets: ["fonctions", "permissions", "commandes", "capacites"] },
   { titre: "Pilotage", onglets: ["pilotage", "missions", "plan", "autonomie"] },
   { titre: "Moteurs", onglets: ["moteurs", "connexion", "surveillance", "support"] },
-  { titre: "Qualité", onglets: ["evaluation", "shadow"] },
-  { titre: "Développement", onglets: ["developpeur", "developpement"] },
   { titre: "Autres", onglets: ["assistance", "memoire", "couts"] },
 ];
 
