@@ -128,14 +128,14 @@ export default function ProduitLocation() {
     const prixMois = num(asAny.prixMois, Math.round(prixJour * 22));
     return {
       titre: [r.marque, r.modele].filter(Boolean).join(" ").trim() || "Véhicule",
-      sousTitre: [r.categorie, r.annee, r.carburant, r.boiteVitesses].filter(Boolean).join(" | ") || "",
+      sousTitre: [r.categorie, r.annee, r.carburant, r.boite].filter(Boolean).join(" | ") || "",
       prixJour, prixSemaine, prixMois,
       note: num(asAny.note, 4.5),
       nbAvis: num(asAny.nbAvis, 0),
       annee: num(r.annee, new Date().getFullYear()),
       carburant: typeof r.carburant === "string" && r.carburant ? r.carburant : "Diesel",
-      transmission: typeof r.boiteVitesses === "string" && r.boiteVitesses ? r.boiteVitesses : "Manuelle",
-      puissance: typeof r.puissance === "string" && r.puissance ? r.puissance : "—",
+      transmission: typeof r.boite === "string" && r.boite ? r.boite : "Manuelle",
+      puissance: r.puissanceCv != null ? `${r.puissanceCv} ch` : "—",
       places: num(r.places, 5),
       badges: [],
       photoCategories: cats,

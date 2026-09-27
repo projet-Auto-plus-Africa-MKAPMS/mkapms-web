@@ -41,7 +41,7 @@ export default function PhotosVehicule() {
   // jamais jusqu'à l'envoi.
   const inputs = useRef<Record<string, HTMLInputElement | null>>({});
 
-  const upload = async (slot: PhotoSlot, files: FileList) => {
+  const upload = async (slot: PhotoSlot, files: FileList | File[]) => {
     setUploading(p => ({ ...p, [slot.id]: true }));
     setError(null);
     try {

@@ -25,7 +25,7 @@ import {
   smartActivityLog,
   smartPhotoFingerprints,
 } from "../schema.js";
-import { lt } from "drizzle-orm";
+import { lt, count } from "drizzle-orm";
 
 export interface RetentionPolicy {
   searchLogsDays: number;
@@ -91,20 +91,10 @@ export async function runRetention(policy: Partial<RetentionPolicy> = {}): Promi
  * Read-only, aucun effet de bord.
  */
 export async function retentionCounters() {
-  const [{ n: sl }] = await db.execute<{ n: number }>(
-    // Utilisation d'une SQL brute pour rester léger (pas d'import de count)
-    // — équivalent à db.select({ n: sql`count(*)` }).from(smartSearchLogs)
-    // mais on ne modifie rien du reste du code.
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    { sql: 'select count(*)::int as n from smart_search_logs' } as any,
-  );
-  const [{ n: al }] = await db.execute<{ n: number }>(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    { sql: 'select count(*)::int as n from smart_activity_log' } as any,
-  );
-  const [{ n: pf }] = await db.execute<{ n: number }>(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    { sql: 'select count(*)::int as n from smart_photo_fingerprints' } as any,
-  );
-  return { searchLogs: sl, activityLog: al, photoFingerprints: pf };
+  const [[search], [activity], [photos]] = await Promise.all([
+    db.select({ n: count() }).from(smartSearchLogs),
+    db.select({ n: count() }).from(smartActivityLog),
+    db.select({ n: count() }).from(smartPhotoFingerprints),
+  ]);
+  return { searchLogs: search.n, activityLog: activity.n, photoFingerprints: photos.n };
 }

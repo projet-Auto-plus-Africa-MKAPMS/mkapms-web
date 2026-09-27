@@ -157,8 +157,8 @@ export default function Livraison() {
           ) : quote.data ? (
             <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
               <div className="flex items-baseline gap-2">
-                <span className="text-5xl font-black text-[#111] tracking-tighter italic">{quote.data.tarif.toLocaleString("fr-FR")}</span>
-                <span className="text-xl font-black text-[#D4AF37] italic">€</span>
+                <span className="text-5xl font-black text-[#111] tracking-tighter italic">{quote.data.tarif == null ? "Tarif indisponible" : quote.data.tarif.toLocaleString("fr-FR")}</span>
+                {quote.data.tarif != null && <span className="text-xl font-black text-[#D4AF37] italic">€</span>}
               </div>
               
               <div className="mt-6 space-y-4">
@@ -186,7 +186,8 @@ export default function Livraison() {
               
 	              <div className="mt-8">
 	                <button 
-	                  onClick={() => window.location.href = "/compte/validation?type=livraison&amount=" + quote.data.tarif}
+	                  disabled={quote.data.tarif == null}
+	                  onClick={() => { if (quote.data.tarif != null) window.location.href = "/compte/validation?type=livraison&amount=" + quote.data.tarif; }}
 	                  className="w-full h-16 rounded-2xl bg-[#D4AF37] flex items-center justify-center text-sm font-black uppercase tracking-widest text-[#111] active:scale-[0.97] transition-all shadow-xl shadow-[#D4AF37]/20 hover:bg-[#B8962E]"
 	                >
 	                  Confirmer et commander la livraison

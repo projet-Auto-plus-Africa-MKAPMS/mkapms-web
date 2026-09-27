@@ -17,14 +17,14 @@ export default function WalletAdmin() {
   const allWallets = trpc.wallet.adminAllWallets.useQuery();
   const allPayouts = trpc.wallet.adminAllPayouts.useQuery({ status: undefined });
   const updateStatus = trpc.wallet.adminUpdatePayoutStatus.useMutation({ onSuccess: () => allPayouts.refetch() });
-  const creditWallet = trpc.wallet.adminCreditWallet.useMutation({ onSuccess: () => allWallets.refetch() });
+  const creditWallet = trpc.wallet.adminCreditWallet.useMutation({ onSuccess: () => { setCreditForm({ userId: "", montant: "", description: "" }); void allWallets.refetch(); } });
 
   const [view, setView] = useState<"wallets" | "virements" | "credit">("wallets");
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("tous");
   const [creditForm, setCreditForm] = useState({ userId: "", montant: "", description: "" });
 
-  const wallets = allWallets.data ?? [];
+  const wallets = allWallets.data?.wallets ?? [];
   const payouts = allPayouts.data ?? [];
 
   // Stats globales
@@ -189,13 +189,15 @@ export default function WalletAdmin() {
                           {p.status === "demande" && (
                             <>
                               <button
-                                onClick={() => updateStatus.mutate({ id: p.id, status: "paye" })}
+                                disabled={updateStatus.isPending}
+                                onClick={() => updateStatus.mutate({ payoutId: p.id, status: "paye" })}
                                 className="flex items-center gap-1 rounded-lg bg-green-50 border border-green-200 px-2.5 py-1 text-[10px] font-bold text-green-700 hover:bg-green-100"
                               >
                                 <CheckCircle2 size={11} /> Valider
                               </button>
                               <button
-                                onClick={() => updateStatus.mutate({ id: p.id, status: "annule" })}
+                                disabled={updateStatus.isPending}
+                                onClick={() => updateStatus.mutate({ payoutId: p.id, status: "annule" })}
                                 className="flex items-center gap-1 rounded-lg bg-red-50 border border-red-200 px-2.5 py-1 text-[10px] font-bold text-red-600 hover:bg-red-100"
                               >
                                 <XCircle size={11} /> Annuler
@@ -204,7 +206,8 @@ export default function WalletAdmin() {
                           )}
                           {p.status === "en_cours" && (
                             <button
-                              onClick={() => updateStatus.mutate({ id: p.id, status: "paye" })}
+                              disabled={updateStatus.isPending}
+                                onClick={() => updateStatus.mutate({ payoutId: p.id, status: "paye" })}
                               className="flex items-center gap-1 rounded-lg bg-green-50 border border-green-200 px-2.5 py-1 text-[10px] font-bold text-green-700 hover:bg-green-100"
                             >
                               <CheckCircle2 size={11} /> Marquer payé
@@ -235,7 +238,7 @@ export default function WalletAdmin() {
           <div className="space-y-3">
             <div>
               <label className="label">ID utilisateur</label>
-              <input className="input" value={creditForm.userId} onChange={(e) => setCreditForm((f) => ({ ...f, userId: e.target.value }))} placeholder="UUID de l'utilisateur" />
+              <input className="input" value={creditForm.userId} onChange={(e) => setCreditForm((f) => ({ ...f, userId: e.target.value }))} inputMode="numeric" placeholder="Identifiant numérique de l’utilisateur" />
             </div>
             <div>
               <label className="label">Montant (€)</label>
@@ -247,15 +250,16 @@ export default function WalletAdmin() {
             </div>
             <button
               onClick={() => {
-                if (!creditForm.userId || !creditForm.montant) return;
-                creditWallet.mutate({ userId: creditForm.userId, montant: parseFloat(creditForm.montant), description: creditForm.description });
-                setCreditForm({ userId: "", montant: "", description: "" });
+                const userId = Number(creditForm.userId), montant = Number(creditForm.montant);
+                if (!Number.isSafeInteger(userId) || userId <= 0 || !Number.isFinite(montant) || montant <= 0 || creditWallet.isPending) return;
+                creditWallet.mutate({ userId, montant, description: creditForm.description });
               }}
-              disabled={creditWallet.isPending || !creditForm.userId || !creditForm.montant}
+              disabled={creditWallet.isPending || !Number.isSafeInteger(Number(creditForm.userId)) || Number(creditForm.userId) <= 0 || !Number.isFinite(Number(creditForm.montant)) || Number(creditForm.montant) <= 0}
               className="btn-primary w-full"
             >
               {creditWallet.isPending ? "Envoi…" : "Créditer le wallet"}
             </button>
+            {creditWallet.isError && <p role="alert" className="text-sm text-red-700">Le crédit n’a pas été confirmé. Les champs sont conservés ; vérifiez l’historique avant de réessayer.</p>}
             {creditWallet.isSuccess && <p className="text-xs text-green-600 font-semibold text-center">Wallet crédité avec succès</p>}
             {creditWallet.isError && <p className="text-xs text-red-500 text-center">Erreur : {creditWallet.error?.message}</p>}
           </div>
