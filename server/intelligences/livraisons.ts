@@ -2509,6 +2509,19 @@ export const LIVRAISONS: Livraison[] = [
       "Leçon générale : quand la demande d'un utilisateur, prise au mot, impliquerait de fabriquer une capacité qui n'existe pas (« GPT-6 »), la bonne réponse n'est ni de refuser ni de mentir, mais de chercher la capacité RÉELLE la plus proche de l'intention exprimée et de l'exposer avec une explication honnête de ce qu'elle fait réellement.",
     domaine: "moteurs",
   },
+  {
+    cle: "branche-menu-qualite-developpement-remontes-en-tete",
+    titre: "Centre MKA.P-MS AI : groupes « Qualité » et « Développement » remontés en tête du menu",
+    moteurs: ["intelligences"],
+    quoi:
+      "Retour du PDG : dans le menu déroulant (☰) du Centre Intelligence, le groupe « Qualité » (Évaluation — qu'il appelle son « Maître Juge » — et Moteur candidat) et le groupe « Développement » (Plateforme développeur — l'agent qui écrit les correctifs — et Développement) étaient en avant-dernière et dernière position, obligeant à ouvrir le menu et défiler toute la liste pour les atteindre à chaque fois.\n\n`GROUPES_MENU` réordonné dans `CentreIntelligences.tsx` : « Qualité » et « Développement » sont désormais les deux premiers groupes affichés à l'ouverture du menu, avant Gouvernance/Pilotage/Moteurs/Autres. Aucun autre changement : mêmes six groupes, même contenu de chacun, seul l'ordre d'affichage bouge.",
+    pourquoi:
+      "Le PDG a explicitement demandé de ne pas « fouiller la pile » : il utilise ces deux écrans (juger la qualité des réponses, suivre l'agent développeur) plus souvent que les autres et voulait un accès immédiat sans naviguer jusqu'au bas d'un menu à six groupes.",
+    ou: ["client/src/pages/CentreIntelligences.tsx"],
+    lecon:
+      "Vérifié en navigateur réel (Chromium, compte PDG, mobile 390×844) : l'ouverture du menu affiche bien « QUALITÉ » (Évaluation, Moteur candidat) puis « DÉVELOPPEMENT » (Plateforme développeur, Développement) en tout premier, avant les quatre autres groupes. `npx tsc --noEmit` sans nouvelle erreur ; `npm run build` complet vert, aucun fichier généré (cliquables/boutons/moteurs/sections) n'a changé de contenu — un réordonnancement pur ne crée ni ne supprime aucun cliquable.\n\nLeçon générale : une demande de réorganisation de menu peut être résolue par un simple réordonnancement de tableau, sans toucher au contenu ni à la logique — la solution la plus honnête est souvent la plus petite.",
+    domaine: "moteurs",
+  },
 ];
 
 /**
