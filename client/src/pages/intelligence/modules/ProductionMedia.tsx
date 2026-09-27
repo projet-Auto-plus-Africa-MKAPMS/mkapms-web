@@ -27,7 +27,7 @@ export function ProductionMedia({operation}:{operation:'image'|'voix'}) {
     <h1 className="text-2xl font-semibold">{image?'Images':'Voix'}</h1>
     <p>{image?'Créer une illustration IA privée, puis la télécharger pour la contrôler.':'Transformer un texte en fichier audio avec une voix de synthèse IA.'}</p>
     <p className="text-sm text-gray-500">Aucune publication automatique. Utilisez seulement du contenu public dont vous possédez les droits. Ne saisissez aucun secret ni document personnel.</p>
-    {!image&&<p className="rounded border p-3 text-sm">La synthèse vocale ci-dessous produit un fichier audio. La conversation vocale continue et la transcription restent à raccorder.</p>}
+    {!image&&<p className="rounded border p-3 text-sm">La synthèse vocale ci-dessous produit un fichier audio. La transcription d’un enregistrement est disponible plus bas. La conversation vocale continue reste à raccorder.</p>}
     <label className="block font-medium" htmlFor="media-texte">{image?'Décrire le visuel souhaité':'Texte à lire'}</label>
     <textarea id="media-texte" className="min-h-36 w-full rounded border bg-transparent p-3" maxLength={4000} value={texte} onChange={e=>setTexte(e.target.value)} disabled={production.isPending}/>
     <label className="flex items-start gap-2 text-sm"><input type="checkbox" checked={droits} onChange={e=>setDroits(e.target.checked)}/>Je confirme mes droits sur ce contenu public et son envoi au service IA.</label>

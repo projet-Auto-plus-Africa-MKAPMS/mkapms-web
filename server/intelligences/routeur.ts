@@ -55,6 +55,7 @@ const NIVEAUX: Confidentiality[] = ["publique", "interne", "personnelle", "confi
 export interface DemandeCapacite {
   /** Réservé au service privé de productions : quota et idempotence déjà contrôlés. */
   productionMedia?: boolean;
+  audio?: import("./audio-input.js").FichierAudio;
   /** Server-only service boundary; never accepted from public capability inputs. */
   isolation?: "SHOP";
   capacite: CodeCapacite;
@@ -126,7 +127,7 @@ function refus(
  */
 export async function router(demande: DemandeCapacite): Promise<ResultatCapacite> {
   const s = spec(demande.capacite);
-  if ((demande.capacite === 'image' || demande.capacite === 'voix') && !demande.productionMedia) {
+  if ((demande.capacite === 'image' || demande.capacite === 'voix' || demande.capacite === 'transcription') && !demande.productionMedia) {
     return refus(demande.capacite, 'Utilisez l’espace Images ou Voix pour créer une production privée.', s.repliInterne);
   }
 
@@ -204,13 +205,14 @@ export async function router(demande: DemandeCapacite): Promise<ResultatCapacite
     );
   }
 
-  const media = demande.capacite === "image" || demande.capacite === "voix" ? demande.capacite : undefined;
+  const media = demande.capacite === "image" || demande.capacite === "voix" || demande.capacite === "transcription" ? demande.capacite : undefined;
   const shadow = media || demande.isolation === "SHOP" ? null : await configuration(demande.capacite);
   const parCandidat = candidatSert(shadow);
 
   const commun = {
     isolation: demande.isolation,
     media,
+    audio: demande.audio,
     capacite: s.capaciteFabrique,
     tache: demande.capacite,
     capaciteMka: demande.capacite,

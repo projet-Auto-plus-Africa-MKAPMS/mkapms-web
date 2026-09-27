@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {produireMediaNatif} from '../provider.js';
+import {produireMediaNatif,transcrireAudioNatif} from '../provider.js';
 import {texteMediaAutorise,demandeMedia} from '../media-productions.js';
 const config={cle:'unit-test-only',modele:'configured-model'};
 const png='iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/l9sAAAAASUVORK5CYII=';
@@ -28,4 +28,18 @@ test('rights, limits and recognizable credentials checked before inference',()=>
  assert.equal(texteMediaAutorise('api_key=confidentiel'),false);
  assert.equal(texteMediaAutorise('ck_'+'a'.repeat(30)),false);
  assert.equal(demandeMedia.safeParse({requestId:'31c67eaa-5372-4e8e-b8d4-f6cb61bbd79f',operation:'image',texte:'Test',droitsConfirmes:false}).success,false);
+});
+
+test('transcription validates binary format, bounds result, uses multipart and never trusts filenames',async()=>{
+ const audio={format:'wav' as const,base64:Buffer.concat([Buffer.from('RIFF0000WAVE'),Buffer.alloc(32)]).toString('base64')};
+ const r=await transcrireAudioNatif(config,audio,async(url,init)=>{
+  assert.ok(String(url).endsWith('/audio/transcriptions'));assert.equal(init?.redirect,'error');
+  const form=init?.body as FormData;assert.equal(form.get('model'),'whisper-1');assert.equal((form.get('file') as File).name,'recording.wav');
+  return Response.json({text:'Bonjour à tous'});
+ });assert.equal(Buffer.from(r.base64,'base64').toString(),'Bonjour à tous');assert.equal(r.mime,'text/plain');
+ await assert.rejects(transcrireAudioNatif(config,{...audio,format:'mp3'},async()=>{throw Error('must not call');}),/AUDIO_INVALID/);
+ for(const response of [Response.json({text:''}),new Response('secret',{status:401}),new Response('x'.repeat(300000))])await assert.rejects(transcrireAudioNatif(config,audio,async()=>response));
+ const common={requestId:'31c67eaa-5372-4e8e-b8d4-f6cb61bbd79f',texte:'Audio',droitsConfirmes:true};
+ assert.equal(demandeMedia.safeParse({...common,operation:'transcription'}).success,false);
+ assert.equal(demandeMedia.safeParse({...common,operation:'image',audio}).success,false);
 });

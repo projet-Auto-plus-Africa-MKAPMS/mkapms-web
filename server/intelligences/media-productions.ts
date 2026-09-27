@@ -4,10 +4,15 @@ import { z } from "zod";
 import { pool } from "../db.js";
 import { router as routerCapacite } from "./routeur.js";
 
+import { fichierAudio, lireAudio } from "./audio-input.js";
+
 export const demandeMedia = z.object({
-  requestId: z.string().uuid(), operation: z.enum(["image", "voix"]),
+  requestId: z.string().uuid(), operation: z.enum(["image", "voix", "transcription"]),
   texte: z.string().trim().min(2).max(4000), droitsConfirmes: z.literal(true),
-}).strict();
+  audio: fichierAudio.optional(),
+}).strict().superRefine((v,ctx)=>{
+  if((v.operation==='transcription')!==!!v.audio)ctx.addIssue({code:"custom",message:"Un fichier audio est requis uniquement pour une transcription."});
+});
 export function texteMediaAutorise(texte: string): boolean {
   return !/(?:\b(?:sk-|ck_|cs_)[A-Za-z0-9_-]{16,}|-----BEGIN .*PRIVATE KEY|\bBearer\s+\S+|(?:password|mot de passe|secret|api[_ -]?key)\s*[:=]\s*\S+)/i.test(texte);
 }
@@ -16,7 +21,8 @@ type Base = Pick<typeof pool, "query" | "connect">;
 export async function produire(ownerId: number, role: string, brut: DemandeMedia, base: Base = pool, executer = routerCapacite) {
   const input = demandeMedia.parse(brut);
   if (!texteMediaAutorise(input.texte)) throw new Error("Utilisez le coffre sécurisé pour les secrets.");
-  const hash = createHash("sha256").update(JSON.stringify({operation: input.operation, texte: input.texte})).digest("hex");
+  if(input.audio) lireAudio(input.audio);
+  const hash = createHash("sha256").update(JSON.stringify({operation: input.operation, texte: input.texte, audio:input.audio})).digest("hex");
   const c = await base.connect();
   try {
     await c.query("BEGIN");
@@ -36,8 +42,8 @@ export async function produire(ownerId: number, role: string, brut: DemandeMedia
     await c.query("COMMIT");
   } catch(e) { await c.query("ROLLBACK"); throw e; } finally { c.release(); }
   try {
-    const r = await executer({productionMedia:true,capacite:input.operation,moteur:input.operation==='image'?'media_os':'intelligences',role,
-      confidentialite:'publique',message:input.texte,systeme:'Produire un brouillon média. Aucune publication.'});
+    const r = await executer({productionMedia:true,capacite:input.operation,moteur:input.operation==='image'?'media_os':input.operation==='transcription'?'command_center':'intelligences',role,
+      audio:input.audio,confidentialite:'publique',message:input.texte,systeme:'Produire un brouillon média. Aucune publication.'});
     if (!r.ok || !r.media) {
       await base.query("UPDATE in_media_productions SET statut='FAILED',motif=$2 WHERE id=$1",[input.requestId,r.motifPublic || 'Le service média est indisponible.']);
       return {id:input.requestId,statut:'FAILED'};
@@ -51,7 +57,7 @@ export async function produire(ownerId: number, role: string, brut: DemandeMedia
 }
 export async function lister(ownerId:number, base:Base=pool) {
   await base.query("UPDATE in_media_productions SET statut='FAILED',motif='Traitement interrompu. Créez une nouvelle demande.' WHERE owner_id=$1 AND statut='PROCESSING' AND created_at<=now()-interval '4 minutes'",[ownerId]);
-  return (await base.query("SELECT id,operation,texte,statut,mime,motif,created_at FROM in_media_productions WHERE owner_id=$1 ORDER BY created_at DESC LIMIT 100",[ownerId])).rows as {id:string;operation:'image'|'voix';texte:string;statut:string;mime:string|null;motif:string;created_at:Date}[];
+  return (await base.query("SELECT id,operation,texte,statut,mime,motif,created_at FROM in_media_productions WHERE owner_id=$1 ORDER BY created_at DESC LIMIT 100",[ownerId])).rows as {id:string;operation:'image'|'voix'|'transcription';texte:string;statut:string;mime:string|null;motif:string;created_at:Date}[];
 }
 export async function lire(id:string,ownerId:number,base:Base=pool) {
   const r=(await base.query("SELECT id,statut,mime,donnees,motif FROM in_media_productions WHERE id=$1 AND owner_id=$2",[id,ownerId])).rows[0];

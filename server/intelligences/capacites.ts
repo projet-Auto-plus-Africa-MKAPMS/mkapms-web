@@ -190,10 +190,10 @@ export const CAPACITES: SpecCapacite[] = [
   {
     code: "transcription",
     libelle: "Transcription",
-    usage: "Transformer un vocal du PDG ou d'un client en texte exploitable.",
-    capaciteFabrique: null,
+    usage: "Transformer un enregistrement autorisé en texte privé à relire.",
+    capaciteFabrique: "ia_texte",
     moteurs: ["command_center", "support_os"],
-    fournisseurPrincipal: null,
+    fournisseurPrincipal: "openai",
     fournisseurSecondaire: null,
     repliInterne:
       "Dictée du navigateur : le texte arrive déjà transcrit côté client, la commande vocale reste utilisable.",
