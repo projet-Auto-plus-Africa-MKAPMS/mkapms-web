@@ -13,6 +13,7 @@ import {
   Laptop, Grid2X2, ClipboardCheck, X
 } from "lucide-react";
 import { useAuth } from "../../lib/auth";
+import { trpc } from "../../lib/trpc";
 import { niveauDepuis, NIVEAUX_INTELLIGENCE, type NiveauIntelligence } from "./niveaux";
 import { Conversation } from "./modules/Conversation";
 import { VoixTempsReel } from "./modules/VoixTempsReel";
@@ -61,7 +62,19 @@ const LABEL_NIVEAU: Record<NiveauIntelligence, string> = Object.fromEntries(
   NIVEAUX_INTELLIGENCE.map((n) => [n.niveau, n.label]),
 ) as Record<NiveauIntelligence, string>;
 
-function Dashboard({ onOpen }: { onOpen: (key: CleModule) => void }) {
+type Indicateur = { niveau: "ok" | "attention" | "ko" | "inconnu"; libelle: string; detail: string };
+const PUCE: Record<Indicateur["niveau"], string> = { ok: "●", attention: "▲", ko: "■", inconnu: "○" };
+
+function Etat({ ind, chargement }: { ind: Indicateur | undefined; chargement: boolean }) {
+  if (chargement) return <span className="alhud-etat-inconnu" title="Vérification en cours">…</span>;
+  if (!ind) return <span className="alhud-etat-inconnu" title="État non vérifié : le serveur n'a pas répondu">○ Non vérifié</span>;
+  return <span className={`alhud-etat-${ind.niveau}`} title={ind.detail}>{PUCE[ind.niveau]} {ind.libelle}</span>;
+}
+
+function Dashboard({ onOpen, boutique }: { onOpen: (key: CleModule) => void; boutique: BoutiqueAcces }) {
+  const etats = trpc.intelligences.indicateursAccueil.useQuery(undefined, { refetchInterval: 60_000, refetchOnWindowFocus: false });
+  const d = etats.data;
+  const ia = d?.ia;
   const work = [
     ["Accueil", Home, "Vue d’ensemble", "accueil"],
     ["Menu", Menu, "Navigation et accès", "conversation"],
@@ -83,18 +96,33 @@ function Dashboard({ onOpen }: { onOpen: (key: CleModule) => void }) {
     <div className="alhud-platform-grid">
       <article className="alhud-platform-card">
         <div className="alhud-platform-heading"><span className="alhud-square blue"><Database /></span><span><strong>Plateforme principale</strong><small>Infrastructure & opérations</small></span></div>
-        <button type="button" className="alhud-status-ok" onClick={() => onOpen("conversation")}><span>●</span> IA connectée <ChevronRight /></button>
+        <button
+          type="button"
+          className={`alhud-status-ok alhud-status-${etats.isLoading ? "inconnu" : ia?.niveau ?? "inconnu"}`}
+          onClick={() => onOpen(ia?.niveau === "ok" ? "conversation" : "integrations")}
+          title={ia?.detail ?? "État de la connexion IA non vérifié"}
+        >
+          <span>{etats.isLoading ? "…" : PUCE[ia?.niveau ?? "inconnu"]}</span> IA {etats.isLoading ? "vérification…" : ia ? ia.libelle.toLocaleLowerCase() : "non vérifiée"} <ChevronRight />
+        </button>
         <div className="alhud-status-list">
-          <button type="button" onClick={() => onOpen("documents")}><FileText/>Documents <span>● OK</span></button>
-          <button type="button" onClick={() => onOpen("outils")}><Settings/>Moteurs <span>● Actifs</span></button>
-          <button type="button" onClick={() => onOpen("permissions")}><ShieldCheck/>Sécurité <span>● Protégée</span></button>
+          <button type="button" onClick={() => onOpen("documents")}><FileText/>Documents <Etat ind={d?.documents} chargement={etats.isLoading}/></button>
+          <button type="button" onClick={() => onOpen("outils")}><Settings/>Moteurs <Etat ind={d?.moteurs} chargement={etats.isLoading}/></button>
+          <button type="button" onClick={() => onOpen("permissions")}><ShieldCheck/>Sécurité <Etat ind={d?.securite} chargement={etats.isLoading}/></button>
           <button type="button" onClick={() => onOpen("historique")}><Cloud/>Déploiement <span>Suivi</span></button>
         </div>
+        {etats.error ? <p className="alhud-etat-erreur" role="status">États non vérifiés : {etats.error.message}</p> : null}
       </article>
-      <article className="alhud-platform-card alhud-platform-disabled" aria-label="Boutique non activée dans ce lot">
-        <div className="alhud-platform-heading"><span className="alhud-square violet"><ShoppingCart /></span><span><strong>Boutique</strong><small>Étape suivante après validation</small></span></div>
-        <div className="alhud-status-wait">Non modifiée · en attente de votre test</div>
-      </article>
+      {boutique.url ? (
+        <a className="alhud-platform-card alhud-platform-link" href={boutique.url} target="_blank" rel="noopener noreferrer" aria-label="Ouvrir la Boutique (nouvel onglet)">
+          <div className="alhud-platform-heading"><span className="alhud-square violet"><ShoppingCart /></span><span><strong>Boutique</strong><small>Espace Fondateur SHOP · connexion séparée</small></span></div>
+          <div className="alhud-status-ok"><span>●</span> Ouvrir la Boutique <ChevronRight /></div>
+        </a>
+      ) : (
+        <article className="alhud-platform-card alhud-platform-disabled" aria-label="Boutique : adresse non configurée">
+          <div className="alhud-platform-heading"><span className="alhud-square violet"><ShoppingCart /></span><span><strong>Boutique</strong><small>Adresse SHOP_PUBLIC_URL absente</small></span></div>
+          <div className="alhud-status-wait">{boutique.chargement ? "Vérification…" : "Non reliée · adresse à configurer côté serveur"}</div>
+        </article>
+      )}
     </div>
     <div className="alhud-work-heading"><h2>Notre travail aujourd’hui</h2><button type="button" onClick={() => onOpen("conversation")}>Tout voir <ChevronRight/></button></div>
     <div className="alhud-work-grid">{work.map(([label,Icon,desc,key]) =>
@@ -103,6 +131,8 @@ function Dashboard({ onOpen }: { onOpen: (key: CleModule) => void }) {
   </section>;
 }
 
+type BoutiqueAcces = { url: string | null; chargement: boolean };
+
 export default function MKAPMSIntelligence() {
   const { user } = useAuth();
   const [module, setModule] = useState<CleModule>("accueil");
@@ -110,6 +140,8 @@ export default function MKAPMSIntelligence() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [workInstruction, setWorkInstruction] = useState("");
   const niveau = useMemo(() => niveauDepuis({ role: user?.role ?? null }), [user?.role]);
+  const acces = trpc.intelligences.indicateursAccueil.useQuery(undefined, { enabled: niveau === "pdg", refetchOnWindowFocus: false, staleTime: 60_000 });
+  const boutique: BoutiqueAcces = { url: acces.data?.boutique ?? null, chargement: acces.isLoading };
 
   if (niveau !== "pdg") {
     return <div className="mx-auto max-w-xl p-6 text-center">
@@ -141,7 +173,9 @@ export default function MKAPMSIntelligence() {
     <nav>{topItems.filter(([label])=>normalise(label).includes(normalise(moduleSearch))).map(([label,Icon,key])=><button key={label} type="button" onClick={()=>choose(key)}><Icon/><span>{label}</span><ChevronRight/></button>)}</nav>
     <h3>Espaces IA</h3>
     <button type="button" className="selected" onClick={()=>choose("accueil")}><Database/><span>Plateforme principale</span><ChevronRight/></button>
-    <button type="button" onClick={()=>choose("accueil")} title="La Boutique reste hors de ce lot de modification"><ShoppingCart/><span>Boutique</span><small>ensuite</small></button>
+    {boutique.url
+      ? <a href={boutique.url} target="_blank" rel="noopener noreferrer" onClick={()=>setMenuOpen(false)} aria-label="Ouvrir la Boutique (nouvel onglet)"><ShoppingCart/><span>Boutique</span><ChevronRight/></a>
+      : <button type="button" disabled aria-disabled="true" title="Adresse SHOP_PUBLIC_URL non configurée côté serveur"><ShoppingCart/><span>Boutique</span><small>{boutique.chargement ? "…" : "non reliée"}</small></button>}
     <h3>Notre travail</h3>
     <nav>{workItems.map(([label,Icon,key])=><button key={label} type="button" onClick={()=>choose(key)}><Icon/><span>{label}</span><ChevronRight/></button>)}</nav>
     <button type="button" className="alhud-chat-cta" onClick={()=>choose("conversation")}><MessageCircle/> Chat</button>
@@ -158,8 +192,10 @@ export default function MKAPMSIntelligence() {
     </header>
     {menuOpen ? <div className="alhud-menu-backdrop" onClick={()=>setMenuOpen(false)}><aside onClick={e=>e.stopPropagation()}><button type="button" className="alhud-menu-close" onClick={()=>setMenuOpen(false)}><X/> Fermer</button>{nav}</aside></div> : null}
     <main className="alhud-approved-main">
-      {module === "accueil" ? <Dashboard onOpen={choose}/> :
-       module === "developpeur" ? <AgentDeveloppeur initialInstruction={workInstruction} onConsumed={()=>setWorkInstruction("")}/> :
+      {module === "accueil" ? <Dashboard onOpen={choose} boutique={boutique}/> : null}
+      {module === "developpeur" ? <AgentDeveloppeur initialInstruction={workInstruction} onConsumed={()=>setWorkInstruction("")}/> : null}
+      {/* La conversation reste montée (masquée) pendant Accueil et Travail : brouillon, fil et session survivent au va-et-vient. */}
+      <div hidden={module === "accueil" || module === "developpeur"} className="alhud-conversation-slot">
         <Conversation
           key={String(user?.id ?? "anonymous")}
           navigation={nav}
@@ -168,7 +204,8 @@ export default function MKAPMSIntelligence() {
           onChooseModule={(key)=>choose(key as CleModule)}
           onSendToDeveloper={(instruction)=>{setWorkInstruction(instruction); choose("developpeur");}}
           searchQuery={moduleSearch}
-        >{module !== "conversation" ? <Actif/> : null}</Conversation>}
+        >{module !== "conversation" && module !== "accueil" && module !== "developpeur" ? <Actif/> : null}</Conversation>
+      </div>
     </main>
     <footer className="alhud-approved-footer">Niveau d'accès : {LABEL_NIVEAU[niveau]} · Plateforme principale</footer>
   </div>;
