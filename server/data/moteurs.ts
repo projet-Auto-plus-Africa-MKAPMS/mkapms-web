@@ -100,13 +100,13 @@ export interface PerimetreMoteur {
 }
 
 export const MOTEURS_TOTAL = 94;
-export const MANQUES_TOTAL = 508;
+export const MANQUES_TOTAL = 514;
 export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
   "ecran_sans_contenu": 341,
-  "dependance_non_declaree": 53,
+  "dependance_non_declaree": 57,
   "sans_logique_serveur": 10,
   "sans_ecran": 8,
-  "dependance_sans_preuve": 39,
+  "dependance_sans_preuve": 41,
   "bouton_sans_action": 49,
   "bouton_declare_absent_ecran": 6,
   "emission_dynamique": 2
@@ -5776,6 +5776,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "dependants": [
       "code_graph",
       "completion_center",
+      "core",
       "intelligences"
     ],
     "evenementsPublies": [
@@ -5806,7 +5807,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "ecransHotes": [
       {
         "fichier": "client/src/pages/CentreIntelligences.tsx",
-        "route": "/admin/intelligences",
+        "route": "/admin/intelligences/direction",
         "composants": [
           "trpc.continuousTest"
         ]
@@ -6134,17 +6135,25 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "dependancesDetectees": [
       "ai_learning",
       "audit",
+      "continuous_test",
       "identity",
+      "intelligences",
+      "monitoring",
       "notification",
       "smart",
+      "support",
       "visibility"
     ],
     "dependances": [
       "ai_learning",
       "audit",
+      "continuous_test",
       "identity",
+      "intelligences",
+      "monitoring",
       "notification",
       "smart",
+      "support",
       "visibility"
     ],
     "integrationsTechniques": [],
@@ -6155,10 +6164,19 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "audit": [
         "routers/admin.ts importe audit.ts"
       ],
+      "continuous_test": [
+        "client/src/pages/CentreIntelligences.tsx appelle trpc.continuousTest"
+      ],
       "identity": [
         "central-engines/router.ts exige une session Identity (procédure protégée)",
         "routers/admin.ts importe modules/kyc-decision.ts",
         "routers/admin.ts importe auth.ts"
+      ],
+      "intelligences": [
+        "client/src/pages/CentreIntelligences.tsx appelle trpc.intelligences"
+      ],
+      "monitoring": [
+        "client/src/pages/CentreIntelligences.tsx appelle trpc.monitoringOs"
       ],
       "notification": [
         "routers/admin.ts importe modules/search-alerts.ts"
@@ -6167,6 +6185,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "central-engines/index.ts importe smart-engine/services/connectors.ts",
         "central-engines/index.ts importe smart-engine/services/platform-health.ts",
         "central-engines/index.ts importe smart-engine/services/alert-engine.ts"
+      ],
+      "support": [
+        "client/src/pages/CentreIntelligences.tsx appelle trpc.supportOs"
       ],
       "visibility": [
         "routers/admin.ts importe visibility-os/index.ts"
@@ -6292,6 +6313,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "routes": [
       "/",
       "/admin",
+      "/admin/intelligences/direction",
       "/admin/moteurs",
       "/mk-global-engine",
       "/superadmin",
@@ -6299,6 +6321,17 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "/superadmin/plan-maitre-fournisseurs"
     ],
     "ecrans": [
+      {
+        "fichier": "client/src/pages/CentreIntelligences.tsx",
+        "routes": [
+          "/admin/intelligences/direction"
+        ],
+        "cliquables": 21,
+        "parMoteur": 0,
+        "sansAction": 0,
+        "textes": 203,
+        "mots": 1364
+      },
       {
         "fichier": "client/src/pages/EngineRegistry/ControlCenter.tsx",
         "routes": [
@@ -6743,8 +6776,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "pdg",
       "public"
     ],
-    "textes": 373,
-    "mots": 1576,
+    "textes": 576,
+    "mots": 2940,
     "battement": "contrat",
     "manques": [
       {
@@ -6757,7 +6790,23 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       },
       {
         "genre": "dependance_non_declaree",
+        "detail": "continuous_test — client/src/pages/CentreIntelligences.tsx appelle trpc.continuousTest"
+      },
+      {
+        "genre": "dependance_non_declaree",
+        "detail": "intelligences — client/src/pages/CentreIntelligences.tsx appelle trpc.intelligences"
+      },
+      {
+        "genre": "dependance_non_declaree",
+        "detail": "monitoring — client/src/pages/CentreIntelligences.tsx appelle trpc.monitoringOs"
+      },
+      {
+        "genre": "dependance_non_declaree",
         "detail": "notification — routers/admin.ts importe modules/search-alerts.ts"
+      },
+      {
+        "genre": "dependance_non_declaree",
+        "detail": "support — client/src/pages/CentreIntelligences.tsx appelle trpc.supportOs"
       }
     ]
   },
@@ -10660,13 +10709,11 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "identity",
       "livraison",
       "livraison_vehicule",
-      "monitoring",
       "payment",
       "product_engine",
       "resilience",
       "risque_import",
       "smart",
-      "support",
       "vo_engine"
     ],
     "dependances": [
@@ -10721,8 +10768,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "intelligences/memoire.ts charge knowledge-engine/service.ts"
       ],
       "continuous_test": [
-        "intelligences/orchestrateur.ts charge continuous-test/service.ts",
-        "client/src/pages/CentreIntelligences.tsx appelle trpc.continuousTest"
+        "intelligences/orchestrateur.ts charge continuous-test/service.ts"
       ],
       "core": [
         "estimate-gateway/gateway.ts importe db.ts",
@@ -10757,9 +10803,6 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "estimate-gateway/gateway.ts importe vehicle-delivery/service.ts",
         "estimate-gateway/gateway.ts importe vehicle-delivery/schema.ts"
       ],
-      "monitoring": [
-        "client/src/pages/CentreIntelligences.tsx appelle trpc.monitoringOs"
-      ],
       "payment": [
         "intelligences/livraisons.ts déclenche un paiement"
       ],
@@ -10779,9 +10822,6 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "intelligences/service.ts importe smart-engine/schema.ts",
         "intelligences/service.ts ouvre une alerte du Système Intelligent"
       ],
-      "support": [
-        "client/src/pages/CentreIntelligences.tsx appelle trpc.supportOs"
-      ],
       "vo_engine": [
         "estimate-gateway/gateway.ts importe vo-engine/service.ts",
         "intelligences/outils/familles/outils-vehicules.ts importe vo-engine/service.ts",
@@ -10794,6 +10834,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "avis_reputation",
       "command_center",
       "continuous_test",
+      "core",
       "event_bus",
       "investment",
       "vo_engine"
@@ -10833,19 +10874,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "mots": 89
       },
       {
-        "fichier": "client/src/pages/CentreIntelligences.tsx",
-        "routes": [
-          "/admin/intelligences"
-        ],
-        "cliquables": 21,
-        "parMoteur": 0,
-        "sansAction": 0,
-        "textes": 203,
-        "mots": 1364
-      },
-      {
         "fichier": "client/src/pages/intelligence/index.tsx",
         "routes": [
+          "/admin/intelligences",
           "/intelligence"
         ],
         "cliquables": 20,
@@ -10875,6 +10906,13 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "route": "/admin/ia-couts",
         "composants": [
           "components/IaConfigWarning.tsx"
+        ]
+      },
+      {
+        "fichier": "client/src/pages/CentreIntelligences.tsx",
+        "route": "/admin/intelligences/direction",
+        "composants": [
+          "trpc.intelligences"
         ]
       }
     ],
@@ -11017,8 +11055,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "pdg",
       "public"
     ],
-    "textes": 263,
-    "mots": 1624,
+    "textes": 60,
+    "mots": 260,
     "battement": "sonde",
     "manques": [
       {
@@ -11056,6 +11094,14 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "genre": "dependance_non_declaree",
         "detail": "vo_engine — estimate-gateway/gateway.ts importe vo-engine/service.ts"
+      },
+      {
+        "genre": "dependance_sans_preuve",
+        "detail": "monitoring"
+      },
+      {
+        "genre": "dependance_sans_preuve",
+        "detail": "support"
       }
     ]
   },
@@ -13797,6 +13843,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "dependants": [
       "ai_fabric",
       "analytics",
+      "core",
       "intelligences",
       "smart"
     ],
@@ -13814,7 +13861,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "ecransHotes": [
       {
         "fichier": "client/src/pages/CentreIntelligences.tsx",
-        "route": "/admin/intelligences",
+        "route": "/admin/intelligences/direction",
         "composants": [
           "trpc.monitoringOs"
         ]
@@ -21413,6 +21460,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       ]
     },
     "dependants": [
+      "core",
       "garage",
       "identity",
       "intelligences"
@@ -21499,7 +21547,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       },
       {
         "fichier": "client/src/pages/CentreIntelligences.tsx",
-        "route": "/admin/intelligences",
+        "route": "/admin/intelligences/direction",
         "composants": [
           "trpc.supportOs"
         ]
