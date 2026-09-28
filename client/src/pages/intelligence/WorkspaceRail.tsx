@@ -93,7 +93,7 @@ export function WorkspaceRail(props: WorkspaceRailProps) {
     </div>
     <p className="alhud-caption">Les outils existants sont conservés. Aucun changement d’autorisation à l’ouverture.</p>
   </>;
-  return desktop ? <aside className="alhud-rail">{body}</aside> : <dialog ref={drawer} className="alhud-drawer" aria-label="Conversations et outils AL-HUDHUD·M" onCancel={e => { e.preventDefault(); props.onClose(); }} onClick={e => { if (e.target === e.currentTarget) { const r = e.currentTarget.getBoundingClientRect(); if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) props.onClose(); } }}>{body}</dialog>;
+  return desktop ? <aside className="alhud-rail">{body}</aside> : <dialog ref={drawer} onClose={() => returnFocus.current?.focus()} className="alhud-drawer" aria-label="Conversations et outils AL-HUDHUD·M" onCancel={e => { e.preventDefault(); props.onClose(); }} onClick={e => { if (e.target === e.currentTarget) { const r = e.currentTarget.getBoundingClientRect(); if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) props.onClose(); } }}>{body}</dialog>;
 }
 
 export function WorkspaceMenuButton({ open, onClick }: { open: boolean; onClick: () => void }) {

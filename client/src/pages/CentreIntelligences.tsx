@@ -259,6 +259,17 @@ export default function CentreIntelligences() {
   const workspaceUtils = trpc.useUtils();
   const [historyLoading, setHistoryLoading] = useState(false);
   const historyLock = useRef(false);
+  const sendLock = useRef(false);
+  const liveWorkspace = useRef(true);
+  const workspaceEpoch = useRef(0);
+  const workspaceOwner = useRef("");
+  workspaceOwner.current = `${user?.id ?? "anonymous"}:${!!estPdg}`;
+  const sentRequest = useRef<{ key: string; text: string; images: string[]; epoch: number; owner: string } | null>(null);
+  const isCurrentWorkspace = (epoch: number, owner: string) => liveWorkspace.current && epoch === workspaceEpoch.current && owner === workspaceOwner.current;
+  useEffect(() => {
+    liveWorkspace.current = true;
+    return () => { liveWorkspace.current = false; workspaceEpoch.current++; sentRequest.current = null; };
+  }, []);
   const conversationDrafts = useRef(new Map<string, { text: string; images: string[] }>());
   const threadRef = useRef<HTMLDivElement>(null);
   useEffect(() => { threadRef.current?.scrollTo({ top: threadRef.current.scrollHeight }); }, [fil]);
@@ -266,12 +277,14 @@ export default function CentreIntelligences() {
     conversationDrafts.current.set(String(sessionId ?? "new"), { text: question, images: [...pieces] });
   }
   async function openSavedConversation(id: number) {
-    if (demander.isPending || historyLock.current || ecoute) return;
+    if (sendLock.current || demander.isPending || historyLock.current || ecoute || !estPdg) return;
     historyLock.current = true;
+    const epoch = workspaceEpoch.current, owner = workspaceOwner.current;
     setHistoryLoading(true);
     saveConversationDraft();
     try {
       const rows = await workspaceUtils.intelligences.fil.fetch({ sessionId: id });
+      if (!isCurrentWorkspace(epoch, owner)) return;
       const saved = conversationDrafts.current.get(String(id));
       setSessionId(id);
       setFil(rows.filter(row => row.role === "utilisateur" || row.role === "moteur").map(row => ({
@@ -284,14 +297,13 @@ export default function CentreIntelligences() {
       setOnglet("echange");
       setMessage(null);
     } catch {
-      setMessage("La conversation n’a pas pu être chargée. Votre échange et votre brouillon sont conservés.");
+      if (isCurrentWorkspace(epoch, owner)) setMessage("La conversation n’a pas pu être chargée. Votre échange et votre brouillon sont conservés.");
     } finally {
-      historyLock.current = false;
-      setHistoryLoading(false);
+      if (isCurrentWorkspace(epoch, owner)) { historyLock.current = false; setHistoryLoading(false); }
     }
   }
   function startNewConversation() {
-    if (demander.isPending || historyLock.current || ecoute) return;
+    if (sendLock.current || demander.isPending || historyLock.current || ecoute || !estPdg) return;
     saveConversationDraft();
     const saved = conversationDrafts.current.get("new");
     setSessionId(null);
@@ -302,11 +314,11 @@ export default function CentreIntelligences() {
     setMessage(null);
   }
   useEffect(() => {
-    if (!estPdg) {
-      conversationDrafts.current.clear();
-      setQuestion(""); setPieces([]); setFil([]); setSessionId(null);
-    }
-  }, [estPdg]);
+    workspaceEpoch.current++;
+    historyLock.current = false; sendLock.current = false; sentRequest.current = null;
+    conversationDrafts.current.clear();
+    setQuestion(""); setPieces([]); setFil([]); setSessionId(null); setHistoryLoading(false);
+  }, [user?.id, estPdg]);
   const [besoin, setBesoin] = useState("");
   const [consigne, setConsigne] = useState("");
   const [dossierId, setDossierId] = useState("");
@@ -346,9 +358,11 @@ export default function CentreIntelligences() {
   });
 
   const demander = trpc.intelligences.demander.useMutation({
-    onSuccess: (r) => {
+    onMutate: () => sentRequest.current,
+    onSuccess: (r, _variables, sent) => {
+      if (!sent || !isCurrentWorkspace(sent.epoch, sent.owner)) return;
       setSessionId(r.sessionId);
-      conversationDrafts.current.delete("new");
+      conversationDrafts.current.delete(sent.key);
       void workspaceUtils.intelligences.conversations.invalidate();
       setFil((f) => [
         ...f,
@@ -363,7 +377,11 @@ export default function CentreIntelligences() {
         },
       ]);
     },
-    onError: (e) =>
+    onError: (e, _variables, sent) => {
+      if (!sent || !isCurrentWorkspace(sent.epoch, sent.owner)) return;
+      conversationDrafts.current.set(sent.key, { text: sent.text, images: sent.images });
+      setQuestion(current => current || sent.text);
+      setPieces(current => current.length ? current : sent.images);
       setFil((f) => [
         ...f,
         {
@@ -375,7 +393,11 @@ export default function CentreIntelligences() {
           modele: null,
           contexte: [],
         },
-      ]),
+      ]);
+    },
+    onSettled: (_result, _error, _variables, sent) => {
+      if (sentRequest.current === sent) { sendLock.current = false; sentRequest.current = null; }
+    },
   });
 
   const proposer = trpc.intelligences.proposer.useMutation({
@@ -662,8 +684,10 @@ export default function CentreIntelligences() {
   /** `texteForce` : envoi immédiat après dictée, avant que l'état `question` n'ait fini de se mettre à jour (voir onresult de basculerEcoute). */
   function envoyer(texteForce?: string) {
     const q = (texteForce ?? question).trim();
-    if ((q.length < 2 && pieces.length === 0) || demander.isPending || historyLock.current) return;
+    if ((q.length < 2 && pieces.length === 0) || sendLock.current || demander.isPending || historyLock.current || !estPdg) return;
     const texteEnvoye = q.length >= 2 ? q : "Analyse la ou les pièce(s) jointe(s).";
+    sendLock.current = true;
+    sentRequest.current = { key: String(sessionId ?? "new"), text: q, images: [...pieces], epoch: workspaceEpoch.current, owner: workspaceOwner.current };
     setFil((f) => [
       ...f,
       { role: "moi", texte: texteEnvoye, ok: true, motif: "", fournisseur: null, modele: null, contexte: [] },
@@ -1067,13 +1091,14 @@ export default function CentreIntelligences() {
                     onChange={(e) => setQuestion(e.target.value)}
                     rows={5}
                     placeholder="Écris ta demande…"
+                    disabled={demander.isPending || historyLoading}
                     className="min-h-[150px] w-full resize-none rounded-2xl border-0 p-3 pb-12 text-sm outline-none"
                   />
                   <div className="absolute bottom-2 left-2">
                     <button
                       type="button"
                       onClick={() => fichierRef.current?.click()}
-                      disabled={pieces.length >= 4}
+                      disabled={demander.isPending || historyLoading || pieces.length >= 4}
                       title="Joindre une photo ou une image"
                       className="inline-flex h-9 w-9 items-center justify-center rounded-full text-black/50 hover:bg-black/5 disabled:opacity-30"
                     >
@@ -1146,7 +1171,7 @@ export default function CentreIntelligences() {
                     <button
                       type="button"
                       onClick={() => envoyer()}
-                      disabled={demander.isPending || (question.trim().length < 2 && pieces.length === 0)}
+                      disabled={demander.isPending || historyLoading || (question.trim().length < 2 && pieces.length === 0)}
                       title="Envoyer"
                       className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-[#111] text-white disabled:opacity-40"
                     >
