@@ -1,0 +1,74 @@
+name: AL-HUDHUD handoff build verification
+on:
+  push:
+    branches: [ai/handoff-main-build-20260928]
+    paths: [.github/workflows/alhud-handoff-build.yml]
+permissions:
+  contents: write
+concurrency:
+  group: alhud-handoff-main-build
+  cancel-in-progress: false
+jobs:
+  verify:
+    if: github.repository == 'projet-Auto-plus-Africa-MKAPMS/mkapms-web' && github.ref == 'refs/heads/ai/handoff-main-build-20260928'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with: {fetch-depth: 0}
+      - uses: actions/setup-node@v4
+        with: {node-version: 22}
+      - run: npm ci
+      - name: Regenerate from actual source without changing the scanners or their findings
+        shell: bash
+        run: |
+          set -euo pipefail
+          git rev-parse HEAD > /tmp/alhud-before-sha
+          mkdir -p /tmp/alhud-handoff-evidence
+          for name in routes boutons cliquables sections moteurs; do
+            npm run "gen:$name" 2>&1 | tee "/tmp/alhud-handoff-evidence/gen-$name.txt"
+          done
+          python3 - <<'PY'
+          import subprocess
+          names=subprocess.check_output(['git','diff','--name-only'],text=True).splitlines()
+          for path in names:
+              if not path.startswith('server/data/') or not path.endswith('.ts'):
+                  raise SystemExit('Unexpected generated change; refuse commit: '+path)
+          if subprocess.check_output(['git','diff','--name-only','--diff-filter=D'],text=True).strip():
+              raise SystemExit('Source deletion refused')
+          print('Only existing generated inventories changed:', names)
+          PY
+          git diff --stat | tee /tmp/alhud-handoff-evidence/diff-stat.txt
+          git diff --numstat | tee /tmp/alhud-handoff-evidence/diff-numstat.txt
+      - name: Typecheck on unchanged application source
+        run: npm run typecheck
+        env: {NODE_OPTIONS: --max-old-space-size=6144}
+      - name: Full Railway-equivalent build with every existing gate
+        run: npm run build
+        env: {NODE_OPTIONS: --max-old-space-size=6144}
+      - name: Retained workspace and button-engine checks
+        run: |
+          node scripts/test-alhud-workspace.mjs
+          npm run test:button-motor
+      - name: Commit only tested generated files to this feature branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          BEFORE=$(cat /tmp/alhud-before-sha)
+          test "$(git ls-remote origin refs/heads/ai/handoff-main-build-20260928 | cut -f1)" = "$BEFORE"
+          git add -u server/data
+          if ! git diff --cached --quiet; then
+            git config user.name 'MKA.P-MS handoff verification'
+            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+            git commit -m 'fix(build): refresh inventories from the current Chat/Travail UI, retain all findings'
+            git push origin HEAD:refs/heads/ai/handoff-main-build-20260928
+          fi
+          git rev-parse HEAD > /tmp/alhud-handoff-evidence/tested-sha.txt
+          git status --porcelain > /tmp/alhud-handoff-evidence/working-tree.txt
+          git config --local --unset-all http.https://github.com/.extraheader || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: alhud-handoff-build-evidence
+          path: /tmp/alhud-handoff-evidence/
+          retention-days: 7
