@@ -27,7 +27,8 @@
  *  - pièces jointes, image, voix, code : modules dédiés séparés, encore à
  *    l'état de socle (voir leur propre fichier).
  */
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
+import "../workspace.css";
 import {
   AlertTriangle,
   Check,
@@ -63,7 +64,9 @@ function outilsDepuisContexte(contexte: string[]): string[] {
   return contexte.filter((l) => l.startsWith("Outil appelé :")).map((l) => l.replace("Outil appelé : ", ""));
 }
 
-export function Conversation() {
+export function Conversation({ navigation, active = true, onActivate, children, searchQuery = "" }: {
+  navigation?: ReactNode; active?: boolean; onActivate?: () => void; children?: ReactNode; searchQuery?: string;
+} = {}) {
   const [sessionId, setSessionId] = useState<number | null>(null);
   const [fil, setFil] = useState<Bulle[]>([]);
   const [question, setQuestion] = useState("");
@@ -75,6 +78,34 @@ export function Conversation() {
   const sessionChargee = useRef<number | null>(null);
   const finDuFil = useRef<HTMLDivElement>(null);
   const zoneSaisie = useRef<HTMLTextAreaElement>(null);
+  const drawer = useRef<HTMLDialogElement>(null);
+  const menu = useRef<HTMLButtonElement>(null);
+  const mounted = useRef(true);
+  const sendLock = useRef(false);
+  const sent = useRef<{ key: string; text: string } | null>(null);
+  const drafts = useRef(new Map<string, string>());
+  const [notice, setNotice] = useState("");
+  const [desktop, setDesktop] = useState(() => typeof window !== "undefined" && window.matchMedia("(min-width: 768px)").matches);
+  useEffect(() => {
+    mounted.current = true;
+    return () => { mounted.current = false; drafts.current.clear(); sent.current = null; };
+  }, []);
+  useEffect(() => {
+    const media = window.matchMedia("(min-width: 768px)");
+    const changed = () => { setDesktop(media.matches); if (media.matches) setPanneauOuvert(false); };
+    media.addEventListener("change", changed);
+    return () => media.removeEventListener("change", changed);
+  }, []);
+  useEffect(() => {
+    const dialog = drawer.current;
+    if (!dialog) return;
+    if (panneauOuvert && !desktop && !dialog.open) {
+      dialog.showModal();
+      dialog.querySelector<HTMLInputElement>('input[type="search"]')?.focus();
+    } else if ((!panneauOuvert || desktop) && dialog.open) dialog.close();
+  }, [panneauOuvert, desktop]);
+  function saveDraft() { drafts.current.set(String(sessionId ?? "new"), question); }
+  const normalise = (value: string) => value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase();
 
   const utils = trpc.useUtils();
   const conversations = trpc.intelligences.conversations.useQuery(
@@ -88,9 +119,10 @@ export function Conversation() {
   );
 
   useEffect(() => {
-    if (!sessionId || !filServeur.data) return;
+    if (!sessionId || !filServeur.data || filServeur.isFetching || filServeur.isError) return;
     if (sessionChargee.current === sessionId) return;
     sessionChargee.current = sessionId;
+    setDerniereQuestion([...filServeur.data].reverse().find(m => m.role === "utilisateur")?.contenu ?? "");
     setFil(
       filServeur.data
         .filter((m) => m.role === "utilisateur" || m.role === "moteur")
@@ -103,14 +135,19 @@ export function Conversation() {
           outils: outilsDepuisContexte(m.contexte ?? []),
         })),
     );
-  }, [sessionId, filServeur.data]);
+  }, [sessionId, filServeur.data, filServeur.isFetching, filServeur.isError]);
 
   useEffect(() => {
-    finDuFil.current?.scrollIntoView({ behavior: "smooth" });
-  }, [fil]);
+    const scroller = finDuFil.current?.parentElement;
+    if (active && scroller) scroller.scrollTop = scroller.scrollHeight;
+  }, [fil, active]);
 
   const demander = trpc.intelligences.demander.useMutation({
-    onSuccess: (r) => {
+    onMutate: () => sent.current,
+    onSuccess: (r, _variables, submitted) => {
+      if (!mounted.current || !submitted || sent.current !== submitted) return;
+      if (drafts.current.get(submitted.key) === submitted.text) drafts.current.delete(submitted.key);
+      setNotice("");
       setSessionId(r.sessionId);
       sessionChargee.current = r.sessionId;
       setFil((f) => [
@@ -127,7 +164,11 @@ export function Conversation() {
       ]);
       void conversations.refetch();
     },
-    onError: () =>
+    onError: (_error, _variables, submitted) => {
+      if (!mounted.current || !submitted || sent.current !== submitted) return;
+      drafts.current.set(submitted.key, submitted.text);
+      setQuestion(current => current || submitted.text);
+      setNotice("La demande n’a pas abouti. Votre texte est conservé ; vérifiez l’historique avant un nouvel envoi.");
       setFil((f) => [
         ...f,
         {
@@ -138,11 +179,14 @@ export function Conversation() {
           motif: "Le service AL-HUDHUD·M est temporairement indisponible. Réessayez dans un instant.",
           outils: [],
         },
-      ]),
+      ]);
+    },
+    onSettled: (_result, _error, _variables, submitted) => { if (sent.current === submitted) { sendLock.current = false; sent.current = null; } },
   });
 
   const renommer = trpc.intelligences.renommerConversation.useMutation({
     onSuccess: () => {
+      if (!mounted.current) return;
       setRenommageId(null);
       void utils.intelligences.conversations.invalidate();
     },
@@ -150,12 +194,23 @@ export function Conversation() {
 
   const supprimer = trpc.intelligences.supprimerConversation.useMutation({
     onSuccess: (_r, variables) => {
-      if (sessionId === variables.sessionId) nouvelleConversation();
+      if (!mounted.current) return;
+      drafts.current.delete(String(variables.sessionId));
+      if (sessionId === variables.sessionId) {
+        setSessionId(null); sessionChargee.current = null; setFil([]); setDerniereQuestion("");
+        setQuestion(drafts.current.get("new") ?? ""); setNotice("");
+      }
       void utils.intelligences.conversations.invalidate();
     },
   });
 
+  const historyUnavailable = !!sessionId && (filServeur.isFetching || filServeur.isError || sessionChargee.current !== sessionId);
+  const busy = demander.isPending || supprimer.isPending || sendLock.current;
   function nouvelleConversation() {
+    if (busy) return;
+    saveDraft();
+    setQuestion(drafts.current.get("new") ?? "");
+    setDerniereQuestion(""); setNotice(""); onActivate?.();
     setSessionId(null);
     sessionChargee.current = null;
     setFil([]);
@@ -163,13 +218,23 @@ export function Conversation() {
   }
 
   function ouvrirConversation(id: number) {
+    if (busy) return;
+    saveDraft();
+    setQuestion(drafts.current.get(String(id)) ?? "");
+    if (sessionId !== id) { sessionChargee.current = null; setFil([]); setDerniereQuestion(""); }
+    setNotice(""); onActivate?.();
     setSessionId(id);
     setPanneauOuvert(false);
   }
 
   function envoyer(texte?: string) {
     const q = (texte ?? question).trim();
-    if (q.length < 2 || demander.isPending) return;
+    if (q.length < 2 || busy || historyUnavailable || !active || !mounted.current) return;
+    sendLock.current = true;
+    const key = String(sessionId ?? "new");
+    sent.current = { key, text: q };
+    drafts.current.set(key, q);
+    setNotice("");
     setFil((f) => [...f, { id: idBulle(), role: "moi", texte: q, ok: true, motif: "", outils: [] }]);
     setDerniereQuestion(q);
     setQuestion("");
@@ -177,12 +242,13 @@ export function Conversation() {
   }
 
   function regenerer() {
-    if (!derniereQuestion || demander.isPending) return;
+    if (!derniereQuestion || busy || historyUnavailable) return;
     envoyer(derniereQuestion);
   }
 
   /** Reprendre/modifier une demande passée : reporte son texte dans la zone de saisie, ne réécrit pas l'historique. */
   function reprendre(texte: string) {
+    if (busy) return;
     setQuestion(texte);
     zoneSaisie.current?.focus();
   }
@@ -190,10 +256,12 @@ export function Conversation() {
   async function copier(id: string, texte: string) {
     try {
       await navigator.clipboard.writeText(texte);
+      if (!mounted.current) return;
       setCopieId(id);
+      setNotice("Réponse copiée.");
       setTimeout(() => setCopieId((c) => (c === id ? null : c)), 1500);
     } catch {
-      // Presse-papiers indisponible (contexte non sécurisé, permission refusée) : aucune fausse confirmation.
+      if (mounted.current) setNotice("Copie indisponible. Vous pouvez sélectionner le texte.");
     }
   }
 
@@ -208,27 +276,24 @@ export function Conversation() {
   }
 
   function demanderSuppression(id: number) {
-    if (!window.confirm("Supprimer définitivement cette conversation et ses messages ?")) return;
+    if (busy || !window.confirm("Supprimer définitivement cette conversation et ses messages ?")) return;
     supprimer.mutate({ sessionId: id });
   }
 
-  return (
-    <div className="flex h-[calc(100vh-160px)] min-h-[420px] flex-col gap-3">
-      <EtatServiceIntelligence />
-
-      <div className="flex min-h-0 flex-1 flex-col gap-3 md:flex-row">
-      <aside
-        className={`${panneauOuvert ? "flex" : "hidden"} w-full shrink-0 flex-col rounded-xl border border-black/10 bg-[#FAFAFA] p-2 md:flex md:w-64`}
-      >
+  const sidebarContent = <><div onClick={e => { if ((e.target as HTMLElement).closest("button")) setPanneauOuvert(false); }}>{navigation}</div>
         <button
           type="button"
-          onClick={nouvelleConversation}
+          onClick={nouvelleConversation} disabled={busy}
           className="mb-2 flex items-center gap-2 rounded-lg bg-[#111] px-3 py-2 text-sm font-bold text-white"
         >
           <Plus className="h-4 w-4" /> Nouvelle conversation
         </button>
         <div className="flex-1 space-y-1 overflow-y-auto">
-          {(conversations.data ?? []).map((c) => (
+          <h2 className="px-2 py-2 text-xs font-bold">Conversations</h2>
+          {conversations.isLoading ? <p role="status">Chargement de l’historique…</p> : null}
+          {conversations.isError ? <div role="alert">Historique indisponible. <button type="button" onClick={() => void conversations.refetch()}>Réessayer</button></div> : null}
+          {renommer.isError || supprimer.isError ? <p role="alert">L’action n’a pas abouti. L’historique n’a pas été modifié ici.</p> : null}
+          {(conversations.data ?? []).filter(c => normalise(c.titre || "Sans titre").includes(normalise(searchQuery))).map((c) => (
             <div
               key={c.id}
               className={`group flex items-center gap-1 rounded-lg px-1.5 py-1 ${
@@ -256,6 +321,7 @@ export function Conversation() {
                   <button
                     type="button"
                     onClick={() => ouvrirConversation(c.id)}
+                    disabled={busy}
                     className={`min-w-0 flex-1 truncate rounded px-1 py-1 text-left text-xs font-semibold ${
                       sessionId === c.id ? "text-black" : "text-black/60"
                     }`}
@@ -268,16 +334,17 @@ export function Conversation() {
                     onClick={() => commencerRenommage(c.id, c.titre)}
                     aria-label="Renommer cette conversation"
                     title="Renommer"
-                    className="hidden shrink-0 p-1 text-black/40 hover:text-black/70 group-hover:block"
+                    className="alhud-history-action shrink-0 p-2 text-black/60 hover:text-black"
                   >
                     <Pencil className="h-3.5 w-3.5" />
                   </button>
                   <button
                     type="button"
                     onClick={() => demanderSuppression(c.id)}
+                    disabled={busy}
                     aria-label="Supprimer cette conversation"
                     title="Supprimer"
-                    className="hidden shrink-0 p-1 text-black/40 hover:text-red-600 group-hover:block"
+                    className="alhud-history-action shrink-0 p-2 text-black/60 hover:text-red-600"
                   >
                     <Trash2 className="h-3.5 w-3.5" />
                   </button>
@@ -289,23 +356,40 @@ export function Conversation() {
             <p className="px-2 py-4 text-center text-[11px] text-black/40">Aucune conversation encore.</p>
           )}
         </div>
-      </aside>
+</>;
+  return (
+    <div className="alhud-conversation-workspace flex h-[calc(100dvh-160px)] min-h-[420px] flex-col gap-3">
+      <EtatServiceIntelligence />
 
-      <div className="flex min-w-0 flex-1 flex-col rounded-xl border border-black/10">
+      <div className="flex min-h-0 flex-1 flex-col gap-3 md:flex-row">
+      {desktop ? <aside className="alhud-conversation-rail" aria-label="Conversations et outils">{sidebarContent}</aside> :
+        <dialog ref={drawer} className="alhud-drawer" aria-label="Conversations et outils" onCancel={e => { e.preventDefault(); setPanneauOuvert(false); }} onClose={() => { setPanneauOuvert(false); menu.current?.focus(); }} onClick={e => {
+          if (e.target === e.currentTarget) { const bounds = e.currentTarget.getBoundingClientRect();
+            if (e.clientX < bounds.left || e.clientX > bounds.right || e.clientY < bounds.top || e.clientY > bounds.bottom) setPanneauOuvert(false);
+          }
+        }}><button type="button" className="alhud-icon-control" onClick={() => setPanneauOuvert(false)}>Fermer le panneau</button>{sidebarContent}</dialog>}
+
+
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col rounded-xl border border-black/10">
         <div className="flex items-center justify-between border-b border-black/5 px-3 py-2 md:hidden">
           <button
             type="button"
+            ref={menu} aria-haspopup="dialog" aria-expanded={panneauOuvert} aria-label="Conversations et outils"
             onClick={() => setPanneauOuvert((v) => !v)}
             className="flex items-center gap-1.5 text-xs font-bold text-black/60"
           >
             {panneauOuvert ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />} Conversations
           </button>
-          <button type="button" onClick={nouvelleConversation} className="flex items-center gap-1 text-xs font-bold text-[#8B7500]">
+          <button type="button" onClick={nouvelleConversation} disabled={busy} className="flex items-center gap-1 text-xs font-bold text-[#8B7500]">
             <Plus className="h-3.5 w-3.5" /> Nouvelle
           </button>
         </div>
 
-        <div className="flex-1 space-y-3 overflow-y-auto p-4">
+        {!active ? <section className="alhud-active-tool flex-1 overflow-auto p-4" aria-label="Outil sélectionné">{children}</section> : null}
+        <div hidden={!active} className="alhud-live-conversation flex min-h-0 flex-1 flex-col">
+        {sessionId && filServeur.isFetching ? <p role="status" className="p-3 text-sm">Chargement de la conversation…</p> : null}
+        {sessionId && filServeur.isError ? <div role="alert" className="p-3 text-sm">Cette conversation n’a pas pu être chargée. L’envoi reste bloqué pour préserver son contexte. <button type="button" onClick={() => void filServeur.refetch()}>Réessayer</button></div> : null}
+        <div className="min-h-0 flex-1 space-y-3 overflow-y-auto p-4" role="log" aria-label="Conversation" aria-live="polite" aria-busy={demander.isPending || (!!sessionId && filServeur.isFetching)}>
           {fil.length === 0 ? (
             <div className="flex h-full flex-col items-center justify-center gap-2 text-center text-black/40">
               <Sparkles className="h-6 w-6" />
@@ -345,7 +429,7 @@ export function Conversation() {
                   </div>
                 )}
 
-                <div className="mt-1 hidden justify-end gap-2 group-hover:flex">
+                <div className="mt-2 flex justify-end gap-3">
                   {b.role === "moteur" && b.ok && (
                     <button
                       type="button"
@@ -385,9 +469,11 @@ export function Conversation() {
             <textarea
               ref={zoneSaisie}
               value={question}
-              onChange={(e) => setQuestion(e.target.value)}
+              disabled={busy}
+              aria-label="Votre message"
+              onChange={(e) => { setQuestion(e.target.value); drafts.current.set(String(sessionId ?? "new"), e.target.value); }}
               onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) {
+                if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
                   e.preventDefault();
                   envoyer();
                 }
@@ -397,7 +483,7 @@ export function Conversation() {
               placeholder="Votre demande… (Entrée pour envoyer, Maj+Entrée pour un retour à la ligne)"
               className="flex-1 rounded-xl border border-black/10 p-2 text-sm outline-none focus:border-[#8B7500]"
             />
-            {derniereQuestion && !demander.isPending && (
+            {derniereQuestion && !busy && !historyUnavailable && (
               <button
                 type="button"
                 onClick={regenerer}
@@ -411,15 +497,18 @@ export function Conversation() {
             <button
               type="button"
               onClick={() => envoyer()}
-              disabled={demander.isPending || question.trim().length < 2}
+              disabled={busy || historyUnavailable || question.trim().length < 2}
+              aria-label="Envoyer le message"
               className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-[#111] text-white disabled:opacity-40"
             >
               <Send className="h-4 w-4" />
             </button>
           </div>
-          <p className="mt-1 text-[10px] text-black/30">
+          <p role="status" className="text-xs text-black/60">{notice}</p>
+          <p className="mt-1 text-[10px] text-black/50">
             Réponse envoyée en un seul bloc (streaming non disponible dans ce lot — aucun arrêt de génération n'est donc proposé).
           </p>
+        </div>
         </div>
       </div>
       </div>

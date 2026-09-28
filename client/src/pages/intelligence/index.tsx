@@ -13,7 +13,7 @@
  * encore construit), pour que cette page ne devienne jamais un fichier
  * unique contenant tout le produit.
  */
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import { AssistantBrand } from "./WorkspaceRail";
 import { Link } from "react-router-dom";
 import {
@@ -100,14 +100,7 @@ export default function MKAPMSIntelligence() {
   const { user } = useAuth();
   const [module, setModule] = useState<CleModule>("conversation");
   const [moduleSearch, setModuleSearch] = useState("");
-  const [drawerOpen, setDrawerOpen] = useState(false);
-  const appDrawer = useRef<HTMLDialogElement>(null);
-  useEffect(() => {
-    const dialog=appDrawer.current;
-    if(!dialog)return;
-    if(drawerOpen && !dialog.open)dialog.showModal();
-    if(!drawerOpen && dialog.open)dialog.close();
-  },[drawerOpen]);
+
 
   // Clé développeur active : non branché ici (aucune fonctionnalité de module
   // n'existe encore) — false tant qu'un vrai module ne le demande.
@@ -148,6 +141,16 @@ export default function MKAPMSIntelligence() {
     );
   }
 
+  const normalise = (text: string) => text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase();
+  const moduleNavigation = <div className="alhud-app-sidebar">
+            <AssistantBrand />
+            <label className="alhud-search"><input type="search" aria-label="Rechercher un outil ou une conversation" value={moduleSearch} onChange={e=>setModuleSearch(e.target.value)} placeholder="Rechercher…" /></label>
+            <nav className="alhud-app-modules" aria-label="Outils de l’assistant">
+              {MODULES.filter(item=>normalise(item.label).includes(normalise(moduleSearch))).map(item=>(
+                <button key={item.cle} type="button" aria-current={module===item.cle?'page':undefined} onClick={()=>{setModule(item.cle);}} className={module===item.cle?'rounded-xl bg-[#111] px-3 py-2 text-sm font-bold text-white':'rounded-xl px-3 py-2 text-sm text-black/70 hover:bg-black/5'}><item.icone className="mr-2 inline-block h-4 w-4" />{item.label}</button>
+              ))}
+            </nav>
+          </div>;
   return (
     <div className="min-h-screen bg-white">
       <div className="border-b border-black/5 bg-[#0B0B0F] px-4 py-4 text-white">
@@ -163,33 +166,11 @@ export default function MKAPMSIntelligence() {
         </p>
       </div>
 
-      <div className="flex flex-col gap-4 p-4 md:flex-row">
-        <aside className="hidden w-64 shrink-0 md:block"><div className="alhud-app-sidebar">
-            <AssistantBrand />
-            <label className="alhud-search"><input type="search" aria-label="Rechercher un outil" value={moduleSearch} onChange={e=>setModuleSearch(e.target.value)} placeholder="Rechercher un outil…" /></label>
-            <nav className="alhud-app-modules" aria-label="Outils de l’assistant">
-              {MODULES.filter(item=>item.label.toLocaleLowerCase().includes(moduleSearch.toLocaleLowerCase())).map(item=>(
-                <button key={item.cle} type="button" aria-current={module===item.cle?'page':undefined} onClick={()=>{setModule(item.cle);setDrawerOpen(false);}} className={module===item.cle?'rounded-xl bg-[#111] px-3 py-2 text-sm font-bold text-white':'rounded-xl px-3 py-2 text-sm text-black/70 hover:bg-black/5'}><item.icone className="mr-2 inline-block h-4 w-4" />{item.label}</button>
-              ))}
-            </nav>
-          </div></aside>
-        <button className="alhud-menu-button md:!hidden" type="button" aria-haspopup="dialog" aria-expanded={drawerOpen} onClick={()=>setDrawerOpen(true)}>Conversations et outils</button>
-        <dialog ref={appDrawer} className="alhud-drawer" aria-label="Outils de l’assistant" onCancel={e=>{e.preventDefault();setDrawerOpen(false);}}><button type="button" className="alhud-icon-control" onClick={()=>setDrawerOpen(false)}>Fermer</button><div className="alhud-app-sidebar">
-            <AssistantBrand />
-            <label className="alhud-search"><input type="search" aria-label="Rechercher un outil" value={moduleSearch} onChange={e=>setModuleSearch(e.target.value)} placeholder="Rechercher un outil…" /></label>
-            <nav className="alhud-app-modules" aria-label="Outils de l’assistant">
-              {MODULES.filter(item=>item.label.toLocaleLowerCase().includes(moduleSearch.toLocaleLowerCase())).map(item=>(
-                <button key={item.cle} type="button" aria-current={module===item.cle?'page':undefined} onClick={()=>{setModule(item.cle);setDrawerOpen(false);}} className={module===item.cle?'rounded-xl bg-[#111] px-3 py-2 text-sm font-bold text-white':'rounded-xl px-3 py-2 text-sm text-black/70 hover:bg-black/5'}><item.icone className="mr-2 inline-block h-4 w-4" />{item.label}</button>
-              ))}
-            </nav>
-          </div></dialog>
-
-
-        <main className="min-w-0 flex-1">
-          <div hidden={module !== "conversation"}><Conversation /></div>
+      <main className="min-w-0 p-2 md:p-4">
+        <Conversation key={String(user?.id ?? "anonymous")} navigation={moduleNavigation} active={module === "conversation"} onActivate={() => setModule("conversation")} searchQuery={moduleSearch}>
           {module !== "conversation" ? <Actif /> : null}
-        </main>
-      </div>
+        </Conversation>
+      </main>
     </div>
   );
 }
