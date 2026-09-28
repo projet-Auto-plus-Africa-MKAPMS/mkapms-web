@@ -1,3 +1,4 @@
+import { WorkspaceRail, WorkspaceMenuButton, AssistantBrand } from "./intelligence/WorkspaceRail";
 import {ProductionMedia} from "./intelligence/modules/ProductionMedia";
 import {TranscriptionAudio} from "./intelligence/modules/TranscriptionAudio";
 import {MemoireUtilisateur} from "./intelligence/modules/Memoire";
@@ -255,6 +256,57 @@ export default function CentreIntelligences() {
   const [question, setQuestion] = useState("");
   const [sessionId, setSessionId] = useState<number | null>(null);
   const [fil, setFil] = useState<Bulle[]>([]);
+  const workspaceUtils = trpc.useUtils();
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const historyLock = useRef(false);
+  const conversationDrafts = useRef(new Map<string, { text: string; images: string[] }>());
+  const threadRef = useRef<HTMLDivElement>(null);
+  useEffect(() => { threadRef.current?.scrollTo({ top: threadRef.current.scrollHeight }); }, [fil]);
+  function saveConversationDraft() {
+    conversationDrafts.current.set(String(sessionId ?? "new"), { text: question, images: [...pieces] });
+  }
+  async function openSavedConversation(id: number) {
+    if (demander.isPending || historyLock.current || ecoute) return;
+    historyLock.current = true;
+    setHistoryLoading(true);
+    saveConversationDraft();
+    try {
+      const rows = await workspaceUtils.intelligences.fil.fetch({ sessionId: id });
+      const saved = conversationDrafts.current.get(String(id));
+      setSessionId(id);
+      setFil(rows.filter(row => row.role === "utilisateur" || row.role === "moteur").map(row => ({
+        role: row.role === "utilisateur" ? "moi" : "moteur",
+        texte: row.contenu, ok: row.ok, motif: row.motifPublic || "",
+        fournisseur: null, modele: null, contexte: row.contexte ?? [],
+      })));
+      setQuestion(saved?.text ?? "");
+      setPieces(saved?.images ?? []);
+      setOnglet("echange");
+      setMessage(null);
+    } catch {
+      setMessage("La conversation n’a pas pu être chargée. Votre échange et votre brouillon sont conservés.");
+    } finally {
+      historyLock.current = false;
+      setHistoryLoading(false);
+    }
+  }
+  function startNewConversation() {
+    if (demander.isPending || historyLock.current || ecoute) return;
+    saveConversationDraft();
+    const saved = conversationDrafts.current.get("new");
+    setSessionId(null);
+    setFil([]);
+    setQuestion(saved?.text ?? "");
+    setPieces(saved?.images ?? []);
+    setOnglet("echange");
+    setMessage(null);
+  }
+  useEffect(() => {
+    if (!estPdg) {
+      conversationDrafts.current.clear();
+      setQuestion(""); setPieces([]); setFil([]); setSessionId(null);
+    }
+  }, [estPdg]);
   const [besoin, setBesoin] = useState("");
   const [consigne, setConsigne] = useState("");
   const [dossierId, setDossierId] = useState("");
@@ -296,6 +348,8 @@ export default function CentreIntelligences() {
   const demander = trpc.intelligences.demander.useMutation({
     onSuccess: (r) => {
       setSessionId(r.sessionId);
+      conversationDrafts.current.delete("new");
+      void workspaceUtils.intelligences.conversations.invalidate();
       setFil((f) => [
         ...f,
         {
@@ -592,7 +646,7 @@ export default function CentreIntelligences() {
         <ShieldCheck className="mx-auto h-8 w-8 text-black/30" />
         <h1 className="mt-3 text-lg font-black text-[#111]">Espace réservé</h1>
         <p className="mt-2 text-sm text-black/60">
-          Le côté direction de MKA.P-MS AI est réservé au compte PDG. L'assistant public
+          Le côté direction de AL-HUDHUD·M est réservé au compte PDG. L'assistant public
           reste accessible à tous.
         </p>
         <Link to="/intelligences" className="mt-4 inline-block text-sm font-bold text-[#8B7500]">
@@ -608,7 +662,7 @@ export default function CentreIntelligences() {
   /** `texteForce` : envoi immédiat après dictée, avant que l'état `question` n'ait fini de se mettre à jour (voir onresult de basculerEcoute). */
   function envoyer(texteForce?: string) {
     const q = (texteForce ?? question).trim();
-    if ((q.length < 2 && pieces.length === 0) || demander.isPending) return;
+    if ((q.length < 2 && pieces.length === 0) || demander.isPending || historyLock.current) return;
     const texteEnvoye = q.length >= 2 ? q : "Analyse la ou les pièce(s) jointe(s).";
     setFil((f) => [
       ...f,
@@ -699,7 +753,7 @@ export default function CentreIntelligences() {
   async function partagerTexte(texte: string) {
     if (!navigator.share) return;
     try {
-      await navigator.share({ text: texte, title: "MKA.P-MS AI" });
+      await navigator.share({ text: texte, title: "AL-HUDHUD·M" });
     } catch {
       // Partage annulé par l'utilisateur ou refusé par le système : rien à signaler.
     }
@@ -719,7 +773,12 @@ export default function CentreIntelligences() {
   }
 
   return (
-    <div className="mx-auto max-w-5xl px-3 py-4">
+    <div className="alhud-main-workspace">
+      <WorkspaceRail tabs={ONGLETS} groups={GROUPES_MENU} active={onglet} sessionId={sessionId}
+        busy={demander.isPending || historyLoading || ecoute} mobileOpen={menuOuvert}
+        onClose={() => setMenuOuvert(false)} onChoose={(key) => setOnglet(key as Onglet)}
+        onNew={startNewConversation} onConversation={(id) => void openSavedConversation(id)} />
+      <div className="alhud-main-content">
       <Link
         to="/admin"
         className="mb-3 inline-flex items-center gap-1 text-sm font-bold text-black/60 hover:text-black"
@@ -740,7 +799,7 @@ export default function CentreIntelligences() {
           <div>
             <p className="text-[11px] uppercase tracking-wide text-black/40">Côté direction — PDG</p>
             <h1 className="flex items-center justify-center gap-2 text-xl font-black text-[#111] md:justify-start">
-              <Sparkles className="h-5 w-5 text-[#8B7500]" /> MKA.P-MS AI
+              <AssistantBrand />
             </h1>
             <p className="mt-1 text-sm text-black/60">
               Elle lit l'état réel des moteurs, la mémoire du code et les alertes avant de répondre.
@@ -760,70 +819,9 @@ export default function CentreIntelligences() {
           </div>
         </div>
 
-        <nav className="mt-4 flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => setOnglet("echange")}
-            className={`rounded-full px-3 py-1.5 text-xs font-bold transition ${
-              onglet === "echange" ? "bg-[#111] text-white" : "bg-black/5 text-black/60"
-            }`}
-          >
-            Échange
-          </button>
-          <div className="relative">
-            <button
-              type="button"
-              onClick={() => setMenuOuvert((v) => !v)}
-              className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold transition ${
-                onglet !== "echange" ? "bg-[#111] text-white" : "bg-black/5 text-black/60"
-              }`}
-            >
-              <Menu className="h-3.5 w-3.5" />
-              {onglet !== "echange" ? ONGLETS.find((o) => o.cle === onglet)?.label : "Menu"}
-            </button>
-            {menuOuvert ? (
-              <>
-                <button
-                  type="button"
-                  aria-label="Fermer le menu"
-                  onClick={() => setMenuOuvert(false)}
-                  className="fixed inset-0 z-10 cursor-default"
-                />
-                <div className="absolute left-0 z-20 mt-2 max-h-[70vh] w-72 overflow-y-auto rounded-2xl border border-black/10 bg-white p-2 shadow-xl">
-                  <div className="flex items-center justify-between px-2 py-1">
-                    <p className="text-[11px] font-black uppercase tracking-wide text-black/40">Sections</p>
-                    <button type="button" onClick={() => setMenuOuvert(false)} className="rounded-full p-1 hover:bg-black/5">
-                      <X className="h-3.5 w-3.5 text-black/40" />
-                    </button>
-                  </div>
-                  {GROUPES_MENU.map((g) => (
-                    <div key={g.titre} className="mt-1">
-                      <p className="px-2 py-1 text-[10px] font-black uppercase tracking-wide text-black/30">{g.titre}</p>
-                      {g.onglets.map((cle) => {
-                        const o = ONGLETS.find((x) => x.cle === cle);
-                        if (!o) return null;
-                        return (
-                          <button
-                            key={cle}
-                            type="button"
-                            onClick={() => {
-                              setOnglet(cle);
-                              setMenuOuvert(false);
-                            }}
-                            className={`block w-full rounded-lg px-2 py-1.5 text-left text-xs font-bold transition ${
-                              onglet === cle ? "bg-[#111] text-white" : "text-black/70 hover:bg-black/5"
-                            }`}
-                          >
-                            {o.label}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  ))}
-                </div>
-              </>
-            ) : null}
-          </div>
+        <nav className="mt-4 flex items-center gap-2" aria-label="Conversation et préférences">
+          <WorkspaceMenuButton open={menuOuvert} onClick={() => setMenuOuvert(value => !value)} />
+          <span className="text-xs font-bold text-black/60">{ONGLETS.find(item => item.cle === onglet)?.label}</span>
           {ttsSupporte ? (
             <div className="relative">
               <button
@@ -894,7 +892,7 @@ export default function CentreIntelligences() {
            * elle, reste toujours juste en dessous, visible dès l'ouverture de
            * l'onglet.
            */}
-          <div className="max-h-[55vh] space-y-3 overflow-y-auto pr-1">
+          <div ref={threadRef} className="alhud-thread space-y-3 pr-1" role="log" aria-label="Conversation" aria-live="polite" aria-relevant="additions text" aria-busy={demander.isPending || historyLoading}>
             {fil.length === 0 ? (
               <p className="text-sm text-black/50">
                 Pose ta question. Exemples : « où en est la plateforme ? », « quels moteurs sont en
@@ -913,7 +911,7 @@ export default function CentreIntelligences() {
                 }`}
               >
                 <p className="mb-1 text-[11px] font-bold uppercase tracking-wide text-black/40">
-                  {b.role === "moi" ? "Vous" : "MKA.P-MS AI"}
+                  {b.role === "moi" ? "Vous" : "AL-HUDHUD·M"}
                   {b.role === "moteur" && b.fournisseur ? ` — ${b.fournisseur} / ${b.modele}` : ""}
                 </p>
                 {b.ok ? (
@@ -2343,7 +2341,7 @@ export default function CentreIntelligences() {
                     ))}
                   </ul>
                   <p className="mt-1 text-[11px] text-black/45">
-                    {m.appels} appel(s) mesuré(s) auprès de MKA.P-MS AI
+                    {m.appels} appel(s) mesuré(s) auprès de AL-HUDHUD·M
                     {m.dernierAppel
                       ? ` — dernier le ${new Date(m.dernierAppel).toLocaleString("fr-FR")}`
                       : " — aucun appel mesuré"}
@@ -2862,6 +2860,7 @@ export default function CentreIntelligences() {
           </div>
         </section>
       ) : null}
+    </div>
     </div>
   );
 }

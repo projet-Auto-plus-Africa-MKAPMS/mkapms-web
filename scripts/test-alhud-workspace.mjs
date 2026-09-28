@@ -1,0 +1,10 @@
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+const read=p=>readFileSync(p,'utf8');
+const centre=read('client/src/pages/CentreIntelligences.tsx');
+for(const tab of ['medias','echange','pilotage','permissions','evaluation','shadow','fonctions','plan','developpeur','missions','autonomie','assistance','capacites','moteurs','connexion','surveillance','support','memoire','commandes','couts','developpement']) assert(centre.includes('"'+tab+'"'),'existing tab missing: '+tab);
+for(const feature of ['surFichierChoisi','basculerEcoute','choisirVoix','reglerAutonomie','memoireArchiver','WorkspaceRail','historyLock.current','conversationDrafts'])assert(centre.includes(feature),feature);
+const rail=read('client/src/pages/intelligence/WorkspaceRail.tsx');assert(rail.includes('conversations.useQuery'));assert(rail.includes('showModal'));assert(rail.includes('onCancel'));
+const identity=JSON.parse(read('public/ai-identity.json'));assert.equal(identity.publicName,'AL-HUDHUD·M');assert.equal(identity.logo,null);assert.equal(identity.assetStatus,'AWAITING_APPROVED_ASSET');
+assert(read('server/intelligences/identite.ts').includes('AL-HUDHUD·M'));
+console.log('AL-HUDHUD workspace: 21 retained Centre tabs, existing controls, history integration, exact identity and missing-logo state verified.');

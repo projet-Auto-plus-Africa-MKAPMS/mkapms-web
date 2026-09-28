@@ -3458,7 +3458,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "parMoteur": 0,
         "sansAction": 0,
         "textes": 13,
-        "mots": 131
+        "mots": 130
       }
     ],
     "ecransHotes": [],
@@ -3476,7 +3476,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "pdg"
     ],
     "textes": 13,
-    "mots": 131,
+    "mots": 130,
     "battement": "code",
     "manques": []
   },
@@ -5320,7 +5320,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "parMoteur": 0,
         "sansAction": 2,
         "textes": 655,
-        "mots": 1514
+        "mots": 1512
       },
       {
         "fichier": "client/src/pages/comptabilite/ComptaAnalytique.tsx",
@@ -5455,7 +5455,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "connecte"
     ],
     "textes": 1267,
-    "mots": 2967,
+    "mots": 2965,
     "battement": "sonde",
     "manques": [
       {
@@ -9990,7 +9990,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "parMoteur": 0,
         "sansAction": 0,
         "textes": 93,
-        "mots": 546
+        "mots": 545
       },
       {
         "fichier": "client/src/pages/SuppressionCompte.tsx",
@@ -10379,7 +10379,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "public"
     ],
     "textes": 435,
-    "mots": 2013,
+    "mots": 2012,
     "battement": "pont_os",
     "manques": [
       {
@@ -10837,22 +10837,22 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/admin/intelligences"
         ],
-        "cliquables": 25,
+        "cliquables": 23,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 205,
-        "mots": 1332
+        "textes": 202,
+        "mots": 1321
       },
       {
         "fichier": "client/src/pages/intelligence/index.tsx",
         "routes": [
           "/intelligence"
         ],
-        "cliquables": 3,
+        "cliquables": 6,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 21,
-        "mots": 204
+        "textes": 24,
+        "mots": 222
       }
     ],
     "ecransHotes": [
@@ -11018,7 +11018,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "public"
     ],
     "textes": 235,
-    "mots": 1625,
+    "mots": 1632,
     "battement": "sonde",
     "manques": [
       {
@@ -22229,7 +22229,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "parMoteur": 0,
         "sansAction": 0,
         "textes": 220,
-        "mots": 983
+        "mots": 982
       },
       {
         "fichier": "client/src/pages/depot-annonce/AnalyseIA.tsx",
@@ -22273,7 +22273,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "parMoteur": 0,
         "sansAction": 0,
         "textes": 7,
-        "mots": 16
+        "mots": 15
       },
       {
         "fichier": "client/src/pages/depot-annonce/DocumentsAnnonce.tsx",
@@ -22284,7 +22284,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "parMoteur": 0,
         "sansAction": 0,
         "textes": 12,
-        "mots": 48
+        "mots": 47
       },
       {
         "fichier": "client/src/pages/depot-annonce/ExpirationAnnonce.tsx",
@@ -22931,7 +22931,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "tables": [],
     "acces": [],
     "textes": 951,
-    "mots": 3341,
+    "mots": 3338,
     "battement": "sonde",
     "manques": [
       {
@@ -23182,7 +23182,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "parMoteur": 0,
         "sansAction": 0,
         "textes": 118,
-        "mots": 641
+        "mots": 640
       },
       {
         "fichier": "client/src/pages/MesAnnonces.tsx",
@@ -23202,7 +23202,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "tables": [],
     "acces": [],
     "textes": 154,
-    "mots": 767,
+    "mots": 766,
     "battement": "sonde",
     "manques": [
       {
