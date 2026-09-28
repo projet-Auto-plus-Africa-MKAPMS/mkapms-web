@@ -68,8 +68,8 @@ function outilsDepuisContexte(contexte: string[]): string[] {
   return contexte.filter((l) => l.startsWith("Outil appelé :")).map((l) => l.replace("Outil appelé : ", ""));
 }
 
-export function Conversation({ navigation, active = true, onActivate, onChooseModule, children, searchQuery = "" }: {
-  navigation?: ReactNode; active?: boolean; onActivate?: () => void; onChooseModule?: (key: string) => void; children?: ReactNode; searchQuery?: string;
+export function Conversation({ navigation, active = true, onActivate, onChooseModule, onSendToDeveloper, children, searchQuery = "" }: {
+  navigation?: ReactNode; active?: boolean; onActivate?: () => void; onChooseModule?: (key: string) => void; onSendToDeveloper?: (instruction: string) => void; children?: ReactNode; searchQuery?: string;
 } = {}) {
   const [sessionId, setSessionId] = useState<number | null>(null);
   const [fil, setFil] = useState<Bulle[]>([]);
@@ -455,15 +455,18 @@ export function Conversation({ navigation, active = true, onActivate, onChooseMo
                     </button>
                   )}
                   {b.role === "moi" && (
-                    <button
-                      type="button"
-                      onClick={() => reprendre(b.texte)}
-                      aria-label="Reprendre cette demande"
-                      title="Reprendre / modifier"
-                      className="text-black/30 hover:text-black/60"
-                    >
-                      <Pencil className="h-3.5 w-3.5" />
-                    </button>
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => reprendre(b.texte)}
+                        aria-label="Reprendre cette demande"
+                        title="Reprendre / modifier"
+                        className="text-black/30 hover:text-black/60"
+                      >
+                        <Pencil className="h-3.5 w-3.5" />
+                      </button>
+                      {onSendToDeveloper ? <button type="button" onClick={() => onSendToDeveloper(b.texte)} className="alhud-send-work" title="Donner cet ordre à l’agent développeur">Travail</button> : null}
+                    </>
                   )}
                 </div>
               </div>

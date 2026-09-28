@@ -30,10 +30,11 @@ import { Parametres } from "./modules/Parametres";
 import { Permissions } from "./modules/Permissions";
 import { UsageCouts } from "./modules/UsageCouts";
 import { Historique } from "./modules/Historique";
+import { AgentDeveloppeur } from "./modules/AgentDeveloppeur";
 import "./workspace.css";
 
 type CleModule =
-  | "accueil" | "conversation" | "voix" | "images" | "documents" | "recherche"
+  | "accueil" | "conversation" | "developpeur" | "voix" | "images" | "documents" | "recherche"
   | "memoire" | "projets" | "agents" | "outils" | "code" | "automatisations"
   | "integrations" | "parametres" | "permissions" | "usage" | "historique";
 
@@ -107,6 +108,7 @@ export default function MKAPMSIntelligence() {
   const [module, setModule] = useState<CleModule>("accueil");
   const [moduleSearch, setModuleSearch] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
+  const [workInstruction, setWorkInstruction] = useState("");
   const niveau = useMemo(() => niveauDepuis({ role: user?.role ?? null }), [user?.role]);
 
   if (niveau !== "pdg") {
@@ -125,10 +127,10 @@ export default function MKAPMSIntelligence() {
   const topItems = [
     ["Bibliothèque", Library, "documents"], ["Projets", FolderKanban, "projets"],
     ["Plugins", Plug, "integrations"], ["Planifié", Clock3, "automatisations"],
-    ["À distance", Laptop, "outils"], ["Explorer", Grid2X2, "recherche"],
+    ["À distance", Laptop, "developpeur"], ["Explorer", Grid2X2, "recherche"],
   ] as const;
   const workItems = [
-    ["Accueil", Home, "accueil"], ["Suivi du chantier", BarChart3, "conversation"],
+    ["Accueil", Home, "accueil"], ["Suivi du chantier", BarChart3, "developpeur"],
     ["Documents", FileText, "documents"], ["Vérification IA", FileCheck2, "outils"],
     ["Audit", ClipboardCheck, "historique"], ["Paramètres", Settings, "parametres"],
   ] as const;
@@ -139,7 +141,7 @@ export default function MKAPMSIntelligence() {
     <nav>{topItems.filter(([label])=>normalise(label).includes(normalise(moduleSearch))).map(([label,Icon,key])=><button key={label} type="button" onClick={()=>choose(key)}><Icon/><span>{label}</span><ChevronRight/></button>)}</nav>
     <h3>Espaces IA</h3>
     <button type="button" className="selected" onClick={()=>choose("accueil")}><Database/><span>Plateforme principale</span><ChevronRight/></button>
-    <button type="button" disabled title="Disponible après validation de la plateforme principale"><ShoppingCart/><span>Boutique</span><small>ensuite</small></button>
+    <button type="button" onClick={()=>choose("accueil")} title="La Boutique reste hors de ce lot de modification"><ShoppingCart/><span>Boutique</span><small>ensuite</small></button>
     <h3>Notre travail</h3>
     <nav>{workItems.map(([label,Icon,key])=><button key={label} type="button" onClick={()=>choose(key)}><Icon/><span>{label}</span><ChevronRight/></button>)}</nav>
     <button type="button" className="alhud-chat-cta" onClick={()=>choose("conversation")}><MessageCircle/> Chat</button>
@@ -148,18 +150,23 @@ export default function MKAPMSIntelligence() {
   return <div className="alhud-approved-shell">
     <header className="alhud-approved-header">
       <button type="button" className="alhud-round-button" onClick={()=>setMenuOpen(true)} aria-label="Ouvrir le menu"><Menu/></button>
-      <div className="alhud-platform-switch" aria-label="Espace actif"><strong>Plateforme principale</strong><span>Boutique</span></div>
+      <div className="alhud-platform-switch" aria-label="Mode de travail">
+        <button type="button" className={module !== "developpeur" ? "active" : ""} onClick={()=>choose("conversation")}>Chat</button>
+        <button type="button" className={module === "developpeur" ? "active" : ""} onClick={()=>choose("developpeur")}>Travail</button>
+      </div>
       <button type="button" className="alhud-round-button" onClick={()=>choose("conversation")} aria-label="Conversation"><MessageCircle/></button>
     </header>
     {menuOpen ? <div className="alhud-menu-backdrop" onClick={()=>setMenuOpen(false)}><aside onClick={e=>e.stopPropagation()}><button type="button" className="alhud-menu-close" onClick={()=>setMenuOpen(false)}><X/> Fermer</button>{nav}</aside></div> : null}
     <main className="alhud-approved-main">
       {module === "accueil" ? <Dashboard onOpen={choose}/> :
+       module === "developpeur" ? <AgentDeveloppeur initialInstruction={workInstruction} onConsumed={()=>setWorkInstruction("")}/> :
         <Conversation
           key={String(user?.id ?? "anonymous")}
           navigation={nav}
           active={module === "conversation"}
           onActivate={()=>setModule("conversation")}
           onChooseModule={(key)=>choose(key as CleModule)}
+          onSendToDeveloper={(instruction)=>{setWorkInstruction(instruction); choose("developpeur");}}
           searchQuery={moduleSearch}
         >{module !== "conversation" ? <Actif/> : null}</Conversation>}
     </main>
