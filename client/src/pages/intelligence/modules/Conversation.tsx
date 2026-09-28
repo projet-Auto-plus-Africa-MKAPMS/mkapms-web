@@ -82,7 +82,7 @@ export function Conversation({ navigation, active = true, onActivate, children, 
   const menu = useRef<HTMLButtonElement>(null);
   const mounted = useRef(true);
   const sendLock = useRef(false);
-  const sent = useRef<{ key: string; text: string } | null>(null);
+  const sent = useRef<{ key: string; text: string; consumesDraft: boolean } | null>(null);
   const drafts = useRef(new Map<string, string>());
   const [notice, setNotice] = useState("");
   const [desktop, setDesktop] = useState(() => typeof window !== "undefined" && window.matchMedia("(min-width: 768px)").matches);
@@ -146,7 +146,11 @@ export function Conversation({ navigation, active = true, onActivate, children, 
     onMutate: () => sent.current,
     onSuccess: (r, _variables, submitted) => {
       if (!mounted.current || !submitted || sent.current !== submitted) return;
-      if (drafts.current.get(submitted.key) === submitted.text) drafts.current.delete(submitted.key);
+      if (submitted.consumesDraft && drafts.current.get(submitted.key) === submitted.text) drafts.current.delete(submitted.key);
+      if (!submitted.consumesDraft && submitted.key === "new") {
+        drafts.current.set(String(r.sessionId), drafts.current.get("new") ?? "");
+        drafts.current.delete("new");
+      }
       setNotice("");
       setSessionId(r.sessionId);
       sessionChargee.current = r.sessionId;
@@ -166,8 +170,10 @@ export function Conversation({ navigation, active = true, onActivate, children, 
     },
     onError: (_error, _variables, submitted) => {
       if (!mounted.current || !submitted || sent.current !== submitted) return;
-      drafts.current.set(submitted.key, submitted.text);
-      setQuestion(current => current || submitted.text);
+      if (submitted.consumesDraft) {
+        drafts.current.set(submitted.key, submitted.text);
+        setQuestion(current => current || submitted.text);
+      }
       setNotice("La demande n’a pas abouti. Votre texte est conservé ; vérifiez l’historique avant un nouvel envoi.");
       setFil((f) => [
         ...f,
@@ -227,23 +233,26 @@ export function Conversation({ navigation, active = true, onActivate, children, 
     setPanneauOuvert(false);
   }
 
-  function envoyer(texte?: string) {
+  function envoyer(texte?: string, mode: "composer" | "regenerate" = "composer") {
     const q = (texte ?? question).trim();
     if (q.length < 2 || busy || historyUnavailable || !active || !mounted.current) return;
     sendLock.current = true;
     const key = String(sessionId ?? "new");
-    sent.current = { key, text: q };
-    drafts.current.set(key, q);
+    const consumesDraft = mode === "composer";
+    sent.current = { key, text: q, consumesDraft };
+    // Regenerating an earlier answer never consumes the text being composed.
+    if (consumesDraft) drafts.current.set(key, q);
+    else saveDraft();
     setNotice("");
     setFil((f) => [...f, { id: idBulle(), role: "moi", texte: q, ok: true, motif: "", outils: [] }]);
     setDerniereQuestion(q);
-    setQuestion("");
+    if (consumesDraft) setQuestion("");
     demander.mutate({ question: q, sessionId });
   }
 
   function regenerer() {
     if (!derniereQuestion || busy || historyUnavailable) return;
-    envoyer(derniereQuestion);
+    envoyer(derniereQuestion, "regenerate");
   }
 
   /** Reprendre/modifier une demande passée : reporte son texte dans la zone de saisie, ne réécrit pas l'historique. */

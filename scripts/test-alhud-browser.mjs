@@ -31,7 +31,7 @@ const proxy=(path:string[]=[])=>new Proxy(()=>{}, {get(_target,key){
   return {...state,error:new Error('Fixture unavailable'),refetch:async()=>{setRevision(n=>n+1);return {data:queryData(name!)};}};
  };
  if(key==='useMutation')return (options:any={})=>{const [pending,setPending]=useState(false);return {isPending:pending,isError:false,mutate:async(input:any)=>{
-  const context=await options.onMutate?.(input);setPending(true);fixture.calls++;
+  const context=await options.onMutate?.(input);setPending(true);fixture.calls++;fixture.lastQuestion=input.question;
   setTimeout(()=>{const response={sessionId:input.sessionId||1,reponse:'Réponse simulée pour vérification interface',ok:true,motif:'',motifPublic:'',fournisseur:null,modele:null,contexte:[],appelsOutils:[]};
     try {if(fixture.failSend)options.onError?.(new Error('Échec simulé'),input,context);else options.onSuccess?.(response,input,context);}
     finally {setPending(false);options.onSettled?.(response,null,input,context);}
@@ -106,13 +106,47 @@ try{
       await page.getByText('La conversation n’a pas pu être chargée.',{exact:false}).waitFor();
       await expect(input).toHaveValue('Brouillon du nouveau fil');
      }
+     if(surface==='application'){
+      await page.goto(url);
+      nav=await navigation();await nav.getByRole('button',{name:'Atelier de test',exact:true}).click();
+      await page.getByText('Question enregistrée de test',{exact:true}).waitFor();
+      await page.evaluate(()=>window.fixture.delay=180);
+      const regenerate=page.getByRole('button',{name:'Régénérer la dernière réponse',exact:true});
+      const regenerateAndKeep=async(text,fail)=>{
+       await input.fill(text);await page.evaluate(value=>window.fixture.failSend=value,fail);
+       const before=await page.evaluate(()=>window.fixture.calls);
+       await regenerate.click();await expect(input).toBeDisabled();
+       await expect(input).toHaveValue(text);await expect(input).toBeEnabled();
+       await expect(input).toHaveValue(text);
+       assert.equal(await page.evaluate(()=>window.fixture.calls),before+1,'one regeneration request');
+       assert.equal(await page.evaluate(()=>window.fixture.lastQuestion),'Question enregistrée de test','regenerate the old question, not the draft');
+      };
+      await regenerateAndKeep('Ajouter les chiffres de juin',false);
+      nav=await navigation();await nav.getByRole('button',{name:'Catalogue de test',exact:true}).click();
+      nav=await navigation();await nav.getByRole('button',{name:'Atelier de test',exact:true}).click();
+      await expect(input).toHaveValue('Ajouter les chiffres de juin');
+      await regenerateAndKeep('Question enregistrée de test',false);
+      await regenerateAndKeep('Conserver ce brouillon après échec',true);
+      await regenerateAndKeep('',true);
+      // A failed first request has no saved session yet. Its regeneration may create one.
+      await page.goto(url);await page.evaluate(()=>{window.fixture.failSend=true;window.fixture.delay=180;});
+      await input.fill('Question initiale sans session');await submit().click();
+      await expect(input).toBeDisabled();await expect(input).toBeEnabled();
+      await input.fill('Brouillon conservé dans la nouvelle session');
+      await page.evaluate(()=>window.fixture.failSend=false);
+      await regenerate.click();await expect(input).toBeDisabled();await expect(input).toBeEnabled();
+      await expect(input).toHaveValue('Brouillon conservé dans la nouvelle session');
+      nav=await navigation();await nav.getByRole('button',{name:'Catalogue de test',exact:true}).click();
+      nav=await navigation();await nav.getByRole('button',{name:'Atelier de test',exact:true}).click();
+      await expect(input).toHaveValue('Brouillon conservé dans la nouvelle session');
+     }
      await page.goto(url);await input.fill('Demande privée avant déconnexion');
      await page.evaluate(()=>window.fixture.delay=500);await submit().click();
      await page.evaluate(()=>window.fixtureLogout());await page.waitForTimeout(650);
      await expect(page.locator('[role="log"]')).toHaveCount(0);
      await expect(page.getByText('Réponse simulée pour vérification interface',{exact:true})).toHaveCount(0);
      assert.deepEqual(errors,[],'unexpected runtime errors');
-     results.push({surface,viewport:name,history:true,draftOwnership:true,toolNavigation:true,errorRecovery:true,lateResponseIsolated:true,overflow:false});
+     results.push({surface,viewport:name,history:true,draftOwnership:true,toolNavigation:true,errorRecovery:true,lateResponseIsolated:true,regenerationKeepsDraft:surface==='application',overflow:false});
     }catch(error){await page.screenshot({path:`test-results/alhud-${surface}-${name}-failure.png`,fullPage:true});console.error({surface,name,errors});throw error;}
     finally{await page.close();}
    }
