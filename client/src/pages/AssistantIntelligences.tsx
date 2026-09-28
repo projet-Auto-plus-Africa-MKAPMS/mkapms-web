@@ -121,7 +121,7 @@ export default function AssistantIntelligences() {
       <header className="rounded-2xl border border-black/5 bg-white p-4">
         <h1 className="flex items-center gap-2 text-xl font-black text-[#111]">
           <Sparkles className="h-5 w-5 text-[#8B7500]" />
-          {presentation.data?.nom ?? "MKA.P-MS AI"}
+          {presentation.data?.nom ?? "AL-HUDHUD·M"}
         </h1>
         <p className="mt-1 text-sm text-black/60">
           Assistance quotidienne et professionnelle, partout dans le monde. Choisissez le domaine :
@@ -189,7 +189,7 @@ export default function AssistantIntelligences() {
                 }`}
               >
                 <p className="mb-1 text-[11px] font-bold uppercase tracking-wide text-black/40">
-                  {b.role === "moi" ? "Vous" : presentation.data?.nom ?? "MKA.P-MS AI"}
+                  {b.role === "moi" ? "Vous" : presentation.data?.nom ?? "AL-HUDHUD·M"}
                 </p>
                 {b.ok ? (
                   <p className="whitespace-pre-wrap text-[#111]">{b.texte}</p>

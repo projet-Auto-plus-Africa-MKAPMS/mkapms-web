@@ -9,10 +9,10 @@
  * autorisées (Centre Intelligence & Coûts, journaux, Chantier de
  * développement — toutes réservées à la direction).
  */
-export const NOM_PRODUIT = "MKA.P-MS AI";
+export const NOM_PRODUIT = "AL-HUDHUD·M";
 
 export const MOTIF_PUBLIC_INDISPONIBLE =
-  "Le service MKA.P-MS AI est temporairement indisponible. Réessayez dans un instant.";
+  "Le service AL-HUDHUD·M est temporairement indisponible. Réessayez dans un instant.";
 
 /**
  * États produit honnêtes, sans aucun détail fournisseur.

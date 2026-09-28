@@ -13,7 +13,8 @@
  * encore construit), pour que cette page ne devienne jamais un fichier
  * unique contenant tout le produit.
  */
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { AssistantBrand } from "./WorkspaceRail";
 import { Link } from "react-router-dom";
 import {
   Bot,
@@ -98,6 +99,15 @@ const LABEL_NIVEAU: Record<NiveauIntelligence, string> = Object.fromEntries(
 export default function MKAPMSIntelligence() {
   const { user } = useAuth();
   const [module, setModule] = useState<CleModule>("conversation");
+  const [moduleSearch, setModuleSearch] = useState("");
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const appDrawer = useRef<HTMLDialogElement>(null);
+  useEffect(() => {
+    const dialog=appDrawer.current;
+    if(!dialog)return;
+    if(drawerOpen && !dialog.open)dialog.showModal();
+    if(!drawerOpen && dialog.open)dialog.close();
+  },[drawerOpen]);
 
   // Clé développeur active : non branché ici (aucune fonctionnalité de module
   // n'existe encore) — false tant qu'un vrai module ne le demande.
@@ -126,7 +136,7 @@ export default function MKAPMSIntelligence() {
         <ShieldCheck className="mx-auto h-8 w-8 text-black/30" />
         <h1 className="mt-3 text-lg font-black text-[#111]">Espace réservé pour l'instant</h1>
         <p className="mt-2 text-sm text-black/60">
-          Le moteur réel derrière MKA.P-MS AI (conversation, mémoire, projets, outils) est
+          Le moteur réel derrière AL-HUDHUD·M (conversation, mémoire, projets, outils) est
           aujourd'hui réservé au compte PDG. Les autres niveaux d'accès (professionnel, développeur,
           équipe interne, direction) arriveront avec les lots suivants — l'assistant public reste
           accessible partout ailleurs sur la plateforme.
@@ -146,7 +156,7 @@ export default function MKAPMSIntelligence() {
         </Link>
         <div className="mt-2 flex items-center gap-2">
           <Sparkles className="h-5 w-5 text-[#D4AF37]" />
-          <h1 className="text-lg font-black">MKA.P-MS AI</h1>
+          <h1 className="text-lg font-black">AL-HUDHUD·M</h1>
         </div>
         <p className="mt-1 text-xs text-white/50">
           Niveau d'accès : {LABEL_NIVEAU[niveau]}
@@ -154,23 +164,30 @@ export default function MKAPMSIntelligence() {
       </div>
 
       <div className="flex flex-col gap-4 p-4 md:flex-row">
-        <nav className="flex shrink-0 flex-row gap-1.5 overflow-x-auto md:w-56 md:flex-col md:overflow-visible">
-          {MODULES.map((m) => (
-            <button
-              key={m.cle}
-              onClick={() => setModule(m.cle)}
-              className={`flex shrink-0 items-center gap-2 whitespace-nowrap rounded-xl px-3 py-2 text-left text-sm font-bold transition-colors ${
-                module === m.cle ? "bg-[#111] text-white" : "bg-black/5 text-black/60 hover:bg-black/10"
-              }`}
-            >
-              <m.icone className="h-4 w-4 shrink-0" />
-              {m.label}
-            </button>
-          ))}
-        </nav>
+        <aside className="hidden w-64 shrink-0 md:block"><div className="alhud-app-sidebar">
+            <AssistantBrand />
+            <label className="alhud-search"><input type="search" aria-label="Rechercher un outil" value={moduleSearch} onChange={e=>setModuleSearch(e.target.value)} placeholder="Rechercher un outil…" /></label>
+            <nav className="alhud-app-modules" aria-label="Outils de l’assistant">
+              {MODULES.filter(item=>item.label.toLocaleLowerCase().includes(moduleSearch.toLocaleLowerCase())).map(item=>(
+                <button key={item.cle} type="button" aria-current={module===item.cle?'page':undefined} onClick={()=>{setModule(item.cle);setDrawerOpen(false);}} className={module===item.cle?'rounded-xl bg-[#111] px-3 py-2 text-sm font-bold text-white':'rounded-xl px-3 py-2 text-sm text-black/70 hover:bg-black/5'}><item.icone className="mr-2 inline-block h-4 w-4" />{item.label}</button>
+              ))}
+            </nav>
+          </div></aside>
+        <button className="alhud-menu-button md:!hidden" type="button" aria-haspopup="dialog" aria-expanded={drawerOpen} onClick={()=>setDrawerOpen(true)}>Conversations et outils</button>
+        <dialog ref={appDrawer} className="alhud-drawer" aria-label="Outils de l’assistant" onCancel={e=>{e.preventDefault();setDrawerOpen(false);}}><button type="button" className="alhud-icon-control" onClick={()=>setDrawerOpen(false)}>Fermer</button><div className="alhud-app-sidebar">
+            <AssistantBrand />
+            <label className="alhud-search"><input type="search" aria-label="Rechercher un outil" value={moduleSearch} onChange={e=>setModuleSearch(e.target.value)} placeholder="Rechercher un outil…" /></label>
+            <nav className="alhud-app-modules" aria-label="Outils de l’assistant">
+              {MODULES.filter(item=>item.label.toLocaleLowerCase().includes(moduleSearch.toLocaleLowerCase())).map(item=>(
+                <button key={item.cle} type="button" aria-current={module===item.cle?'page':undefined} onClick={()=>{setModule(item.cle);setDrawerOpen(false);}} className={module===item.cle?'rounded-xl bg-[#111] px-3 py-2 text-sm font-bold text-white':'rounded-xl px-3 py-2 text-sm text-black/70 hover:bg-black/5'}><item.icone className="mr-2 inline-block h-4 w-4" />{item.label}</button>
+              ))}
+            </nav>
+          </div></dialog>
+
 
         <main className="min-w-0 flex-1">
-          <Actif />
+          <div hidden={module !== "conversation"}><Conversation /></div>
+          {module !== "conversation" ? <Actif /> : null}
         </main>
       </div>
     </div>

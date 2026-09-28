@@ -24,7 +24,7 @@ export default function BoutonIntelligences({ code, className = "" }: Props) {
         onExecuter={ouvrirIntelligences}
         className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#111] text-[#D4AF37] shadow-sm transition hover:bg-black hover:shadow-md"
       >
-        <Sparkles size={16} aria-label="Ouvrir MKA.P-MS AI" />
+        <Sparkles size={16} aria-label="Ouvrir AL-HUDHUD·M" />
       </BoutonMoteur>
     </span>
   );

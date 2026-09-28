@@ -40,7 +40,7 @@ export interface AnomalieCliquable {
   readonly motif: MotifAnomalie;
 }
 
-export const CLIQUABLES_TOTAL = 2578;
+export const CLIQUABLES_TOTAL = 2586;
 
 export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/components/AccessDenied.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
@@ -108,7 +108,7 @@ export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/pages/CentreDocuments.tsx", total: 5, moteur: 0, liens: 4, boutonsLocaux: 1, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/CentreIA.tsx", total: 7, moteur: 0, liens: 1, boutonsLocaux: 6, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/CentreIndexation.tsx", total: 6, moteur: 0, liens: 1, boutonsLocaux: 5, sansAction: 0, zones: 0 },
-  { fichier: "client/src/pages/CentreIntelligences.tsx", total: 25, moteur: 0, liens: 4, boutonsLocaux: 21, sansAction: 0, zones: 0 },
+  { fichier: "client/src/pages/CentreIntelligences.tsx", total: 23, moteur: 0, liens: 4, boutonsLocaux: 19, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/CentrePenalites.tsx", total: 2, moteur: 0, liens: 1, boutonsLocaux: 1, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/CentreProduitsGoogle.tsx", total: 3, moteur: 0, liens: 1, boutonsLocaux: 2, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/CentreReglesPays.tsx", total: 5, moteur: 0, liens: 1, boutonsLocaux: 4, sansAction: 0, zones: 0 },
@@ -337,7 +337,7 @@ export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/pages/InscriptionProVente.tsx", total: 8, moteur: 0, liens: 4, boutonsLocaux: 4, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/InscriptionProVO.tsx", total: 7, moteur: 0, liens: 3, boutonsLocaux: 4, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/InspectionNumerique.tsx", total: 2, moteur: 0, liens: 2, boutonsLocaux: 0, sansAction: 0, zones: 0 },
-  { fichier: "client/src/pages/intelligence/index.tsx", total: 3, moteur: 0, liens: 2, boutonsLocaux: 1, sansAction: 0, zones: 0 },
+  { fichier: "client/src/pages/intelligence/index.tsx", total: 6, moteur: 0, liens: 2, boutonsLocaux: 4, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/intelligence/modules/Automatisations.tsx", total: 3, moteur: 0, liens: 0, boutonsLocaux: 3, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/intelligence/modules/Conversation.tsx", total: 11, moteur: 0, liens: 0, boutonsLocaux: 11, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/intelligence/modules/FichiersDocuments.tsx", total: 2, moteur: 0, liens: 0, boutonsLocaux: 2, sansAction: 0, zones: 0 },
@@ -347,6 +347,7 @@ export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/pages/intelligence/modules/ProductionMedia.tsx", total: 3, moteur: 0, liens: 0, boutonsLocaux: 3, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/intelligence/modules/Recherche.tsx", total: 2, moteur: 0, liens: 0, boutonsLocaux: 2, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/intelligence/modules/TranscriptionAudio.tsx", total: 3, moteur: 0, liens: 0, boutonsLocaux: 3, sansAction: 0, zones: 0 },
+  { fichier: "client/src/pages/intelligence/WorkspaceRail.tsx", total: 7, moteur: 0, liens: 0, boutonsLocaux: 7, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/investissement/DevenirInvestisseur.tsx", total: 2, moteur: 0, liens: 2, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/investissement/index.tsx", total: 2, moteur: 0, liens: 1, boutonsLocaux: 1, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/investissement/modules/Assistant.tsx", total: 1, moteur: 0, liens: 0, boutonsLocaux: 1, sansAction: 0, zones: 0 },

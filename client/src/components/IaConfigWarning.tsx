@@ -30,7 +30,7 @@ export function IaConfigWarning({ compact = false }: { compact?: boolean }) {
       <div className="mb-2 flex items-center gap-2">
         <AlertTriangle size={16} className="text-rose-700" />
         <h3 className="text-sm font-black text-rose-900">
-          Assistant MKA.P-MS AI hors service — aucune clé API configurée
+          Assistant AL-HUDHUD·M hors service — aucune clé API configurée
         </h3>
       </div>
       <p className="text-sm text-rose-800">{data.guidance}</p>
@@ -64,7 +64,7 @@ export function IaConfigWarning({ compact = false }: { compact?: boolean }) {
       </div>
       <p className="mt-3 text-xs text-rose-700">
         Coller la clé dans les <strong>Variables Railway</strong> du service backend
-        → Railway redéploie → MKA.P-MS AI remonte automatiquement.
+        → Railway redéploie → AL-HUDHUD·M remonte automatiquement.
       </p>
     </div>
   );

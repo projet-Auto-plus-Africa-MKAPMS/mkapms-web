@@ -355,7 +355,7 @@ export default function Compte() {
               { label: "Favoris", to: "/favoris", emoji: "\u2764\ufe0f" },
               { label: "Comparateur", to: "/comparateur", emoji: "\ud83d\udd0d" },
               { label: "Abonnements", to: "/abonnements", emoji: "\ud83d\udcb3" },
-              { label: "MKA.P-MS AI", to: "/admin/intelligences", emoji: "\u2728" },
+              { label: "AL-HUDHUD·M", to: "/admin/intelligences", emoji: "\u2728" },
             ].map((m) => (
               <Link key={m.to} to={m.to} className="flex flex-col items-center gap-1 rounded-xl bg-white/5 border border-white/10 p-2.5 text-center transition hover:bg-white/10 hover:border-[#D4AF37]/50">
                 <span className="text-lg">{m.emoji}</span>
@@ -380,7 +380,7 @@ export default function Compte() {
         <div className="mt-4 rounded-2xl border border-black/5 bg-white p-5">
           <div className="flex items-center justify-between gap-3">
             <h2 className="flex items-center gap-2 text-sm font-black text-[#111]">
-              <Settings className="h-4 w-4 text-[#8B7500]" /> {"MKA.P-MS AI \u2014 R\u00e9glages & r\u00e8gles"}
+              <Settings className="h-4 w-4 text-[#8B7500]" /> {"AL-HUDHUD·M \u2014 R\u00e9glages & r\u00e8gles"}
             </h2>
             <Link to="/admin/intelligences" className="text-xs font-bold text-[#8B7500] hover:underline">
               {"Ouvrir \u2192"}

@@ -135,7 +135,7 @@ export function Conversation() {
           role: "moteur",
           texte: "",
           ok: false,
-          motif: "Le service MKA.P-MS AI est temporairement indisponible. Réessayez dans un instant.",
+          motif: "Le service AL-HUDHUD·M est temporairement indisponible. Réessayez dans un instant.",
           outils: [],
         },
       ]),
@@ -374,7 +374,7 @@ export function Conversation() {
           )}
           {demander.isPending && (
             <div className="max-w-[85%] rounded-xl border border-black/5 bg-[#FAFAFA] p-3 text-sm text-black/40">
-              MKA.P-MS AI réfléchit…
+              AL-HUDHUD·M réfléchit…
             </div>
           )}
           <div ref={finDuFil} />
