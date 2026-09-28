@@ -1266,7 +1266,8 @@ export default function App() {
             <Route path="/admin/memoire-technique" element={<U name="Mémoire technique du code"><MemoireTechnique /></U>} />
             <Route path="/admin/completion" element={<U name="Completion Center"><CompletionCenter /></U>} />
             <Route path="/admin/systeme-intelligent" element={<U name="Système Intelligent — audit & activation"><CentreSystemeIntelligent /></U>} />
-            <Route path="/admin/intelligences" element={<U name="AL-HUDHUD·M — direction"><CentreIntelligences /></U>} />
+            <Route path="/admin/intelligences" element={<U name="AL-HUDHUD·M"><MKAPMSIntelligence /></U>} />
+            <Route path="/admin/intelligences/direction" element={<U name="AL-HUDHUD·M — direction"><CentreIntelligences /></U>} />
             <Route path="/intelligences" element={<U name="AL-HUDHUD·M — assistant"><AssistantIntelligences /></U>} />
             <Route path="/intelligence" element={<U name="AL-HUDHUD·M"><MKAPMSIntelligence /></U>} />
             <Route path="/investissement" element={<U name="Investissement"><EspaceInvestissement /></U>} />

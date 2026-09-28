@@ -45,6 +45,7 @@ export const CLIENT_ROUTES: readonly string[] = [
   "/admin/ia-couts",
   "/admin/indexation",
   "/admin/intelligences",
+  "/admin/intelligences/direction",
   "/admin/labo-rd",
   "/admin/memoire-technique",
   "/admin/moteurs",
