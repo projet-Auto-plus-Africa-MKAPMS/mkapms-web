@@ -39,7 +39,6 @@ import {
   RotateCcw,
   Send,
   Sparkles,
-  Search,
   Mic,
   AudioLines,
   Paperclip,
@@ -495,12 +494,11 @@ export function Conversation({ navigation, active = true, onActivate, onChooseMo
                   envoyer();
                 }
               }}
-              rows={2}
+              rows={3}
               maxLength={8000}
               placeholder="Demander à AL-HUDHUD·M"
               className="alhud-composer-input flex-1 rounded-xl border-0 p-2 text-sm outline-none"
             />
-            <button type="button" className="alhud-composer-action" onClick={() => onChooseModule?.("recherche")} aria-label="Recherche"><Search className="h-5 w-5" /></button>
             <button type="button" className="alhud-composer-action" onClick={() => onChooseModule?.("voix")} aria-label="Microphone"><Mic className="h-5 w-5" /></button>
             <button type="button" className="alhud-composer-voice" onClick={() => onChooseModule?.("voix")} aria-label="Conversation vocale"><AudioLines className="h-5 w-5" /></button>
             {derniereQuestion && !busy && !historyUnavailable && (
@@ -509,7 +507,7 @@ export function Conversation({ navigation, active = true, onActivate, onChooseMo
                 onClick={regenerer}
                 aria-label="Régénérer la dernière réponse"
                 title="Régénérer la dernière réponse"
-                className="grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-black/10 text-black/60 hover:bg-black/5"
+                className="alhud-composer-regenerate grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-black/10 text-black/60 hover:bg-black/5"
               >
                 <RotateCcw className="h-4 w-4" />
               </button>
@@ -519,7 +517,7 @@ export function Conversation({ navigation, active = true, onActivate, onChooseMo
               onClick={() => envoyer()}
               disabled={busy || historyUnavailable || question.trim().length < 2}
               aria-label="Envoyer le message"
-              className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-[#111] text-white disabled:opacity-40"
+              className="alhud-composer-send grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-[#111] text-white disabled:opacity-40"
             >
               <Send className="h-4 w-4" />
             </button>
