@@ -6,7 +6,7 @@ import { FonctionsControle } from "./FonctionsControle";
  * (server/intelligences/regles.ts) — référence, pas un formulaire : ces
  * règles sont du code, pas une configuration modifiable depuis l'écran.
  */
-import { Settings } from "lucide-react";
+import { Bell, ChevronRight, Cloud, FileCheck2, Globe2, Laptop, Lock, Palette, Plug, Settings, ShieldCheck, Sparkles, UserRound, Brain, Database, Crown, RefreshCw, CircleHelp, MessageCircle } from "lucide-react";
 import { trpc } from "../../../lib/trpc";
 
 export function Parametres() {
@@ -15,9 +15,34 @@ export function Parametres() {
   if (regles.isLoading) return <p className="text-sm text-black/40">Chargement…</p>;
   if (!regles.data) return <p className="text-sm text-red-600">Règles indisponibles.</p>;
 
+  const groups = [
+    { title: "Général", rows: [
+      ["Langue", Globe2], ["Notifications", Bell], ["Apparence", Palette], ["Mode travail", Laptop], ["Confidentialité", ShieldCheck],
+    ]},
+    { title: "IA & plateforme principale", rows: [
+      ["Plateforme principale", Sparkles], ["Mémoire IA", Database], ["Documents & contrôle", FileCheck2], ["Plugins", Plug], ["Réflexion approfondie", Brain],
+    ]},
+    { title: "Compte", rows: [
+      ["Profil", UserRound], ["Sécurité", Lock], ["Abonnement", Crown], ["Synchronisation", RefreshCw], ["Sauvegarde", Cloud],
+    ]},
+    { title: "Support", rows: [
+      ["Centre d’aide", CircleHelp], ["Envoyer un retour", MessageCircle], ["À propos de AL-HUDHUD·M", Settings],
+    ]},
+  ] as const;
+
   return (
-    <div className="space-y-4">
-      <FonctionsControle />
+    <div className="space-y-6">
+      <section className="alhud-settings-visual" aria-label="Paramètres AL-HUDHUD·M">
+        {groups.map(group => <div key={group.title}>
+          <h2 className="mb-2">{group.title}</h2>
+          <div className="alhud-settings-group">{group.rows.map(([label, Icon]) =>
+            <button type="button" key={label} className="alhud-settings-row" onClick={() => document.getElementById("alhud-live-settings")?.scrollIntoView({ behavior: "smooth" })}>
+              <Icon className="h-5 w-5"/><span>{label}</span><ChevronRight/>
+            </button>
+          )}</div>
+        </div>)}
+      </section>
+      <div id="alhud-live-settings"><FonctionsControle /></div>
       <div className="rounded-xl border border-black/10 p-4">
         <div className="mb-3 flex items-center gap-2">
           <Settings className="h-5 w-5 text-black/40" />
