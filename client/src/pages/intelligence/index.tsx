@@ -188,7 +188,10 @@ export default function MKAPMSIntelligence() {
         <button type="button" className={module !== "developpeur" ? "active" : ""} onClick={()=>choose("conversation")}>Chat</button>
         <button type="button" className={module === "developpeur" ? "active" : ""} onClick={()=>choose("developpeur")}>Travail</button>
       </div>
-      <button type="button" className="alhud-round-button" onClick={()=>choose("conversation")} aria-label="Conversation"><MessageCircle/></button>
+      <div className="alhud-header-actions">
+        <button type="button" className="alhud-round-button" onClick={()=>choose("recherche")} aria-label="Recherche"><Search/></button>
+        <button type="button" className="alhud-round-button" onClick={()=>choose("conversation")} aria-label="Conversation"><MessageCircle/></button>
+      </div>
     </header>
     {menuOpen ? <div className="alhud-menu-backdrop" onClick={()=>setMenuOpen(false)}><aside onClick={e=>e.stopPropagation()}><button type="button" className="alhud-menu-close" onClick={()=>setMenuOpen(false)}><X/> Fermer</button>{nav}</aside></div> : null}
     <main className="alhud-approved-main">
