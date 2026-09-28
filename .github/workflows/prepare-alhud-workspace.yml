@@ -1,0 +1,76 @@
+name: Prepare AL-HUDHUD workspace (isolated branch)
+on:
+  push:
+    branches: [ai/main-workspace-build-20260928]
+    paths: [scripts/prepare-conversation-workspace.mjs, .github/workflows/prepare-alhud-workspace.yml]
+permissions:
+  contents: write
+concurrency:
+  group: prepare-main-alhud-workspace-20260928
+  cancel-in-progress: false
+jobs:
+  prepare:
+    if: github.repository == 'projet-Auto-plus-Africa-MKAPMS/mkapms-web' && github.ref == 'refs/heads/ai/main-workspace-build-20260928'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Switch only to the isolated feature branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp scripts/prepare-conversation-workspace.mjs "$RUNNER_TEMP/prepare-alhud.mjs"
+          git fetch origin ai/main-conversation-workspace-20260928
+          git checkout -B ai/main-conversation-workspace-20260928 origin/ai/main-conversation-workspace-20260928
+          echo "BEFORE_SHA=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
+          cp "$RUNNER_TEMP/prepare-alhud.mjs" .prepare-alhud.mjs
+      - run: npm ci
+      - name: Apply guarded changes and refresh existing inventories
+        shell: bash
+        run: |
+          set -euo pipefail
+          node .prepare-alhud.mjs
+          rm .prepare-alhud.mjs
+          npm run gen:routes
+          npm run gen:boutons
+          npm run gen:cliquables
+          npm run gen:sections
+          npm run gen:moteurs
+          node scripts/test-alhud-workspace.mjs
+          test -z "$(git diff --name-only --diff-filter=D)"
+          git diff --stat
+      - name: Preserve changes on feature branch only
+        shell: bash
+        run: |
+          set -euo pipefail
+          CURRENT=$(git ls-remote origin refs/heads/ai/main-conversation-workspace-20260928 | cut -f1)
+          test "$CURRENT" = "$BEFORE_SHA"
+          git config user.name 'MKA.P-MS workspace preparation'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'feat(ai): unified Centre workspace and AL-HUDHUD·M public identity; preserve engines'
+          git push origin HEAD:refs/heads/ai/main-conversation-workspace-20260928
+          git rev-parse HEAD > alhud-tested-sha.txt
+      - name: TypeScript validation
+        run: npm run typecheck
+        env:
+          NODE_OPTIONS: --max-old-space-size=6144
+      - name: Existing full build and guards
+        run: npm run build
+        env:
+          NODE_OPTIONS: --max-old-space-size=6144
+      - name: Verify retained workspace functions
+        run: node scripts/test-alhud-workspace.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: alhud-main-workspace-verification
+          path: |
+            alhud-tested-sha.txt
+            docs/AL-HUDHUD-WORKSPACE-2026-09-28.md
+          retention-days: 7
