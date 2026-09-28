@@ -494,7 +494,7 @@ export function Conversation({ navigation, active = true, onActivate, onChooseMo
                   envoyer();
                 }
               }}
-              rows={3}
+              rows={4}
               maxLength={8000}
               placeholder="Demander à AL-HUDHUD·M"
               className="alhud-composer-input flex-1 rounded-xl border-0 p-2 text-sm outline-none"
