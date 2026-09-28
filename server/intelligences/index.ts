@@ -147,6 +147,80 @@ import * as productionsMedia from "./media-productions.js";
 import * as connaissance from "./connaissance.js";
 import { rechercherGlobale, type SourceRecherche } from "./recherche-globale.js";
 import { retrieve as ragRetrieveInterne, answer as ragAnswerInterne } from "./rag.js";
+import { getStats as statsRegistreMoteurs } from "../engine-registry/service.js";
+
+type NiveauIndicateur = "ok" | "attention" | "ko" | "inconnu";
+interface IndicateurAccueil {
+  niveau: NiveauIndicateur;
+  libelle: string;
+  detail: string;
+}
+
+/** Indicateurs de l'accueil du workspace : chaque valeur est constatée, jamais affirmée d'avance. */
+async function indicateursAccueil(ownerId: number): Promise<{
+  ia: IndicateurAccueil;
+  documents: IndicateurAccueil;
+  moteurs: IndicateurAccueil;
+  securite: IndicateurAccueil;
+  /** Adresse publique de la Boutique (SHOP_PUBLIC_URL), null tant qu'elle n'est pas configurée. */
+  boutique: string | null;
+  observeLe: string;
+}> {
+  const inconnu = (detail: string): IndicateurAccueil => ({ niveau: "inconnu", libelle: "Non vérifié", detail });
+
+  const [ia, documents, moteurs, securite] = await Promise.all([
+    (async (): Promise<IndicateurAccueil> => {
+      const conf = etatConfiguration();
+      if (!conf.operational) return { niveau: "ko", libelle: "Non connectée", detail: conf.guidance };
+      return {
+        niveau: "ok",
+        libelle: "Connectée",
+        detail: `${conf.activeProviders}/${conf.totalProviders} fournisseur(s) configuré(s).`,
+      };
+    })(),
+    (async (): Promise<IndicateurAccueil> => {
+      try {
+        const liste = await fichiers.mesFichiers(ownerId);
+        if (liste.length === 0) return { niveau: "attention", libelle: "Aucun", detail: "Aucun document déposé pour ce compte." };
+        return { niveau: "ok", libelle: `${liste.length}`, detail: `${liste.length} document(s) disponibles.` };
+      } catch (e) {
+        return inconnu(e instanceof Error ? e.message : "Liste des documents illisible.");
+      }
+    })(),
+    (async (): Promise<IndicateurAccueil> => {
+      try {
+        const s = await statsRegistreMoteurs();
+        const detail = `${s.activeEngines}/${s.totalEngines} actifs · ${s.degradedEngines} dégradé(s) · ${s.downEngines} arrêté(s).`;
+        if (s.downEngines > 0) return { niveau: "ko", libelle: `${s.downEngines} arrêté(s)`, detail };
+        if (s.degradedEngines > 0) return { niveau: "attention", libelle: `${s.degradedEngines} dégradé(s)`, detail };
+        return { niveau: "ok", libelle: `${s.activeEngines} actifs`, detail };
+      } catch (e) {
+        return inconnu(e instanceof Error ? e.message : "Registre des moteurs illisible.");
+      }
+    })(),
+    (async (): Promise<IndicateurAccueil> => {
+      try {
+        const [alertes, tableau] = await Promise.all([alertesMigration(), tableauPermissions()]);
+        const ecarts = tableau.roles.filter((r) => r.ecart.length > 0).length;
+        if (alertes.length > 0) {
+          return { niveau: "attention", libelle: `${alertes.length} alerte(s)`, detail: alertes.slice(0, 3).join(" · ") };
+        }
+        return {
+          niveau: "ok",
+          libelle: ecarts > 0 ? `${ecarts} rôle(s) ajusté(s)` : "Par défaut",
+          detail: `${tableau.permissions.length} permissions contrôlées, ${tableau.roles.length} rôles, aucune alerte de dépendance.`,
+        };
+      } catch (e) {
+        return inconnu(e instanceof Error ? e.message : "Permissions illisibles.");
+      }
+    })(),
+  ]);
+
+  const shopUrl = (process.env.SHOP_PUBLIC_URL ?? "").trim();
+  const boutique = /^https:\/\/[a-z0-9.-]+(\/[^\s]*)?$/i.test(shopUrl) ? shopUrl : null;
+
+  return { ia, documents, moteurs, securite, boutique, observeLe: new Date().toISOString() };
+}
 
 export const INTELLIGENCES_META = {
   code: "intelligences",
@@ -1041,4 +1115,7 @@ export const intelligencesRouter = router({
   ragRepondre: pdgProcedure
     .input(z.object({ q: z.string().min(1).max(300) }))
     .mutation(({ input, ctx }) => ragAnswerInterne({ query: input.q, userId: ctx.user.uid, visibiliteConnaissance: ["interne", "pdg_uniquement"] })),
+
+  /** Indicateurs réels de l'accueil du workspace (IA, documents, moteurs, sécurité). */
+  indicateursAccueil: pdgProcedure.query(({ ctx }) => indicateursAccueil(ctx.user.uid)),
 });

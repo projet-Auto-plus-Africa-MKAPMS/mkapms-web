@@ -100,14 +100,14 @@ export interface PerimetreMoteur {
 }
 
 export const MOTEURS_TOTAL = 94;
-export const MANQUES_TOTAL = 514;
+export const MANQUES_TOTAL = 515;
 export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
   "ecran_sans_contenu": 341,
   "dependance_non_declaree": 57,
   "sans_logique_serveur": 10,
   "sans_ecran": 8,
   "dependance_sans_preuve": 41,
-  "bouton_sans_action": 49,
+  "bouton_sans_action": 50,
   "bouton_declare_absent_ecran": 6,
   "emission_dynamique": 2
 };
@@ -10881,9 +10881,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         ],
         "cliquables": 20,
         "parMoteur": 0,
-        "sansAction": 0,
-        "textes": 51,
-        "mots": 171
+        "sansAction": 1,
+        "textes": 53,
+        "mots": 180
       }
     ],
     "ecransHotes": [
@@ -10968,6 +10968,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "gouvernanceHistoriqueVersions",
       "gouvernanceReglages",
       "gouvernanceVersions",
+      "indicateursAccueil",
       "interpreterRecherche",
       "journalActions",
       "journalPermissions",
@@ -11055,10 +11056,14 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "pdg",
       "public"
     ],
-    "textes": 60,
-    "mots": 260,
+    "textes": 62,
+    "mots": 269,
     "battement": "sonde",
     "manques": [
+      {
+        "genre": "bouton_sans_action",
+        "detail": "« Boutique » client/src/pages/intelligence/index.tsx:178"
+      },
       {
         "genre": "dependance_non_declaree",
         "detail": "achat — estimate-gateway/gateway.ts importe routers/devis.ts"

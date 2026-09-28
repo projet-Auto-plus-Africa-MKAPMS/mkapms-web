@@ -42,6 +42,7 @@ export const BOUTONS_SANS_ACTION: readonly BoutonSansAction[] = [
   { fichier: "client/src/pages/GestionConducteurs.tsx", ligne: 66, libelle: "Ajouter le conducteur" },
   { fichier: "client/src/pages/GestionConducteurs.tsx", ligne: 85, libelle: "" },
   { fichier: "client/src/pages/GestionFranchises.tsx", ligne: 89, libelle: "Appliquer la franchise" },
+  { fichier: "client/src/pages/intelligence/index.tsx", ligne: 178, libelle: "Boutique" },
   { fichier: "client/src/pages/LocationLOA.tsx", ligne: 100, libelle: "Simulation indisponible" },
   { fichier: "client/src/pages/pieces/AbonnementsProPieces.tsx", ligne: 17, libelle: "Choisir" },
   { fichier: "client/src/pages/pieces/MontageGarage.tsx", ligne: 10, libelle: "" },
