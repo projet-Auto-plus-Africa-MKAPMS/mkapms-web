@@ -1,40 +1,16 @@
 /**
- * MKA.P-MS AI — application dédiée (4e variante mobile,
- * com.mkapms.intelligence, chemin /intelligence).
- *
- * Produit autonome, distinct de l'assistant intégré (AssistantIntelligences.tsx,
- * route /intelligences) qui reste dans les autres applications. Les deux
- * partagent le même moteur derrière (server/intelligences/) — cette page ne
- * duplique rien, elle est une seconde façade.
- *
- * Socle uniquement : cette page racine est un shell léger — navigation entre
- * modules et niveau d'accès affiché. Chaque module vit dans son propre
- * fichier sous ./modules/, aujourd'hui à l'état de squelette (aucun n'est
- * encore construit), pour que cette page ne devienne jamais un fichier
- * unique contenant tout le produit.
+ * AL-HUDHUD·M — espace IA de la plateforme principale.
+ * Façade mobile/desktop approuvée : Accueil, Menu, Conversation, Paramètres.
+ * Les moteurs, permissions, conversations et données existants sont conservés.
  */
 import { useMemo, useState } from "react";
-import { AssistantBrand } from "./WorkspaceRail";
 import { Link } from "react-router-dom";
 import {
-  Bot,
-  ChevronLeft,
-  Code2,
-  FileText,
-  FolderKanban,
-  Gauge,
-  History,
-  Image as ImageIcon,
-  MessageCircle,
-  Mic,
-  Plug,
-  Search,
-  Settings,
-  ShieldCheck,
-  Sparkles,
-  Wrench,
-  Brain as BrainIcon,
-  Workflow,
+  BarChart3, Bot, ChevronLeft, ChevronRight, Code2, FileCheck2, FileText,
+  FolderKanban, Gauge, History, Home, Image as ImageIcon, Menu, MessageCircle,
+  Mic, Plug, Search, Settings, ShieldCheck, Sparkles, Wrench, Brain as BrainIcon,
+  Workflow, Database, ShoppingCart, Cloud, SlidersHorizontal, Library, Clock3,
+  Laptop, Grid2X2, ClipboardCheck, X
 } from "lucide-react";
 import { useAuth } from "../../lib/auth";
 import { niveauDepuis, NIVEAUX_INTELLIGENCE, type NiveauIntelligence } from "./niveaux";
@@ -54,41 +30,29 @@ import { Parametres } from "./modules/Parametres";
 import { Permissions } from "./modules/Permissions";
 import { UsageCouts } from "./modules/UsageCouts";
 import { Historique } from "./modules/Historique";
+import "./workspace.css";
 
 type CleModule =
-  | "conversation"
-  | "voix"
-  | "images"
-  | "documents"
-  | "recherche"
-  | "memoire"
-  | "projets"
-  | "agents"
-  | "outils"
-  | "code"
-  | "automatisations"
-  | "integrations"
-  | "parametres"
-  | "permissions"
-  | "usage"
-  | "historique";
+  | "accueil" | "conversation" | "voix" | "images" | "documents" | "recherche"
+  | "memoire" | "projets" | "agents" | "outils" | "code" | "automatisations"
+  | "integrations" | "parametres" | "permissions" | "usage" | "historique";
 
-const MODULES: { cle: CleModule; label: string; icone: typeof MessageCircle; Composant: () => JSX.Element }[] = [
+const MODULES: { cle: Exclude<CleModule,"accueil">; label: string; icone: typeof MessageCircle; Composant: () => JSX.Element }[] = [
   { cle: "conversation", label: "Conversation", icone: MessageCircle, Composant: Conversation },
   { cle: "voix", label: "Voix & temps réel", icone: Mic, Composant: VoixTempsReel },
   { cle: "images", label: "Images", icone: ImageIcon, Composant: Images },
   { cle: "documents", label: "Fichiers & documents", icone: FileText, Composant: FichiersDocuments },
   { cle: "recherche", label: "Recherche", icone: Search, Composant: Recherche },
-  { cle: "memoire", label: "Mémoire", icone: BrainIcon, Composant: Memoire },
+  { cle: "memoire", label: "Mémoire IA", icone: BrainIcon, Composant: Memoire },
   { cle: "projets", label: "Projets", icone: FolderKanban, Composant: Projets },
   { cle: "agents", label: "Agents", icone: Bot, Composant: Agents },
   { cle: "outils", label: "Outils", icone: Wrench, Composant: Outils },
   { cle: "code", label: "Code & développement", icone: Code2, Composant: CodeDeveloppement },
-  { cle: "automatisations", label: "Automatisations", icone: Workflow, Composant: Automatisations },
-  { cle: "integrations", label: "Intégrations & API", icone: Plug, Composant: IntegrationsApi },
+  { cle: "automatisations", label: "Planifié", icone: Workflow, Composant: Automatisations },
+  { cle: "integrations", label: "Plugins & API", icone: Plug, Composant: IntegrationsApi },
   { cle: "usage", label: "Usage & coûts", icone: Gauge, Composant: UsageCouts },
   { cle: "historique", label: "Historique", icone: History, Composant: Historique },
-  { cle: "permissions", label: "Permissions", icone: ShieldCheck, Composant: Permissions },
+  { cle: "permissions", label: "Sécurité & permissions", icone: ShieldCheck, Composant: Permissions },
   { cle: "parametres", label: "Paramètres", icone: Settings, Composant: Parametres },
 ];
 
@@ -96,81 +60,109 @@ const LABEL_NIVEAU: Record<NiveauIntelligence, string> = Object.fromEntries(
   NIVEAUX_INTELLIGENCE.map((n) => [n.niveau, n.label]),
 ) as Record<NiveauIntelligence, string>;
 
+function Dashboard({ onOpen }: { onOpen: (key: CleModule) => void }) {
+  const work = [
+    ["Accueil", Home, "Vue d’ensemble", "accueil"],
+    ["Menu", Menu, "Navigation et accès", "conversation"],
+    ["Paramètres", Settings, "Configuration et préférences", "parametres"],
+    ["Documents", FileText, "Fichiers, ressources et contrôles", "documents"],
+    ["Contrôle IA", BrainIcon, "Tests et performances", "outils"],
+    ["Audit", BarChart3, "Suivi, rapports et conformité", "historique"],
+  ] as const;
+  return <section className="alhud-home" aria-label="Accueil AL-HUDHUD·M">
+    <div className="alhud-home-title">
+      <h1>AL-HUDHUD·M</h1>
+      <p>Plateforme principale · espace IA privé</p>
+    </div>
+    <button type="button" className="alhud-project-card" onClick={() => onOpen("conversation")}>
+      <span className="alhud-project-icon"><Laptop /></span>
+      <span><strong>Suivi du chantier MKA.P-MS</strong><small>Analyse · Organisation · Déploiement</small></span>
+      <ChevronRight />
+    </button>
+    <div className="alhud-platform-grid">
+      <article className="alhud-platform-card">
+        <div className="alhud-platform-heading"><span className="alhud-square blue"><Database /></span><span><strong>Plateforme principale</strong><small>Infrastructure & opérations</small></span></div>
+        <button type="button" className="alhud-status-ok" onClick={() => onOpen("conversation")}><span>●</span> IA connectée <ChevronRight /></button>
+        <div className="alhud-status-list">
+          <button type="button" onClick={() => onOpen("documents")}><FileText/>Documents <span>● OK</span></button>
+          <button type="button" onClick={() => onOpen("outils")}><Settings/>Moteurs <span>● Actifs</span></button>
+          <button type="button" onClick={() => onOpen("permissions")}><ShieldCheck/>Sécurité <span>● Protégée</span></button>
+          <button type="button" onClick={() => onOpen("historique")}><Cloud/>Déploiement <span>Suivi</span></button>
+        </div>
+      </article>
+      <article className="alhud-platform-card alhud-platform-disabled" aria-label="Boutique non activée dans ce lot">
+        <div className="alhud-platform-heading"><span className="alhud-square violet"><ShoppingCart /></span><span><strong>Boutique</strong><small>Étape suivante après validation</small></span></div>
+        <div className="alhud-status-wait">Non modifiée · en attente de votre test</div>
+      </article>
+    </div>
+    <div className="alhud-work-heading"><h2>Notre travail aujourd’hui</h2><button type="button" onClick={() => onOpen("conversation")}>Tout voir <ChevronRight/></button></div>
+    <div className="alhud-work-grid">{work.map(([label,Icon,desc,key]) =>
+      <button type="button" key={label} onClick={() => onOpen(key)}><span className="alhud-work-icon"><Icon/></span><span><strong>{label}</strong><small>{desc}</small></span><ChevronRight/></button>
+    )}</div>
+  </section>;
+}
+
 export default function MKAPMSIntelligence() {
   const { user } = useAuth();
-  const [module, setModule] = useState<CleModule>("conversation");
+  const [module, setModule] = useState<CleModule>("accueil");
   const [moduleSearch, setModuleSearch] = useState("");
-
-
-  // Clé développeur active : non branché ici (aucune fonctionnalité de module
-  // n'existe encore) — false tant qu'un vrai module ne le demande.
+  const [menuOpen, setMenuOpen] = useState(false);
   const niveau = useMemo(() => niveauDepuis({ role: user?.role ?? null }), [user?.role]);
 
-  const Actif = MODULES.find((m) => m.cle === module)?.Composant ?? Conversation;
-
-  // LOT IA02B — le moteur réel derrière chaque module construit dans ce lot
-  // (conversation, historique, mémoire, projets, outils, permissions,
-  // paramètres, intégrations, usage) reste aujourd'hui réservé à la
-  // direction (server/intelligences/index.ts::pdgProcedure) : ouvrir l'accès
-  // aux autres niveaux de l'échelle est un lot suivant, pas une omission de
-  // celui-ci. Même message que le côté direction historique
-  // (CentreIntelligences.tsx) pour ne pas inventer un second discours.
-  //
-  // Jamais de redirection immédiate vers /connexion ici : `user` reste null
-  // le temps que la session s'hydrate au chargement (AuthProvider), même pour
-  // un PDG déjà connecté — une redirection sur ce court instant renverrait un
-  // compte PDG réel hors de la page avant même que son rôle soit connu. Comme
-  // CentreIntelligences.tsx, on affiche le même écran « réservé » tant que
-  // `user` n'est pas encore résolu ; il se corrige seul dès que la session
-  // charge, sans navigation forcée.
   if (niveau !== "pdg") {
-    return (
-      <div className="mx-auto max-w-xl p-6 text-center">
-        <ShieldCheck className="mx-auto h-8 w-8 text-black/30" />
-        <h1 className="mt-3 text-lg font-black text-[#111]">Espace réservé pour l'instant</h1>
-        <p className="mt-2 text-sm text-black/60">
-          Le moteur réel derrière AL-HUDHUD·M (conversation, mémoire, projets, outils) est
-          aujourd'hui réservé au compte PDG. Les autres niveaux d'accès (professionnel, développeur,
-          équipe interne, direction) arriveront avec les lots suivants — l'assistant public reste
-          accessible partout ailleurs sur la plateforme.
-        </p>
-        <Link to="/intelligences" className="mt-4 inline-block text-sm font-bold text-[#8B7500]">
-          Ouvrir l'assistant public
-        </Link>
-      </div>
-    );
+    return <div className="mx-auto max-w-xl p-6 text-center">
+      <ShieldCheck className="mx-auto h-8 w-8 text-black/30" />
+      <h1 className="mt-3 text-lg font-black text-[#111]">Espace réservé pour l'instant</h1>
+      <p className="mt-2 text-sm text-black/60">Le moteur réel derrière AL-HUDHUD·M est aujourd'hui réservé au compte PDG. L'assistant public reste accessible ailleurs sur la plateforme.</p>
+      <Link to="/intelligences" className="mt-4 inline-block text-sm font-bold text-[#8B7500]">Ouvrir l'assistant public</Link>
+    </div>;
   }
 
   const normalise = (text: string) => text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase();
-  const moduleNavigation = <div className="alhud-app-sidebar">
-            <AssistantBrand />
-            <label className="alhud-search"><input type="search" aria-label="Rechercher un outil ou une conversation" value={moduleSearch} onChange={e=>setModuleSearch(e.target.value)} placeholder="Rechercher…" /></label>
-            <nav className="alhud-app-modules" aria-label="Outils de l’assistant">
-              {MODULES.filter(item=>normalise(item.label).includes(normalise(moduleSearch))).map(item=>(
-                <button key={item.cle} type="button" aria-current={module===item.cle?'page':undefined} onClick={()=>{setModule(item.cle);}} className={module===item.cle?'rounded-xl bg-[#111] px-3 py-2 text-sm font-bold text-white':'rounded-xl px-3 py-2 text-sm text-black/70 hover:bg-black/5'}><item.icone className="mr-2 inline-block h-4 w-4" />{item.label}</button>
-              ))}
-            </nav>
-          </div>;
-  return (
-    <div className="min-h-screen bg-white">
-      <div className="border-b border-black/5 bg-[#0B0B0F] px-4 py-4 text-white">
-        <Link to="/" className="inline-flex items-center gap-1 text-xs text-white/60">
-          <ChevronLeft className="h-3.5 w-3.5" /> MKA.P-MS
-        </Link>
-        <div className="mt-2 flex items-center gap-2">
-          <Sparkles className="h-5 w-5 text-[#D4AF37]" />
-          <h1 className="text-lg font-black">AL-HUDHUD·M</h1>
-        </div>
-        <p className="mt-1 text-xs text-white/50">
-          Niveau d'accès : {LABEL_NIVEAU[niveau]}
-        </p>
-      </div>
+  const actifDef = MODULES.find((m) => m.cle === module);
+  const Actif = actifDef?.Composant ?? Conversation;
+  const choose = (key: CleModule) => { setModule(key); setMenuOpen(false); };
+  const topItems = [
+    ["Bibliothèque", Library, "documents"], ["Projets", FolderKanban, "projets"],
+    ["Plugins", Plug, "integrations"], ["Planifié", Clock3, "automatisations"],
+    ["À distance", Laptop, "outils"], ["Explorer", Grid2X2, "recherche"],
+  ] as const;
+  const workItems = [
+    ["Accueil", Home, "accueil"], ["Suivi du chantier", BarChart3, "conversation"],
+    ["Documents", FileText, "documents"], ["Vérification IA", FileCheck2, "outils"],
+    ["Audit", ClipboardCheck, "historique"], ["Paramètres", Settings, "parametres"],
+  ] as const;
 
-      <main className="min-w-0 p-2 md:p-4">
-        <Conversation key={String(user?.id ?? "anonymous")} navigation={moduleNavigation} active={module === "conversation"} onActivate={() => setModule("conversation")} searchQuery={moduleSearch}>
-          {module !== "conversation" ? <Actif /> : null}
-        </Conversation>
-      </main>
-    </div>
-  );
+  const nav = <div className="alhud-approved-menu">
+    <div className="alhud-menu-brand"><strong>AL-HUDHUD·M</strong><Search/></div>
+    <label className="alhud-search"><input type="search" value={moduleSearch} onChange={e=>setModuleSearch(e.target.value)} placeholder="Rechercher…" aria-label="Rechercher"/></label>
+    <nav>{topItems.filter(([label])=>normalise(label).includes(normalise(moduleSearch))).map(([label,Icon,key])=><button key={label} type="button" onClick={()=>choose(key)}><Icon/><span>{label}</span><ChevronRight/></button>)}</nav>
+    <h3>Espaces IA</h3>
+    <button type="button" className="selected" onClick={()=>choose("accueil")}><Database/><span>Plateforme principale</span><ChevronRight/></button>
+    <button type="button" disabled title="Disponible après validation de la plateforme principale"><ShoppingCart/><span>Boutique</span><small>ensuite</small></button>
+    <h3>Notre travail</h3>
+    <nav>{workItems.map(([label,Icon,key])=><button key={label} type="button" onClick={()=>choose(key)}><Icon/><span>{label}</span><ChevronRight/></button>)}</nav>
+    <button type="button" className="alhud-chat-cta" onClick={()=>choose("conversation")}><MessageCircle/> Chat</button>
+  </div>;
+
+  return <div className="alhud-approved-shell">
+    <header className="alhud-approved-header">
+      <button type="button" className="alhud-round-button" onClick={()=>setMenuOpen(true)} aria-label="Ouvrir le menu"><Menu/></button>
+      <div className="alhud-platform-switch" aria-label="Espace actif"><strong>Plateforme principale</strong><span>Boutique</span></div>
+      <button type="button" className="alhud-round-button" onClick={()=>choose("conversation")} aria-label="Conversation"><MessageCircle/></button>
+    </header>
+    {menuOpen ? <div className="alhud-menu-backdrop" onClick={()=>setMenuOpen(false)}><aside onClick={e=>e.stopPropagation()}><button type="button" className="alhud-menu-close" onClick={()=>setMenuOpen(false)}><X/> Fermer</button>{nav}</aside></div> : null}
+    <main className="alhud-approved-main">
+      {module === "accueil" ? <Dashboard onOpen={choose}/> :
+        <Conversation
+          key={String(user?.id ?? "anonymous")}
+          navigation={nav}
+          active={module === "conversation"}
+          onActivate={()=>setModule("conversation")}
+          onChooseModule={(key)=>choose(key as CleModule)}
+          searchQuery={moduleSearch}
+        >{module !== "conversation" ? <Actif/> : null}</Conversation>}
+    </main>
+    <footer className="alhud-approved-footer">Niveau d'accès : {LABEL_NIVEAU[niveau]} · Plateforme principale</footer>
+  </div>;
 }

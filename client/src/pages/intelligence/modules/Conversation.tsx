@@ -39,6 +39,10 @@ import {
   RotateCcw,
   Send,
   Sparkles,
+  Search,
+  Mic,
+  AudioLines,
+  Paperclip,
   Trash2,
   Wrench,
   X,
@@ -64,8 +68,8 @@ function outilsDepuisContexte(contexte: string[]): string[] {
   return contexte.filter((l) => l.startsWith("Outil appelé :")).map((l) => l.replace("Outil appelé : ", ""));
 }
 
-export function Conversation({ navigation, active = true, onActivate, children, searchQuery = "" }: {
-  navigation?: ReactNode; active?: boolean; onActivate?: () => void; children?: ReactNode; searchQuery?: string;
+export function Conversation({ navigation, active = true, onActivate, onChooseModule, children, searchQuery = "" }: {
+  navigation?: ReactNode; active?: boolean; onActivate?: () => void; onChooseModule?: (key: string) => void; children?: ReactNode; searchQuery?: string;
 } = {}) {
   const [sessionId, setSessionId] = useState<number | null>(null);
   const [fil, setFil] = useState<Bulle[]>([]);
@@ -473,8 +477,9 @@ export function Conversation({ navigation, active = true, onActivate, children, 
           <div ref={finDuFil} />
         </div>
 
-        <div className="border-t border-black/5 p-3">
-          <div className="flex items-end gap-2">
+        <div className="alhud-composer-wrap border-t border-black/5 p-3">
+          <div className="alhud-composer flex items-end gap-2">
+            <button type="button" className="alhud-composer-action" onClick={() => onChooseModule?.("documents")} aria-label="Ajouter un fichier"><Paperclip className="h-5 w-5" /></button>
             <textarea
               ref={zoneSaisie}
               value={question}
@@ -489,9 +494,12 @@ export function Conversation({ navigation, active = true, onActivate, children, 
               }}
               rows={2}
               maxLength={8000}
-              placeholder="Votre demande… (Entrée pour envoyer, Maj+Entrée pour un retour à la ligne)"
-              className="flex-1 rounded-xl border border-black/10 p-2 text-sm outline-none focus:border-[#8B7500]"
+              placeholder="Demander à AL-HUDHUD·M"
+              className="alhud-composer-input flex-1 rounded-xl border-0 p-2 text-sm outline-none"
             />
+            <button type="button" className="alhud-composer-action" onClick={() => onChooseModule?.("recherche")} aria-label="Recherche"><Search className="h-5 w-5" /></button>
+            <button type="button" className="alhud-composer-action" onClick={() => onChooseModule?.("voix")} aria-label="Microphone"><Mic className="h-5 w-5" /></button>
+            <button type="button" className="alhud-composer-voice" onClick={() => onChooseModule?.("voix")} aria-label="Conversation vocale"><AudioLines className="h-5 w-5" /></button>
             {derniereQuestion && !busy && !historyUnavailable && (
               <button
                 type="button"
