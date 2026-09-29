@@ -370,7 +370,7 @@ export function Conversation({ navigation, active = true, onActivate, onChooseMo
         </div>
 </>;
   return (
-    <div className="alhud-conversation-workspace flex h-[calc(100dvh-160px)] min-h-[420px] flex-col gap-3">
+    <div className="alhud-conversation-workspace flex h-full min-h-[420px] flex-col gap-3">
       <EtatServiceIntelligence />
 
       <div className="flex min-h-0 flex-1 flex-col gap-3 md:flex-row">
