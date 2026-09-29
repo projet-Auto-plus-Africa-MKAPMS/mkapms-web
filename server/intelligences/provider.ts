@@ -888,6 +888,82 @@ export async function modererTexte(
   }
 }
 
+export interface ResultatRechercheWeb {
+  disponible: boolean;
+  reponse: string;
+  sources: { titre: string; url: string }[];
+  motif: string;
+}
+
+/**
+ * Recherche web native OpenAI (/v1/responses, tools=[{type:"web_search"}]) —
+ * réutilise OPENAI_API_KEY déjà configurée pour le texte, aucune clé
+ * supplémentaire. Distincte de recherche.webSearch (Brave, WEB_SEARCH_API_KEY
+ * absente sur ce serveur) : alternative vérifiée accessible sur le compte de
+ * production (appel réel, 2026-09-26) qui sert la conversation, pas
+ * l'estimation de prix (server/market-price-intelligence/service.ts, non
+ * dupliquée ici).
+ *
+ * Comme market-price-intelligence : jamais une source inventée — seules les
+ * URLs réellement annotées par le fournisseur dans sa réponse (`url_citation`)
+ * sont retenues. `tool_choice` force l'appel de l'outil : un texte qui
+ * demande explicitement cette fonction attend une vraie recherche, pas un
+ * souvenir du modèle présenté comme à jour.
+ */
+export async function rechercherWebNatif(
+  requete: string,
+  fetchImpl: typeof fetch = fetch,
+): Promise<ResultatRechercheWeb> {
+  const vide: ResultatRechercheWeb = { disponible: false, reponse: "", sources: [], motif: "" };
+  const q = requete.trim();
+  if (!q) return { ...vide, motif: "Requête de recherche vide." };
+  const cle = process.env.OPENAI_API_KEY?.trim();
+  if (!cle) {
+    return { ...vide, motif: "OPENAI_API_KEY absente : recherche web réellement indisponible, jamais une réponse supposée à jour." };
+  }
+  try {
+    const reponse = await fetchImpl("https://api.openai.com/v1/responses", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${cle}` },
+      body: JSON.stringify({
+        model: "gpt-5.5",
+        input: q,
+        tools: [{ type: "web_search" }],
+        tool_choice: { type: "web_search" },
+        max_output_tokens: 1200,
+      }),
+      signal: AbortSignal.timeout(30_000),
+    });
+    if (!reponse.ok) {
+      const brut = await reponse.text();
+      return { ...vide, motif: `OpenAI a refusé la recherche web (HTTP ${reponse.status}) : ${brut.slice(0, 200)}` };
+    }
+    const corps = (await reponse.json()) as {
+      status?: string;
+      output?: {
+        type?: string;
+        content?: { type?: string; text?: string; annotations?: { type?: string; url?: string; title?: string }[] }[];
+      }[];
+    };
+    if (corps.status !== "completed") {
+      return { ...vide, motif: `Recherche web incomplète (statut fournisseur : ${corps.status ?? "inconnu"}).` };
+    }
+    const message = corps.output?.find((o) => o.type === "message");
+    const bloc = message?.content?.find((c) => c.type === "output_text");
+    const texte = bloc?.text?.trim();
+    if (!texte) {
+      return { ...vide, motif: "Recherche web : aucune réponse textuelle renvoyée par le fournisseur." };
+    }
+    const sources = (bloc?.annotations ?? [])
+      .filter((a): a is { type: string; url: string; title?: string } => a.type === "url_citation" && typeof a.url === "string")
+      .map((a) => ({ titre: (a.title ?? a.url).slice(0, 200), url: a.url }))
+      .slice(0, 8);
+    return { disponible: true, reponse: texte.slice(0, 4000), sources, motif: "" };
+  } catch (e) {
+    return { ...vide, motif: `Appel de recherche web impossible : ${e instanceof Error ? e.message : "erreur inconnue"}` };
+  }
+}
+
 /** Adaptateur borné, appelé exclusivement après les contrôles du routeur. Export pour test injecté. */
 export async function produireMediaNatif(
   resolu: { cle: string; modele: string }, operation: "image" | "voix", texte: string,

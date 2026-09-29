@@ -128,21 +128,10 @@ export const OUTILS_GLOBAUX: OutilSpec[] = [
   fiche({ toolId: "fichiers.deleteFile", name: "deleteFile", description: "Supprime un fichier déposé.", category: "fichiers", riskLevel: "HIGH", allowedRoles: DIRECTION, requiredPermissions: ["WRITE"], requiresHumanApproval: true, provider: "mkapms" }),
 
   // ── Recherche ──────────────────────────────────────────────────────
-  fiche({ toolId: "recherche.webSearch", name: "webSearch", description: "Recherche web sourcée (Brave Search, via market-price-intelligence).", category: "recherche", riskLevel: "LOW", allowedRoles: METIER, requiredPermissions: ["ANALYZE"], provider: "recherche_web_externe (absent, WEB_SEARCH_API_KEY)" }),
-  fiche({
-    toolId: "recherche.webSearchNatifOpenAI",
-    name: "webSearchNatifOpenAI",
-    description: "Recherche web sourcée via l'outil web_search natif d'OpenAI (Responses API) — alternative à recherche.webSearch qui ne nécessite AUCUNE clé supplémentaire (réutilise la clé déjà configurée pour le fournisseur de texte) ; nécessite de migrer l'appel concerné de /v1/chat/completions vers /v1/responses.",
-    category: "recherche",
-    riskLevel: "LOW",
-    allowedRoles: METIER,
-    requiredPermissions: ["ANALYZE"],
-    provider: "openai",
-    providerCapability: "responses.tools[web_search]",
-    verifiedAccessible: true,
-    lastVerifiedAt: "2026-09-26",
-  }),
-  fiche({ toolId: "recherche.internalSearch", name: "internalSearch", description: "Recherche interne à la plateforme.", category: "recherche", riskLevel: "READ_ONLY", allowedRoles: METIER, requiredPermissions: ["READ"], provider: "search_os" }),
+  // Famille sortie d'ici : recherche.webSearchNatifOpenAI est désormais
+  // réellement câblée (IMPLEMENTED, outils/familles/recherche.ts), le
+  // reste de la famille (webSearch/Brave, internalSearch) y vit aussi pour
+  // ne pas éclater "recherche" entre deux fichiers.
 
   // ── Communication ──────────────────────────────────────────────────
   fiche({ toolId: "communication.sendEmail", name: "sendEmail", description: "Envoie un e-mail à un utilisateur réel.", category: "communication", riskLevel: "MEDIUM", allowedRoles: DIRECTION, requiredPermissions: ["WRITE"], provider: "email" }),

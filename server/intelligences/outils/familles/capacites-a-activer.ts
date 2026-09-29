@@ -39,8 +39,9 @@
  * notre propre évaluation réelle déjà active, voir evaluation.ts point 148).
  *
  * Volontairement absentes d'ici (déjà réellement couvertes ailleurs, pas
- * dupliquées) : recherche web Brave (globales.ts::recherche.webSearch),
- * modération (api-externes.ts::moderateContent), mémoire documentaire/RAG
+ * dupliquées) : recherche web, native OpenAI et Brave (recherche.ts,
+ * webSearchNatifOpenAI désormais IMPLEMENTED, webSearch resté
+ * REGISTERED_NOT_IMPLEMENTED), modération (api-externes.ts::moderateContent), mémoire documentaire/RAG
  * propriétaire (fichiers-rag.ts — déjà entièrement IMPLEMENTED), génération/
  * édition de code, shell, patch de fichiers (chantier.ts — déjà entièrement
  * IMPLEMENTED, confiné au PDG — couvre Code + une partie du besoin
