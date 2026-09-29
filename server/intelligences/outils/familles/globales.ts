@@ -181,7 +181,19 @@ export const OUTILS_GLOBAUX: OutilSpec[] = [
   fiche({ toolId: "marketplace.removeListing", name: "removeListing", description: "Retire une annonce de la marketplace.", category: "marketplace", riskLevel: "HIGH", allowedRoles: DIRECTION, requiredPermissions: ["WRITE"], requiresHumanApproval: true, provider: "achat/vente" }),
 
   // ── Railway / déploiement ──────────────────────────────────────────
-  fiche({ toolId: "railway_deploiement.getDeploymentStatus", name: "getDeploymentStatus", description: "Consulte le statut d'un déploiement Railway.", category: "railway_deploiement", riskLevel: "MEDIUM", allowedRoles: PDG, requiredPermissions: ["INFRASTRUCTURE"], provider: "Railway (RAILWAY_TOKEN)" }),
+  // Seul getDeploymentStatus est réellement câblé (server/intelligences/
+  // deploiement/railway.ts, lecture seule) : trigger/rollback restent
+  // REGISTERED_NOT_IMPLEMENTED — cette application ne déclenche jamais un
+  // déploiement elle-même.
+  {
+    ...fiche({ toolId: "railway_deploiement.getDeploymentStatus", name: "getDeploymentStatus", description: "Consulte les déploiements récents du service configuré (lecture seule, sans jamais en déclencher un).", category: "railway_deploiement", riskLevel: "READ_ONLY", allowedRoles: PDG, requiredPermissions: ["READ"], provider: "Railway (RAILWAY_TOKEN)" }),
+    enabled: true,
+    implementationStatus: "IMPLEMENTED",
+    idempotent: true,
+    legalBasis: "Lecture de métadonnées de déploiement internes, aucune donnée personnelle.",
+    fallback: "Indisponibilité honnête (disponible=false) si RAILWAY_TOKEN/PROJECT_ID/SERVICE_ID/ENVIRONMENT_ID absent, jamais un statut supposé.",
+    internalReplacementStatus: "Aucun — lecture directe de l'API Railway.",
+  },
   fiche({ toolId: "railway_deploiement.triggerDeployment", name: "triggerDeployment", description: "Déclenche un déploiement — jamais sans décision explicite de la direction.", category: "railway_deploiement", riskLevel: "CRITICAL", allowedRoles: PDG, requiredPermissions: ["INFRASTRUCTURE"], requiresHumanApproval: true, requiresStrongAuthentication: true, provider: "Railway (RAILWAY_TOKEN)" }),
   fiche({ toolId: "railway_deploiement.rollbackDeployment", name: "rollbackDeployment", description: "Revient à un déploiement précédent.", category: "railway_deploiement", riskLevel: "CRITICAL", allowedRoles: PDG, requiredPermissions: ["INFRASTRUCTURE"], requiresHumanApproval: true, requiresStrongAuthentication: true, provider: "Railway (RAILWAY_TOKEN)" }),
 

@@ -53,6 +53,19 @@ import {
   resume as resumeFonctions,
 } from "./fonctions.js";
 import {
+  listerApprobateurs,
+  rechercherCandidats as rechercherCandidatsApprobateurs,
+  designerApprobateur,
+  retirerApprobateur,
+} from "./deploiement/approbateurs.js";
+import {
+  enAttentePour as deploiementsEnAttentePour,
+  historique as listerHistoriqueDeploiements,
+  approuver as approuverDeploiementSvc,
+  refuser as refuserDeploiementSvc,
+  verifierPublication as verifierPublicationDeploiementSvc,
+} from "./deploiement/service.js";
+import {
   levierAutonomie,
   marquer as marquerEtape,
   plan as planAutonomie,
@@ -778,6 +791,54 @@ export const intelligencesRouter = router({
       }),
     )
     .mutation(({ input, ctx }) => reglerFonction({ ...input, actorId: ctx.user?.uid })),
+
+  /**
+   * Approbateurs de déploiement — désignation nominative (jamais un rôle
+   * entier) : le propriétaire choisit qui peut donner le feu vert à une mise
+   * en production. Cette application ne déploie jamais elle-même.
+   */
+  approbateursDeploiement: pdgProcedure.query(() => listerApprobateurs()),
+
+  rechercherCandidatApprobateur: pdgProcedure
+    .input(z.object({ q: z.string().min(2).max(120) }))
+    .query(({ input }) => rechercherCandidatsApprobateurs(input.q)),
+
+  designerApprobateurDeploiement: pdgProcedure
+    .input(z.object({ userId: z.number().int().positive(), motif: z.string().max(600) }))
+    .mutation(({ input, ctx }) => designerApprobateur({ ...input, actorId: ctx.user?.uid })),
+
+  retirerApprobateurDeploiement: pdgProcedure
+    .input(z.object({ userId: z.number().int().positive() }))
+    .mutation(({ input, ctx }) => retirerApprobateur({ ...input, actorId: ctx.user?.uid })),
+
+  /** Demandes de déploiement en attente de LA personne connectée (jamais un rôle). */
+  deploiementsEnAttente: protectedProcedure.query(({ ctx }) => {
+    if (!ctx.user?.uid) return [];
+    return deploiementsEnAttentePour(ctx.user.uid);
+  }),
+
+  historiqueDeploiements: pdgProcedure
+    .input(z.object({ limit: z.number().int().min(1).max(200).default(40) }).optional())
+    .query(({ input }) => listerHistoriqueDeploiements(input?.limit ?? 40)),
+
+  approuverDeploiement: protectedProcedure
+    .input(z.object({ id: z.number().int().positive(), motif: z.string().max(2000).default("") }))
+    .mutation(({ input, ctx }) => {
+      if (!ctx.user?.uid) throw new TRPCError({ code: "UNAUTHORIZED" });
+      return approuverDeploiementSvc({ id: input.id, approuveParId: ctx.user.uid, motif: input.motif });
+    }),
+
+  refuserDeploiement: protectedProcedure
+    .input(z.object({ id: z.number().int().positive(), motif: z.string().max(2000).default("") }))
+    .mutation(({ input, ctx }) => {
+      if (!ctx.user?.uid) throw new TRPCError({ code: "UNAUTHORIZED" });
+      return refuserDeploiementSvc({ id: input.id, approuveParId: ctx.user.uid, motif: input.motif });
+    }),
+
+  /** Constate l'état réel côté Railway — n'appelle jamais un déploiement. */
+  verifierPublicationDeploiement: protectedProcedure
+    .input(z.object({ id: z.number().int().positive() }))
+    .mutation(({ input }) => verifierPublicationDeploiementSvc(input.id)),
 
   /** Point 150 — plan de détachement des fournisseurs, étape par étape. */
   planAutonomie: pdgProcedure

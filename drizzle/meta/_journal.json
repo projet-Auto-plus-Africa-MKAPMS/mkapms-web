@@ -1030,6 +1030,13 @@
       "when": 1788404838000,
       "tag": "0148_intelligence_audio_transcription",
       "breakpoints": true
+    },
+    {
+      "idx": 147,
+      "version": "7",
+      "when": 1788404839000,
+      "tag": "0149_deploiement_approbateurs",
+      "breakpoints": true
     }
   ]
 }

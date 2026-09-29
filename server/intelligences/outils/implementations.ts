@@ -14,6 +14,7 @@ import { IMPLEMENTATIONS as IMPL_FICHIERS_RAG } from "./familles/outils-fichiers
 
 import { IMPLEMENTATIONS as IMPL_OBSERVABILITE } from "./familles/outils-observabilite.js";
 import { IMPLEMENTATIONS as IMPL_API_EXTERNES } from "./familles/outils-api-externes.js";
+import { IMPLEMENTATIONS as IMPL_RAILWAY } from "./familles/outils-railway.js";
 
 export const IMPLEMENTATIONS: Record<string, ImplementationOutil> = {
   ...IMPL_TEST,
@@ -24,4 +25,5 @@ export const IMPLEMENTATIONS: Record<string, ImplementationOutil> = {
   ...IMPL_MEMOIRE,
   ...IMPL_FICHIERS_RAG,
   ...IMPL_API_EXTERNES,
+  ...IMPL_RAILWAY,
 };

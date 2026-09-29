@@ -91,6 +91,7 @@ export interface Mission {
   devRequestId: number | null;
   pipelineRunId: number | null;
   testRunId: number | null;
+  deploiementDemandeId: number | null;
   etapes: {
     etape: string;
     libelle: string;
@@ -181,6 +182,7 @@ export async function orchestrer(input: OrchestrerInput): Promise<Mission> {
   let devRequestId: number | null = null;
   let pipelineRunId: number | null = null;
   let testRunId: number | null = null;
+  let deploiementDemandeId: number | null = null;
 
   // Contexte accumulé et transmis d'une étape à l'autre : c'est ce qui
   // distingue une mission d'une suite d'appels indépendants.
@@ -381,17 +383,27 @@ export async function orchestrer(input: OrchestrerInput): Promise<Mission> {
         case "deploiement": {
           const ct = await import("../continuous-test/service.js");
           const gate = await ct.deploymentGate();
-          // L'orchestrateur ne déploie pas : il constate le verrou. La mise en
-          // production reste une action critique confirmée par le propriétaire.
+          // L'orchestrateur ne déploie pas : il constate le verrou, puis pose
+          // une vraie demande devant la ou les personnes désignées
+          // (server/intelligences/deploiement) — jamais un déploiement direct.
           base.statut = gate.autorise ? "fait" : "en_attente_autorisation";
-          base.observe = gate.autorise
-            ? `Verrou ouvert : ${gate.motif} Le déploiement reste une action confirmée par le propriétaire.`
-            : `Verrou fermé : ${gate.motif}${
-                gate.bloquants.length > 0
-                  ? ` Bloquants : ${gate.bloquants.map((b) => b.scenario).join(", ")}.`
-                  : ""
-              }`;
-          if (!gate.autorise) {
+          if (gate.autorise) {
+            const deploiement = await import("./deploiement/service.js");
+            const demande = await deploiement.demander({
+              missionId: mission.id,
+              demandeParId: input.actorId,
+            });
+            deploiementDemandeId = demande.id;
+            base.observe =
+              demande.approbateurs.length > 0
+                ? `Verrou ouvert : ${gate.motif} Demande de déploiement #${demande.id} posée devant : ${demande.approbateurs.join(", ")}.`
+                : `Verrou ouvert : ${gate.motif} Demande de déploiement #${demande.id} créée, mais aucun approbateur n'est désigné — le propriétaire doit d'abord en choisir un (Réglages → Approbateurs de déploiement).`;
+          } else {
+            base.observe = `Verrou fermé : ${gate.motif}${
+              gate.bloquants.length > 0
+                ? ` Bloquants : ${gate.bloquants.map((b) => b.scenario).join(", ")}.`
+                : ""
+            }`;
             arretSur = modele.etape;
             motifArret = gate.motif;
           }
@@ -490,6 +502,7 @@ export async function orchestrer(input: OrchestrerInput): Promise<Mission> {
     devRequestId,
     pipelineRunId,
     testRunId,
+    deploiementDemandeId,
     etapes: etapes.map((e) => ({
       etape: e.etape,
       libelle: e.libelle,

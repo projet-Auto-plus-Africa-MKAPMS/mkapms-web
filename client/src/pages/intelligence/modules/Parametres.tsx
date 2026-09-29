@@ -1,4 +1,6 @@
 import { FonctionsControle } from "./FonctionsControle";
+import { DeploiementApprobateurs } from "./DeploiementApprobateurs";
+import { DeploiementSuivi } from "./DeploiementSuivi";
 /**
  * MKA.P-MS AI — module Paramètres (LOT IA02B).
  *
@@ -43,6 +45,8 @@ export function Parametres() {
         </div>)}
       </section>
       <div id="alhud-live-settings"><FonctionsControle /></div>
+      <DeploiementApprobateurs />
+      <DeploiementSuivi />
       <div className="rounded-xl border border-black/10 p-4">
         <div className="mb-3 flex items-center gap-2">
           <Settings className="h-5 w-5 text-black/40" />

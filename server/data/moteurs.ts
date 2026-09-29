@@ -10676,7 +10676,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "routeurs": [
       "intelligences"
     ],
-    "fichiersServeur": 85,
+    "fichiersServeur": 89,
     "dependancesDeclarees": [
       "ai_fabric",
       "code_graph",
@@ -10920,6 +10920,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "actions",
       "appels",
       "appelsMoteurs",
+      "approbateursDeploiement",
+      "approuverDeploiement",
       "assistant",
       "attribuerPermissions",
       "auditMoteurs",
@@ -10945,6 +10947,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "dependancesAlertes",
       "dependancesCouverture",
       "dependancesRegistre",
+      "deploiementsEnAttente",
+      "designerApprobateurDeploiement",
       "detachementFournisseur",
       "developpeur",
       "domaines",
@@ -10968,6 +10972,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "gouvernanceHistoriqueVersions",
       "gouvernanceReglages",
       "gouvernanceVersions",
+      "historiqueDeploiements",
       "indicateursAccueil",
       "interpreterRecherche",
       "journalActions",
@@ -11000,6 +11005,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "ragRepondre",
       "ragRetrieve",
       "rechercheGlobale",
+      "rechercherCandidatApprobateur",
+      "refuserDeploiement",
       "reglerAutonomie",
       "reglerCleDeveloppeur",
       "reglerDomaine",
@@ -11007,11 +11014,13 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "reglerShadow",
       "regles",
       "renommerConversation",
+      "retirerApprobateurDeploiement",
       "revoquerCleDeveloppeur",
       "shadow",
       "supprimerConversation",
       "universDetail",
-      "universRegistre"
+      "universRegistre",
+      "verifierPublicationDeploiement"
     ],
     "tables": [
       "gv_audits",
@@ -11027,6 +11036,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "in_chantier_previews",
       "in_connaissance",
       "in_conversation_resume",
+      "in_deploiements",
+      "in_deploy_approvers",
       "in_dev_appels",
       "in_dev_cles",
       "in_domaines",
