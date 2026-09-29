@@ -40,7 +40,7 @@ export interface AnomalieCliquable {
   readonly motif: MotifAnomalie;
 }
 
-export const CLIQUABLES_TOTAL = 2617;
+export const CLIQUABLES_TOTAL = 2620;
 
 export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/components/AccessDenied.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
@@ -340,7 +340,7 @@ export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/pages/intelligence/index.tsx", total: 21, moteur: 0, liens: 1, boutonsLocaux: 18, sansAction: 1, zones: 1 },
   { fichier: "client/src/pages/intelligence/modules/AgentDeveloppeur.tsx", total: 2, moteur: 0, liens: 0, boutonsLocaux: 2, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/intelligence/modules/Automatisations.tsx", total: 3, moteur: 0, liens: 0, boutonsLocaux: 3, sansAction: 0, zones: 0 },
-  { fichier: "client/src/pages/intelligence/modules/Conversation.tsx", total: 22, moteur: 0, liens: 0, boutonsLocaux: 21, sansAction: 0, zones: 1 },
+  { fichier: "client/src/pages/intelligence/modules/Conversation.tsx", total: 25, moteur: 0, liens: 0, boutonsLocaux: 24, sansAction: 0, zones: 1 },
   { fichier: "client/src/pages/intelligence/modules/DeploiementApprobateurs.tsx", total: 2, moteur: 0, liens: 0, boutonsLocaux: 2, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/intelligence/modules/DeploiementsEnAttente.tsx", total: 2, moteur: 0, liens: 0, boutonsLocaux: 2, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/intelligence/modules/DeploiementSuivi.tsx", total: 1, moteur: 0, liens: 0, boutonsLocaux: 1, sansAction: 0, zones: 0 },
