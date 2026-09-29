@@ -1037,6 +1037,13 @@
       "when": 1788404839000,
       "tag": "0149_deploiement_approbateurs",
       "breakpoints": true
+    },
+    {
+      "idx": 148,
+      "version": "7",
+      "when": 1788404840000,
+      "tag": "0150_coffre_secrets",
+      "breakpoints": true
     }
   ]
 }

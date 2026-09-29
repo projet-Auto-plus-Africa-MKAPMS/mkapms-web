@@ -20,7 +20,7 @@ export type DemandeMedia = z.infer<typeof demandeMedia>;
 type Base = Pick<typeof pool, "query" | "connect">;
 export async function produire(ownerId: number, role: string, brut: DemandeMedia, base: Base = pool, executer = routerCapacite) {
   const input = demandeMedia.parse(brut);
-  if (!texteMediaAutorise(input.texte)) throw new Error("Utilisez le coffre sécurisé pour les secrets.");
+  if (!texteMediaAutorise(input.texte)) throw new Error("Utilisez le Coffre secret d'AL-HUDHUD·M pour les secrets : ils ne se collent jamais dans un texte.");
   if(input.audio) lireAudio(input.audio);
   const hash = createHash("sha256").update(JSON.stringify({operation: input.operation, texte: input.texte, audio:input.audio})).digest("hex");
   const c = await base.connect();
