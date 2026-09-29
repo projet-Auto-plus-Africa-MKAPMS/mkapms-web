@@ -915,8 +915,8 @@ export default function CentreIntelligences() {
               </p>
             ) : null}
             {fil.map((b, i) => (
+              <div key={i}>
               <div
-                key={i}
                 className={`rounded-xl border p-3 text-sm ${
                   b.role === "moi"
                     ? "border-black/5 bg-[#FAFAFA]"
@@ -949,48 +949,49 @@ export default function CentreIntelligences() {
                     </ul>
                   </details>
                 ) : null}
-                {/*
-                 * Signalé par le PDG (capture d'écran de ChatGPT à l'appui) :
-                 * ces boutons doivent se poser SOUS la réponse, jamais collés
-                 * au bandeau du haut ni à la zone de saisie — comme dans
-                 * l'app de référence, où la ligne d'actions suit directement
-                 * le texte de la réponse, séparée par un peu d'espace, pas
-                 * une bordure.
-                 */}
-                {b.role === "moteur" && b.ok ? (
-                  <div className="mt-2 flex items-center gap-1">
+              </div>
+              {/*
+               * Signalé par le PDG (capture d'écran de ChatGPT à l'appui) :
+               * ces boutons doivent se poser SOUS la réponse, jamais collés
+               * au bandeau du haut, à la zone de saisie, ni à la bordure de
+               * la bulle elle-même — comme dans l'app de référence, où la
+               * ligne d'actions suit la réponse séparée par de l'espace,
+               * hors de toute bordure. Jamais affichée sans réponse réelle.
+               */}
+              {b.role === "moteur" && b.ok ? (
+                <div className="mt-1.5 flex items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={() => copierTexte(i, b.texte)}
+                    className="inline-flex items-center gap-1 rounded-full p-1 text-black/40 hover:bg-black/5 hover:text-black/60"
+                    title="Copier la réponse"
+                  >
+                    {copie === i ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+                  </button>
+                  {ttsSupporte ? (
                     <button
                       type="button"
-                      onClick={() => copierTexte(i, b.texte)}
-                      className="inline-flex items-center gap-1 rounded-full p-1 text-black/40 hover:bg-black/5 hover:text-black/60"
-                      title="Copier la réponse"
+                      onClick={() => lireTexte(i, b.texte)}
+                      className={`inline-flex items-center gap-1 rounded-full p-1 hover:bg-black/5 ${
+                        lectureIndex === i ? "text-[#8B7500]" : "text-black/40 hover:text-black/60"
+                      }`}
+                      title={lectureIndex === i ? "Arrêter la lecture" : "Écouter la réponse"}
                     >
-                      {copie === i ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+                      <Volume2 className="h-3.5 w-3.5" />
                     </button>
-                    {ttsSupporte ? (
-                      <button
-                        type="button"
-                        onClick={() => lireTexte(i, b.texte)}
-                        className={`inline-flex items-center gap-1 rounded-full p-1 hover:bg-black/5 ${
-                          lectureIndex === i ? "text-[#8B7500]" : "text-black/40 hover:text-black/60"
-                        }`}
-                        title={lectureIndex === i ? "Arrêter la lecture" : "Écouter la réponse"}
-                      >
-                        <Volume2 className="h-3.5 w-3.5" />
-                      </button>
-                    ) : null}
-                    {partageSupporte ? (
-                      <button
-                        type="button"
-                        onClick={() => partagerTexte(b.texte)}
-                        className="inline-flex items-center gap-1 rounded-full p-1 text-black/40 hover:bg-black/5 hover:text-black/60"
-                        title="Partager la réponse"
-                      >
-                        <Share2 className="h-3.5 w-3.5" />
-                      </button>
-                    ) : null}
-                  </div>
-                ) : null}
+                  ) : null}
+                  {partageSupporte ? (
+                    <button
+                      type="button"
+                      onClick={() => partagerTexte(b.texte)}
+                      className="inline-flex items-center gap-1 rounded-full p-1 text-black/40 hover:bg-black/5 hover:text-black/60"
+                      title="Partager la réponse"
+                    >
+                      <Share2 className="h-3.5 w-3.5" />
+                    </button>
+                  ) : null}
+                </div>
+              ) : null}
               </div>
             ))}
           </div>
