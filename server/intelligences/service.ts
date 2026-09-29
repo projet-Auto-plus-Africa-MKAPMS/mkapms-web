@@ -577,11 +577,11 @@ export async function demander(input: DemandeInput): Promise<DemandeResultat> {
   const message =
     input.cote === "direction"
       ? [
-          "État constaté de la plateforme (lecture réelle en base, à utiliser tel quel) :",
-          ...contexte.map((l) => `- ${l}`),
+          `Demande du PDG : ${question}`,
           "",
           fil ? `Échanges précédents :\n${fil}\n` : "",
-          `Demande du PDG : ${question}`,
+          "Contexte de référence (lecture réelle en base) — ne consulte ce bloc que si la demande ci-dessus s'y rapporte ; pour une salutation, un remerciement ou une question de vie courante, ignore-le et réponds normalement :",
+          ...contexte.map((l) => `- ${l}`),
         ]
           .filter((l) => l.length > 0)
           .join("\n")
