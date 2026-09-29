@@ -40,9 +40,9 @@ import {
   Send,
   Sparkles,
   Mic,
-  MicOff,
   AudioLines,
   Paperclip,
+  Square,
   Trash2,
   Wrench,
   X,
@@ -94,6 +94,7 @@ export function Conversation({ navigation, active = true, onActivate, onChooseMo
   const dictation = useRef<{ stop: () => void } | null>(null);
   const appuiLong = useRef<number | null>(null);
   const appuiLongDeclenche = useRef(false);
+  const texteAvantDictee = useRef("");
   const [desktop, setDesktop] = useState(() => typeof window !== "undefined" && window.matchMedia("(min-width: 768px)").matches);
   useEffect(() => {
     mounted.current = true;
@@ -113,6 +114,13 @@ export function Conversation({ navigation, active = true, onActivate, onChooseMo
       dialog.querySelector<HTMLInputElement>('input[type="search"]')?.focus();
     } else if ((!panneauOuvert || desktop) && dialog.open) dialog.close();
   }, [panneauOuvert, desktop]);
+  /** La zone de saisie grandit avec le texte dicté ou tapé, jusqu'à une hauteur maximale gérée en CSS (overflow ensuite). */
+  useEffect(() => {
+    const el = zoneSaisie.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = `${el.scrollHeight}px`;
+  }, [question]);
   function saveDraft() { drafts.current.set(String(sessionId ?? "new"), question); }
   const normalise = (value: string) => value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase();
 
@@ -251,6 +259,7 @@ export function Conversation({ navigation, active = true, onActivate, onChooseMo
   function basculerDictee() {
     if (ecoute) { arreterDictee(); return; }
     const base = question;
+    texteAvantDictee.current = base;
     const control = startDictation("fr-FR", {
       onText: (texte) => setQuestion(base ? `${base} ${texte}` : texte),
       onError: (texte) => { setNotice(texte); setEcoute(false); dictation.current = null; },
@@ -259,6 +268,22 @@ export function Conversation({ navigation, active = true, onActivate, onChooseMo
     if (!control) { setNotice("La dictée n'est pas disponible sur ce navigateur."); return; }
     dictation.current = control;
     setEcoute(true);
+  }
+
+  /** Annule : arrête la dictée et efface ce qu'elle a écrit, revient au texte d'avant. */
+  function annulerDictee() {
+    dictation.current?.stop();
+    dictation.current = null;
+    setEcoute(false);
+    setQuestion(texteAvantDictee.current);
+  }
+
+  /** Arrête la dictée et envoie immédiatement ce qui a été dicté, sans repasser par la relecture. */
+  function envoyerDicteeMaintenant() {
+    dictation.current?.stop();
+    dictation.current = null;
+    setEcoute(false);
+    envoyer();
   }
 
   /** Rester appuyé sur le micro ramène directement aux paramètres (voix & production) — jamais de suppression, juste un autre chemin. */
@@ -522,7 +547,7 @@ export function Conversation({ navigation, active = true, onActivate, onChooseMo
 
         <div className="alhud-composer-wrap border-t border-black/5 p-3">
           <div className="alhud-composer flex items-end gap-2">
-            <button type="button" className="alhud-composer-action" onClick={() => onChooseModule?.("documents")} aria-label="Ajouter un fichier"><Paperclip className="h-5 w-5" /></button>
+            {!ecoute && <button type="button" className="alhud-composer-action" onClick={() => onChooseModule?.("documents")} aria-label="Ajouter un fichier"><Paperclip className="h-5 w-5" /></button>}
             <textarea
               ref={zoneSaisie}
               value={question}
@@ -535,45 +560,69 @@ export function Conversation({ navigation, active = true, onActivate, onChooseMo
                   envoyer();
                 }
               }}
-              rows={4}
+              rows={ecoute ? 2 : 4}
               maxLength={8000}
               placeholder="Demander à AL-HUDHUD·M"
               className="alhud-composer-input flex-1 rounded-xl border-0 p-2 text-sm outline-none"
             />
-            <button
-              type="button"
-              className="alhud-composer-action"
-              onClick={clicMicro}
-              onPointerDown={debutAppuiLong}
-              onPointerUp={finAppuiLong}
-              onPointerLeave={finAppuiLong}
-              aria-pressed={ecoute}
-              aria-label={ecoute ? "Arrêter la dictée" : "Dicter (rester appuyé pour les paramètres voix)"}
-              title={ecoute ? "Arrêter la dictée" : "Dicter — clic pour démarrer/arrêter, rester appuyé pour les paramètres voix"}
-            >
-              {ecoute ? <MicOff className="h-5 w-5 text-red-600" /> : <Mic className="h-5 w-5" />}
-            </button>
-            <button type="button" className="alhud-composer-voice" onClick={() => onChooseModule?.("voix")} aria-label="Conversation vocale"><AudioLines className="h-5 w-5" /></button>
-            {derniereQuestion && !busy && !historyUnavailable && (
-              <button
-                type="button"
-                onClick={regenerer}
-                aria-label="Régénérer la dernière réponse"
-                title="Régénérer la dernière réponse"
-                className="alhud-composer-regenerate grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-black/10 text-black/60 hover:bg-black/5"
-              >
-                <RotateCcw className="h-4 w-4" />
-              </button>
+            {ecoute ? (
+              <>
+                <button type="button" className="alhud-composer-action" onClick={annulerDictee} aria-label="Annuler la dictée" title="Annuler">
+                  <X className="h-5 w-5" />
+                </button>
+                <div className="alhud-recording-wave" role="status" aria-label="Dictée en cours"><span /><span /><span /><span /><span /></div>
+                <button type="button" className="alhud-composer-action" onClick={arreterDictee} aria-label="Arrêter la dictée (garder le texte)" title="Arrêter">
+                  <Square className="h-4 w-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={envoyerDicteeMaintenant}
+                  disabled={busy || historyUnavailable || question.trim().length < 2}
+                  aria-label="Arrêter la dictée et envoyer"
+                  title="Envoyer"
+                  className="alhud-composer-send grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-[#111] text-white disabled:opacity-40"
+                >
+                  <Send className="h-4 w-4" />
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  className="alhud-composer-action"
+                  onClick={clicMicro}
+                  onPointerDown={debutAppuiLong}
+                  onPointerUp={finAppuiLong}
+                  onPointerLeave={finAppuiLong}
+                  aria-pressed={ecoute}
+                  aria-label="Dicter (rester appuyé pour les paramètres voix)"
+                  title="Dicter — clic pour démarrer/arrêter, rester appuyé pour les paramètres voix"
+                >
+                  <Mic className="h-5 w-5" />
+                </button>
+                <button type="button" className="alhud-composer-voice" onClick={() => onChooseModule?.("voix")} aria-label="Conversation vocale"><AudioLines className="h-5 w-5" /></button>
+                {derniereQuestion && !busy && !historyUnavailable && (
+                  <button
+                    type="button"
+                    onClick={regenerer}
+                    aria-label="Régénérer la dernière réponse"
+                    title="Régénérer la dernière réponse"
+                    className="alhud-composer-regenerate grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-black/10 text-black/60 hover:bg-black/5"
+                  >
+                    <RotateCcw className="h-4 w-4" />
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => envoyer()}
+                  disabled={busy || historyUnavailable || question.trim().length < 2}
+                  aria-label="Envoyer le message"
+                  className="alhud-composer-send grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-[#111] text-white disabled:opacity-40"
+                >
+                  <Send className="h-4 w-4" />
+                </button>
+              </>
             )}
-            <button
-              type="button"
-              onClick={() => envoyer()}
-              disabled={busy || historyUnavailable || question.trim().length < 2}
-              aria-label="Envoyer le message"
-              className="alhud-composer-send grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-[#111] text-white disabled:opacity-40"
-            >
-              <Send className="h-4 w-4" />
-            </button>
           </div>
           <p role="status" className="text-xs text-black/60">{notice}</p>
           <p className="mt-1 text-[10px] text-black/50">

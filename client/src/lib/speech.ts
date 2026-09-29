@@ -72,6 +72,9 @@ const MESSAGES: Record<string, string> = {
   aborted: "Dictée interrompue.",
 };
 
+/** Erreurs qui signalent un blocage réel (permission, matériel) : jamais de relance dessus. */
+const SANS_REDEMARRAGE = new Set(["not-allowed", "service-not-allowed", "audio-capture"]);
+
 /**
  * Démarre une dictée. Retourne un objet permettant de l'arrêter, ou null si le
  * navigateur ne sait pas dicter.
@@ -83,28 +86,61 @@ export function startDictation(
   const Ctor = speechRecognitionConstructor();
   if (!Ctor) return null;
 
-  const reco = new Ctor();
-  reco.lang = lang;
-  // Continue tant que la personne n'a pas cliqué pour arrêter : le navigateur
-  // ne doit jamais couper la dictée tout seul après une pause de parole.
-  reco.continuous = true;
-  reco.interimResults = true;
+  let arretDemande = false;
+  let bloquant = false;
+  let texteAccumule = "";
+  let texteSessionCourante = "";
+  let actuel: SpeechRecognitionLike;
 
-  reco.onresult = (event) => {
-    let texte = "";
-    let final = false;
-    for (let i = event.resultIndex; i < event.results.length; i += 1) {
-      const r = event.results[i];
-      texte += r[0].transcript;
-      if (r.isFinal) final = true;
-    }
-    handlers.onText(texte, final);
-  };
-  reco.onerror = (event) => {
-    handlers.onError(MESSAGES[event.error] ?? `Dictée impossible : ${event.error}.`);
-  };
-  reco.onend = () => handlers.onEnd();
+  const texteComplet = () => [texteAccumule, texteSessionCourante].filter(Boolean).join(" ");
 
-  reco.start();
-  return { stop: () => reco.stop() };
+  function demarrerSession(): SpeechRecognitionLike {
+    const reco = new Ctor();
+    reco.lang = lang;
+    // Continue tant que la personne n'a pas cliqué pour arrêter : le navigateur
+    // ne doit jamais couper la dictée tout seul après une pause de parole.
+    reco.continuous = true;
+    reco.interimResults = true;
+
+    reco.onresult = (event) => {
+      let texte = "";
+      let final = false;
+      for (let i = 0; i < event.results.length; i += 1) {
+        const r = event.results[i];
+        texte += r[0].transcript;
+        if (r.isFinal) final = true;
+      }
+      texteSessionCourante = texte;
+      handlers.onText(texteComplet(), final);
+    };
+    reco.onerror = (event) => {
+      bloquant = SANS_REDEMARRAGE.has(event.error);
+      // Une erreur récupérable (no-speech, aborted, network) est suivie d'un
+      // redémarrage automatique et silencieux dans onend : inutile d'alarmer la
+      // personne pour une coupure qu'elle ne verra jamais. Seule une erreur
+      // bloquante (permission refusée, pas de micro…) lui est montrée.
+      if (bloquant) {
+        handlers.onError(MESSAGES[event.error] ?? `Dictée impossible : ${event.error}.`);
+      }
+    };
+    reco.onend = () => {
+      if (arretDemande || bloquant) { handlers.onEnd(); return; }
+      // Certains navigateurs (Safari/iOS notamment) coupent la reconnaissance tout seuls
+      // après une courte pause même avec continuous=true : on relance automatiquement, en
+      // conservant ce qui a déjà été dicté, tant que la personne n'a pas cliqué sur stop.
+      texteAccumule = texteComplet();
+      texteSessionCourante = "";
+      actuel = demarrerSession();
+    };
+    reco.start();
+    return reco;
+  }
+
+  actuel = demarrerSession();
+  return {
+    stop: () => {
+      arretDemande = true;
+      actuel.stop();
+    },
+  };
 }
