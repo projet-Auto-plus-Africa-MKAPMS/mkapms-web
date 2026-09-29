@@ -59,6 +59,15 @@ import {
   retirerApprobateur,
 } from "./deploiement/approbateurs.js";
 import {
+  ajouterSecret as ajouterSecretCoffre,
+  contenuSecretSchema,
+  etatCoffre,
+  journalCoffre,
+  listerSecrets as listerSecretsCoffre,
+  remplacerSecret as remplacerSecretCoffre,
+  supprimerSecret as supprimerSecretCoffre,
+} from "./coffre.js";
+import {
   enAttentePour as deploiementsEnAttentePour,
   historique as listerHistoriqueDeploiements,
   approuver as approuverDeploiementSvc,
@@ -810,6 +819,36 @@ export const intelligencesRouter = router({
   retirerApprobateurDeploiement: pdgProcedure
     .input(z.object({ userId: z.number().int().positive() }))
     .mutation(({ input, ctx }) => retirerApprobateur({ ...input, actorId: ctx.user?.uid })),
+
+  /**
+   * Coffre de secrets du PDG (server/intelligences/coffre.ts). Aucune
+   * procédure ne renvoie jamais une valeur : la lecture ne rend que des
+   * métadonnées masquées, le contenu est en écriture seule, et seul le code
+   * serveur d'un outil précis peut le déchiffrer (chaque usage est journalisé).
+   */
+  coffreEtat: pdgProcedure.query(({ ctx }) => etatCoffre(ctx.user.uid)),
+
+  coffreSecrets: pdgProcedure.query(({ ctx }) => listerSecretsCoffre(ctx.user.uid)),
+
+  coffreJournal: pdgProcedure.query(({ ctx }) => journalCoffre(ctx.user.uid, 50)),
+
+  coffreAjouter: pdgProcedure
+    .input(
+      z.object({
+        nom: z.string().trim().min(2).max(120),
+        service: z.string().trim().max(120).default(""),
+        contenu: contenuSecretSchema,
+      }),
+    )
+    .mutation(({ input, ctx }) => ajouterSecretCoffre({ ownerId: ctx.user.uid, ...input })),
+
+  coffreRemplacer: pdgProcedure
+    .input(z.object({ id: z.number().int().positive(), contenu: contenuSecretSchema }))
+    .mutation(({ input, ctx }) => remplacerSecretCoffre({ ownerId: ctx.user.uid, ...input })),
+
+  coffreSupprimer: pdgProcedure
+    .input(z.object({ id: z.number().int().positive() }))
+    .mutation(({ input, ctx }) => supprimerSecretCoffre({ ownerId: ctx.user.uid, ...input })),
 
   /** Demandes de déploiement en attente de LA personne connectée (jamais un rôle). */
   deploiementsEnAttente: protectedProcedure.query(({ ctx }) => {

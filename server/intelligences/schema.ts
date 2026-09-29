@@ -418,6 +418,62 @@ export const inDeploiements = pgTable(
   }),
 );
 
+/**
+ * Coffre de secrets du PDG — identifiants, clés et fichiers que le moteur peut
+ * UTILISER sans jamais les voir. Le contenu n'est stocké que chiffré
+ * (AES-256-GCM, server/intelligences/coffre.ts) : aucune colonne ici ne porte
+ * une valeur en clair. Seules les métadonnées (nom, service visé, aperçu
+ * masqué) sont lisibles.
+ */
+export const inCoffreSecrets = pgTable(
+  "in_coffre_secrets",
+  {
+    id: serial("id").primaryKey(),
+    ownerId: integer("owner_id").notNull(),
+    nom: varchar("nom", { length: 120 }).notNull(),
+    /** Service visé, texte libre (ex. « Google Play Console », « Boutique »). */
+    service: varchar("service", { length: 120 }).notNull().default(""),
+    /** `identifiants` | `cle_api` | `fichier`. */
+    type: varchar("type", { length: 16 }).notNull(),
+    /** Aperçu volontairement pauvre et masqué — jamais de quoi reconstituer la valeur. */
+    apercu: varchar("apercu", { length: 160 }).notNull().default(""),
+    taille: integer("taille").notNull().default(0),
+    version: integer("version").notNull().default(1),
+    sel: varchar("sel", { length: 64 }).notNull(),
+    iv: varchar("iv", { length: 32 }).notNull(),
+    tag: varchar("tag", { length: 32 }).notNull(),
+    contenuChiffre: text("contenu_chiffre").notNull(),
+    dernierUsageAt: timestamp("dernier_usage_at"),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  },
+  (t) => ({
+    parProprietaireNom: uniqueIndex("in_coffre_secrets_owner_nom_idx").on(t.ownerId, t.nom),
+  }),
+);
+
+/**
+ * Journal d'accès au coffre : qui a créé, remplacé, supprimé ou fait UTILISER
+ * un secret, pourquoi et par quel outil. Ne porte jamais une valeur.
+ */
+export const inCoffreAcces = pgTable(
+  "in_coffre_acces",
+  {
+    id: bigserial("id", { mode: "number" }).primaryKey(),
+    secretId: integer("secret_id"),
+    nomSecret: varchar("nom_secret", { length: 120 }).notNull().default(""),
+    acteurId: integer("acteur_id"),
+    action: varchar("action", { length: 24 }).notNull(),
+    outil: varchar("outil", { length: 96 }).notNull().default(""),
+    motif: text("motif").notNull().default(""),
+    ok: boolean("ok").notNull().default(true),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (t) => ({
+    parSecret: index("in_coffre_acces_secret_idx").on(t.secretId, t.createdAt),
+  }),
+);
+
 export const inCapaciteEtat = pgTable("in_capacite_etat", {
   id: serial("id").primaryKey(),
   capacite: varchar("capacite", { length: 32 }).notNull().unique(),

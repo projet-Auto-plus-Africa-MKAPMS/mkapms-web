@@ -10,7 +10,7 @@ import {
   FolderKanban, Gauge, History, Home, Image as ImageIcon, Menu, MessageCircle,
   Mic, Plug, Search, Settings, ShieldCheck, Sparkles, Wrench, Brain as BrainIcon,
   Workflow, Database, ShoppingCart, Cloud, SlidersHorizontal, Library, Clock3,
-  Laptop, Grid2X2, ClipboardCheck, X
+  Laptop, Grid2X2, ClipboardCheck, KeyRound, X
 } from "lucide-react";
 import { useAuth } from "../../lib/auth";
 import { trpc } from "../../lib/trpc";
@@ -32,12 +32,13 @@ import { Permissions } from "./modules/Permissions";
 import { UsageCouts } from "./modules/UsageCouts";
 import { Historique } from "./modules/Historique";
 import { AgentDeveloppeur } from "./modules/AgentDeveloppeur";
+import { Coffre } from "./modules/Coffre";
 import "./workspace.css";
 
 type CleModule =
   | "accueil" | "conversation" | "developpeur" | "voix" | "images" | "documents" | "recherche"
   | "memoire" | "projets" | "agents" | "outils" | "code" | "automatisations"
-  | "integrations" | "parametres" | "permissions" | "usage" | "historique";
+  | "integrations" | "parametres" | "permissions" | "usage" | "historique" | "coffre";
 
 const MODULES: { cle: Exclude<CleModule,"accueil">; label: string; icone: typeof MessageCircle; Composant: () => JSX.Element }[] = [
   { cle: "conversation", label: "Conversation", icone: MessageCircle, Composant: Conversation },
@@ -55,6 +56,7 @@ const MODULES: { cle: Exclude<CleModule,"accueil">; label: string; icone: typeof
   { cle: "usage", label: "Usage & coûts", icone: Gauge, Composant: UsageCouts },
   { cle: "historique", label: "Historique", icone: History, Composant: Historique },
   { cle: "permissions", label: "Sécurité & permissions", icone: ShieldCheck, Composant: Permissions },
+  { cle: "coffre", label: "Coffre secret", icone: KeyRound, Composant: Coffre },
   { cle: "parametres", label: "Paramètres", icone: Settings, Composant: Parametres },
 ];
 
@@ -164,7 +166,7 @@ export default function MKAPMSIntelligence() {
   const workItems = [
     ["Accueil", Home, "accueil"], ["Suivi du chantier", BarChart3, "developpeur"],
     ["Documents", FileText, "documents"], ["Vérification IA", FileCheck2, "outils"],
-    ["Audit", ClipboardCheck, "historique"], ["Paramètres", Settings, "parametres"],
+    ["Audit", ClipboardCheck, "historique"], ["Coffre secret", KeyRound, "coffre"], ["Paramètres", Settings, "parametres"],
   ] as const;
 
   const nav = <div className="alhud-approved-menu">

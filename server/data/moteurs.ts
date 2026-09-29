@@ -10676,7 +10676,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "routeurs": [
       "intelligences"
     ],
-    "fichiersServeur": 91,
+    "fichiersServeur": 94,
     "dependancesDeclarees": [
       "ai_fabric",
       "code_graph",
@@ -10882,8 +10882,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "cliquables": 21,
         "parMoteur": 0,
         "sansAction": 1,
-        "textes": 53,
-        "mots": 180
+        "textes": 54,
+        "mots": 186
       }
     ],
     "ecransHotes": [
@@ -10932,6 +10932,12 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "chantierProjet",
       "chantierProjets",
       "coder",
+      "coffreAjouter",
+      "coffreEtat",
+      "coffreJournal",
+      "coffreRemplacer",
+      "coffreSecrets",
+      "coffreSupprimer",
       "comparaisonsShadow",
       "configStatus",
       "configStatusDirection",
@@ -11034,6 +11040,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "in_capacite_etat",
       "in_chantier_executions",
       "in_chantier_previews",
+      "in_coffre_acces",
+      "in_coffre_secrets",
       "in_connaissance",
       "in_conversation_resume",
       "in_deploiements",
@@ -11067,13 +11075,13 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "pdg",
       "public"
     ],
-    "textes": 62,
-    "mots": 269,
+    "textes": 63,
+    "mots": 275,
     "battement": "sonde",
     "manques": [
       {
         "genre": "bouton_sans_action",
-        "detail": "« Boutique » client/src/pages/intelligence/index.tsx:178"
+        "detail": "« Boutique » client/src/pages/intelligence/index.tsx:180"
       },
       {
         "genre": "dependance_non_declaree",
