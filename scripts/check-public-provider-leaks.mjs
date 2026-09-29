@@ -28,6 +28,7 @@ const LISTE_BLANCHE = new Set([
   join("client", "src", "pages", "CentreIA.tsx"), // écran direction — /admin/ia-couts
   join("client", "src", "pages", "CentreCommandes.tsx"), // écran direction — /admin/commandes
   join("client", "src", "pages", "CentreIntelligences.tsx"), // écran direction — /admin/intelligences, backé par pdgProcedure (demander/etc.) ; le commentaire du curseur d'intensité nomme "GPT-x" pour expliquer honnêtement au PDG qu'aucun second modèle n'est configuré
+  join("client", "src", "pages", "intelligence", "modules", "Conversation.tsx"), // écran direction — /intelligence, même moteur PDG (intelligences.demander, pdgProcedure) que CentreIntelligences.tsx ; même curseur d'intensité, même motif de transparence sur "GPT-x"
   join("client", "src", "lib", "vehicleData.ts"), // "Mistral" y est un modèle utilitaire Renault, pas le fournisseur
 ]);
 

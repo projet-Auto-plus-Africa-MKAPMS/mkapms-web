@@ -69,6 +69,7 @@ function constructeurVocal(): ConstructeurReconnaissanceVocale | null {
 }
 import { trpc } from "../lib/trpc";
 import { useAuth } from "../lib/auth";
+import { type Intensite, NIVEAUX_INTENSITE, intensiteValide, CLE_INTENSITE_STOCKAGE } from "../lib/intensite";
 
 type Onglet =
   | "medias"
@@ -154,19 +155,9 @@ const GROUPES_MENU: { titre: string; onglets: Onglet[] }[] = [
  * plus direct quand on le baisse). Si la valeur choisie n'est pas acceptée
  * pour cet appel précis, le serveur retombe honnêtement sur une valeur qui
  * fonctionne (voir provider.ts, reasoningEffortPrefere) — jamais d'erreur
- * visible pour ça.
+ * visible pour ça. Type et constantes partagés avec Conversation.tsx via
+ * lib/intensite.ts : un seul réglage, pas deux implémentations.
  */
-type Intensite = "minimal" | "low" | "medium" | "high";
-const NIVEAUX_INTENSITE: { valeur: Intensite; libelle: string }[] = [
-  { valeur: "minimal", libelle: "Minimal" },
-  { valeur: "low", libelle: "Léger" },
-  { valeur: "medium", libelle: "Moyen" },
-  { valeur: "high", libelle: "Élevé" },
-];
-const INTENSITE_VALIDE = new Set<string>(NIVEAUX_INTENSITE.map((n) => n.valeur));
-function intensiteValide(valeur: string | null): Intensite {
-  return valeur && INTENSITE_VALIDE.has(valeur) ? (valeur as Intensite) : "medium";
-}
 
 const SANTE: Record<string, { pastille: string; texte: string; libelle: string }> = {
   up: { pastille: "bg-emerald-500", texte: "text-emerald-700", libelle: "Répond" },
@@ -239,7 +230,7 @@ export default function CentreIntelligences() {
   /** Intensité de réflexion demandée (voir NIVEAUX_INTENSITE) — mémorisée comme le choix de voix. */
   const [intensite, setIntensite] = useState<Intensite>(() => {
     try {
-      return intensiteValide(localStorage.getItem("mkapms_intensite_ia"));
+      return intensiteValide(localStorage.getItem(CLE_INTENSITE_STOCKAGE));
     } catch {
       return "medium";
     }
@@ -248,7 +239,7 @@ export default function CentreIntelligences() {
   function choisirIntensite(valeur: Intensite) {
     setIntensite(valeur);
     try {
-      localStorage.setItem("mkapms_intensite_ia", valeur);
+      localStorage.setItem(CLE_INTENSITE_STOCKAGE, valeur);
     } catch {
       // Stockage local indisponible (navigation privée) : le choix reste actif pour cette session.
     }
