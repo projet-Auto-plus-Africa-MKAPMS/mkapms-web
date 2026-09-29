@@ -110,6 +110,13 @@ export const CATEGORIES: Categorie[] = [
     detenteur: "intelligences",
     usage: "Expériences de mission : problème, diagnostic, solution, résultat.",
   },
+  {
+    code: "conversations",
+    libelle: "Mémoire des conversations",
+    detenteur: "intelligences",
+    usage:
+      "Résumé et faits retenus automatiquement de chaque conversation direction (via conversation-resume.ts), pour qu'une conversation ultérieure sur un sujet déjà abordé — même dans un autre fil — en retrouve le fil sans qu'on ait à tout répéter.",
+  },
 ];
 
 const PROPRES = new Set(

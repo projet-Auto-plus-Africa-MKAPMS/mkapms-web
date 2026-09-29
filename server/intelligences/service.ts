@@ -131,7 +131,13 @@ async function contexteMemoire(input: {
   if (!input.userId) return [];
   try {
     const resultats = await rechercherGlobale(input.question, input.userId, {
-      sources: ["memoire", "fichier", "connaissance"],
+      // "conversation" (messages passés, texte intégral, tous fils du même
+      // compte) et "memoire_entreprise" (résumés/faits versés automatiquement
+      // par conversation-resume.ts après chaque échange direction) : sans ces
+      // deux sources, un sujet déjà discuté dans un AUTRE fil ne remontait
+      // jamais ici — demande explicite du PDG que le moteur « enregistre tout »
+      // et fasse grandir sa connaissance d'une conversation à l'autre.
+      sources: ["memoire", "memoire_entreprise", "conversation", "fichier", "connaissance"],
       visibiliteConnaissance: ["interne", "pdg_uniquement"],
       sessionId: input.sessionId,
       limit: 4,

@@ -10,9 +10,9 @@
  * Distinct de server/search-os/ (moteur marketplace : annonces, garages,
  * villes, services — un domaine entièrement différent, pas dupliqué ici).
  */
-import { and, desc, eq, sql } from "drizzle-orm";
+import { and, desc, eq, ilike, or, sql } from "drizzle-orm";
 import { db } from "../db.js";
-import { inMessages, inSessions } from "./schema.js";
+import { inMemoire, inMessages, inSessions } from "./schema.js";
 import { rechercherDansFichiers } from "./fichiers.js";
 import { rechercher as rechercherConnaissance, type CategorieConnaissance } from "./connaissance.js";
 import { lister as listerMemoireUtilisateur } from "./memoire-utilisateur.js";
@@ -20,7 +20,7 @@ import { tracerRetrieval } from "./retrieval-audit.js";
 import { versTsQuery } from "./recherche-texte.js";
 import { randomUUID } from "node:crypto";
 
-export type SourceRecherche = "conversation" | "memoire" | "fichier" | "connaissance";
+export type SourceRecherche = "conversation" | "memoire" | "memoire_entreprise" | "fichier" | "connaissance";
 
 export interface ResultatRecherche {
   source: SourceRecherche;
@@ -82,6 +82,39 @@ async function chercherMemoire(query: string, userId: number, limit: number): Pr
     }));
 }
 
+/**
+ * Mémoire d'entreprise (memoire.ts, in_memoire — 13 catégories globales,
+ * dont "conversations", alimentée automatiquement par conversation-resume.ts
+ * après chaque échange direction) : requête directe et minimale, distincte de
+ * memoire.rechercher() qui fédère en plus code_graph/knowledge_engine/
+ * expériences — déjà couverts séparément par contexteDirection() dans
+ * service.ts, pas la peine de les redemander ici.
+ */
+async function chercherMemoireEntreprise(query: string, limit: number): Promise<ResultatRecherche[]> {
+  const motif = `%${query}%`;
+  const lignes = await db
+    .select()
+    .from(inMemoire)
+    .where(
+      and(
+        eq(inMemoire.cycle, "actif"),
+        or(ilike(inMemoire.titre, motif), ilike(inMemoire.contenu, motif), ilike(inMemoire.cle, motif)),
+      ),
+    )
+    .orderBy(desc(inMemoire.updatedAt))
+    .limit(limit);
+
+  return lignes.map((l) => ({
+    source: "memoire_entreprise" as const,
+    id: l.id,
+    titre: `[${l.categorie}] ${l.titre}`,
+    extrait: l.contenu.slice(0, 300),
+    score: 1,
+    date: l.updatedAt,
+    projetId: null,
+  }));
+}
+
 export interface OptionsRechercheGlobale {
   sources?: SourceRecherche[];
   visibiliteConnaissance?: string[];
@@ -107,6 +140,7 @@ export async function rechercherGlobale(query: string, userId: number, options: 
 
   if (sources.includes("conversation")) resultats.push(...(await chercherConversations(q, userId, limit)));
   if (sources.includes("memoire")) resultats.push(...(await chercherMemoire(q, userId, limit)));
+  if (sources.includes("memoire_entreprise")) resultats.push(...(await chercherMemoireEntreprise(q, limit)));
   if (sources.includes("fichier")) {
     const r = await rechercherDansFichiers(q, userId, limit);
     resultats.push(

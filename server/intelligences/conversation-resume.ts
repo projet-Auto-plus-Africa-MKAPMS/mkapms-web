@@ -13,8 +13,9 @@
  */
 import { and, asc, eq, gt } from "drizzle-orm";
 import { db } from "../db.js";
-import { inConversationResume, inMessages } from "./schema.js";
+import { inConversationResume, inMessages, inSessions } from "./schema.js";
 import { appeler } from "./provider.js";
+import { ecrire as ecrireMemoire } from "./memoire.js";
 
 const SEUIL_MESSAGES = 16;
 const SYSTEME_RESUME =
@@ -93,6 +94,21 @@ export async function resumerSiNecessaire(sessionId: number, traceId: string): P
         target: inConversationResume.sessionId,
         set: { resume, faitsImportants: faits, couvertJusquauMessageId: dernierId, nbMessagesCouverts: nbTotal, updatedAt: new Date() },
       });
+
+    // Additif au résumé propre à cette session : le même résumé est aussi
+    // versé dans la mémoire globale (catégorie "conversations"), pour qu'une
+    // AUTRE conversation, plus tard, le retrouve via contexteMemoire()
+    // (rechercherGlobale sur inMemoire) — sans quoi l'apprentissage restait
+    // enfermé dans la session qui l'a produit et ne "grossissait" jamais la
+    // connaissance générale du moteur, demande explicite du PDG.
+    const [session] = await db.select({ titre: inSessions.titre }).from(inSessions).where(eq(inSessions.id, sessionId)).limit(1);
+    await ecrireMemoire({
+      categorie: "conversations",
+      cle: `conversation-${sessionId}`,
+      titre: session?.titre || `Conversation #${sessionId}`,
+      contenu: [resume, ...(faits.length ? [`Faits retenus : ${faits.join(" ; ")}`] : [])].filter(Boolean).join("\n"),
+      source: "conversation-resume",
+    });
   } catch {
     // Un résumé qui échoue ne doit jamais faire échouer la conversation elle-même.
   }
