@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Bot, CheckCircle2, GitBranch, Mic, MicOff, Send, ShieldAlert } from "lucide-react";
 import { trpc } from "../../../lib/trpc";
 import { speechRecognitionConstructor, startDictation } from "../../../lib/speech";
+import { DeploiementsEnAttente } from "./DeploiementsEnAttente";
 
 export function AgentDeveloppeur({ initialInstruction = "", onConsumed }: { initialInstruction?: string; onConsumed?: () => void }) {
   const [instruction, setInstruction] = useState(initialInstruction);
@@ -54,6 +55,7 @@ export function AgentDeveloppeur({ initialInstruction = "", onConsumed }: { init
       </div>
     </div>
     {message ? <p role="status" className="alhud-dev-message">{message}</p> : null}
+    <DeploiementsEnAttente />
     <div className="alhud-dev-history">
       <h3><GitBranch/> Travaux récents</h3>
       {dossiers.isLoading ? <p>Chargement…</p> : null}

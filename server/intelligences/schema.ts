@@ -367,6 +367,57 @@ export const inPermissions = pgTable(
  * décision humaine. Une capacité désactivée par le PDG est refusée par le
  * routeur même si le fournisseur répond parfaitement.
  */
+/**
+ * Approbateurs de déploiement — désignation nominative, jamais par rôle : le
+ * propriétaire choisit une personne précise (lui-même ou un employé nommé)
+ * pour donner le feu vert à une mise en production. Révocable, journalisé.
+ */
+export const inDeployApprovers = pgTable(
+  "in_deploy_approvers",
+  {
+    id: serial("id").primaryKey(),
+    userId: integer("user_id").notNull(),
+    actif: boolean("actif").notNull().default(true),
+    motif: text("motif").notNull().default(""),
+    actorId: integer("actor_id"),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  },
+  (t) => ({
+    parUtilisateur: uniqueIndex("in_deploy_approvers_user_idx").on(t.userId),
+  }),
+);
+
+/**
+ * Demande de déploiement — le moteur ne déploie jamais lui-même (voir
+ * server/intelligences/orchestrateur.ts, étape "deploiement") : il ouvre une
+ * demande, une personne désignée l'approuve ou la refuse, et une fois la
+ * personne intervenue réellement (push, fusion), l'état Railway constaté ici
+ * vient d'un appel réel — jamais un statut supposé.
+ */
+export const inDeploiements = pgTable(
+  "in_deploiements",
+  {
+    id: serial("id").primaryKey(),
+    missionId: integer("mission_id"),
+    statut: varchar("statut", { length: 32 }).notNull().default("en_attente_approbation"),
+    demandeParId: integer("demande_par_id"),
+    approuveParId: integer("approuve_par_id"),
+    approuveLe: timestamp("approuve_le"),
+    motifDecision: text("motif_decision").notNull().default(""),
+    railwayDeploymentId: varchar("railway_deployment_id", { length: 64 }).notNull().default(""),
+    railwayStatut: varchar("railway_statut", { length: 32 }).notNull().default(""),
+    commitSha: varchar("commit_sha", { length: 64 }).notNull().default(""),
+    resultatVerification: text("resultat_verification").notNull().default(""),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  },
+  (t) => ({
+    parStatut: index("in_deploiements_statut_idx").on(t.statut, t.createdAt),
+    parMission: index("in_deploiements_mission_idx").on(t.missionId),
+  }),
+);
+
 export const inCapaciteEtat = pgTable("in_capacite_etat", {
   id: serial("id").primaryKey(),
   capacite: varchar("capacite", { length: 32 }).notNull().unique(),

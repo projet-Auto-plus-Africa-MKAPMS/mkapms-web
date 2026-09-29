@@ -36,6 +36,15 @@ export const env = {
   // « google<jeton>.html », « google<jeton> » ou « <jeton> » : permet de
   // vérifier un domaine sans déposer de fichier dans le dépôt.
   GOOGLE_SITE_VERIFICATION: get("GOOGLE_SITE_VERIFICATION"),
+  // ─── Railway (lecture seule de l'état d'un déploiement) ──────────
+  // Jeton de projet Railway (Project-Access-Token) + identifiants du
+  // projet/service/environnement à lire. Tant qu'ils manquent, l'état de
+  // publication reste honnêtement "indisponible" — ce moteur ne déclenche
+  // jamais de déploiement, il ne fait que constater un état réel.
+  RAILWAY_TOKEN: get("RAILWAY_TOKEN"),
+  RAILWAY_PROJECT_ID: get("RAILWAY_PROJECT_ID"),
+  RAILWAY_SERVICE_ID: get("RAILWAY_SERVICE_ID"),
+  RAILWAY_ENVIRONMENT_ID: get("RAILWAY_ENVIRONMENT_ID"),
   // ─── Application Android (Play Store) ────────────────────────────
   // Identifiant du paquet et empreintes SHA-256 du certificat de signature,
   // séparées par une virgule. Tant que l'empreinte n'est pas fournie,
