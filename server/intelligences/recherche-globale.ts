@@ -10,7 +10,7 @@
  * Distinct de server/search-os/ (moteur marketplace : annonces, garages,
  * villes, services — un domaine entièrement différent, pas dupliqué ici).
  */
-import { and, desc, eq, ilike, or, sql } from "drizzle-orm";
+import { and, desc, eq, sql } from "drizzle-orm";
 import { db } from "../db.js";
 import { inMemoire, inMessages, inSessions } from "./schema.js";
 import { rechercherDansFichiers } from "./fichiers.js";
@@ -91,17 +91,27 @@ async function chercherMemoire(query: string, userId: number, limit: number): Pr
  * service.ts, pas la peine de les redemander ici.
  */
 async function chercherMemoireEntreprise(query: string, limit: number): Promise<ResultatRecherche[]> {
-  const motif = `%${query}%`;
+  // Même méthode que les autres sources (conversations, base de connaissances) :
+  // requête plein texte en OU sur chaque mot significatif, classée par ts_rank.
+  // Chercher la question ENTIÈRE comme sous-chaîne ne trouvait, en pratique,
+  // jamais rien pour une question en langage naturel — et un score constant
+  // aurait de toute façon dépassé celui de toutes les autres sources.
+  const tsq = versTsQuery(query);
+  if (!tsq) return [];
+  const vecteur = sql`to_tsvector('french', ${inMemoire.contenu} || ' ' || ${inMemoire.titre})`;
+  const rang = sql<number>`ts_rank(${vecteur}, to_tsquery('french', ${tsq}))`;
   const lignes = await db
-    .select()
+    .select({
+      id: inMemoire.id,
+      categorie: inMemoire.categorie,
+      titre: inMemoire.titre,
+      contenu: inMemoire.contenu,
+      updatedAt: inMemoire.updatedAt,
+      score: rang,
+    })
     .from(inMemoire)
-    .where(
-      and(
-        eq(inMemoire.cycle, "actif"),
-        or(ilike(inMemoire.titre, motif), ilike(inMemoire.contenu, motif), ilike(inMemoire.cle, motif)),
-      ),
-    )
-    .orderBy(desc(inMemoire.updatedAt))
+    .where(and(eq(inMemoire.cycle, "actif"), sql`${vecteur} @@ to_tsquery('french', ${tsq})`))
+    .orderBy(sql`${rang} desc`)
     .limit(limit);
 
   return lignes.map((l) => ({
@@ -109,7 +119,7 @@ async function chercherMemoireEntreprise(query: string, limit: number): Promise<
     id: l.id,
     titre: `[${l.categorie}] ${l.titre}`,
     extrait: l.contenu.slice(0, 300),
-    score: 1,
+    score: Number(l.score),
     date: l.updatedAt,
     projetId: null,
   }));
