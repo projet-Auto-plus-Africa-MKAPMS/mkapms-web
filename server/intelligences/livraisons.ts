@@ -2573,6 +2573,19 @@ export const LIVRAISONS: Livraison[] = [
       "Vérifié par Playwright (Chromium réel, 390×844, compte PDG) : appui long sur le micro affiche bien la section « Voix & production » dans Paramètres. Clic court : la dictée démarre réellement côté code (aucune navigation, `aria-pressed` bascule) — le test en sandbox headless échoue avec l'erreur navigateur `audio-capture` (« Aucun micro détecté sur cet appareil »), confirmée dans `MESSAGES` de `speech.ts` comme la gestion d'erreur normale, pas un bug : le conteneur n'a pas de périphérique audio réel même avec `--use-fake-device-for-media-stream` (ce drapeau ne simule que `getUserMedia`, pas le moteur de reconnaissance vocale du navigateur). `npx tsc --noEmit` et `npm run build` complets verts sans régénération nécessaire (aucun nouveau bouton cliquable, aucune nouvelle procédure tRPC — uniquement un nouveau chemin de navigation vers un composant déjà catalogué).\n\nLeçon générale : un test Playwright en environnement sans périphérique audio ne peut jamais valider le résultat final d'une dictée vocale, seulement le déclenchement correct du code et sa gestion d'erreur propre — ne pas confondre une limite d'environnement de test avec un bug réel, mais vérifier quand même que l'erreur est bien celle attendue (ici `audio-capture`, pas une erreur de code inattendue) avant de conclure.",
     domaine: "moteurs",
   },
+  {
+    cle: "chat-header-sous-barre-etat-safe-area-top",
+    titre: "AL-HUDHUD·M Chat : accueil trop remonté sous la barre d'état (batterie/réseau/heure) sur téléphone",
+    moteurs: ["intelligences"],
+    quoi:
+      "Retour du PDG (capture d'écran) : sur téléphone, le bandeau du haut d'AL-HUDHUD·M (menu, onglets Chat/Travail, recherche) est collé trop près de la barre d'état du système (heure, réseau, batterie), au point de sembler la chevaucher. Cause réelle : lors du passage en plein écran (`.alhud-approved-shell` en `100dvh`, sans le chrome du site), le bandeau `.alhud-approved-header` gardait un `padding` fixe (`18px`, `12px` sur mobile) sans tenir compte de `env(safe-area-inset-top)` — la zone de sécurité que l'OS réserve sous l'encoche/barre d'état sur les appareils avec `viewport-fit=cover` (déjà réglé dans `client/index.html`). Corrigé en portant le padding-top du bandeau à `max(18px, env(safe-area-inset-top))` (desktop) et `max(12px, env(safe-area-inset-top))` (mobile) — exactement le même mécanisme déjà en place ailleurs dans le dépôt (`Layout.tsx`, `Vehicule.tsx`, `Compte.tsx`, `Messagerie.tsx`) pour ce même symptôme « header trop bas/trop haut » sur Android/Samsung.",
+    pourquoi:
+      "Le plein écran d'AL-HUDHUD·M (livré précédemment pour éviter le double défilement) a retiré le chrome du site, qui gérait déjà cette zone de sécurité — sans reprendre l'équivalent pour le nouveau bandeau autonome, le contenu se retrouve visuellement sous l'encoche/la barre d'état sur les appareils qui en ont une.",
+    ou: ["client/src/pages/intelligence/workspace.css"],
+    lecon:
+      "Vérifié : en environnement de test sans encoche matérielle (`env(safe-area-inset-top)` = 0), le padding calculé reste inchangé (`12px`, `max(12px,0)=12px`) — aucune régression sur l'immense majorité des appareils/navigateurs de test. La correction elle-même reprend un motif déjà validé ailleurs dans le dépôt pour le même symptôme, donc son effet sur un vrai appareil avec encoche est fiable sans pouvoir être observé directement en sandbox (aucun appareil physique disponible ici). `npx tsc --noEmit` et `npm run build` complets verts.\n\nLeçon générale : retirer le chrome partagé d'une page (ici pour un plein écran dédié) retire aussi silencieusement toute la gestion d'accessoires système (zones de sécurité, encoche) que ce chrome assurait — en la retirant, il faut explicitement vérifier ce qu'elle gérait et le reprendre dans le nouveau composant, pas seulement le contenu visible.",
+    domaine: "moteurs",
+  },
 ];
 
 /**
