@@ -533,11 +533,11 @@ export function Conversation({ navigation, active = true, onActivate, onChooseMo
             </div>
           ) : (
             fil.map((b) => (
+              <div key={b.id} className={`group max-w-[85%] ${b.role === "moi" ? "ml-auto" : ""}`}>
               <div
-                key={b.id}
-                className={`group relative max-w-[85%] rounded-xl border p-3 text-sm ${
+                className={`relative rounded-xl border p-3 text-sm ${
                   b.role === "moi"
-                    ? "ml-auto border-black/5 bg-[#FAFAFA]"
+                    ? "border-black/5 bg-[#FAFAFA]"
                     : b.ok
                       ? "border-[#8B7500]/20 bg-[#FFFBEA]"
                       : "border-red-200 bg-red-50/40"
@@ -564,8 +564,11 @@ export function Conversation({ navigation, active = true, onActivate, onChooseMo
                     ))}
                   </div>
                 )}
+              </div>
 
-                <div className="mt-2 flex justify-end gap-3">
+                {/* Rangée d'actions séparée de la bulle — jamais collée à sa bordure, et jamais affichée sans réponse réelle (Signalé par le PDG, capture ChatGPT à l'appui). */}
+                {((b.role === "moteur" && b.ok) || b.role === "moi") && (
+                <div className="mt-1.5 flex justify-end gap-3">
                   {b.role === "moteur" && b.ok && (
                     <>
                       <button
@@ -616,6 +619,7 @@ export function Conversation({ navigation, active = true, onActivate, onChooseMo
                     </>
                   )}
                 </div>
+                )}
               </div>
             ))
           )}
