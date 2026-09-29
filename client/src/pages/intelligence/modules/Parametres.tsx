@@ -1,6 +1,7 @@
 import { FonctionsControle } from "./FonctionsControle";
 import { DeploiementApprobateurs } from "./DeploiementApprobateurs";
 import { DeploiementSuivi } from "./DeploiementSuivi";
+import { VoixTempsReel } from "./VoixTempsReel";
 /**
  * MKA.P-MS AI — module Paramètres (LOT IA02B).
  *
@@ -45,6 +46,16 @@ export function Parametres() {
         </div>)}
       </section>
       <div id="alhud-live-settings"><FonctionsControle /></div>
+      <div id="alhud-voix-settings" className="rounded-xl border border-black/10 p-4">
+        <div className="mb-3 flex items-center gap-2">
+          <Settings className="h-5 w-5 text-black/40" />
+          <h2 className="text-base font-black text-[#111]">Voix & production</h2>
+        </div>
+        <p className="mb-3 text-sm text-black/60">
+          Rester appuyé sur le micro du Chat ramène ici. Génération audio à partir d'un texte, et transcription d'un fichier audio.
+        </p>
+        <VoixTempsReel />
+      </div>
       <DeploiementApprobateurs />
       <DeploiementSuivi />
       <div className="rounded-xl border border-black/10 p-4">
