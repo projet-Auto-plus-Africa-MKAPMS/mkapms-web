@@ -33,23 +33,27 @@ import {
   AlertTriangle,
   Check,
   Copy,
+  Gauge,
   Menu,
   Pencil,
   Plus,
   RotateCcw,
   Send,
+  Share2,
   Sparkles,
   Mic,
   AudioLines,
   Paperclip,
   Square,
   Trash2,
+  Volume2,
   Wrench,
   X,
 } from "lucide-react";
 import { trpc } from "../../../lib/trpc";
 import { EtatServiceIntelligence } from "../../../components/EtatServiceIntelligence";
 import { startDictation } from "../../../lib/speech";
+import { type Intensite, NIVEAUX_INTENSITE, intensiteValide, CLE_INTENSITE_STOCKAGE } from "../../../lib/intensite";
 
 interface Bulle {
   id: string;
@@ -80,6 +84,17 @@ export function Conversation({ navigation, active = true, onActivate, onChooseMo
   const [renommageId, setRenommageId] = useState<number | null>(null);
   const [renommageTitre, setRenommageTitre] = useState("");
   const [copieId, setCopieId] = useState<string | null>(null);
+  const [lectureId, setLectureId] = useState<string | null>(null);
+  const ttsSupporte = typeof window !== "undefined" && "speechSynthesis" in window;
+  const partageSupporte = typeof navigator !== "undefined" && typeof navigator.share === "function";
+  const [intensite, setIntensite] = useState<Intensite>(() => {
+    try {
+      return intensiteValide(localStorage.getItem(CLE_INTENSITE_STOCKAGE));
+    } catch {
+      return "medium";
+    }
+  });
+  const [intensiteMenuOuvert, setIntensiteMenuOuvert] = useState(false);
   const sessionChargee = useRef<number | null>(null);
   const finDuFil = useRef<HTMLDivElement>(null);
   const zoneSaisie = useRef<HTMLTextAreaElement>(null);
@@ -316,7 +331,7 @@ export function Conversation({ navigation, active = true, onActivate, onChooseMo
     setFil((f) => [...f, { id: idBulle(), role: "moi", texte: q, ok: true, motif: "", outils: [] }]);
     setDerniereQuestion(q);
     if (consumesDraft) setQuestion("");
-    demander.mutate({ question: q, sessionId });
+    demander.mutate({ question: q, sessionId, effort: intensite });
   }
 
   function regenerer() {
@@ -340,6 +355,49 @@ export function Conversation({ navigation, active = true, onActivate, onChooseMo
       setTimeout(() => setCopieId((c) => (c === id ? null : c)), 1500);
     } catch {
       if (mounted.current) setNotice("Copie indisponible. Vous pouvez sélectionner le texte.");
+    }
+  }
+
+  function choisirIntensite(valeur: Intensite) {
+    setIntensite(valeur);
+    try {
+      localStorage.setItem(CLE_INTENSITE_STOCKAGE, valeur);
+    } catch {
+      // Stockage local indisponible (navigation privée) : le choix reste actif pour cette session.
+    }
+  }
+
+  /** Lecture à voix haute réelle (synthèse vocale du navigateur, standard) — bascule play/stop sur la même réponse. Reprend la voix choisie sur le Centre Intelligence direction, si une l'a été. */
+  function lireTexte(id: string, texte: string) {
+    if (!ttsSupporte) return;
+    window.speechSynthesis.cancel();
+    if (lectureId === id) {
+      setLectureId(null);
+      return;
+    }
+    const u = new SpeechSynthesisUtterance(texte);
+    let voixChoisie = "";
+    try {
+      voixChoisie = localStorage.getItem("mkapms_voix_tts") ?? "";
+    } catch {
+      // Stockage local indisponible : voix par défaut du navigateur.
+    }
+    const choisie = window.speechSynthesis.getVoices().find((v) => v.name === voixChoisie);
+    u.lang = choisie?.lang ?? "fr-FR";
+    if (choisie) u.voice = choisie;
+    u.onend = () => setLectureId((c) => (c === id ? null : c));
+    u.onerror = () => setLectureId((c) => (c === id ? null : c));
+    window.speechSynthesis.speak(u);
+    setLectureId(id);
+  }
+
+  /** Partage réel (API navigateur standard) — jamais câblé si le navigateur ne l'expose pas (partageSupporte). */
+  async function partagerTexte(texte: string) {
+    if (!navigator.share) return;
+    try {
+      await navigator.share({ text: texte, title: "AL-HUDHUD·M" });
+    } catch {
+      // Partage annulé par l'utilisateur ou refusé par le système : rien à signaler.
     }
   }
 
@@ -509,15 +567,39 @@ export function Conversation({ navigation, active = true, onActivate, onChooseMo
 
                 <div className="mt-2 flex justify-end gap-3">
                   {b.role === "moteur" && b.ok && (
-                    <button
-                      type="button"
-                      onClick={() => copier(b.id, b.texte)}
-                      aria-label="Copier cette réponse"
-                      title="Copier"
-                      className="text-black/30 hover:text-black/60"
-                    >
-                      {copieId === b.id ? <Check className="h-3.5 w-3.5 text-[#1a7f37]" /> : <Copy className="h-3.5 w-3.5" />}
-                    </button>
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => copier(b.id, b.texte)}
+                        aria-label="Copier cette réponse"
+                        title="Copier"
+                        className="text-black/30 hover:text-black/60"
+                      >
+                        {copieId === b.id ? <Check className="h-3.5 w-3.5 text-[#1a7f37]" /> : <Copy className="h-3.5 w-3.5" />}
+                      </button>
+                      {ttsSupporte && (
+                        <button
+                          type="button"
+                          onClick={() => lireTexte(b.id, b.texte)}
+                          aria-label={lectureId === b.id ? "Arrêter la lecture" : "Écouter cette réponse"}
+                          title={lectureId === b.id ? "Arrêter la lecture" : "Écouter"}
+                          className={lectureId === b.id ? "text-[#8B7500]" : "text-black/30 hover:text-black/60"}
+                        >
+                          <Volume2 className="h-3.5 w-3.5" />
+                        </button>
+                      )}
+                      {partageSupporte && (
+                        <button
+                          type="button"
+                          onClick={() => partagerTexte(b.texte)}
+                          aria-label="Partager cette réponse"
+                          title="Partager"
+                          className="text-black/30 hover:text-black/60"
+                        >
+                          <Share2 className="h-3.5 w-3.5" />
+                        </button>
+                      )}
+                    </>
                   )}
                   {b.role === "moi" && (
                     <>
@@ -601,6 +683,59 @@ export function Conversation({ navigation, active = true, onActivate, onChooseMo
                   <Mic className="h-5 w-5" />
                 </button>
                 <button type="button" className="alhud-composer-voice" onClick={() => onChooseModule?.("voix")} aria-label="Conversation vocale"><AudioLines className="h-5 w-5" /></button>
+                <div className="relative">
+                  <button
+                    type="button"
+                    className="alhud-composer-action"
+                    onClick={() => setIntensiteMenuOuvert((v) => !v)}
+                    aria-label="Régler l'intensité de réflexion"
+                    title="Intensité de réflexion"
+                  >
+                    <Gauge className="h-5 w-5" />
+                  </button>
+                  {intensiteMenuOuvert ? (
+                    <>
+                      <button
+                        type="button"
+                        aria-label="Fermer le réglage d'intensité"
+                        onClick={() => setIntensiteMenuOuvert(false)}
+                        className="fixed inset-0 z-10 cursor-default"
+                      />
+                      <div className="absolute bottom-full right-0 z-20 mb-2 w-60 rounded-2xl border border-black/10 bg-white p-3 shadow-xl">
+                        <div className="flex items-center justify-between">
+                          <p className="text-[11px] font-black uppercase tracking-wide text-black/40">
+                            Intensité de réflexion
+                          </p>
+                          <button
+                            type="button"
+                            onClick={() => setIntensiteMenuOuvert(false)}
+                            className="rounded-full p-1 hover:bg-black/5"
+                          >
+                            <X className="h-3.5 w-3.5 text-black/40" />
+                          </button>
+                        </div>
+                        <input
+                          type="range"
+                          min={0}
+                          max={NIVEAUX_INTENSITE.length - 1}
+                          step={1}
+                          value={Math.max(0, NIVEAUX_INTENSITE.findIndex((n) => n.valeur === intensite))}
+                          onChange={(e) => choisirIntensite(NIVEAUX_INTENSITE[Number(e.target.value)].valeur)}
+                          className="mt-2 w-full accent-[#8B7500]"
+                        />
+                        <div className="mt-1 flex justify-between text-[9px] font-bold text-black/40">
+                          {NIVEAUX_INTENSITE.map((n) => (
+                            <span key={n.valeur}>{n.libelle}</span>
+                          ))}
+                        </div>
+                        <p className="mt-2 text-[10px] leading-snug text-black/45">
+                          Un seul modèle est configuré ({"gpt-5.5"}) : ce réglage ne le change pas, il le fait
+                          réfléchir plus ou moins longtemps avant de répondre.
+                        </p>
+                      </div>
+                    </>
+                  ) : null}
+                </div>
                 {derniereQuestion && !busy && !historyUnavailable && (
                   <button
                     type="button"
