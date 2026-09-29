@@ -409,9 +409,28 @@ function BackButton() {
   );
 }
 
+// AL-HUDHUD·M (MKAPMSIntelligence) est une appli plein écran avec son propre
+// en-tête, son propre pied de page et son propre calcul de hauteur (100dvh).
+// Empilée sous le chrome du site (en-tête fixe 72px, pied de page, barre de
+// navigation fixe en bas), la page devenait plus haute qu'un écran : il
+// fallait défiler pour voir soit le haut, soit la zone de saisie. Ces deux
+// routes précises sautent donc le chrome du site — inchangé partout ailleurs.
+const ECRANS_PLEIN_ECRAN = ["/admin/intelligences", "/intelligence"];
+
 export default function Layout({ children }: { children: ReactNode }) {
   const { pathname } = useLocation();
   const isHome = pathname === "/";
+  const pleinEcran = ECRANS_PLEIN_ECRAN.includes(pathname);
+
+  if (pleinEcran) {
+    return (
+      <div className="min-h-screen">
+        <DynamicPWAIcon />
+        {children}
+      </div>
+    );
+  }
+
   return (
     <div className="flex min-h-screen flex-col">
       {/* Bascule dynamique de l'icône PWA / favicon selon état d'authentification */}
