@@ -27,6 +27,7 @@ import { OUTILS_ESTIMATIONS } from "./familles/estimations.js";
 import { OUTILS_MEMOIRE } from "./familles/memoire.js";
 import { OUTILS_FICHIERS_RAG } from "./familles/fichiers-rag.js";
 import { OUTILS_API_EXTERNES } from "./familles/api-externes.js";
+import { OUTILS_RECHERCHE } from "./familles/recherche.js";
 import { OUTILS_A_ACTIVER } from "./familles/capacites-a-activer.js";
 
 export const NIVEAUX_RISQUE = ["READ_ONLY", "LOW", "MEDIUM", "HIGH", "CRITICAL"] as const;
@@ -330,6 +331,7 @@ export const OUTILS: OutilSpec[] = [
   ...OUTILS_MEMOIRE,
   ...OUTILS_FICHIERS_RAG,
   ...OUTILS_API_EXTERNES,
+  ...OUTILS_RECHERCHE,
   ...OUTILS_A_ACTIVER,
 ];
 
