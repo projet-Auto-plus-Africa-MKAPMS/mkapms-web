@@ -40,6 +40,7 @@ import {
   Send,
   Sparkles,
   Mic,
+  MicOff,
   AudioLines,
   Paperclip,
   Trash2,
@@ -48,6 +49,7 @@ import {
 } from "lucide-react";
 import { trpc } from "../../../lib/trpc";
 import { EtatServiceIntelligence } from "../../../components/EtatServiceIntelligence";
+import { startDictation } from "../../../lib/speech";
 
 interface Bulle {
   id: string;
@@ -88,10 +90,14 @@ export function Conversation({ navigation, active = true, onActivate, onChooseMo
   const sent = useRef<{ key: string; text: string; consumesDraft: boolean } | null>(null);
   const drafts = useRef(new Map<string, string>());
   const [notice, setNotice] = useState("");
+  const [ecoute, setEcoute] = useState(false);
+  const dictation = useRef<{ stop: () => void } | null>(null);
+  const appuiLong = useRef<number | null>(null);
+  const appuiLongDeclenche = useRef(false);
   const [desktop, setDesktop] = useState(() => typeof window !== "undefined" && window.matchMedia("(min-width: 768px)").matches);
   useEffect(() => {
     mounted.current = true;
-    return () => { mounted.current = false; drafts.current.clear(); sent.current = null; };
+    return () => { mounted.current = false; drafts.current.clear(); sent.current = null; dictation.current?.stop(); };
   }, []);
   useEffect(() => {
     const media = window.matchMedia("(min-width: 768px)");
@@ -234,6 +240,41 @@ export function Conversation({ navigation, active = true, onActivate, onChooseMo
     setNotice(""); onActivate?.();
     setSessionId(id);
     setPanneauOuvert(false);
+  }
+
+  function arreterDictee() {
+    dictation.current?.stop();
+    dictation.current = null;
+    setEcoute(false);
+  }
+
+  function basculerDictee() {
+    if (ecoute) { arreterDictee(); return; }
+    const base = question;
+    const control = startDictation("fr-FR", {
+      onText: (texte) => setQuestion(base ? `${base} ${texte}` : texte),
+      onError: (texte) => { setNotice(texte); setEcoute(false); dictation.current = null; },
+      onEnd: () => { dictation.current = null; setEcoute(false); },
+    });
+    if (!control) { setNotice("La dictée n'est pas disponible sur ce navigateur."); return; }
+    dictation.current = control;
+    setEcoute(true);
+  }
+
+  /** Rester appuyé sur le micro ramène directement aux paramètres (voix & production) — jamais de suppression, juste un autre chemin. */
+  function debutAppuiLong() {
+    appuiLongDeclenche.current = false;
+    appuiLong.current = window.setTimeout(() => {
+      appuiLongDeclenche.current = true;
+      onChooseModule?.("parametres");
+    }, 600);
+  }
+  function finAppuiLong() {
+    if (appuiLong.current) { window.clearTimeout(appuiLong.current); appuiLong.current = null; }
+  }
+  function clicMicro() {
+    if (appuiLongDeclenche.current) { appuiLongDeclenche.current = false; return; }
+    basculerDictee();
   }
 
   function envoyer(texte?: string, mode: "composer" | "regenerate" = "composer") {
@@ -499,7 +540,19 @@ export function Conversation({ navigation, active = true, onActivate, onChooseMo
               placeholder="Demander à AL-HUDHUD·M"
               className="alhud-composer-input flex-1 rounded-xl border-0 p-2 text-sm outline-none"
             />
-            <button type="button" className="alhud-composer-action" onClick={() => onChooseModule?.("voix")} aria-label="Microphone"><Mic className="h-5 w-5" /></button>
+            <button
+              type="button"
+              className="alhud-composer-action"
+              onClick={clicMicro}
+              onPointerDown={debutAppuiLong}
+              onPointerUp={finAppuiLong}
+              onPointerLeave={finAppuiLong}
+              aria-pressed={ecoute}
+              aria-label={ecoute ? "Arrêter la dictée" : "Dicter (rester appuyé pour les paramètres voix)"}
+              title={ecoute ? "Arrêter la dictée" : "Dicter — clic pour démarrer/arrêter, rester appuyé pour les paramètres voix"}
+            >
+              {ecoute ? <MicOff className="h-5 w-5 text-red-600" /> : <Mic className="h-5 w-5" />}
+            </button>
             <button type="button" className="alhud-composer-voice" onClick={() => onChooseModule?.("voix")} aria-label="Conversation vocale"><AudioLines className="h-5 w-5" /></button>
             {derniereQuestion && !busy && !historyUnavailable && (
               <button

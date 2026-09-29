@@ -85,7 +85,9 @@ export function startDictation(
 
   const reco = new Ctor();
   reco.lang = lang;
-  reco.continuous = false;
+  // Continue tant que la personne n'a pas cliqué pour arrêter : le navigateur
+  // ne doit jamais couper la dictée tout seul après une pause de parole.
+  reco.continuous = true;
   reco.interimResults = true;
 
   reco.onresult = (event) => {
