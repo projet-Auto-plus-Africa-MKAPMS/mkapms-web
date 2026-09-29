@@ -85,6 +85,9 @@ export function startDictation(
 ): { stop: () => void } | null {
   const Ctor = speechRecognitionConstructor();
   if (!Ctor) return null;
+  // Constructeur re-typé non-nul explicitement : TypeScript ne conserve pas
+  // l'étroitesse de `Ctor` à l'intérieur de la fonction imbriquée demarrerSession.
+  const ConstructeurReco: SpeechRecognitionConstructor = Ctor;
 
   let arretDemande = false;
   let bloquant = false;
@@ -95,7 +98,7 @@ export function startDictation(
   const texteComplet = () => [texteAccumule, texteSessionCourante].filter(Boolean).join(" ");
 
   function demarrerSession(): SpeechRecognitionLike {
-    const reco = new Ctor();
+    const reco = new ConstructeurReco();
     reco.lang = lang;
     // Continue tant que la personne n'a pas cliqué pour arrêter : le navigateur
     // ne doit jamais couper la dictée tout seul après une pause de parole.
