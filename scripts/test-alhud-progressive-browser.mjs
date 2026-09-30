@@ -124,7 +124,7 @@ try {
    await expect(page.getByRole('timer')).toHaveCount(0);
 
    await (await nav()).getByRole('button',{name:'Catalogue de test',exact:true}).click();
-   await page.getByText('Réponse enregistrée de test',{exact:true}).waitFor();
+   await page.locator('.alhud-progressive-reply > span[aria-hidden="true"]').filter({hasText:'Réponse enregistrée de test'}).waitFor();
    await expect(page.locator('.alhud-progressive-reply[data-revealing="true"]')).toHaveCount(0);
 
    await page.evaluate(()=>{window.fixture.failSend=false;window.fixture.delay=80;window.fixture.response=Array(150).fill('Une longue réponse réellement reçue pour vérifier le défilement.').join('\n');});
@@ -132,6 +132,7 @@ try {
    await send.click();
    await page.locator('.alhud-progressive-reply[data-revealing="true"]').waitFor();
    const log=page.getByRole('log',{name:'Conversation'});
+   await page.waitForFunction(()=>{const el=document.querySelector('[role=log]');return el.scrollHeight>el.clientHeight+100;});
    await log.evaluate(el=>{el.scrollTop=0;el.dispatchEvent(new Event('scroll'));});
    await expect(page.getByRole('button',{name:'Aller à la dernière réponse'})).toBeVisible();
    await expect(page.locator('.alhud-progressive-reply').last()).toHaveAttribute('data-revealing','false');
