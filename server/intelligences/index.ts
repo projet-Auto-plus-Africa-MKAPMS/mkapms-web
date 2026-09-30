@@ -531,6 +531,8 @@ export const intelligencesRouter = router({
         countryCode: z.string().max(8).nullable().optional(),
         /** Photos/documents joints en data URI — 4 maximum (voir provider.ts). */
         images: z.array(z.string().max(8_000_000)).max(4).optional(),
+        /** Fichiers privés du RAG explicitement joints depuis le compositeur. */
+        fichierIds: z.array(z.number().int().positive()).max(4).optional(),
         /** Intensité de réflexion souhaitée (voir provider.ts, reasoningEffortPrefere) — jamais un choix de modèle. */
         effort: z.enum(["minimal", "low", "medium", "high"]).optional(),
       }),
@@ -547,6 +549,7 @@ export const intelligencesRouter = router({
         role: ctx.user?.role ?? null,
         countryCode: input.countryCode ?? null,
         images: input.images,
+        fichierIds: input.fichierIds,
         effort: input.effort,
       });
     }),

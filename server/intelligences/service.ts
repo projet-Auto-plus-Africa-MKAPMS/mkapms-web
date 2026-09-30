@@ -34,6 +34,7 @@ import { listerActifs } from "./outils/registre.js";
 import { randomUUID } from "node:crypto";
 import { resumerSiNecessaire } from "./conversation-resume.js";
 import { rechercherGlobale } from "./recherche-globale.js";
+import { lireFichier } from "./fichiers.js";
 
 function jourCourant(): string {
   return new Date().toISOString().slice(0, 10);
@@ -322,6 +323,8 @@ export interface DemandeInput {
   langue?: string | null;
   /** Photos/documents joints en data URI (côté direction uniquement pour l'instant) — voir provider.ts pour la limite réelle (4). */
   images?: string[];
+  /** Fichiers privés déjà déposés dans le RAG, explicitement joints à ce tour. */
+  fichierIds?: number[];
   /**
    * Préférence PDG d'intensité de réflexion du modèle (« minimal » à « high »,
    * voir provider.ts reasoningEffortPrefere) — jamais un choix de modèle,
@@ -555,6 +558,23 @@ export async function demander(input: DemandeInput): Promise<DemandeResultat> {
     );
   }
 
+  const fichiersJoints: string[] = [];
+  if (input.cote === "direction" && input.userId && input.fichierIds?.length) {
+    let caracteres = 0;
+    for (const id of [...new Set(input.fichierIds)].slice(0, 4)) {
+      const fichier = await lireFichier(id, input.userId);
+      if (fichier.resume.statutPipeline !== "ready_for_rag" || !fichier.contenuTexte) {
+        fichiersJoints.push(`Fichier joint « ${fichier.resume.nom} » : non lisible par le RAG (${fichier.resume.statutPipeline}).`);
+        continue;
+      }
+      const restant = Math.max(0, 24_000 - caracteres);
+      if (restant === 0) break;
+      const contenu = fichier.contenuTexte.slice(0, restant);
+      caracteres += contenu.length;
+      fichiersJoints.push(`Fichier privé joint « ${fichier.resume.nom} » (accès limité au propriétaire) :\n${contenu}`);
+    }
+  }
+
   const contexte =
     input.cote === "direction"
       ? [
@@ -566,6 +586,7 @@ export async function demander(input: DemandeInput): Promise<DemandeResultat> {
             sessionId,
           })),
           ...(await contexteMemoire({ question, userId: input.userId, sessionId })),
+          ...fichiersJoints,
         ]
       : [];
   const historique = await db
