@@ -61,13 +61,14 @@
 .alhud-composer-send{margin-left:auto;border-radius:50%!important;width:40px!important;height:40px!important}
 .alhud-live-conversation{position:relative}
 .alhud-live-conversation [role=log]>.group:not(.ml-auto){background:#fff!important}
+.alhud-live-conversation [role=log]>.group:not(.ml-auto)>div:first-child:has(.alhud-progressive-reply){background:#fff!important;border-color:transparent!important}
 .alhud-progressive-reply{line-height:1.6;overflow-wrap:anywhere}
 .alhud-progressive-reply .alhud-sr-only{user-select:none}
 .alhud-active-line{display:inline-block;max-width:100%;vertical-align:bottom;color:transparent;background-image:linear-gradient(100deg,#8b6914 0%,#c79c26 35%,#ffe99b 48%,#b38a16 62%,#8b6914 100%),linear-gradient(#111,#111);background-size:240% 1.6em,100% 100%;background-repeat:no-repeat;background-position:100% 100%,0 0;background-clip:text;-webkit-background-clip:text;animation:alhud-gold-reflection 1.8s linear infinite}
 @keyframes alhud-gold-reflection{from{background-position:100% 100%,0 0}to{background-position:0% 100%,0 0}}
 .alhud-waiting-reply{display:flex;align-items:center;flex-wrap:wrap;gap:12px;padding:12px 0;font-size:14px;line-height:1.6;background:#fff}
 .alhud-waiting-time{color:#64748b;font-size:12px;font-variant-numeric:tabular-nums}
-.alhud-scroll-bottom{position:absolute;right:18px;bottom:190px;z-index:5;display:grid;place-items:center;width:40px;height:40px;border:1px solid #e2e8f0;border-radius:50%;background:#fff;color:#64748b;box-shadow:0 4px 16px rgb(15 23 42/.1)}
+.alhud-scroll-bottom{position:relative;align-self:center;flex-shrink:0;margin-top:-44px;margin-bottom:4px;z-index:5;display:grid;place-items:center;width:40px;height:40px;border:1px solid #e2e8f0;border-radius:50%;background:#fff;color:#64748b;box-shadow:0 4px 16px rgb(15 23 42/.1)}
 .alhud-recording-wave{background:#fff8e1}.alhud-recording-wave span{background:#b38a16}
 @media(max-width:430px){.alhud-composer-action,.alhud-composer-voice{width:34px;height:34px;min-width:34px!important}.alhud-composer{column-gap:4px!important;padding:8px}}
 @media(prefers-reduced-motion:reduce){.alhud-active-line{animation:none;color:#8b6914;background:none}}

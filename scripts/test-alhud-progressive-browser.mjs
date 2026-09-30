@@ -82,6 +82,7 @@ try {
    await expect(timer).toHaveText('0:01');
    await page.locator('.alhud-progressive-reply[data-revealing="true"]').waitFor();
    const reply=page.locator('.alhud-progressive-reply').last();
+   assert.equal(await reply.evaluate(el=>getComputedStyle(el.parentElement).backgroundColor),'rgb(255, 255, 255)','answer stays on white');
    const full=await reply.locator('.alhud-sr-only').textContent();
    const visible=await reply.locator(':scope > span[aria-hidden="true"]').textContent();
    assert(full.length>visible.length,'full answer is announced while visual text grows');
