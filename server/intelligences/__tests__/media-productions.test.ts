@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {produireMediaNatif,transcrireAudioNatif} from '../provider.js';
+import {creerAppelVocalTempsReel,produireMediaNatif,transcrireAudioNatif} from '../provider.js';
 import {texteMediaAutorise,demandeMedia} from '../media-productions.js';
 const config={cle:'unit-test-only',modele:'configured-model'};
 const png='iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/l9sAAAAASUVORK5CYII=';
@@ -58,4 +58,26 @@ test('transcription validates binary format, bounds result, uses multipart and n
  const common={requestId:'31c67eaa-5372-4e8e-b8d4-f6cb61bbd79f',texte:'Audio',droitsConfirmes:true};
  assert.equal(demandeMedia.safeParse({...common,operation:'transcription'}).success,false);
  assert.equal(demandeMedia.safeParse({...common,operation:'image',audio}).success,false);
+});
+
+test('realtime WebRTC keeps the provider key server-side and configures each microphone mode', async () => {
+ const envName=['OPENAI','API','KEY'].join('_');const previous=process.env[envName];process.env[envName]='sk-realtime-server-only';
+ const offer=`v=0\r\n${'a=x\r\n'.repeat(20)}`;const answer=`v=0\r\n${'a=y\r\n'.repeat(20)}`;
+ try {
+  for(const mode of ['dictee','conversation'] as const){
+   const result=await creerAppelVocalTempsReel(offer,mode,{langue:'fr-FR',voix:'coral',safetyId:'hashed-user'},async(url,init)=>{
+    assert.ok(String(url).endsWith('/v1/realtime/calls'));assert.equal(init?.method,'POST');assert.equal(init?.redirect,'error');
+    assert.equal(new Headers(init?.headers).get('authorization'),'Bearer sk-realtime-server-only');
+    assert.equal(new Headers(init?.headers).get('openai-safety-identifier'),'hashed-user');
+    const form=init?.body as FormData;assert.equal(form.get('sdp'),offer.trim());
+    const session=JSON.parse(String(form.get('session')));
+    assert.equal(session.type,'realtime');assert.equal(session.model,'gpt-realtime-2.1');assert.equal(session.audio.input.transcription.language,'fr');assert.equal(session.audio.output.voice,'coral');
+    assert.equal(session.audio.input.turn_detection.create_response,mode==='conversation');
+    assert.equal(JSON.stringify(session).includes('sk-realtime-server-only'),false);
+    return new Response(answer,{status:200,headers:{'Content-Type':'application/sdp'}});
+   });
+   assert.equal(result,answer.trim());assert.equal(result.includes('sk-realtime-server-only'),false);
+  }
+  await assert.rejects(creerAppelVocalTempsReel('not-sdp','dictee',{},async()=>{throw Error('must not call');}),/REALTIME_SDP_INVALID/);
+ } finally { if(previous===undefined)delete process.env[envName];else process.env[envName]=previous; }
 });

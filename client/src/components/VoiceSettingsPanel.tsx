@@ -7,6 +7,7 @@ import {
   useVoicePreferences,
   type VoiceLanguage,
   type VoiceMode,
+  type RealtimeVoiceName,
 } from "../lib/voicePreferences";
 
 function Toggle({ value, onChange, label }: { value: boolean; onChange: (value: boolean) => void; label: string }) {
@@ -63,6 +64,13 @@ export function VoiceSettingsPanel({ title = "Voix" }: { title?: string }) {
         <option value="">Voix système</option>
         {voices.map((voice) => <option key={`${voice.name}-${voice.lang}`} value={voice.name}>{voice.name} · {voice.lang}{voice.default ? " · par défaut" : ""}</option>)}
       </select> : <p className="rounded-xl bg-black/[0.03] px-3 py-3 text-sm text-black/55">{ttsSupported ? "Chargement des voix installées…" : "La lecture vocale n’est pas disponible sur ce navigateur."}</p>}
+    </div>
+
+    <div className="border-b border-black/5 p-4">
+      <label className="mb-2 block text-xs font-black uppercase tracking-wide text-black/40" htmlFor="alhud-realtime-voice-choice">Voix de la conversation directe</label>
+      <select id="alhud-realtime-voice-choice" value={preferences.realtimeVoice} onChange={(event) => update("realtimeVoice", event.target.value as RealtimeVoiceName)} className="w-full rounded-xl border border-black/10 bg-white px-3 py-3 text-sm font-semibold">
+        <option value="marin">Marin</option><option value="coral">Coral</option><option value="sage">Sage</option><option value="verse">Verse</option><option value="alloy">Alloy</option><option value="ash">Ash</option><option value="ballad">Ballad</option><option value="echo">Echo</option><option value="shimmer">Shimmer</option>
+      </select>
     </div>
 
     <div className="divide-y divide-black/5">
