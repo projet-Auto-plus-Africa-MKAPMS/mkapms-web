@@ -40,7 +40,7 @@ export async function startRealtimeVoice(options: RealtimeVoiceOptions): Promise
   const channel = peer.createDataChannel("oai-events");
   const audio = document.createElement("audio");
   audio.autoplay = true;
-  audio.playsInline = true;
+  audio.setAttribute("playsinline", "true");
   audio.hidden = true;
   document.body.appendChild(audio);
   let closed = false;
