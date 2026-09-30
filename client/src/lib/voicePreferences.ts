@@ -2,9 +2,11 @@ import { useEffect, useState } from "react";
 
 export type VoiceMode = "live" | "one_turn";
 export type VoiceLanguage = "auto" | "fr-FR" | "en-US" | "ar-SA";
+export type RealtimeVoiceName = "marin" | "coral" | "sage" | "verse" | "alloy" | "ash" | "ballad" | "echo" | "shimmer";
 
 export interface VoicePreferences {
   voiceName: string;
+  realtimeVoice: RealtimeVoiceName;
   mode: VoiceMode;
   language: VoiceLanguage;
   autoStart: boolean;
@@ -26,6 +28,7 @@ export const DICTATION_HISTORY_EVENT = "mkapms:dictation-history";
 
 export const DEFAULT_VOICE_PREFERENCES: VoicePreferences = {
   voiceName: "",
+  realtimeVoice: "marin",
   mode: "live",
   language: "auto",
   autoStart: false,
@@ -43,6 +46,9 @@ export function readVoicePreferences(): VoicePreferences {
     const legacyVoice = localStorage.getItem(LEGACY_VOICE_KEY) ?? "";
     return {
       voiceName: typeof parsed.voiceName === "string" ? parsed.voiceName : legacyVoice,
+      realtimeVoice: ["marin", "coral", "sage", "verse", "alloy", "ash", "ballad", "echo", "shimmer"].includes(String(parsed.realtimeVoice))
+        ? parsed.realtimeVoice as RealtimeVoiceName
+        : "marin",
       mode: parsed.mode === "one_turn" ? "one_turn" : "live",
       language: ["auto", "fr-FR", "en-US", "ar-SA"].includes(String(parsed.language))
         ? parsed.language as VoiceLanguage

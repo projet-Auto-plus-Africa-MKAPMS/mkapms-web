@@ -447,6 +447,44 @@ async function session(input: DemandeInput): Promise<number> {
   return creee?.id ?? 0;
 }
 
+/** Enregistre un tour déjà produit par la session Realtime, sans le rejouer. */
+export async function enregistrerEchangeVocal(input: {
+  question: string;
+  reponse: string;
+  sessionId?: number | null;
+  userId: number;
+  langue?: string | null;
+}): Promise<{ sessionId: number }> {
+  const question = input.question.trim().slice(0, 8000);
+  const reponse = input.reponse.trim().slice(0, 20_000);
+  if (!question || !reponse) throw new Error("ECHANGE_VOCAL_VIDE");
+  const sessionId = await session({
+    question,
+    cote: "direction",
+    sessionId: input.sessionId,
+    userId: input.userId,
+    langue: input.langue ?? "fr",
+  });
+  const traceId = randomUUID();
+  await db.insert(inMessages).values([
+    { sessionId, cote: "direction", role: "utilisateur", contenu: question, traceId },
+    {
+      sessionId,
+      cote: "direction",
+      role: "moteur",
+      contenu: reponse,
+      fournisseur: "realtime",
+      modele: "gpt-realtime-2.1",
+      traceId,
+    },
+  ]);
+  await db.update(inSessions)
+    .set({ messages: sql`${inSessions.messages} + 2`, dernierAt: new Date() })
+    .where(eq(inSessions.id, sessionId));
+  await emitSafe({ source: "intelligences", type: "intelligences.echange", payload: { sessionId, cote: "direction", ok: true, fournisseur: "realtime" } });
+  return { sessionId };
+}
+
 /** Une question, une réponse réelle — ou le motif exact de l'absence de réponse. */
 export async function demander(input: DemandeInput): Promise<DemandeResultat> {
   const sessionId = await session(input);

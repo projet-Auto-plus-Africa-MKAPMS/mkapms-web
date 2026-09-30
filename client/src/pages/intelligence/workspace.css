@@ -78,3 +78,52 @@
 @media(max-width:430px){.alhud-composer-action,.alhud-composer-voice{width:34px;height:34px;min-width:34px!important}.alhud-composer{column-gap:4px!important;padding:8px}}
 @media(prefers-reduced-motion:reduce){.alhud-active-line{animation:none;color:#8b6914;background:none}}
 @media(forced-colors:active){.alhud-active-line{animation:none;color:CanvasText;background:none}}
+.alhud-voice-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  min-height: 100dvh;
+  padding: max(1.25rem, env(safe-area-inset-top)) 1.5rem max(1.5rem, env(safe-area-inset-bottom));
+  background: #fff;
+  color: #0f172a;
+}
+.alhud-voice-screen-top { display: flex; justify-content: space-between; }
+.alhud-voice-screen-top button,
+.alhud-voice-controls button {
+  display: grid;
+  width: 3.75rem;
+  height: 3.75rem;
+  place-items: center;
+  border-radius: 9999px;
+  background: #f7f7f8;
+  box-shadow: 0 12px 34px rgb(15 23 42 / 9%);
+}
+.alhud-voice-screen-top svg,
+.alhud-voice-controls svg { width: 1.75rem; height: 1.75rem; }
+.alhud-voice-stage { display: flex; min-height: 0; flex-direction: column; align-items: center; justify-content: center; gap: 1.5rem; text-align: center; }
+.alhud-voice-orb {
+  position: relative;
+  width: min(56vw, 21rem);
+  aspect-ratio: 1;
+  overflow: hidden;
+  border-radius: 50%;
+  background: radial-gradient(circle at 64% 62%, #fff 0 12%, #d9e7ff 35%, #7888fb 67%, #655ee8 100%);
+  box-shadow: 0 35px 85px rgb(91 91 225 / 24%);
+  animation: alhud-orb-breathe 3.8s ease-in-out infinite;
+}
+.alhud-voice-orb::before,
+.alhud-voice-orb span { content: ""; position: absolute; inset: -18%; border-radius: 44%; filter: blur(22px); opacity: .72; }
+.alhud-voice-orb::before { background: #fff; transform: translate(32%, 36%) rotate(18deg); }
+.alhud-voice-orb span:first-child { background: #6476ff; transform: translate(-33%, -35%) rotate(45deg); }
+.alhud-voice-orb span:last-child { background: #edf4ff; transform: translate(28%, -16%) rotate(-25deg); }
+.alhud-voice-orb.speaking { animation-duration: 1.25s; }
+.alhud-voice-orb.thinking { animation-duration: 2s; filter: saturate(.8); }
+.alhud-voice-state { min-height: 1.5rem; font-size: 1rem; font-weight: 800; color: #111827; }
+.alhud-voice-caption { min-height: 3rem; max-width: 38rem; padding-inline: 1rem; font-size: .9rem; line-height: 1.45; color: rgb(15 23 42 / 55%); }
+.alhud-voice-controls { display: flex; justify-content: center; gap: 1.25rem; }
+.alhud-voice-controls button.active { background: #e8efff; color: #2563eb; }
+.alhud-voice-controls button.end { background: #151515; color: #fff; }
+@keyframes alhud-orb-breathe { 50% { transform: scale(1.045) rotate(1.5deg); box-shadow: 0 42px 100px rgb(91 91 225 / 32%); } }
+@media (prefers-reduced-motion: reduce) { .alhud-voice-orb { animation: none; } }

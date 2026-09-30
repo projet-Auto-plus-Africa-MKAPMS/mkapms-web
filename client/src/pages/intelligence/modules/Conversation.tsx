@@ -27,8 +27,9 @@
  *  - les photos et fichiers du compositeur sont réellement transmis au même
  *    moteur (vision ou RAG privé) ; Caméra/Photos/Fichiers/Plugins ne sont pas
  *    des raccourcis vers le formulaire de travail ;
- *  - le bouton vocal bleu reste dans ce fil : écoute → envoi → réponse lue →
- *    nouvelle écoute, sans minuterie sur la surface PDG.
+ *  - le bouton vocal bleu ouvre une session WebRTC speech-to-speech dédiée,
+ *    sans minuterie sur la surface PDG ; ses tours terminés restent enregistrés
+ *    dans ce même fil de conversation.
  */
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import "../workspace.css";
@@ -46,6 +47,7 @@ import {
   Share2,
   Sparkles,
   Mic,
+  MicOff,
   AudioLines,
   Camera,
   FileText,
@@ -57,19 +59,13 @@ import {
   Volume2,
   Wrench,
   X,
+  SlidersHorizontal,
 } from "lucide-react";
 import { trpc } from "../../../lib/trpc";
 import { EtatServiceIntelligence } from "../../../components/EtatServiceIntelligence";
-import {
-  prefersRecordedDictation,
-  requestMicrophoneAccess,
-  speechRecognitionConstructor,
-  startDictation,
-  startRecordedDictation,
-  type RecordedAudioFormat,
-} from "../../../lib/speech";
 import { type Intensite, NIVEAUX_INTENSITE, intensiteValide, CLE_INTENSITE_STOCKAGE } from "../../../lib/intensite";
 import { addDictationHistory, recognitionLanguage, useVoicePreferences } from "../../../lib/voicePreferences";
+import { startRealtimeVoice, type RealtimeVoiceControl, type RealtimeVoiceState } from "../../../lib/realtimeVoice";
 
 import { ProgressiveReply, WaitingReply } from "./ReplyPresentation";
 
@@ -93,15 +89,6 @@ function lireFichierNavigateur(fichier: File): Promise<string> {
     lecteur.onload = () => resolve(String(lecteur.result ?? ""));
     lecteur.onerror = () => reject(lecteur.error ?? new Error("Lecture impossible."));
     lecteur.readAsDataURL(fichier);
-  });
-}
-
-function encoderAudio(blob: Blob): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const lecteur = new FileReader();
-    lecteur.onload = () => resolve(String(lecteur.result ?? "").split(",")[1] ?? "");
-    lecteur.onerror = () => reject(lecteur.error ?? new Error("Lecture audio impossible."));
-    lecteur.readAsDataURL(blob);
   });
 }
 
@@ -151,14 +138,18 @@ export function Conversation({ navigation, active = true, mode = "chat", onActiv
   const [notice, setNotice] = useState("");
   const [ecoute, setEcoute] = useState(false);
   const [conversationVocale, setConversationVocale] = useState(false);
+  const [vocalMuet, setVocalMuet] = useState(false);
+  const [transcriptionVocale, setTranscriptionVocale] = useState("");
   const [voicePreferences] = useVoicePreferences();
   const conversationVocaleRef = useRef(false);
   const missionVocaleRef = useRef(false);
   const missionDraftKeyRef = useRef("new");
-  const envoiVocalEnCours = useRef(false);
   const [etatVocal, setEtatVocal] = useState("");
   const dictation = useRef<{ stop: () => void | Promise<void> } | null>(null);
-  const dictationVocale = useRef<{ stop: () => void } | null>(null);
+  const realtimeVocal = useRef<RealtimeVoiceControl | null>(null);
+  const vocalGeneration = useRef(0);
+  const questionsVocales = useRef<string[]>([]);
+  const sessionIdRef = useRef<number | null>(null);
   const [menuPiecesOuvert, setMenuPiecesOuvert] = useState(false);
   const [pieces, setPieces] = useState<PieceConversation[]>([]);
   const cameraInput = useRef<HTMLInputElement>(null);
@@ -168,7 +159,6 @@ export function Conversation({ navigation, active = true, mode = "chat", onActiv
   const appuiLongDeclenche = useRef(false);
   const texteAvantDictee = useRef("");
   const dicteeGeneration = useRef(0);
-  const fileTranscriptions = useRef<Promise<void>>(Promise.resolve());
   const [desktop, setDesktop] = useState(() => typeof window !== "undefined" && window.matchMedia("(min-width: 768px)").matches);
   useEffect(() => {
     mounted.current = true;
@@ -177,10 +167,11 @@ export function Conversation({ navigation, active = true, mode = "chat", onActiv
       drafts.current.clear();
       sent.current = null;
       dictation.current?.stop();
-      dictationVocale.current?.stop();
+      realtimeVocal.current?.close();
       if (typeof window !== "undefined" && "speechSynthesis" in window) window.speechSynthesis.cancel();
     };
   }, []);
+  useEffect(() => { sessionIdRef.current = sessionId; }, [sessionId]);
   useEffect(() => {
     const media = window.matchMedia("(min-width: 768px)");
     const changed = () => { setDesktop(media.matches); if (media.matches) setPanneauOuvert(false); };
@@ -275,7 +266,6 @@ export function Conversation({ navigation, active = true, mode = "chat", onActiv
         },
       ]);
       void conversations.refetch();
-      if (submitted.vocal && conversationVocaleRef.current) repondreEtReecouter(r.reponse);
     },
     onError: (_error, _variables, submitted) => {
       if (!mounted.current || !submitted || sent.current !== submitted) return;
@@ -295,10 +285,6 @@ export function Conversation({ navigation, active = true, mode = "chat", onActiv
           outils: [],
         },
       ]);
-      if (submitted.vocal && conversationVocaleRef.current) {
-        if (voicePreferences.mode === "live") window.setTimeout(demarrerEcouteVocale, 700);
-        else arreterConversationVocale();
-      }
     },
     onSettled: (_result, _error, _variables, submitted) => { if (sent.current === submitted) { sendLock.current = false; sent.current = null; } },
   });
@@ -328,7 +314,6 @@ export function Conversation({ navigation, active = true, mode = "chat", onActiv
       setNotice("");
       drafts.current.delete(missionDraftKeyRef.current);
       setFil((f) => [...f, { id: idBulle(), role: "moteur", texte: r.rapport, ok: r.statut !== "echouee", motif: r.motif || "Mission interrompue.", outils: r.etapes.filter((e) => e.statut === "fait").map((e) => e.libelle), progressive: true }]);
-      if (missionVocaleRef.current && conversationVocaleRef.current) repondreEtReecouter(r.rapport);
     },
     onError: (_error, variables) => {
       setQuestion((current) => current || variables.objectif);
@@ -338,7 +323,8 @@ export function Conversation({ navigation, active = true, mode = "chat", onActiv
     onSettled: () => { missionVocaleRef.current = false; },
   });
 
-  const transcrireDictee = trpc.intelligences.transcrireDictee.useMutation();
+  const creerSessionVocale = trpc.intelligences.creerSessionVocale.useMutation();
+  const enregistrerVocal = trpc.intelligences.enregistrerEchangeVocal.useMutation();
 
   const historyUnavailable = !!sessionId && (filServeur.isFetching || filServeur.isError || sessionChargee.current !== sessionId);
   const busy = demander.isPending || mission.isPending || supprimer.isPending || deposerFichier.isPending || sendLock.current;
@@ -375,80 +361,74 @@ export function Conversation({ navigation, active = true, mode = "chat", onActiv
   }
 
   function arreterConversationVocale() {
+    vocalGeneration.current += 1;
     conversationVocaleRef.current = false;
     setConversationVocale(false);
     setEtatVocal("");
-    envoiVocalEnCours.current = false;
-    dictationVocale.current?.stop();
-    dictationVocale.current = null;
-    if (ttsSupporte) window.speechSynthesis.cancel();
+    setTranscriptionVocale("");
+    setVocalMuet(false);
+    realtimeVocal.current?.close();
+    realtimeVocal.current = null;
   }
 
-  function demarrerEcouteVocale() {
-    if (!conversationVocaleRef.current || busy || !active) return;
-    envoiVocalEnCours.current = false;
-    setEtatVocal("Je vous écoute…");
-    const control = startDictation(recognitionLanguage(voicePreferences), {
-      onText: (texte, final) => {
-        setQuestion(texte);
-        if (!final || texte.trim().length < 2 || envoiVocalEnCours.current) return;
-        addDictationHistory(texte, "conversation");
-        envoiVocalEnCours.current = true;
-        dictationVocale.current?.stop();
-        dictationVocale.current = null;
-        setEtatVocal("AL-HUDHUD·M prépare sa réponse…");
-        envoyer(texte, "composer", true);
-      },
-      onError: (texte) => {
-        setNotice(texte);
-        arreterConversationVocale();
-      },
-      onEnd: () => { dictationVocale.current = null; },
-    });
-    if (!control) {
-      setNotice("La conversation vocale n’est pas disponible sur ce navigateur.");
-      arreterConversationVocale();
-      return;
-    }
-    dictationVocale.current = control;
-  }
-
-  function repondreEtReecouter(texte: string) {
-    if (!conversationVocaleRef.current) return;
-    if (!ttsSupporte || !texte.trim()) {
-      if (voicePreferences.mode === "live") window.setTimeout(demarrerEcouteVocale, 300);
-      else arreterConversationVocale();
-      return;
-    }
-    window.speechSynthesis.cancel();
-    setEtatVocal("AL-HUDHUD·M vous répond…");
-    const u = new SpeechSynthesisUtterance(texte);
-    const choisie = window.speechSynthesis.getVoices().find((v) => v.name === voicePreferences.voiceName);
-    u.lang = choisie?.lang ?? recognitionLanguage(voicePreferences);
-    if (choisie) u.voice = choisie;
-    const apresLecture = () => {
-      if (!conversationVocaleRef.current) return;
-      if (voicePreferences.mode === "live") window.setTimeout(demarrerEcouteVocale, 250);
-      else arreterConversationVocale();
-    };
-    u.onend = apresLecture;
-    u.onerror = apresLecture;
-    window.speechSynthesis.speak(u);
+  function libelleEtatVocal(etat: RealtimeVoiceState): string {
+    return { connexion: "Connexion sécurisée…", ecoute: "Je vous écoute…", reflexion: "AL-HUDHUD·M réfléchit…", reponse: "AL-HUDHUD·M vous répond…" }[etat];
   }
 
   async function basculerConversationVocale() {
     if (conversationVocaleRef.current) { arreterConversationVocale(); return; }
-    if (!speechRecognitionConstructor() || !ttsSupporte) {
-      setNotice("La conversation vocale exige l’accès au micro et la lecture audio du navigateur.");
-      return;
-    }
-    const micro = await requestMicrophoneAccess();
-    if (!micro.ok) { setNotice(micro.message); return; }
     void arreterDictee();
     conversationVocaleRef.current = true;
+    const generation = ++vocalGeneration.current;
     setConversationVocale(true);
+    setEtatVocal("Connexion sécurisée…");
     setNotice("");
-    demarrerEcouteVocale();
+    try {
+      const control = await startRealtimeVoice({
+        mode: "conversation",
+        exchangeSdp: async (sdp) => (await creerSessionVocale.mutateAsync({ sdp, mode: "conversation", langue: recognitionLanguage(voicePreferences), voix: voicePreferences.realtimeVoice })).sdp,
+        onState: (etat) => setEtatVocal(libelleEtatVocal(etat)),
+        onUserPartial: setTranscriptionVocale,
+        onUserTranscript: (texte) => {
+          setTranscriptionVocale(texte);
+          questionsVocales.current.push(texte);
+          addDictationHistory(texte, "conversation");
+          setFil((f) => [...f, { id: idBulle(), role: "moi", texte, ok: true, motif: "", outils: [] }]);
+        },
+        onAssistantPartial: setTranscriptionVocale,
+        onAssistantTranscript: (texte) => {
+          setTranscriptionVocale(texte);
+          setFil((f) => [...f, { id: idBulle(), role: "moteur", texte, ok: true, motif: "", outils: [], progressive: false }]);
+          const questionVocale = questionsVocales.current.shift();
+          if (questionVocale) void enregistrerVocal.mutateAsync({
+            question: questionVocale,
+            reponse: texte,
+            sessionId: sessionIdRef.current,
+            langue: recognitionLanguage(voicePreferences),
+          }).then((r) => {
+            sessionIdRef.current = r.sessionId;
+            setSessionId(r.sessionId);
+            sessionChargee.current = r.sessionId;
+            void conversations.refetch();
+          }).catch(() => setNotice("L’échange vocal a été entendu, mais son enregistrement dans l’historique a échoué."));
+        },
+        onError: (message) => setNotice(message),
+        onClosed: () => {
+          realtimeVocal.current = null;
+          conversationVocaleRef.current = false;
+          setConversationVocale(false);
+        },
+      });
+      if (generation !== vocalGeneration.current || !conversationVocaleRef.current) {
+        control.close();
+        return;
+      }
+      realtimeVocal.current = control;
+    } catch {
+      if (generation !== vocalGeneration.current) return;
+      setNotice("Impossible d’ouvrir la conversation vocale. Vérifiez l’autorisation du micro puis réessayez.");
+      arreterConversationVocale();
+    }
   }
 
   useEffect(() => {
@@ -474,69 +454,41 @@ export function Conversation({ navigation, active = true, mode = "chat", onActiv
     const generation = ++dicteeGeneration.current;
     setNotice("");
 
-    if (prefersRecordedDictation()) {
-      setEcoute(true);
-      const control = await startRecordedDictation({
-        onChunk: ({ blob, format }: { blob: Blob; format: RecordedAudioFormat }) => {
-          fileTranscriptions.current = fileTranscriptions.current.then(async () => {
-            const base64 = await encoderAudio(blob);
-            if (!base64 || generation !== dicteeGeneration.current) return;
-            const resultat = await transcrireDictee.mutateAsync({ audio: { format, base64 } });
-            if (!resultat.texte.trim() || generation !== dicteeGeneration.current || !mounted.current) return;
-            setQuestion((courant) => {
-              const prochain = [courant.trim(), resultat.texte.trim()].filter(Boolean).join(" ");
-              questionRef.current = prochain;
-              addDictationHistory(resultat.texte.trim(), "dictation");
-              return prochain;
-            });
-          }).catch(() => {
-            if (generation === dicteeGeneration.current && mounted.current) {
-              setNotice("Un segment vocal n’a pas pu être transcrit. Le micro reste en écoute ; continuez ou réessayez.");
-            }
-          });
-        },
-        onError: (texte) => {
+    setEcoute(true);
+    let confirme = "";
+    try {
+      const control = await startRealtimeVoice({
+        mode: "dictee",
+        exchangeSdp: async (sdp) => (await creerSessionVocale.mutateAsync({ sdp, mode: "dictee", langue: recognitionLanguage(voicePreferences), voix: voicePreferences.realtimeVoice })).sdp,
+        onUserPartial: (partiel) => {
           if (generation !== dicteeGeneration.current) return;
-          setNotice(texte);
-          setEcoute(false);
-          dictation.current = null;
+          const prochain = [base.trim(), confirme.trim(), partiel.trim()].filter(Boolean).join(" ");
+          questionRef.current = prochain;
+          setQuestion(prochain);
         },
-        onEnd: () => {
+        onUserTranscript: (texte) => {
+          if (generation !== dicteeGeneration.current) return;
+          confirme = [confirme.trim(), texte.trim()].filter(Boolean).join(" ");
+          const prochain = [base.trim(), confirme].filter(Boolean).join(" ");
+          questionRef.current = prochain;
+          setQuestion(prochain);
+          addDictationHistory(texte, "dictation");
+        },
+        onError: (message) => setNotice(message),
+        onClosed: () => {
           if (generation !== dicteeGeneration.current) return;
           dictation.current = null;
           setEcoute(false);
         },
       });
-      if (!control) {
-        if (generation === dicteeGeneration.current) {
-          setEcoute(false);
-          setNotice("L’enregistrement continu n’est pas disponible sur ce navigateur.");
-        }
-        return;
+      if (generation !== dicteeGeneration.current) { control.close(); return; }
+      dictation.current = { stop: control.close };
+    } catch {
+      if (generation === dicteeGeneration.current) {
+        setEcoute(false);
+        setNotice("La dictée n’a pas pu démarrer. Autorisez le micro dans Safari puis réessayez.");
       }
-      if (generation !== dicteeGeneration.current) {
-        await control.stop();
-        return;
-      }
-      dictation.current = control;
-      return;
     }
-
-    const micro = await requestMicrophoneAccess();
-    if (!micro.ok) { setNotice(micro.message); return; }
-    const control = startDictation(recognitionLanguage(voicePreferences), {
-      onText: (texte, final) => {
-        const prochain = base ? `${base} ${texte}` : texte;
-        questionRef.current = prochain;
-        setQuestion(prochain);
-        if (final) addDictationHistory(texte, "dictation");
-      },
-      onError: (texte) => { setNotice(texte); setEcoute(false); dictation.current = null; },
-      onEnd: () => { dictation.current = null; setEcoute(false); },
-    });
-    if (!control) { setNotice("La dictée n'est pas disponible sur ce navigateur."); return; }
-    dictation.current = control;
-    setEcoute(true);
   }
 
   /** Annule : arrête la dictée et efface ce qu'elle a écrit, revient au texte d'avant. */
@@ -551,7 +503,6 @@ export function Conversation({ navigation, active = true, mode = "chat", onActiv
   /** Arrête la dictée et envoie immédiatement ce qui a été dicté, sans repasser par la relecture. */
   async function envoyerDicteeMaintenant() {
     await arreterDictee();
-    await fileTranscriptions.current;
     envoyer(questionRef.current);
   }
 
@@ -797,6 +748,25 @@ export function Conversation({ navigation, active = true, mode = "chat", onActiv
 </>;
   return (
     <div className="alhud-conversation-workspace flex h-full min-h-[420px] flex-col gap-3">
+      {conversationVocale ? <section className="alhud-voice-screen" aria-label="Conversation vocale directe" role="dialog" aria-modal="true">
+        <div className="alhud-voice-screen-top">
+          <button type="button" onClick={arreterConversationVocale} aria-label="Fermer la conversation vocale"><X /></button>
+          <button type="button" onClick={() => { arreterConversationVocale(); onChooseModule?.("parametres"); }} aria-label="Réglages de la voix"><SlidersHorizontal /></button>
+        </div>
+        <div className="alhud-voice-stage">
+          <div className={`alhud-voice-orb ${etatVocal.includes("répond") ? "speaking" : etatVocal.includes("réfléchit") ? "thinking" : "listening"}`} aria-hidden="true"><span /><span /></div>
+          <p className="alhud-voice-state" role="status">{etatVocal || "Je vous écoute…"}</p>
+          <p className="alhud-voice-caption">{transcriptionVocale}</p>
+        </div>
+        <div className="alhud-voice-controls">
+          <button type="button" className={vocalMuet ? "active" : ""} onClick={() => {
+            const next = !vocalMuet;
+            setVocalMuet(next);
+            realtimeVocal.current?.setMuted(next);
+          }} aria-pressed={vocalMuet} aria-label={vocalMuet ? "Réactiver le micro" : "Couper le micro"}>{vocalMuet ? <MicOff /> : <Mic />}</button>
+          <button type="button" className="end" onClick={arreterConversationVocale} aria-label="Terminer la conversation vocale"><X /></button>
+        </div>
+      </section> : null}
       <EtatServiceIntelligence />
 
       <div className="flex min-h-0 flex-1 flex-col gap-3 md:flex-row">
@@ -945,7 +915,6 @@ export function Conversation({ navigation, active = true, mode = "chat", onActiv
               <button type="button" onClick={() => setPieces((actuelles) => actuelles.filter((p) => p.cle !== piece.cle))} aria-label={`Retirer ${piece.nom}`}><X className="h-3.5 w-3.5" /></button>
             </span>)}
           </div> : null}
-          {conversationVocale ? <div className="alhud-live-voice-status" role="status"><AudioLines className="h-4 w-4" /><span>{etatVocal || "Conversation vocale active"}</span><button type="button" onClick={arreterConversationVocale}>Terminer</button></div> : null}
           <div className="alhud-composer flex items-end gap-2">
             {!ecoute && <div className="relative">
               <button type="button" className="alhud-composer-action" onClick={() => setMenuPiecesOuvert((v) => !v)} aria-haspopup="menu" aria-expanded={menuPiecesOuvert} aria-label="Ajouter une pièce jointe"><Paperclip className="h-5 w-5" /></button>

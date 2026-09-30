@@ -1026,3 +1026,74 @@ export async function transcrireAudioNatif(resolu:{cle:string}, input:FichierAud
  if(typeof parsed.text!=='string'||!parsed.text.trim()||parsed.text.length>60000)throw Error('AUDIO_EMPTY');
  return {mime:'text/plain',base64:Buffer.from(parsed.text.trim(),'utf8').toString('base64')};
 }
+
+export type ModeSessionVocale = "dictee" | "conversation";
+
+/**
+ * Ouvre une session OpenAI Realtime WebRTC sans jamais transmettre la clé au
+ * navigateur. L'offre SDP vient du téléphone, la réponse SDP seulement lui
+ * est rendue. L'audio circule ensuite directement dans la connexion chiffrée
+ * WebRTC ; il n'est ni stocké ni recopié dans les journaux de la plateforme.
+ */
+export async function creerAppelVocalTempsReel(
+  sdp: string,
+  mode: ModeSessionVocale,
+  options: { langue?: string; voix?: string; safetyId?: string } = {},
+  fetchImpl: typeof fetch = fetch,
+): Promise<string> {
+  const offre = sdp.trim();
+  if (offre.length < 64 || offre.length > 100_000 || !offre.startsWith("v=0")) {
+    throw new Error("REALTIME_SDP_INVALID");
+  }
+  const cle = process.env.OPENAI_API_KEY?.trim();
+  if (!cle) throw new Error("REALTIME_CREDENTIAL_REQUIRED");
+
+  const langue = options.langue?.split("-")[0]?.toLowerCase();
+  const voixAutorisee = new Set(["alloy", "ash", "ballad", "coral", "echo", "marin", "sage", "shimmer", "verse"]);
+  const voix = voixAutorisee.has(options.voix ?? "") ? options.voix! : "marin";
+  const session = {
+    type: "realtime",
+    model: "gpt-realtime-2.1",
+    output_modalities: ["audio"],
+    instructions: mode === "conversation"
+      ? "Tu es AL-HUDHUD·M, l'intelligence privée créée par MKA.P-MS. Réponds naturellement à l'oral, dans la langue de l'utilisateur, avec des tours courts et utiles. N'affirme jamais avoir exécuté une action externe que cette session vocale n'a pas réellement exécutée. Respecte la confidentialité, la sécurité et la politique commerciale halal MKA.P-MS."
+      : "Transcris fidèlement la parole de l'utilisateur. Ne réponds pas et ne reformule pas.",
+    audio: {
+      input: {
+        noise_reduction: { type: "near_field" },
+        transcription: {
+          model: "whisper-1",
+          ...(langue && /^[a-z]{2,3}$/.test(langue) ? { language: langue } : {}),
+          prompt: "AL-HUDHUD·M, MKA.P-MS. Ponctuation naturelle et transcription fidèle.",
+        },
+        turn_detection: mode === "conversation"
+          ? { type: "semantic_vad", eagerness: "auto", create_response: true, interrupt_response: true }
+          : { type: "server_vad", threshold: 0.45, prefix_padding_ms: 300, silence_duration_ms: 650, create_response: false, interrupt_response: false },
+      },
+      output: { voice: voix, speed: 1 },
+    },
+  };
+
+  const form = new FormData();
+  form.set("sdp", offre);
+  form.set("session", JSON.stringify(session));
+  const response = await fetchImpl("https://api.openai.com/v1/realtime/calls", {
+    method: "POST",
+    redirect: "error",
+    signal: AbortSignal.timeout(30_000),
+    headers: {
+      Authorization: `Bearer ${cle}`,
+      ...(options.safetyId ? { "OpenAI-Safety-Identifier": options.safetyId } : {}),
+    },
+    body: form,
+  });
+  if (!response.ok) {
+    await response.body?.cancel();
+    throw new Error(`REALTIME_PROVIDER_UNAVAILABLE_${response.status}`);
+  }
+  const reponse = (await response.text()).trim();
+  if (reponse.length < 64 || reponse.length > 100_000 || !reponse.startsWith("v=0")) {
+    throw new Error("REALTIME_ANSWER_INVALID");
+  }
+  return reponse;
+}

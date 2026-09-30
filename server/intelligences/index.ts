@@ -21,7 +21,7 @@ import {
   type CodeCapacite,
 } from "./capacites.js";
 import { router as routerCapacite } from "./routeur.js";
-import { etatConfiguration, etatServicePublic } from "./provider.js";
+import { creerAppelVocalTempsReel, etatConfiguration, etatServicePublic } from "./provider.js";
 import {
   NIVEAUX_AUTONOMIE,
   PORTEE_NIVEAU,
@@ -125,6 +125,7 @@ import {
   actions,
   coder,
   demander,
+  enregistrerEchangeVocal,
   domaines,
   etat,
   messages,
@@ -276,6 +277,22 @@ async function exigerProprieteConversation(sessionId: number, userId: number): P
 }
 
 export const intelligencesRouter = router({
+  /** Échange SDP WebRTC : la clé fournisseur reste exclusivement côté serveur. */
+  creerSessionVocale: pdgProcedure.input(z.object({
+    sdp: z.string().min(64).max(100_000),
+    mode: z.enum(["dictee", "conversation"]),
+    langue: z.string().max(16).optional(),
+    voix: z.string().max(24).optional(),
+  }).strict()).mutation(async ({ input, ctx }) => {
+    try {
+      const safetyId = createHash("sha256").update(`mkapms:${ctx.user.uid}`).digest("hex");
+      const sdp = await creerAppelVocalTempsReel(input.sdp, input.mode, { langue: input.langue, voix: input.voix, safetyId });
+      return { sdp };
+    } catch {
+      throw new TRPCError({ code: "SERVICE_UNAVAILABLE", message: "Le service vocal temps réel est momentanément indisponible." });
+    }
+  }),
+
   /**
    * Dictée mobile éphémère : l'audio n'est ni stocké en base ni ajouté à la
    * mémoire. Ce chemin sert de repli fiable à SpeechRecognition sur iPhone.
@@ -603,6 +620,17 @@ export const intelligencesRouter = router({
         effort: input.effort,
       });
     }),
+
+  enregistrerEchangeVocal: pdgProcedure.input(z.object({
+    question: z.string().min(1).max(8000),
+    reponse: z.string().min(1).max(20_000),
+    sessionId: z.number().int().positive().nullable().optional(),
+    langue: z.string().max(16).optional(),
+  }).strict()).mutation(async ({ input, ctx }) => {
+    const userId = ctx.user?.uid ?? 0;
+    if (input.sessionId) await exigerProprieteConversation(input.sessionId, userId);
+    return enregistrerEchangeVocal({ ...input, userId });
+  }),
 
   conversations: pdgProcedure
     .input(z.object({ cote: z.enum(["direction", "public"]).default("direction") }).optional())
