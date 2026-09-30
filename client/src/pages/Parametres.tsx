@@ -10,6 +10,7 @@ import {
 import { useAuth } from "../lib/auth";
 import { trpc } from "../lib/trpc";
 import { ecrireConsentement, lireConsentement } from "../lib/consentementCookies";
+import { VoiceSettingsPanel } from "../components/VoiceSettingsPanel";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 type SubPage =
@@ -28,7 +29,8 @@ type SubPage =
   | "classement"
   | "charte-cookies"
   | "politique-confidentialite"
-  | "password";
+  | "password"
+  | "voice";
 
 // ─── Composant item de liste ────────────────────────────────────────────────
 function SettingsItem({
@@ -972,6 +974,20 @@ function DeleteAccountModal({ onClose }: { onClose: () => void }) {
   );
 }
 
+function VoicePage({ onBack }: { onBack: () => void }) {
+  return (
+    <div className="min-h-screen bg-slate-50 pb-20">
+      <SubPageHeader title="Voix" onBack={onBack} />
+      <div className="mx-auto max-w-2xl space-y-3 px-4 pt-5">
+        <VoiceSettingsPanel />
+        <p className="rounded-2xl border border-blue-100 bg-blue-50 px-4 py-3 text-xs leading-relaxed text-blue-800">
+          Ces choix sont disponibles pour chaque compte et restent privés sur l’appareil. Le compte PDG conserve le mode vocal sans minuterie ; les autres niveaux appliqueront la limite de leur accès lorsque leur assistant vocal sera ouvert.
+        </p>
+      </div>
+    </div>
+  );
+}
+
 // ─── Page principale Paramètres ──────────────────────────────────────────────
 export default function Parametres() {
   const navigate = useNavigate();
@@ -995,6 +1011,7 @@ export default function Parametres() {
   if (subPage === "politique-confidentialite") return <PolitiquePage onBack={() => setSubPage(null)} />;
   if (subPage === "charte-cookies") return <CharteCookiesPage onBack={() => setSubPage(null)} />;
   if (subPage === "cookies") return <CharteCookiesPage onBack={() => setSubPage(null)} />;
+  if (subPage === "voice") return <VoicePage onBack={() => setSubPage(null)} />;
 
   // ── Sessions ──
   // L'écran affichait trois appareils inventés (iPhone à Paris, MacBook, Chrome à
@@ -1121,6 +1138,27 @@ export default function Parametres() {
             iconBg="bg-orange-50"
             iconColor="text-orange-500"
             onClick={() => setSubPage("notifications")}
+          />
+        </SettingsCard>
+
+        {/* ── IA & voix ── */}
+        <SectionTitle title="IA & Voix" />
+        <SettingsCard>
+          <SettingsItem
+            icon={Volume2}
+            label="Voix"
+            sublabel="Voix, mode Live, langue et historique des dictées"
+            iconBg="bg-blue-50"
+            iconColor="text-blue-600"
+            onClick={() => setSubPage("voice")}
+          />
+          <SettingsItem
+            icon={BookOpen}
+            label="AL-HUDHUD·M"
+            sublabel={user?.role === "super_admin" ? "Ouvrir la plateforme IA privée" : "Ouvrir l’assistant disponible pour votre compte"}
+            iconBg="bg-amber-50"
+            iconColor="text-amber-600"
+            to={user?.role === "super_admin" ? "/admin/intelligences" : "/intelligences"}
           />
         </SettingsCard>
 

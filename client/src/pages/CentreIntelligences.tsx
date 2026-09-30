@@ -70,6 +70,7 @@ function constructeurVocal(): ConstructeurReconnaissanceVocale | null {
 import { trpc } from "../lib/trpc";
 import { useAuth } from "../lib/auth";
 import { type Intensite, NIVEAUX_INTENSITE, intensiteValide, CLE_INTENSITE_STOCKAGE } from "../lib/intensite";
+import { readVoicePreferences, writeVoicePreferences } from "../lib/voicePreferences";
 
 type Onglet =
   | "medias"
@@ -203,13 +204,7 @@ export default function CentreIntelligences() {
    * chaque lecture.
    */
   const [voixDisponibles, setVoixDisponibles] = useState<SpeechSynthesisVoice[]>([]);
-  const [voixChoisie, setVoixChoisie] = useState<string>(() => {
-    try {
-      return localStorage.getItem("mkapms_voix_tts") ?? "";
-    } catch {
-      return "";
-    }
-  });
+  const [voixChoisie, setVoixChoisie] = useState<string>(() => readVoicePreferences().voiceName);
   const [voixMenuOuvert, setVoixMenuOuvert] = useState(false);
   useEffect(() => {
     if (!ttsSupporte) return;
@@ -221,11 +216,7 @@ export default function CentreIntelligences() {
   function choisirVoix(nom: string) {
     setVoixChoisie(nom);
     setVoixMenuOuvert(false);
-    try {
-      localStorage.setItem("mkapms_voix_tts", nom);
-    } catch {
-      // Stockage local indisponible (navigation privée) : le choix reste actif pour cette session.
-    }
+    writeVoicePreferences({ ...readVoicePreferences(), voiceName: nom });
   }
   /** Intensité de réflexion demandée (voir NIVEAUX_INTENSITE) — mémorisée comme le choix de voix. */
   const [intensite, setIntensite] = useState<Intensite>(() => {

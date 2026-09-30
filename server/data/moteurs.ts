@@ -10038,8 +10038,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "cliquables": 22,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 93,
-        "mots": 545
+        "textes": 95,
+        "mots": 588
       },
       {
         "fichier": "client/src/pages/SuppressionCompte.tsx",
@@ -10427,8 +10427,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "direction",
       "public"
     ],
-    "textes": 435,
-    "mots": 2012,
+    "textes": 437,
+    "mots": 2055,
     "battement": "pont_os",
     "manques": [
       {
@@ -10882,8 +10882,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "cliquables": 21,
         "parMoteur": 0,
         "sansAction": 1,
-        "textes": 54,
-        "mots": 186
+        "textes": 55,
+        "mots": 199
       }
     ],
     "ecransHotes": [
@@ -11075,8 +11075,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "pdg",
       "public"
     ],
-    "textes": 63,
-    "mots": 275,
+    "textes": 64,
+    "mots": 288,
     "battement": "sonde",
     "manques": [
       {
