@@ -433,4 +433,630 @@ async function session(input: DemandeInput): Promise<number> {
     if (existante && existante.cote === input.cote && memeProprietaire) return existante.id;
   }
   const [creee] = await db
-    
+    .insert(inSessions)
+    .values({
+      cote: input.cote,
+      titre: input.question.slice(0, 180),
+      userId: input.userId ?? null,
+      visiteur: input.visiteur ?? null,
+      countryCode: input.countryCode ?? null,
+      langue: input.langue ?? "fr",
+      domaine: input.domaine ?? DOMAINE_DEFAUT,
+    })
+    .returning({ id: inSessions.id });
+  return creee?.id ?? 0;
+}
+
+/** Enregistre un tour déjà produit par la session Realtime, sans le rejouer. */
+export async function enregistrerEchangeVocal(input: {
+  question: string;
+  reponse: string;
+  sessionId?: number | null;
+  userId: number;
+  langue?: string | null;
+}): Promise<{ sessionId: number }> {
+  const question = input.question.trim().slice(0, 8000);
+  const reponse = input.reponse.trim().slice(0, 20_000);
+  if (!question || !reponse) throw new Error("ECHANGE_VOCAL_VIDE");
+  const sessionId = await session({
+    question,
+    cote: "direction",
+    sessionId: input.sessionId,
+    userId: input.userId,
+    langue: input.langue ?? "fr",
+  });
+  const traceId = randomUUID();
+  await db.insert(inMessages).values([
+    { sessionId, cote: "direction", role: "utilisateur", contenu: question, traceId },
+    {
+      sessionId,
+      cote: "direction",
+      role: "moteur",
+      contenu: reponse,
+      fournisseur: "realtime",
+      modele: "gpt-realtime-2.1",
+      traceId,
+    },
+  ]);
+  await db.update(inSessions)
+    .set({ messages: sql`${inSessions.messages} + 2`, dernierAt: new Date() })
+    .where(eq(inSessions.id, sessionId));
+  await emitSafe({ source: "intelligences", type: "intelligences.echange", payload: { sessionId, cote: "direction", ok: true, fournisseur: "realtime" } });
+  return { sessionId };
+}
+
+/** Une question, une réponse réelle — ou le motif exact de l'absence de réponse. */
+export async function demander(input: DemandeInput): Promise<DemandeResultat> {
+  const sessionId = await session(input);
+  const question = input.question.trim();
+  const traceId = randomUUID();
+
+  await db.insert(inMessages).values({
+    sessionId,
+    cote: input.cote,
+    role: "utilisateur",
+    contenu: question.slice(0, 8000),
+    traceId,
+  });
+
+  const echec = async (motif: string): Promise<DemandeResultat> => {
+    // Ces motifs sont des règles métier (question vide, domaine fermé, plafond
+    // atteint) — jamais un détail fournisseur : sûrs à renvoyer tels quels aux
+    // deux côtés, contrairement au motif d'un appel de modèle qui échoue.
+    await db.insert(inMessages).values({
+      sessionId,
+      cote: input.cote,
+      role: "moteur",
+      contenu: "",
+      ok: false,
+      motif,
+      motifPublic: motif,
+      traceId,
+    });
+    await compter(input.cote, false, 0);
+    return {
+      sessionId,
+      ok: false,
+      reponse: "",
+      motif,
+      motifPublic: motif,
+      fournisseur: null,
+      modele: null,
+      contexte: [],
+      jetons: 0,
+      dureeMs: 0,
+      appelsOutils: [],
+    };
+  };
+
+  if (question.length < 2) return echec("Question vide.");
+
+  let consigneDomaine = "";
+  if (input.cote === "public" || input.domaine) {
+    const code = input.domaine ?? DOMAINE_DEFAUT;
+    const etat = await domaineOuvert(code);
+    if (!etat) return echec(`Domaine d'assistance inconnu : ${code}.`);
+    if (!etat.spec.cotes.includes(input.cote === "public" ? "public" : "direction")) {
+      return echec(
+        `Le domaine « ${etat.spec.libelle} » n'est pas servi du côté ${input.cote === "public" ? "public" : "direction"} : il est réservé à la direction.`,
+      );
+    }
+    if (!etat.actif) {
+      return echec(
+        `Le domaine « ${etat.spec.libelle} » est construit mais fermé. Seul le PDG peut l'ouvrir depuis le centre MKA.P-MS AI ; tant qu'il est fermé, aucune réponse n'est produite dans ce domaine.`,
+      );
+    }
+    consigneDomaine = etat.spec.consigne;
+  }
+
+  // Lecture du registre : comment le visiteur parle décide du ton de la réponse.
+  // Une pure politesse (merci, salut, au revoir) reçoit l'honneur qu'elle mérite
+  // directement du moteur, sans consommer le plafond ni dépendre du fournisseur.
+  const lecture = input.cote === "public" ? lireRegistre(question) : null;
+  const courtoisie = lecture ? reponseCourtoisie(lecture, NOM_MOTEUR, question) : null;
+  if (lecture && courtoisie) {
+    await db.insert(inMessages).values({
+      sessionId,
+      cote: input.cote,
+      role: "moteur",
+      contenu: courtoisie,
+      fournisseur: "moteur",
+      modele: `registre:${lecture.intention}/${lecture.registre}`,
+      ok: true,
+      motif: "",
+      jetonsEntree: 0,
+      jetonsSortie: 0,
+      dureeMs: 0,
+      contexte: [],
+      traceId,
+    });
+    await db
+      .update(inSessions)
+      .set({ messages: sql`${inSessions.messages} + 2`, dernierAt: new Date() })
+      .where(eq(inSessions.id, sessionId));
+    return {
+      sessionId,
+      ok: true,
+      reponse: courtoisie,
+      motif: "",
+      motifPublic: "",
+      fournisseur: "moteur",
+      modele: `registre:${lecture.intention}/${lecture.registre}`,
+      contexte: [],
+      jetons: 0,
+      dureeMs: 0,
+      appelsOutils: [],
+    };
+  }
+
+  const consommes = await appelsDuJour(input.cote);
+  if (consommes >= PLAFOND_JOUR[input.cote]) {
+    return echec(
+      `Plafond journalier atteint pour le côté ${input.cote} (${PLAFOND_JOUR[input.cote]} appels). Le plafond protège la facture : il est relevé volontairement, pas dépassé silencieusement.`,
+    );
+  }
+
+  const fichiersJoints: string[] = [];
+  if (input.cote === "direction" && input.userId && input.fichierIds?.length) {
+    let caracteres = 0;
+    for (const id of [...new Set(input.fichierIds)].slice(0, 4)) {
+      const fichier = await lireFichier(id, input.userId);
+      if (fichier.resume.statutPipeline !== "ready_for_rag" || !fichier.contenuTexte) {
+        fichiersJoints.push(`Fichier joint « ${fichier.resume.nom} » : non lisible par le RAG (${fichier.resume.statutPipeline}).`);
+        continue;
+      }
+      const restant = Math.max(0, 24_000 - caracteres);
+      if (restant === 0) break;
+      const contenu = fichier.contenuTexte.slice(0, restant);
+      caracteres += contenu.length;
+      fichiersJoints.push(`Fichier privé joint « ${fichier.resume.nom} » (accès limité au propriétaire) :\n${contenu}`);
+    }
+  }
+
+  const contexte =
+    input.cote === "direction"
+      ? [
+          ...(await contexteDirection(question)),
+          ...(await contexteUtilisateur({
+            userId: input.userId,
+            role: input.role,
+            countryCode: input.countryCode,
+            sessionId,
+          })),
+          ...(await contexteMemoire({ question, userId: input.userId, sessionId })),
+          ...fichiersJoints,
+        ]
+      : [];
+  const historique = await db
+    .select({ role: inMessages.role, contenu: inMessages.contenu })
+    .from(inMessages)
+    .where(and(eq(inMessages.sessionId, sessionId), eq(inMessages.ok, true)))
+    .orderBy(desc(inMessages.id))
+    .limit(8);
+  const fil = historique
+    .reverse()
+    .filter((m) => m.contenu.trim().length > 0)
+    .map((m) => `${m.role === "moteur" ? NOM_MOTEUR : "Demande"} : ${m.contenu.slice(0, 1500)}`)
+    .join("\n");
+
+  const message =
+    input.cote === "direction"
+      ? [
+          `Demande du PDG : ${question}`,
+          "",
+          fil ? `Échanges précédents :\n${fil}\n` : "",
+          "Contexte de référence (lecture réelle en base) — ne consulte ce bloc que si la demande ci-dessus s'y rapporte ; pour une salutation, un remerciement ou une question de vie courante, ignore-le et réponds normalement :",
+          ...contexte.map((l) => `- ${l}`),
+        ]
+          .filter((l) => l.length > 0)
+          .join("\n")
+      : [fil ? `Échanges précédents :\n${fil}\n` : "", `Question du visiteur : ${question}`]
+          .filter((l) => l.length > 0)
+          .join("\n");
+
+  // LOT IA02B, point 6 — côté direction, la conversation passe par la même
+  // boucle d'outils que le Chantier de développement (server/intelligences/
+  // outils/boucle.ts) : les outils réellement implémentés et actifs
+  // deviennent utilisables selon permission, sans qu'aucune seconde boucle ne
+  // soit créée pour cette page. Côté public, aucun changement : appel direct
+  // inchangé depuis le LOT IA02A, pour ne rien régresser sur son gate de
+  // fuites fournisseurs déjà vérifié.
+  let appelsOutilsTrace: { toolId: string; verdictPolitique: string; statutExecution: string | null; motif: string }[] = [];
+  let r: {
+    ok: boolean;
+    texte: string;
+    fournisseur: string | null;
+    modele: string | null;
+    motif: string;
+    motifPublic: string;
+    jetonsEntree: number;
+    jetonsSortie: number;
+    dureeMs: number;
+  };
+
+  if (input.cote === "direction") {
+    const boucle = await executerAvecOutils({
+      moteur: "intelligences",
+      role: input.role ?? null,
+      systeme: CONSIGNE_DIRECTION,
+      message,
+      images: input.images,
+      reasoningEffortPrefere: input.effort,
+      outilsProposes: listerActifs().map((o) => o.toolId),
+      confidentialite: "interne",
+      countryCode: input.countryCode ?? null,
+      // 2000 jetons se sont révélés trop justes en usage réel : sur un
+      // modèle à raisonnement interne, les jetons de raisonnement sont
+      // comptés dans ce budget — une synthèse d'état plateforme (plusieurs
+      // appels d'outils + rédaction) peut l'épuiser avant tout texte
+      // visible ("répondu sans contenu utilisable" / timeout observés en
+      // production sur ce chemin précis, côté direction).
+      maxTokens: 4000,
+      actorId: input.userId ?? null,
+      traceId,
+    });
+    appelsOutilsTrace = boucle.appelsOutils.map((a) => ({
+      toolId: a.toolId,
+      verdictPolitique: a.verdictPolitique,
+      statutExecution: a.statutExecution,
+      motif: a.motif,
+    }));
+    r = {
+      ok: boucle.ok,
+      texte: boucle.texteFinal,
+      fournisseur: boucle.fournisseur,
+      modele: boucle.modele,
+      motif: boucle.motif,
+      motifPublic: boucle.motifPublic,
+      jetonsEntree: boucle.jetonsEntree,
+      jetonsSortie: boucle.jetonsSortie,
+      dureeMs: boucle.dureeMs,
+    };
+  } else {
+    const appel = await appeler({
+      capacite: "ia_texte",
+      tache: "assistant_public",
+      moteur: "intelligences",
+      systeme: [CONSIGNE_PUBLIC, consigneDomaine, lecture ? `Registre du visiteur (lu par le moteur) :\n${lecture.consigneTon}` : ""]
+        .filter((c) => c.length > 0)
+        .join("\n\n"),
+      message,
+      // Côté public la question peut contenir des éléments personnels : le niveau
+      // déclaré est plus strict, et la Fabrique Intelligence peut donc refuser un fournisseur.
+      confidentialite: "interne",
+      countryCode: input.countryCode ?? null,
+      maxTokens: 900,
+    });
+    r = appel;
+  }
+
+  // Point 13 — traçabilité des outils réellement appelés, visible dans le
+  // même champ `contexte` que le reste de ce qui a été injecté au modèle :
+  // aucune colonne supplémentaire nécessaire pour un premier lot honnête.
+  const contexteAvecOutils =
+    appelsOutilsTrace.length > 0
+      ? [
+          ...contexte,
+          ...appelsOutilsTrace.map(
+            (a) => `Outil appelé : ${a.toolId} — ${a.verdictPolitique}${a.statutExecution ? `/${a.statutExecution}` : ""} — ${a.motif}`,
+          ),
+        ]
+      : contexte;
+
+  await db.insert(inMessages).values({
+    sessionId,
+    cote: input.cote,
+    role: "moteur",
+    contenu: r.texte.slice(0, 20000),
+    fournisseur: r.fournisseur,
+    modele: r.modele,
+    ok: r.ok,
+    motif: r.motif,
+    motifPublic: r.motifPublic,
+    jetonsEntree: r.jetonsEntree,
+    jetonsSortie: r.jetonsSortie,
+    dureeMs: r.dureeMs,
+    contexte: contexteAvecOutils,
+    traceId,
+  });
+  await db
+    .update(inSessions)
+    .set({ messages: sql`${inSessions.messages} + 2`, dernierAt: new Date() })
+    .where(eq(inSessions.id, sessionId));
+  await compter(input.cote, r.ok, r.jetonsEntree + r.jetonsSortie);
+
+  await emitSafe({
+    source: "intelligences",
+    type: "intelligences.echange",
+    payload: { sessionId, cote: input.cote, ok: r.ok, fournisseur: r.fournisseur },
+  });
+
+  // LOT IA02F, point 3 — résumé de conversation additif, jamais bloquant :
+  // un échec ici ne doit jamais faire échouer l'échange lui-même.
+  if (input.cote === "direction") {
+    await resumerSiNecessaire(sessionId, traceId);
+  }
+
+  // LOT IA02A — le côté direction (PDG) garde le détail technique complet ;
+  // le côté public ne reçoit jamais fournisseur, modèle ni motif brut, même
+  // dans une réponse réussie (une réponse API n'est pas seulement ce que
+  // l'écran affiche : le JSON lui-même ne doit pas les porter).
+  const cotePublic = input.cote === "public";
+  return {
+    sessionId,
+    ok: r.ok,
+    reponse: r.texte,
+    motif: cotePublic ? r.motifPublic : r.motif,
+    motifPublic: r.motifPublic,
+    fournisseur: cotePublic ? null : r.fournisseur,
+    modele: cotePublic ? null : r.modele,
+    contexte: contexteAvecOutils,
+    jetons: r.jetonsEntree + r.jetonsSortie,
+    dureeMs: r.dureeMs,
+    appelsOutils: appelsOutilsTrace,
+  };
+}
+
+/**
+ * Commande « proposer » : ouvre un dossier de développement réel. Le Centre de
+ * Commandes existe déjà et reste propriétaire du dossier et du pipeline ; on ne
+ * recrée pas un second circuit.
+ */
+export async function proposer(input: {
+  besoin: string;
+  actorId?: number;
+  sessionId?: number | null;
+  countryCode?: string | null;
+}) {
+  const cc = await import("../command-center/service.js");
+  const dossier = await cc.openDevRequest({
+    need: input.besoin,
+    countryCode: input.countryCode ?? null,
+    requestedBy: input.actorId,
+  });
+
+  const [action] = await db
+    .insert(inActions)
+    .values({
+      sessionId: input.sessionId ?? null,
+      commande: "proposer",
+      argument: input.besoin.slice(0, 4000),
+      resultat: dossier?.status === "bloque" ? "bloque" : "propose",
+      detail: dossier?.analysis ?? "",
+      devRequestId: dossier?.id ?? null,
+      actorId: input.actorId ?? null,
+    })
+    .returning({ id: inActions.id });
+
+  return { actionId: action?.id ?? 0, dossier };
+}
+
+/**
+ * Commande « coder » : demande réellement le code au fournisseur.
+ *
+ * Le résultat est une proposition attachée au dossier. Il n'est pas écrit dans
+ * le dépôt, pas commité, pas déployé : c'est la règle du pipeline.
+ */
+export async function coder(input: {
+  devRequestId: number;
+  consigne?: string;
+  actorId?: number;
+  sessionId?: number | null;
+}): Promise<{
+  ok: boolean;
+  motif: string;
+  code: string;
+  fournisseur: string | null;
+  modele: string | null;
+  actionId: number;
+}> {
+  const cc = await import("../command-center/service.js");
+  const dossiers = await cc.listDevRequests(200);
+  const dossier = dossiers.find((d) => d.id === input.devRequestId);
+  if (!dossier) {
+    return {
+      ok: false,
+      motif: "Dossier de développement introuvable.",
+      code: "",
+      fournisseur: null,
+      modele: null,
+      actionId: 0,
+    };
+  }
+
+  const contexte: string[] = [
+    `Besoin : ${dossier.need}`,
+    `Analyse d'architecture : ${dossier.analysis ?? "absente"}`,
+    `Périmètre : ${(dossier.scope ?? []).join(", ") || "non identifié"}`,
+  ];
+
+  try {
+    const graphe = await import("../code-graph/service.js");
+    for (const cle of dossier.scope ?? []) {
+      const i = await graphe.impact(cle);
+      if (i.trouve) {
+        contexte.push(
+          `${cle} — fichiers : ${i.fichiers.slice(0, 25).join(", ")} | tables : ${i.tables.join(", ")} | API : ${i.api.slice(0, 20).join(", ")} | dépendants : ${i.dependants.join(", ")}`,
+        );
+      }
+    }
+  } catch (e) {
+    contexte.push(`Relevé de code indisponible : ${e instanceof Error ? e.message : "erreur"}.`);
+  }
+
+  const r = await appeler({
+    capacite: "ia_texte",
+    tache: "generation_code",
+    moteur: "intelligences",
+    systeme: `${CONSIGNE_DIRECTION}
+
+Tu écris du code pour ce dépôt : TypeScript strict, React + Vite côté client, tRPC + Drizzle ORM (PostgreSQL) côté serveur, commentaires et libellés en français.
+Contraintes de production du dépôt : pas de type "any", pas d'accès dynamique aux attributs, imports en haut de fichier, migrations SQL additives et jamais destructives, aucune donnée secrète dans le code.
+Rends : 1) les fichiers à modifier ou créer avec leur chemin exact, 2) le code complet de chaque fichier ou le diff précis, 3) la migration si des tables changent, 4) les contrôles à ajouter, 5) le retour arrière.
+Ne prétends pas avoir exécuté ni testé le code.`,
+    message: [
+      "Contexte réel du dossier :",
+      ...contexte.map((l) => `- ${l}`),
+      "",
+      `Consigne du PDG : ${input.consigne?.trim() || "Écris le correctif complet correspondant au besoin."}`,
+    ].join("\n"),
+    maxTokens: 4000,
+  });
+
+  const [action] = await db
+    .insert(inActions)
+    .values({
+      sessionId: input.sessionId ?? null,
+      commande: "coder",
+      argument: `dossier #${input.devRequestId} — ${input.consigne ?? ""}`.slice(0, 4000),
+      resultat: r.ok ? "propose" : "echec",
+      detail: r.ok ? r.texte.slice(0, 100000) : r.motif,
+      devRequestId: input.devRequestId,
+      actorId: input.actorId ?? null,
+    })
+    .returning({ id: inActions.id });
+
+  await compter("direction", r.ok, r.jetonsEntree + r.jetonsSortie);
+
+  return {
+    ok: r.ok,
+    motif: r.motif,
+    code: r.texte,
+    fournisseur: r.fournisseur,
+    modele: r.modele,
+    actionId: action?.id ?? 0,
+  };
+}
+
+export async function actions(limit = 60) {
+  return db.select().from(inActions).orderBy(desc(inActions.id)).limit(limit);
+}
+
+/** Point 12 — `userId` scope la liste aux conversations réellement possédées par ce compte. */
+export async function sessions(cote: Cote, limit = 40, userId?: number | null) {
+  return db
+    .select()
+    .from(inSessions)
+    .where(userId != null ? and(eq(inSessions.cote, cote), eq(inSessions.userId, userId)) : eq(inSessions.cote, cote))
+    .orderBy(desc(inSessions.dernierAt))
+    .limit(limit);
+}
+
+export async function messages(sessionId: number) {
+  return db
+    .select()
+    .from(inMessages)
+    .where(eq(inMessages.sessionId, sessionId))
+    .orderBy(inMessages.id);
+}
+
+export interface EtatIntelligence {
+  nom: string;
+  acces: {
+    status: "up" | "degraded" | "down";
+    message: string;
+    fournisseur: string | null;
+    modele: string | null;
+  };
+  fournisseurs: {
+    code: string;
+    label: string;
+    capability: string;
+    status: string;
+    missingEnv: string[];
+  }[];
+  usage: { jour: string; cote: string; appels: number; echecs: number; jetons: number }[];
+  plafonds: { cote: string; plafond: number; consommes: number }[];
+  commandes: typeof COMMANDES;
+  regles: typeof REGLES;
+  moteurs: { name: string; label: string; state: string; health: string; category: string }[];
+  echanges: { cote: string; total: number; echecs: number }[];
+}
+
+/** Vue complète côté PDG : accès réel, fournisseurs, coûts, moteurs, commandes. */
+export async function etat(): Promise<EtatIntelligence> {
+  const acces = await verifierAcces();
+
+  let fournisseurs: EtatIntelligence["fournisseurs"] = [];
+  try {
+    const fabric = await import("../ai-fabric/service.js");
+    const etats = await fabric.providerStates();
+    fournisseurs = etats.map((e) => ({
+      code: e.code,
+      label: e.label,
+      capability: e.capability,
+      status: e.status,
+      missingEnv: e.missingEnv,
+    }));
+  } catch {
+    fournisseurs = [];
+  }
+
+  const usage = await db
+    .select()
+    .from(inUsage)
+    .orderBy(desc(inUsage.jour))
+    .limit(14);
+
+  const plafonds = await Promise.all(
+    (["direction", "public"] as Cote[]).map(async (cote) => ({
+      cote,
+      plafond: PLAFOND_JOUR[cote],
+      consommes: await appelsDuJour(cote),
+    })),
+  );
+
+  const moteurs = await db
+    .select({
+      name: engineRegistry.name,
+      label: engineRegistry.label,
+      state: engineRegistry.state,
+      health: engineRegistry.health,
+      category: engineRegistry.category,
+    })
+    .from(engineRegistry)
+    .orderBy(engineRegistry.category, engineRegistry.label);
+
+  const echanges = await db
+    .select({
+      cote: inMessages.cote,
+      total: sql<number>`count(*)::int`,
+      echecs: sql<number>`count(*) filter (where ${inMessages.ok} = false)::int`,
+    })
+    .from(inMessages)
+    .groupBy(inMessages.cote);
+
+  return {
+    nom: NOM_MOTEUR,
+    acces,
+    fournisseurs,
+    usage: usage.map((u) => ({
+      jour: u.jour,
+      cote: u.cote,
+      appels: u.appels,
+      echecs: u.echecs,
+      jetons: u.jetons,
+    })),
+    plafonds,
+    commandes: COMMANDES,
+    regles: REGLES,
+    moteurs,
+    echanges,
+  };
+}
+
+export async function health(): Promise<{ status: "up" | "degraded" | "down"; message: string }> {
+  try {
+    const acces = await verifierAcces();
+    if (acces.status === "up") return { status: "up", message: acces.message };
+    return {
+      status: acces.status,
+      message: `${NOM_MOTEUR} : aucune réponse de fournisseur — ${acces.message}`,
+    };
+  } catch (e) {
+    return {
+      status: "down",
+      message: `Vérification impossible : ${e instanceof Error ? e.message : "erreur inconnue"}`,
+    };
+  }
+}
