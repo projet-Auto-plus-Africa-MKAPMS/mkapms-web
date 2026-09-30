@@ -10,8 +10,10 @@ export const demandeMedia = z.object({
   requestId: z.string().uuid(), operation: z.enum(["image", "voix", "transcription"]),
   texte: z.string().trim().min(2).max(4000), droitsConfirmes: z.literal(true),
   audio: fichierAudio.optional(),
+  references: z.array(z.string().max(8_500_000).refine((v) => /^data:image\/(?:png|jpe?g|webp);base64,[A-Za-z0-9+/]+={0,2}$/i.test(v), "Référence image invalide.")).max(4).optional(),
 }).strict().superRefine((v,ctx)=>{
   if((v.operation==='transcription')!==!!v.audio)ctx.addIssue({code:"custom",message:"Un fichier audio est requis uniquement pour une transcription."});
+  if(v.operation!=='image'&&v.references?.length)ctx.addIssue({code:"custom",message:"Les références sont réservées à la création d'image."});
 });
 export function texteMediaAutorise(texte: string): boolean {
   return !/(?:\b(?:sk-|ck_|cs_)[A-Za-z0-9_-]{16,}|-----BEGIN .*PRIVATE KEY|\bBearer\s+\S+|(?:password|mot de passe|secret|api[_ -]?key)\s*[:=]\s*\S+)/i.test(texte);
@@ -22,7 +24,7 @@ export async function produire(ownerId: number, role: string, brut: DemandeMedia
   const input = demandeMedia.parse(brut);
   if (!texteMediaAutorise(input.texte)) throw new Error("Utilisez le Coffre secret d'AL-HUDHUD·M pour les secrets : ils ne se collent jamais dans un texte.");
   if(input.audio) lireAudio(input.audio);
-  const hash = createHash("sha256").update(JSON.stringify({operation: input.operation, texte: input.texte, audio:input.audio})).digest("hex");
+  const hash = createHash("sha256").update(JSON.stringify({operation: input.operation, texte: input.texte, audio:input.audio,references:input.references})).digest("hex");
   const c = await base.connect();
   try {
     await c.query("BEGIN");
@@ -43,7 +45,7 @@ export async function produire(ownerId: number, role: string, brut: DemandeMedia
   } catch(e) { await c.query("ROLLBACK"); throw e; } finally { c.release(); }
   try {
     const r = await executer({productionMedia:true,capacite:input.operation,moteur:input.operation==='image'?'media_os':input.operation==='transcription'?'command_center':'intelligences',role,
-      audio:input.audio,confidentialite:'publique',message:input.texte,systeme:'Produire un brouillon média. Aucune publication.'});
+      audio:input.audio,images:input.references,confidentialite:'publique',message:input.texte,systeme:'Produire un brouillon média. Aucune publication.'});
     if (!r.ok || !r.media) {
       await base.query("UPDATE in_media_productions SET statut='FAILED',motif=$2 WHERE id=$1",[input.requestId,r.motifPublic || 'Le service média est indisponible.']);
       return {id:input.requestId,statut:'FAILED'};

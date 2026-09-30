@@ -470,7 +470,7 @@ export async function appeler(input: AppelInput, fetchImpl: typeof fetch = fetch
     try {
       const media = input.media === "transcription"
         ? await transcrireAudioNatif(resolu, input.audio!, fetchImpl)
-        : await produireMediaNatif(resolu, input.media, input.message, fetchImpl);
+        : await produireMediaNatif(resolu, input.media, input.message, fetchImpl, input.images);
       await markProviderUsed(providerCode);
       await db.insert(afCostEntries).values({
         engine: input.moteur, taskType: input.media, providerCode,
@@ -967,7 +967,7 @@ export async function rechercherWebNatif(
 /** Adaptateur borné, appelé exclusivement après les contrôles du routeur. Export pour test injecté. */
 export async function produireMediaNatif(
   resolu: { cle: string; modele: string }, operation: "image" | "voix", texte: string,
-  fetchImpl: typeof fetch = fetch,
+  fetchImpl: typeof fetch = fetch, images: string[] = [],
 ): Promise<MediaProduit> {
   if (!resolu.cle || !texte.trim() || texte.length > 4000) throw new Error("MEDIA_INPUT_INVALID");
   const image = operation === "image";
@@ -976,8 +976,12 @@ export async function produireMediaNatif(
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${resolu.cle}` },
     body: JSON.stringify(image ? {
       model: resolu.modele, store: false,
-      instructions: "Créer une illustration clairement synthétique selon la demande. Aucune preuve de test, certification, performance technique ou caractéristique produit inventée. Respecter les droits des contenus et la politique commerciale halal MKA.P-MS. Aucun outil autre que la génération d’image.",
-      input: texte, tools: [{ type: "image_generation", size: "1024x1024", quality: "low", output_format: "png" }],
+      instructions: "Créer un nouveau visuel produit premium à partir des références autorisées, avec composition, décor, éclairage et rendu originaux. Préserver l'identité réelle du produit sans recopier le décor fournisseur. Ne jamais inventer logo, certification, performance, accessoire ou caractéristique. Aucune preuve de test. Respecter les droits des contenus et la politique commerciale halal MKA.P-MS. Aucune publication automatique.",
+      input: images.length ? [{ role: "user", content: [
+        { type: "input_text", text: texte },
+        ...images.slice(0, 4).map((image_url) => ({ type: "input_image", image_url })),
+      ] }] : texte,
+      tools: [{ type: "image_generation", size: "1024x1024", quality: "high", output_format: "png" }],
       tool_choice: { type: "image_generation" }, max_output_tokens: 1200,
     } : { model: "tts-1", input: texte, voice: "alloy", response_format: "mp3" }),
   });

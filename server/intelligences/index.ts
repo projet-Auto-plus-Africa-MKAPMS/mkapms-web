@@ -26,8 +26,10 @@ import {
   NIVEAUX_AUTONOMIE,
   PORTEE_NIVEAU,
   etat as etatAutonomie,
+  etatAgentAutonome,
   journal as journalAutonomie,
   regler as reglerAutonomie,
+  reglerAgentAutonome,
 } from "./autonomie.js";
 import {
   orchestrer,
@@ -465,6 +467,23 @@ export const intelligencesRouter = router({
     domaines: await etatAutonomie(),
     journal: await journalAutonomie(60),
   })),
+
+  agentAutonome: pdgProcedure.query(async () => ({
+    ...(await etatAgentAutonome()),
+    createur: "MKA.P-MS",
+    mandat: "Exécuter les demandes authentifiées du PDG dans les permissions, contrats, preuves et séparations de données de la plateforme.",
+    capacites: [
+      { code: "media_image", libelle: "Photos produit premium", etat: "disponible", detail: "Jusqu'à 4 références privées, création d'un nouveau visuel, revue avant publication." },
+      { code: "media_video", libelle: "Vidéo produit", etat: "a_raccorder", detail: "Le fournisseur vidéo n'est pas encore câblé : aucune fausse vidéo ne sera déclarée produite." },
+      { code: "redaction", libelle: "Mails, réponses clients et textes", etat: "disponible", detail: "Rédaction dans la conversation ; tout envoi externe reste relu et confirmé." },
+      { code: "developpement", libelle: "Analyse, plan, tests et dossier de déploiement", etat: "disponible", detail: "Étapes et preuves réelles dans les missions." },
+      { code: "git_deploiement", libelle: "Écriture Git, fusion et déploiement autonomes", etat: "a_raccorder", detail: "Aucun accès GitHub d'écriture n'est configuré dans l'agent interne ; l'approbation de déploiement reste obligatoire." },
+    ],
+  })),
+
+  reglerAgentAutonome: pdgProcedure
+    .input(z.object({ actif: z.boolean() }).strict())
+    .mutation(({ input, ctx }) => reglerAgentAutonome({ actif: input.actif, actorId: ctx.user.uid })),
 
   reglerAutonomie: pdgProcedure
     .input(

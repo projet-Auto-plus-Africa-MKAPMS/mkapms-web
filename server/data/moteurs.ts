@@ -10918,6 +10918,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     ],
     "procedures": [
       "actions",
+      "agentAutonome",
       "appels",
       "appelsMoteurs",
       "approbateursDeploiement",
@@ -11013,6 +11014,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "rechercheGlobale",
       "rechercherCandidatApprobateur",
       "refuserDeploiement",
+      "reglerAgentAutonome",
       "reglerAutonomie",
       "reglerCleDeveloppeur",
       "reglerDomaine",
