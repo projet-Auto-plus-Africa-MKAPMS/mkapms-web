@@ -262,3 +262,62 @@ export async function journal(limit = 100) {
     .orderBy(desc(inAutonomieJournal.id))
     .limit(limit);
 }
+
+/**
+ * Le bouton simple demandé par le Fondateur pilote les curseurs existants au
+ * lieu de créer un second système d'autonomie. Le profil n'ouvre jamais les
+ * paiements, les secrets, la base ou l'administration d'infrastructure.
+ */
+export const PROFIL_AGENT_AUTONOME: Record<DomaineAutonomie, NiveauAutonomie> = {
+  global: 6,
+  code: 5,
+  contenu: 6,
+  seo: 5,
+  paiement: 1,
+  support: 5,
+  moteurs: 5,
+  infrastructure: 5,
+};
+
+const PROFIL_AGENT_ARRETE: Record<DomaineAutonomie, NiveauAutonomie> = {
+  global: 2,
+  code: 2,
+  contenu: 2,
+  seo: 2,
+  paiement: 1,
+  support: 2,
+  moteurs: 2,
+  infrastructure: 1,
+};
+
+export async function etatAgentAutonome() {
+  const domaines = await etat();
+  const actif = (Object.entries(PROFIL_AGENT_AUTONOME) as [DomaineAutonomie, NiveauAutonomie][])
+    .every(([domaine, requis]) => (domaines.find((d) => d.domaine === domaine)?.effectif ?? 1) >= requis);
+  return {
+    actif,
+    libelle: actif ? "Activé" : "Désactivé",
+    domaines,
+    protections: [
+      "Paiements et facturation non ouverts",
+      "Secrets, base de données et infrastructure niveau 7 non ouverts",
+      "Publication, envoi client, fusion et déploiement soumis aux preuves et approbations existantes",
+      "Données MAIN et SHOP strictement séparées",
+    ],
+  };
+}
+
+export async function reglerAgentAutonome(input: { actif: boolean; actorId?: number }) {
+  const profil = input.actif ? PROFIL_AGENT_AUTONOME : PROFIL_AGENT_ARRETE;
+  const motif = input.actif
+    ? "Activation explicite par le PDG du mandat autonome contrôlé AL-HUDHUD·M."
+    : "Désactivation explicite par le PDG du mandat autonome AL-HUDHUD·M.";
+  // Le plafond est posé en premier : à l'activation il autorise ensuite les
+  // domaines ; à l'arrêt il coupe immédiatement toute action supérieure.
+  const ordre: DomaineAutonomie[] = ["global", "code", "contenu", "seo", "support", "moteurs", "infrastructure", "paiement"];
+  for (const domaine of ordre) {
+    const resultat = await regler({ domaine, niveau: profil[domaine], motif, actorId: input.actorId });
+    if (!resultat.ok) throw new Error(resultat.detail);
+  }
+  return etatAgentAutonome();
+}

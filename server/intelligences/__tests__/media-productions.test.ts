@@ -14,6 +14,17 @@ test('image native uses completed image output, never text as a rendered file',a
  await assert.rejects(produireMediaNatif(config,'image','Une illustration',async()=>Response.json({status:'completed',output:[{type:'message',content:[{type:'output_text',text:'image done'}]}]})));
  await assert.rejects(produireMediaNatif(config,'image','Une illustration',async()=>Response.json({status:'incomplete',output:[{type:'image_generation_call',status:'completed',result:png}]})));
 });
+test('image native sends up to four private references to the image tool',async()=>{
+ const reference='data:image/png;base64,'+png;
+ await produireMediaNatif(config,'image','Rendu premium',async(_url,init)=>{
+  const body=JSON.parse(String(init?.body));
+  assert.equal(body.tools[0].quality,'high');
+  assert.equal(body.input[0].content[0].type,'input_text');
+  assert.equal(body.input[0].content[1].type,'input_image');
+  assert.equal(body.input[0].content[1].image_url,reference);
+  return Response.json({status:'completed',output:[{type:'image_generation_call',status:'completed',result:png}]});
+ },[reference]);
+});
 test('speech creates audio and refuses HTML, failed requests and oversized streams',async()=>{
  const audio=Buffer.concat([Buffer.from('ID3'),Buffer.alloc(32)]);
  const r=await produireMediaNatif(config,'voix','Bonjour',async(_url,init)=>{
@@ -28,6 +39,11 @@ test('rights, limits and recognizable credentials checked before inference',()=>
  assert.equal(texteMediaAutorise('api_key=confidentiel'),false);
  assert.equal(texteMediaAutorise('ck_'+'a'.repeat(30)),false);
  assert.equal(demandeMedia.safeParse({requestId:'31c67eaa-5372-4e8e-b8d4-f6cb61bbd79f',operation:'image',texte:'Test',droitsConfirmes:false}).success,false);
+ const common={requestId:'31c67eaa-5372-4e8e-b8d4-f6cb61bbd79f',texte:'Test premium',droitsConfirmes:true};
+ const reference='data:image/png;base64,'+png;
+ assert.equal(demandeMedia.safeParse({...common,operation:'image',references:[reference]}).success,true);
+ assert.equal(demandeMedia.safeParse({...common,operation:'voix',references:[reference]}).success,false);
+ assert.equal(demandeMedia.safeParse({...common,operation:'image',references:Array(5).fill(reference)}).success,false);
 });
 
 test('transcription validates binary format, bounds result, uses multipart and never trusts filenames',async()=>{
