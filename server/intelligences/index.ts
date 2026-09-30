@@ -168,6 +168,7 @@ import * as memoireUtilisateur from "./memoire-utilisateur.js";
 import * as memoireProjet from "./memoire-projet.js";
 import * as fichiers from "./fichiers.js";
 import * as productionsMedia from "./media-productions.js";
+import { fichierAudio } from "./audio-input.js";
 import * as connaissance from "./connaissance.js";
 import { rechercherGlobale, type SourceRecherche } from "./recherche-globale.js";
 import { retrieve as ragRetrieveInterne, answer as ragAnswerInterne } from "./rag.js";
@@ -275,6 +276,30 @@ async function exigerProprieteConversation(sessionId: number, userId: number): P
 }
 
 export const intelligencesRouter = router({
+  /**
+   * Dictée mobile éphémère : l'audio n'est ni stocké en base ni ajouté à la
+   * mémoire. Ce chemin sert de repli fiable à SpeechRecognition sur iPhone.
+   */
+  transcrireDictee: pdgProcedure.input(z.object({ audio: fichierAudio }).strict())
+    .mutation(async ({ input, ctx }) => {
+      const resultat = await routerCapacite({
+        productionMedia: true,
+        capacite: "transcription",
+        moteur: "command_center",
+        role: ctx.user.role,
+        audio: input.audio,
+        confidentialite: "personnelle",
+        message: "Transcrire ce court segment de dictée en français, sans commentaire.",
+        systeme: "Renvoyer uniquement la transcription fidèle du segment audio.",
+      });
+      if (!resultat.ok || resultat.media?.mime !== "text/plain" || !resultat.media.base64) {
+        throw new TRPCError({ code: "SERVICE_UNAVAILABLE", message: resultat.motifPublic || "Transcription momentanément indisponible." });
+      }
+      const texte = Buffer.from(resultat.media.base64, "base64").toString("utf8").trim();
+      if (!texte) throw new TRPCError({ code: "BAD_REQUEST", message: "Aucune parole détectée." });
+      return { texte: texte.slice(0, 4_000) };
+    }),
+
   mediaProduire: pdgProcedure.input(productionsMedia.demandeMedia)
     .mutation(({input,ctx}) => productionsMedia.produire(ctx.user.uid,ctx.user.role,input)),
   mediaListe: pdgProcedure.query(({ctx})=>productionsMedia.lister(ctx.user.uid)),

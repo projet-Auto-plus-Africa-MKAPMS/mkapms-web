@@ -63,6 +63,148 @@ export interface DictationHandlers {
   onEnd: () => void;
 }
 
+export type RecordedAudioFormat = "webm" | "mp4";
+
+export interface RecordedDictationHandlers {
+  onChunk: (chunk: { blob: Blob; format: RecordedAudioFormat }) => void;
+  onError: (message: string) => void;
+  onEnd: () => void;
+}
+
+/**
+ * WebKit SpeechRecognition boucle sans texte sur certains iPhone. Dans ce cas,
+ * on enregistre de vrais petits segments audio et le serveur les transcrit.
+ */
+export function prefersRecordedDictation(
+  userAgent = typeof navigator === "undefined" ? "" : navigator.userAgent,
+  platform = typeof navigator === "undefined" ? "" : navigator.platform,
+  maxTouchPoints = typeof navigator === "undefined" ? 0 : navigator.maxTouchPoints,
+): boolean {
+  return /iPhone|iPad|iPod/i.test(userAgent) || (platform === "MacIntel" && maxTouchPoints > 1);
+}
+
+/**
+ * Capture continue pour iPhone. Le MediaRecorder est renouvelé sans fermer le
+ * flux micro afin que chaque segment soit un fichier MP4/WebM valide et puisse
+ * être transcrit indépendamment. L'analyseur local évite tout envoi pendant le
+ * silence : le micro reste simplement en attente.
+ */
+export async function startRecordedDictation(
+  handlers: RecordedDictationHandlers,
+  segmentDurationMs = 6_000,
+): Promise<{ stop: () => Promise<void> } | null> {
+  if (typeof navigator === "undefined" || !navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === "undefined") return null;
+
+  const mimeType = ["audio/mp4", "audio/webm;codecs=opus", "audio/webm"]
+    .find((candidate) => MediaRecorder.isTypeSupported(candidate));
+  if (!mimeType) return null;
+
+  let stream: MediaStream;
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+  } catch {
+    handlers.onError("Micro bloqué : autorisez le microphone dans les réglages du navigateur, puis réessayez.");
+    return null;
+  }
+
+  let active = true;
+  let recorder: MediaRecorder | null = null;
+  let rotationTimer: ReturnType<typeof setTimeout> | null = null;
+  let meterTimer: ReturnType<typeof setInterval> | null = null;
+  let audioContext: AudioContext | null = null;
+  let segmentHasVoice = false;
+  let ended = false;
+  let resolveStopped: (() => void) | null = null;
+  const stopped = new Promise<void>((resolve) => { resolveStopped = resolve; });
+
+  const finish = () => {
+    if (ended) return;
+    ended = true;
+    if (rotationTimer) clearTimeout(rotationTimer);
+    if (meterTimer) clearInterval(meterTimer);
+    stream.getTracks().forEach((track) => track.stop());
+    void audioContext?.close().catch(() => undefined);
+    handlers.onEnd();
+    resolveStopped?.();
+  };
+
+  try {
+    const Context = window.AudioContext ?? (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+    if (Context) {
+      audioContext = new Context();
+      if (audioContext.state === "suspended") await audioContext.resume();
+      const analyser = audioContext.createAnalyser();
+      analyser.fftSize = 512;
+      audioContext.createMediaStreamSource(stream).connect(analyser);
+      const samples = new Uint8Array(analyser.fftSize);
+      meterTimer = setInterval(() => {
+        analyser.getByteTimeDomainData(samples);
+        let energy = 0;
+        for (const sample of samples) {
+          const value = (sample - 128) / 128;
+          energy += value * value;
+        }
+        if (Math.sqrt(energy / samples.length) > 0.012) segmentHasVoice = true;
+      }, 100);
+    } else {
+      // Sans analyseur, on conserve le fonctionnement plutôt que de rendre le
+      // bouton inerte. Le fournisseur éliminera alors les segments sans texte.
+      segmentHasVoice = true;
+    }
+  } catch {
+    segmentHasVoice = true;
+  }
+
+  const format: RecordedAudioFormat = mimeType.includes("mp4") ? "mp4" : "webm";
+
+  const startSegment = () => {
+    if (!active) { finish(); return; }
+    const parts: Blob[] = [];
+    const current = new MediaRecorder(stream, { mimeType });
+    recorder = current;
+    segmentHasVoice = false;
+    current.ondataavailable = (event) => { if (event.data.size) parts.push(event.data); };
+    current.onerror = () => {
+      active = false;
+      handlers.onError("L’enregistrement du microphone a été interrompu. Appuyez de nouveau sur le micro.");
+      finish();
+    };
+    current.onstop = () => {
+      if (rotationTimer) clearTimeout(rotationTimer);
+      const hasVoice = segmentHasVoice;
+      const blob = new Blob(parts, { type: mimeType });
+      if (hasVoice && blob.size >= 16) handlers.onChunk({ blob, format });
+      // Relancer avant la transcription : aucune attente réseau ne coupe le micro.
+      if (active) startSegment();
+      else finish();
+    };
+    current.start(500);
+    rotationTimer = setTimeout(() => {
+      if (current.state === "recording") current.stop();
+    }, Math.max(2_000, segmentDurationMs));
+  };
+
+  try {
+    startSegment();
+  } catch {
+    active = false;
+    handlers.onError("Le microphone n’a pas pu démarrer sur cet appareil.");
+    finish();
+    return null;
+  }
+
+  return {
+    stop: async () => {
+      if (!active) { await stopped; return; }
+      active = false;
+      if (rotationTimer) clearTimeout(rotationTimer);
+      if (recorder?.state === "recording") recorder.stop();
+      else finish();
+      await stopped;
+    },
+  };
+}
+
 /**
  * Demande l'autorisation dans le geste explicite de l'utilisateur avant de
  * démarrer SpeechRecognition. Sur iOS, un démarrage automatique au chargement

@@ -11026,6 +11026,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "revoquerCleDeveloppeur",
       "shadow",
       "supprimerConversation",
+      "transcrireDictee",
       "universDetail",
       "universRegistre",
       "verifierPublicationDeploiement"
