@@ -60,7 +60,14 @@ import {
 } from "lucide-react";
 import { trpc } from "../../../lib/trpc";
 import { EtatServiceIntelligence } from "../../../components/EtatServiceIntelligence";
-import { requestMicrophoneAccess, speechRecognitionConstructor, startDictation } from "../../../lib/speech";
+import {
+  prefersRecordedDictation,
+  requestMicrophoneAccess,
+  speechRecognitionConstructor,
+  startDictation,
+  startRecordedDictation,
+  type RecordedAudioFormat,
+} from "../../../lib/speech";
 import { type Intensite, NIVEAUX_INTENSITE, intensiteValide, CLE_INTENSITE_STOCKAGE } from "../../../lib/intensite";
 import { addDictationHistory, recognitionLanguage, useVoicePreferences } from "../../../lib/voicePreferences";
 
@@ -89,6 +96,15 @@ function lireFichierNavigateur(fichier: File): Promise<string> {
   });
 }
 
+function encoderAudio(blob: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const lecteur = new FileReader();
+    lecteur.onload = () => resolve(String(lecteur.result ?? "").split(",")[1] ?? "");
+    lecteur.onerror = () => reject(lecteur.error ?? new Error("Lecture audio impossible."));
+    lecteur.readAsDataURL(blob);
+  });
+}
+
 function idBulle(): string {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 }
@@ -104,6 +120,7 @@ export function Conversation({ navigation, active = true, mode = "chat", onActiv
   const [sessionId, setSessionId] = useState<number | null>(null);
   const [fil, setFil] = useState<Bulle[]>([]);
   const [question, setQuestion] = useState("");
+  const questionRef = useRef("");
   const [derniereQuestion, setDerniereQuestion] = useState("");
   const [panneauOuvert, setPanneauOuvert] = useState(false);
   const [renommageId, setRenommageId] = useState<number | null>(null);
@@ -140,7 +157,7 @@ export function Conversation({ navigation, active = true, mode = "chat", onActiv
   const missionDraftKeyRef = useRef("new");
   const envoiVocalEnCours = useRef(false);
   const [etatVocal, setEtatVocal] = useState("");
-  const dictation = useRef<{ stop: () => void } | null>(null);
+  const dictation = useRef<{ stop: () => void | Promise<void> } | null>(null);
   const dictationVocale = useRef<{ stop: () => void } | null>(null);
   const [menuPiecesOuvert, setMenuPiecesOuvert] = useState(false);
   const [pieces, setPieces] = useState<PieceConversation[]>([]);
@@ -150,6 +167,8 @@ export function Conversation({ navigation, active = true, mode = "chat", onActiv
   const appuiLong = useRef<number | null>(null);
   const appuiLongDeclenche = useRef(false);
   const texteAvantDictee = useRef("");
+  const dicteeGeneration = useRef(0);
+  const fileTranscriptions = useRef<Promise<void>>(Promise.resolve());
   const [desktop, setDesktop] = useState(() => typeof window !== "undefined" && window.matchMedia("(min-width: 768px)").matches);
   useEffect(() => {
     mounted.current = true;
@@ -183,6 +202,7 @@ export function Conversation({ navigation, active = true, mode = "chat", onActiv
     el.style.height = "auto";
     el.style.height = `${el.scrollHeight}px`;
   }, [question]);
+  useEffect(() => { questionRef.current = question; }, [question]);
   function saveDraft() { drafts.current.set(String(sessionId ?? "new"), question); }
   const normalise = (value: string) => value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase();
 
@@ -318,6 +338,8 @@ export function Conversation({ navigation, active = true, mode = "chat", onActiv
     onSettled: () => { missionVocaleRef.current = false; },
   });
 
+  const transcrireDictee = trpc.intelligences.transcrireDictee.useMutation();
+
   const historyUnavailable = !!sessionId && (filServeur.isFetching || filServeur.isError || sessionChargee.current !== sessionId);
   const busy = demander.isPending || mission.isPending || supprimer.isPending || deposerFichier.isPending || sendLock.current;
   function nouvelleConversation() {
@@ -344,8 +366,10 @@ export function Conversation({ navigation, active = true, mode = "chat", onActiv
     setPanneauOuvert(false);
   }
 
-  function arreterDictee() {
-    dictation.current?.stop();
+  async function arreterDictee() {
+    const courante = dictation.current;
+    if (!courante) dicteeGeneration.current += 1;
+    await courante?.stop();
     dictation.current = null;
     setEcoute(false);
   }
@@ -420,7 +444,7 @@ export function Conversation({ navigation, active = true, mode = "chat", onActiv
     }
     const micro = await requestMicrophoneAccess();
     if (!micro.ok) { setNotice(micro.message); return; }
-    arreterDictee();
+    void arreterDictee();
     conversationVocaleRef.current = true;
     setConversationVocale(true);
     setNotice("");
@@ -444,14 +468,67 @@ export function Conversation({ navigation, active = true, mode = "chat", onActiv
 
   async function basculerDictee() {
     if (conversationVocaleRef.current) arreterConversationVocale();
-    if (ecoute) { arreterDictee(); return; }
-    const micro = await requestMicrophoneAccess();
-    if (!micro.ok) { setNotice(micro.message); return; }
+    if (ecoute) { await arreterDictee(); return; }
     const base = question;
     texteAvantDictee.current = base;
+    const generation = ++dicteeGeneration.current;
+    setNotice("");
+
+    if (prefersRecordedDictation()) {
+      setEcoute(true);
+      const control = await startRecordedDictation({
+        onChunk: ({ blob, format }: { blob: Blob; format: RecordedAudioFormat }) => {
+          fileTranscriptions.current = fileTranscriptions.current.then(async () => {
+            const base64 = await encoderAudio(blob);
+            if (!base64 || generation !== dicteeGeneration.current) return;
+            const resultat = await transcrireDictee.mutateAsync({ audio: { format, base64 } });
+            if (!resultat.texte.trim() || generation !== dicteeGeneration.current || !mounted.current) return;
+            setQuestion((courant) => {
+              const prochain = [courant.trim(), resultat.texte.trim()].filter(Boolean).join(" ");
+              questionRef.current = prochain;
+              addDictationHistory(resultat.texte.trim(), "dictation");
+              return prochain;
+            });
+          }).catch(() => {
+            if (generation === dicteeGeneration.current && mounted.current) {
+              setNotice("Un segment vocal n’a pas pu être transcrit. Le micro reste en écoute ; continuez ou réessayez.");
+            }
+          });
+        },
+        onError: (texte) => {
+          if (generation !== dicteeGeneration.current) return;
+          setNotice(texte);
+          setEcoute(false);
+          dictation.current = null;
+        },
+        onEnd: () => {
+          if (generation !== dicteeGeneration.current) return;
+          dictation.current = null;
+          setEcoute(false);
+        },
+      });
+      if (!control) {
+        if (generation === dicteeGeneration.current) {
+          setEcoute(false);
+          setNotice("L’enregistrement continu n’est pas disponible sur ce navigateur.");
+        }
+        return;
+      }
+      if (generation !== dicteeGeneration.current) {
+        await control.stop();
+        return;
+      }
+      dictation.current = control;
+      return;
+    }
+
+    const micro = await requestMicrophoneAccess();
+    if (!micro.ok) { setNotice(micro.message); return; }
     const control = startDictation(recognitionLanguage(voicePreferences), {
       onText: (texte, final) => {
-        setQuestion(base ? `${base} ${texte}` : texte);
+        const prochain = base ? `${base} ${texte}` : texte;
+        questionRef.current = prochain;
+        setQuestion(prochain);
         if (final) addDictationHistory(texte, "dictation");
       },
       onError: (texte) => { setNotice(texte); setEcoute(false); dictation.current = null; },
@@ -464,18 +541,18 @@ export function Conversation({ navigation, active = true, mode = "chat", onActiv
 
   /** Annule : arrête la dictée et efface ce qu'elle a écrit, revient au texte d'avant. */
   function annulerDictee() {
-    dictation.current?.stop();
+    dicteeGeneration.current += 1;
+    void dictation.current?.stop();
     dictation.current = null;
     setEcoute(false);
     setQuestion(texteAvantDictee.current);
   }
 
   /** Arrête la dictée et envoie immédiatement ce qui a été dicté, sans repasser par la relecture. */
-  function envoyerDicteeMaintenant() {
-    dictation.current?.stop();
-    dictation.current = null;
-    setEcoute(false);
-    envoyer();
+  async function envoyerDicteeMaintenant() {
+    await arreterDictee();
+    await fileTranscriptions.current;
+    envoyer(questionRef.current);
   }
 
   /** Rester appuyé sur le micro ramène directement aux paramètres (voix & production) — jamais de suppression, juste un autre chemin. */
@@ -890,7 +967,7 @@ export function Conversation({ navigation, active = true, mode = "chat", onActiv
               value={question}
               disabled={busy}
               aria-label="Votre message"
-              onChange={(e) => { setQuestion(e.target.value); drafts.current.set(String(sessionId ?? "new"), e.target.value); }}
+              onChange={(e) => { questionRef.current = e.target.value; setQuestion(e.target.value); drafts.current.set(String(sessionId ?? "new"), e.target.value); }}
               onKeyDown={(e) => {
                 if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
                   e.preventDefault();
