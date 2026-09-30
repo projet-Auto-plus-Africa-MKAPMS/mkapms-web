@@ -522,17 +522,23 @@ export const intelligencesRouter = router({
           )
           .max(8)
           .optional(),
+        fichierIds: z.array(z.number().int().positive()).max(4).optional(),
       }),
     )
-    .mutation(({ input, ctx }) =>
-      orchestrer({
+    .mutation(async ({ input, ctx }) => {
+      const pieces = [...(input.pieces ?? [])];
+      for (const id of [...new Set(input.fichierIds ?? [])]) {
+        const fichier = await fichiers.lireFichier(id, ctx.user.uid);
+        pieces.push({ type: "texte", nom: fichier.resume.nom, texte: fichier.contenuTexte ?? "Document sans texte extractible." });
+      }
+      return orchestrer({
         objectif: input.objectif,
         role: ctx.user?.role ?? null,
         actorId: ctx.user?.uid,
-        pieces: input.pieces ?? [],
+        pieces,
         countryCode: input.countryCode ?? null,
-      }),
-    ),
+      });
+    }),
 
   missions: pdgProcedure.query(() => listerMissions(60)),
 

@@ -31,7 +31,6 @@ import { Parametres } from "./modules/Parametres";
 import { Permissions } from "./modules/Permissions";
 import { UsageCouts } from "./modules/UsageCouts";
 import { Historique } from "./modules/Historique";
-import { AgentDeveloppeur } from "./modules/AgentDeveloppeur";
 import { Coffre } from "./modules/Coffre";
 import "./workspace.css";
 
@@ -137,10 +136,10 @@ type BoutiqueAcces = { url: string | null; chargement: boolean };
 
 export default function MKAPMSIntelligence() {
   const { user } = useAuth();
-  const [module, setModule] = useState<CleModule>("accueil");
+  const [module, setModule] = useState<CleModule>("conversation");
+  const [workMode, setWorkMode] = useState(false);
   const [moduleSearch, setModuleSearch] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
-  const [workInstruction, setWorkInstruction] = useState("");
   const niveau = useMemo(() => niveauDepuis({ role: user?.role ?? null }), [user?.role]);
   const acces = trpc.intelligences.indicateursAccueil.useQuery(undefined, { enabled: niveau === "pdg", refetchOnWindowFocus: false, staleTime: 60_000 });
   const boutique: BoutiqueAcces = { url: acces.data?.boutique ?? null, chargement: acces.isLoading };
@@ -157,7 +156,11 @@ export default function MKAPMSIntelligence() {
   const normalise = (text: string) => text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase();
   const actifDef = MODULES.find((m) => m.cle === module);
   const Actif = actifDef?.Composant ?? Conversation;
-  const choose = (key: CleModule) => { setModule(key); setMenuOpen(false); };
+  const choose = (key: CleModule) => {
+    if (key === "developpeur") { setWorkMode(true); setModule("conversation"); }
+    else { if (key === "conversation") setWorkMode(false); setModule(key); }
+    setMenuOpen(false);
+  };
   const topItems = [
     ["Bibliothèque", Library, "documents"], ["Projets", FolderKanban, "projets"],
     ["Plugins", Plug, "integrations"], ["Planifié", Clock3, "automatisations"],
@@ -187,8 +190,8 @@ export default function MKAPMSIntelligence() {
     <header className="alhud-approved-header">
       <button type="button" className="alhud-round-button" onClick={()=>setMenuOpen(true)} aria-label="Ouvrir le menu"><Menu/></button>
       <div className="alhud-platform-switch" aria-label="Mode de travail">
-        <button type="button" className={module !== "developpeur" ? "active" : ""} onClick={()=>choose("conversation")}>Chat</button>
-        <button type="button" className={module === "developpeur" ? "active" : ""} onClick={()=>choose("developpeur")}>Travail</button>
+        <button type="button" className={!workMode ? "active" : ""} onClick={()=>choose("conversation")}>Chat</button>
+        <button type="button" className={workMode ? "active" : ""} onClick={()=>choose("developpeur")}>Travail</button>
       </div>
       <div className="alhud-header-actions">
         <button type="button" className="alhud-round-button" onClick={()=>choose("recherche")} aria-label="Recherche"><Search/></button>
@@ -198,16 +201,14 @@ export default function MKAPMSIntelligence() {
     {menuOpen ? <div className="alhud-menu-backdrop" onClick={()=>setMenuOpen(false)}><aside onClick={e=>e.stopPropagation()}><button type="button" className="alhud-menu-close" onClick={()=>setMenuOpen(false)}><X/> Fermer</button>{nav}</aside></div> : null}
     <main className="alhud-approved-main">
       {module === "accueil" ? <Dashboard onOpen={choose} boutique={boutique}/> : null}
-      {module === "developpeur" ? <AgentDeveloppeur initialInstruction={workInstruction} onConsumed={()=>setWorkInstruction("")}/> : null}
-      {/* La conversation reste montée (masquée) pendant Accueil et Travail : brouillon, fil et session survivent au va-et-vient. */}
-      <div hidden={module === "accueil" || module === "developpeur"} className="alhud-conversation-slot">
+      <div hidden={module === "accueil"} className="alhud-conversation-slot">
         <Conversation
-          key={String(user?.id ?? "anonymous")}
+          key={`${String(user?.id ?? "anonymous")}-${workMode ? "travail" : "chat"}`}
           navigation={nav}
           active={module === "conversation"}
+          mode={workMode ? "travail" : "chat"}
           onActivate={()=>setModule("conversation")}
           onChooseModule={(key)=>choose(key as CleModule)}
-          onSendToDeveloper={(instruction)=>{setWorkInstruction(instruction); choose("developpeur");}}
           searchQuery={moduleSearch}
         >{module === "parametres"
           ? <Parametres onChooseModule={(key) => choose(key as CleModule)} />

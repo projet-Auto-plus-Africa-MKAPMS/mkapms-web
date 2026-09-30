@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { AudioLines, Check, Clock3, Languages, Play, ShieldCheck, Trash2, Volume2 } from "lucide-react";
+import { AudioLines, Clock3, Languages, Play, ShieldCheck, Trash2, Volume2 } from "lucide-react";
 import {
   DICTATION_HISTORY_EVENT,
   clearDictationHistory,
@@ -80,7 +80,7 @@ export function VoiceSettingsPanel({ title = "Voix" }: { title?: string }) {
       {historyOpen ? <div className="bg-black/[0.02] px-4 py-3">
         {history.length ? <><ul className="max-h-52 space-y-2 overflow-y-auto">{history.map((entry) => <li key={entry.id} className="rounded-lg bg-white p-2 text-xs"><p className="line-clamp-3 text-black/70">{entry.text}</p><small className="mt-1 block text-black/35">{new Date(entry.createdAt).toLocaleString("fr-FR")} · {entry.source === "conversation" ? "conversation" : "dictée"}</small></li>)}</ul><button type="button" onClick={() => clearDictationHistory()} className="mt-3 flex items-center gap-1.5 text-xs font-bold text-red-600"><Trash2 className="h-3.5 w-3.5" /> Effacer l’historique local</button></> : <p className="text-xs text-black/45">Aucune dictée enregistrée sur cet appareil.</p>}
       </div> : null}
-      <div className="flex items-center gap-3 px-4 py-3.5"><Check className="h-5 w-5 text-black/45" /><span className="min-w-0 flex-1"><b className="block text-sm">Démarrer en mode vocal</b><small className="text-black/45">Lance l’écoute à l’ouverture du Chat, après autorisation du micro</small></span><Toggle label="Démarrer en mode vocal" value={preferences.autoStart} onChange={(value) => update("autoStart", value)} /></div>
+      <div className="flex items-center gap-3 px-4 py-3.5"><AudioLines className="h-5 w-5 text-black/45" /><span className="min-w-0 flex-1"><b className="block text-sm">Démarrage du vocal</b><small className="text-black/45">Sur iPhone, appuyez sur le bouton vocal : le navigateur exige ce geste avant d’autoriser le micro.</small></span></div>
       <div className="flex items-center gap-3 px-4 py-3.5"><ShieldCheck className="h-5 w-5 text-black/45" /><span className="min-w-0 flex-1"><b className="block text-sm">Conversation en arrière-plan</b><small className="text-black/45">Maintient l’écoute si le système et le navigateur l’autorisent</small></span><Toggle label="Conversation en arrière-plan" value={preferences.background} onChange={(value) => update("background", value)} /></div>
     </div>
   </section>;

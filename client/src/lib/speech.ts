@@ -63,6 +63,29 @@ export interface DictationHandlers {
   onEnd: () => void;
 }
 
+/**
+ * Demande l'autorisation dans le geste explicite de l'utilisateur avant de
+ * démarrer SpeechRecognition. Sur iOS, un démarrage automatique au chargement
+ * est refusé même si le micro avait déjà fonctionné auparavant.
+ */
+export async function requestMicrophoneAccess(): Promise<{ ok: boolean; message: string }> {
+  if (typeof navigator === "undefined" || !navigator.mediaDevices?.getUserMedia) {
+    return { ok: false, message: "Micro indisponible dans ce navigateur." };
+  }
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    stream.getTracks().forEach((track) => track.stop());
+    return { ok: true, message: "" };
+  } catch (error) {
+    const nom = error instanceof DOMException ? error.name : "";
+    if (nom === "NotAllowedError" || nom === "SecurityError") {
+      return { ok: false, message: "Micro bloqué : ouvrez les réglages du navigateur pour AL-HUDHUD·M, autorisez le microphone, puis revenez appuyer sur le micro." };
+    }
+    if (nom === "NotFoundError") return { ok: false, message: "Aucun microphone n’est disponible sur cet appareil." };
+    return { ok: false, message: "Le microphone n’a pas pu démarrer. Réessayez après avoir vérifié son autorisation." };
+  }
+}
+
 const MESSAGES: Record<string, string> = {
   "not-allowed": "Micro refusé par le navigateur : autorisez l'accès au micro pour dicter.",
   "service-not-allowed": "Reconnaissance vocale refusée par le navigateur.",
@@ -133,13 +156,25 @@ export function startDictation(
       // conservant ce qui a déjà été dicté, tant que la personne n'a pas cliqué sur stop.
       texteAccumule = texteComplet();
       texteSessionCourante = "";
-      actuel = demarrerSession();
+      try {
+        actuel = demarrerSession();
+      } catch {
+        bloquant = true;
+        handlers.onError("La dictée n’a pas pu redémarrer. Appuyez de nouveau sur le micro.");
+        handlers.onEnd();
+      }
     };
     reco.start();
     return reco;
   }
 
-  actuel = demarrerSession();
+  try {
+    actuel = demarrerSession();
+  } catch {
+    handlers.onError("La dictée n’a pas pu démarrer. Vérifiez l’autorisation du microphone puis réessayez.");
+    handlers.onEnd();
+    return null;
+  }
   return {
     stop: () => {
       arretDemande = true;

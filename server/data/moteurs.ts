@@ -10882,8 +10882,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "cliquables": 21,
         "parMoteur": 0,
         "sansAction": 1,
-        "textes": 55,
-        "mots": 199
+        "textes": 54,
+        "mots": 137
       }
     ],
     "ecransHotes": [
@@ -11077,13 +11077,13 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "pdg",
       "public"
     ],
-    "textes": 64,
-    "mots": 288,
+    "textes": 63,
+    "mots": 226,
     "battement": "sonde",
     "manques": [
       {
         "genre": "bouton_sans_action",
-        "detail": "« Boutique » client/src/pages/intelligence/index.tsx:180"
+        "detail": "« Boutique » client/src/pages/intelligence/index.tsx:183"
       },
       {
         "genre": "dependance_non_declaree",
