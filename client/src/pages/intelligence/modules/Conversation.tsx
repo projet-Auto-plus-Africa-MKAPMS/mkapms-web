@@ -24,8 +24,11 @@
  *    de se préparer, ce serait un faux bouton ;
  *  - fermeture/archivage d'une conversation : aucun statut d'archive n'existe
  *    encore dans le schéma (seule la suppression réelle est possible) ;
- *  - pièces jointes, image, voix, code : modules dédiés séparés, encore à
- *    l'état de socle (voir leur propre fichier).
+ *  - les photos et fichiers du compositeur sont réellement transmis au même
+ *    moteur (vision ou RAG privé) ; Caméra/Photos/Fichiers/Plugins ne sont pas
+ *    des raccourcis vers le formulaire de travail ;
+ *  - le bouton vocal bleu reste dans ce fil : écoute → envoi → réponse lue →
+ *    nouvelle écoute, sans minuterie sur la surface PDG.
  */
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import "../workspace.css";
@@ -44,7 +47,11 @@ import {
   Sparkles,
   Mic,
   AudioLines,
+  Camera,
+  FileText,
+  Image as ImageIcon,
   Paperclip,
+  Plug,
   Square,
   Trash2,
   Volume2,
@@ -53,7 +60,7 @@ import {
 } from "lucide-react";
 import { trpc } from "../../../lib/trpc";
 import { EtatServiceIntelligence } from "../../../components/EtatServiceIntelligence";
-import { startDictation } from "../../../lib/speech";
+import { speechRecognitionConstructor, startDictation } from "../../../lib/speech";
 import { type Intensite, NIVEAUX_INTENSITE, intensiteValide, CLE_INTENSITE_STOCKAGE } from "../../../lib/intensite";
 
 import { ProgressiveReply, WaitingReply } from "./ReplyPresentation";
@@ -66,6 +73,19 @@ interface Bulle {
   motif: string;
   outils: string[];
   progressive?: boolean;
+}
+
+type PieceConversation =
+  | { cle: string; type: "image"; nom: string; donnees: string }
+  | { cle: string; type: "fichier"; nom: string; fichierId: number };
+
+function lireFichierNavigateur(fichier: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const lecteur = new FileReader();
+    lecteur.onload = () => resolve(String(lecteur.result ?? ""));
+    lecteur.onerror = () => reject(lecteur.error ?? new Error("Lecture impossible."));
+    lecteur.readAsDataURL(fichier);
+  });
 }
 
 function idBulle(): string {
@@ -108,18 +128,35 @@ export function Conversation({ navigation, active = true, onActivate, onChooseMo
   const menu = useRef<HTMLButtonElement>(null);
   const mounted = useRef(true);
   const sendLock = useRef(false);
-  const sent = useRef<{ key: string; text: string; consumesDraft: boolean } | null>(null);
+  const sent = useRef<{ key: string; text: string; consumesDraft: boolean; vocal: boolean } | null>(null);
   const drafts = useRef(new Map<string, string>());
   const [notice, setNotice] = useState("");
   const [ecoute, setEcoute] = useState(false);
+  const [conversationVocale, setConversationVocale] = useState(false);
+  const conversationVocaleRef = useRef(false);
+  const envoiVocalEnCours = useRef(false);
+  const [etatVocal, setEtatVocal] = useState("");
   const dictation = useRef<{ stop: () => void } | null>(null);
+  const dictationVocale = useRef<{ stop: () => void } | null>(null);
+  const [menuPiecesOuvert, setMenuPiecesOuvert] = useState(false);
+  const [pieces, setPieces] = useState<PieceConversation[]>([]);
+  const cameraInput = useRef<HTMLInputElement>(null);
+  const photosInput = useRef<HTMLInputElement>(null);
+  const fichiersInput = useRef<HTMLInputElement>(null);
   const appuiLong = useRef<number | null>(null);
   const appuiLongDeclenche = useRef(false);
   const texteAvantDictee = useRef("");
   const [desktop, setDesktop] = useState(() => typeof window !== "undefined" && window.matchMedia("(min-width: 768px)").matches);
   useEffect(() => {
     mounted.current = true;
-    return () => { mounted.current = false; drafts.current.clear(); sent.current = null; dictation.current?.stop(); };
+    return () => {
+      mounted.current = false;
+      drafts.current.clear();
+      sent.current = null;
+      dictation.current?.stop();
+      dictationVocale.current?.stop();
+      if (typeof window !== "undefined" && "speechSynthesis" in window) window.speechSynthesis.cancel();
+    };
   }, []);
   useEffect(() => {
     const media = window.matchMedia("(min-width: 768px)");
@@ -155,6 +192,8 @@ export function Conversation({ navigation, active = true, onActivate, onChooseMo
     { sessionId: sessionId ?? 0 },
     { enabled: !!sessionId, refetchOnWindowFocus: false },
   );
+
+  const deposerFichier = trpc.intelligences.fichierDeposer.useMutation();
 
   useEffect(() => {
     if (!sessionId || !filServeur.data || filServeur.isFetching || filServeur.isError) return;
@@ -212,6 +251,7 @@ export function Conversation({ navigation, active = true, onActivate, onChooseMo
         },
       ]);
       void conversations.refetch();
+      if (submitted.vocal && conversationVocaleRef.current) repondreEtReecouter(r.reponse);
     },
     onError: (_error, _variables, submitted) => {
       if (!mounted.current || !submitted || sent.current !== submitted) return;
@@ -231,6 +271,7 @@ export function Conversation({ navigation, active = true, onActivate, onChooseMo
           outils: [],
         },
       ]);
+      if (submitted.vocal && conversationVocaleRef.current) window.setTimeout(demarrerEcouteVocale, 700);
     },
     onSettled: (_result, _error, _variables, submitted) => { if (sent.current === submitted) { sendLock.current = false; sent.current = null; } },
   });
@@ -256,9 +297,10 @@ export function Conversation({ navigation, active = true, onActivate, onChooseMo
   });
 
   const historyUnavailable = !!sessionId && (filServeur.isFetching || filServeur.isError || sessionChargee.current !== sessionId);
-  const busy = demander.isPending || supprimer.isPending || sendLock.current;
+  const busy = demander.isPending || supprimer.isPending || deposerFichier.isPending || sendLock.current;
   function nouvelleConversation() {
     if (busy) return;
+    arreterConversationVocale();
     saveDraft();
     suitLeFil.current = true; setRetourAuBas(false);
     setQuestion(drafts.current.get("new") ?? "");
@@ -286,7 +328,78 @@ export function Conversation({ navigation, active = true, onActivate, onChooseMo
     setEcoute(false);
   }
 
+  function arreterConversationVocale() {
+    conversationVocaleRef.current = false;
+    setConversationVocale(false);
+    setEtatVocal("");
+    envoiVocalEnCours.current = false;
+    dictationVocale.current?.stop();
+    dictationVocale.current = null;
+    if (ttsSupporte) window.speechSynthesis.cancel();
+  }
+
+  function demarrerEcouteVocale() {
+    if (!conversationVocaleRef.current || busy || !active) return;
+    envoiVocalEnCours.current = false;
+    setEtatVocal("Je vous écoute…");
+    const control = startDictation("fr-FR", {
+      onText: (texte, final) => {
+        setQuestion(texte);
+        if (!final || texte.trim().length < 2 || envoiVocalEnCours.current) return;
+        envoiVocalEnCours.current = true;
+        dictationVocale.current?.stop();
+        dictationVocale.current = null;
+        setEtatVocal("AL-HUDHUD·M prépare sa réponse…");
+        envoyer(texte, "composer", true);
+      },
+      onError: (texte) => {
+        setNotice(texte);
+        arreterConversationVocale();
+      },
+      onEnd: () => { dictationVocale.current = null; },
+    });
+    if (!control) {
+      setNotice("La conversation vocale n’est pas disponible sur ce navigateur.");
+      arreterConversationVocale();
+      return;
+    }
+    dictationVocale.current = control;
+  }
+
+  function repondreEtReecouter(texte: string) {
+    if (!conversationVocaleRef.current) return;
+    if (!ttsSupporte || !texte.trim()) {
+      window.setTimeout(demarrerEcouteVocale, 300);
+      return;
+    }
+    window.speechSynthesis.cancel();
+    setEtatVocal("AL-HUDHUD·M vous répond…");
+    const u = new SpeechSynthesisUtterance(texte);
+    let voixChoisie = "";
+    try { voixChoisie = localStorage.getItem("mkapms_voix_tts") ?? ""; } catch { /* voix système */ }
+    const choisie = window.speechSynthesis.getVoices().find((v) => v.name === voixChoisie);
+    u.lang = choisie?.lang ?? "fr-FR";
+    if (choisie) u.voice = choisie;
+    u.onend = () => { if (conversationVocaleRef.current) window.setTimeout(demarrerEcouteVocale, 250); };
+    u.onerror = () => { if (conversationVocaleRef.current) window.setTimeout(demarrerEcouteVocale, 250); };
+    window.speechSynthesis.speak(u);
+  }
+
+  function basculerConversationVocale() {
+    if (conversationVocaleRef.current) { arreterConversationVocale(); return; }
+    if (!speechRecognitionConstructor() || !ttsSupporte) {
+      setNotice("La conversation vocale exige l’accès au micro et la lecture audio du navigateur.");
+      return;
+    }
+    arreterDictee();
+    conversationVocaleRef.current = true;
+    setConversationVocale(true);
+    setNotice("");
+    demarrerEcouteVocale();
+  }
+
   function basculerDictee() {
+    if (conversationVocaleRef.current) arreterConversationVocale();
     if (ecoute) { arreterDictee(); return; }
     const base = question;
     texteAvantDictee.current = base;
@@ -332,15 +445,16 @@ export function Conversation({ navigation, active = true, onActivate, onChooseMo
     basculerDictee();
   }
 
-  function envoyer(texte?: string, mode: "composer" | "regenerate" = "composer") {
+  function envoyer(texte?: string, mode: "composer" | "regenerate" = "composer", vocal = false) {
     const q = (texte ?? question).trim();
     if (q.length < 2 || busy || historyUnavailable || !active || !mounted.current) return;
+    if (!vocal && conversationVocaleRef.current) arreterConversationVocale();
     sendLock.current = true;
     suitLeFil.current = true; setRetourAuBas(false);
     setFil(f => f.map(b => ({ ...b, progressive: false })));
     const key = String(sessionId ?? "new");
     const consumesDraft = mode === "composer";
-    sent.current = { key, text: q, consumesDraft };
+    sent.current = { key, text: q, consumesDraft, vocal };
     // Regenerating an earlier answer never consumes the text being composed.
     if (consumesDraft) drafts.current.set(key, q);
     else saveDraft();
@@ -348,7 +462,46 @@ export function Conversation({ navigation, active = true, onActivate, onChooseMo
     setFil((f) => [...f, { id: idBulle(), role: "moi", texte: q, ok: true, motif: "", outils: [] }]);
     setDerniereQuestion(q);
     if (consumesDraft) setQuestion("");
-    demander.mutate({ question: q, sessionId, effort: intensite });
+    const images = pieces.filter((p): p is Extract<PieceConversation, { type: "image" }> => p.type === "image").map((p) => p.donnees);
+    const fichierIds = pieces.filter((p): p is Extract<PieceConversation, { type: "fichier" }> => p.type === "fichier").map((p) => p.fichierId);
+    if (consumesDraft) setPieces([]);
+    demander.mutate({ question: q, sessionId, effort: intensite, images: images.length ? images : undefined, fichierIds: fichierIds.length ? fichierIds : undefined });
+  }
+
+  async function ajouterImages(liste: FileList | null) {
+    if (!liste?.length) return;
+    setMenuPiecesOuvert(false);
+    const places = Math.max(0, 4 - pieces.filter((p) => p.type === "image").length);
+    const choisis = Array.from(liste).filter((f) => f.type.startsWith("image/")).slice(0, places);
+    if (!choisis.length) { setNotice("Choisissez une image compatible."); return; }
+    try {
+      const ajouts: PieceConversation[] = [];
+      for (const fichier of choisis) {
+        if (fichier.size > 5_500_000) throw new Error(`« ${fichier.name} » dépasse la taille autorisée pour une image de conversation.`);
+        ajouts.push({ cle: `${Date.now()}-${fichier.name}-${ajouts.length}`, type: "image", nom: fichier.name, donnees: await lireFichierNavigateur(fichier) });
+      }
+      setPieces((actuelles) => [...actuelles, ...ajouts]);
+      setNotice("");
+    } catch (e) {
+      setNotice(e instanceof Error ? e.message : "La photo n’a pas pu être jointe.");
+    }
+  }
+
+  async function ajouterFichiers(liste: FileList | null) {
+    if (!liste?.length) return;
+    setMenuPiecesOuvert(false);
+    const places = Math.max(0, 4 - pieces.filter((p) => p.type === "fichier").length);
+    const choisis = Array.from(liste).slice(0, places);
+    try {
+      for (const fichier of choisis) {
+        const dataUri = await lireFichierNavigateur(fichier);
+        const resultat = await deposerFichier.mutateAsync({ nom: fichier.name, typeMime: fichier.type || "application/octet-stream", donneesBase64: dataUri.split(",")[1] ?? "" });
+        setPieces((actuelles) => [...actuelles, { cle: `fichier-${resultat.id}`, type: "fichier", nom: resultat.nom, fichierId: resultat.id }]);
+      }
+      setNotice("");
+    } catch (e) {
+      setNotice(e instanceof Error ? e.message : "Le fichier n’a pas pu être ajouté.");
+    }
   }
 
   function regenerer() {
@@ -433,7 +586,8 @@ export function Conversation({ navigation, active = true, onActivate, onChooseMo
     supprimer.mutate({ sessionId: id });
   }
 
-  const sidebarContent = <><div onClick={e => { if ((e.target as HTMLElement).closest("button")) setPanneauOuvert(false); }}>{navigation}</div>
+  const sidebarContent = <>
+        <h2 className="px-2 pb-1 pt-2 text-xs font-black uppercase tracking-wide text-black/45">Récents</h2>
         <button
           type="button"
           onClick={nouvelleConversation} disabled={busy}
@@ -509,6 +663,7 @@ export function Conversation({ navigation, active = true, onActivate, onChooseMo
             <p className="px-2 py-4 text-center text-[11px] text-black/40">Aucune conversation encore.</p>
           )}
         </div>
+        <div className="mt-2 border-t border-black/5 pt-2" onClick={e => { if ((e.target as HTMLElement).closest("button")) setPanneauOuvert(false); }}>{navigation}</div>
 </>;
   return (
     <div className="alhud-conversation-workspace flex h-full min-h-[420px] flex-col gap-3">
@@ -531,7 +686,7 @@ export function Conversation({ navigation, active = true, onActivate, onChooseMo
             onClick={() => setPanneauOuvert((v) => !v)}
             className="flex items-center gap-1.5 text-xs font-bold text-black/60"
           >
-            {panneauOuvert ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />} Conversations
+            {panneauOuvert ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />} Récents
           </button>
           <button type="button" onClick={nouvelleConversation} disabled={busy} className="flex items-center gap-1 text-xs font-bold text-[#8B7500]">
             <Plus className="h-3.5 w-3.5" /> Nouvelle
@@ -654,8 +809,30 @@ export function Conversation({ navigation, active = true, onActivate, onChooseMo
 
         {retourAuBas ? <button type="button" className="alhud-scroll-bottom" onClick={allerAuBas} aria-label="Aller à la dernière réponse"><ArrowDown className="h-4 w-4" /></button> : null}
         <div className="alhud-composer-wrap border-t border-black/5 p-3">
+          {pieces.length > 0 ? <div className="alhud-attachment-chips" aria-label="Pièces jointes prêtes à envoyer">
+            {pieces.map((piece) => <span key={piece.cle}>
+              {piece.type === "image" ? <ImageIcon className="h-3.5 w-3.5" /> : <FileText className="h-3.5 w-3.5" />}
+              <b>{piece.nom}</b>
+              <button type="button" onClick={() => setPieces((actuelles) => actuelles.filter((p) => p.cle !== piece.cle))} aria-label={`Retirer ${piece.nom}`}><X className="h-3.5 w-3.5" /></button>
+            </span>)}
+          </div> : null}
+          {conversationVocale ? <div className="alhud-live-voice-status" role="status"><AudioLines className="h-4 w-4" /><span>{etatVocal || "Conversation vocale active"}</span><button type="button" onClick={arreterConversationVocale}>Terminer</button></div> : null}
           <div className="alhud-composer flex items-end gap-2">
-            {!ecoute && <button type="button" className="alhud-composer-action" onClick={() => onChooseModule?.("documents")} aria-label="Ajouter un fichier"><Paperclip className="h-5 w-5" /></button>}
+            {!ecoute && <div className="relative">
+              <button type="button" className="alhud-composer-action" onClick={() => setMenuPiecesOuvert((v) => !v)} aria-haspopup="menu" aria-expanded={menuPiecesOuvert} aria-label="Ajouter une pièce jointe"><Paperclip className="h-5 w-5" /></button>
+              <input ref={cameraInput} hidden type="file" accept="image/*" capture="environment" onChange={(e) => { void ajouterImages(e.target.files); e.currentTarget.value = ""; }} />
+              <input ref={photosInput} hidden type="file" accept="image/*" multiple onChange={(e) => { void ajouterImages(e.target.files); e.currentTarget.value = ""; }} />
+              <input ref={fichiersInput} hidden type="file" multiple onChange={(e) => { void ajouterFichiers(e.target.files); e.currentTarget.value = ""; }} />
+              {menuPiecesOuvert ? <>
+                <button type="button" className="fixed inset-0 z-20 cursor-default" aria-label="Fermer le menu des pièces jointes" onClick={() => setMenuPiecesOuvert(false)} />
+                <div className="alhud-attachment-menu" role="menu">
+                  <button type="button" role="menuitem" onClick={() => cameraInput.current?.click()}><Camera />Caméra</button>
+                  <button type="button" role="menuitem" onClick={() => photosInput.current?.click()}><ImageIcon />Photos</button>
+                  <button type="button" role="menuitem" onClick={() => fichiersInput.current?.click()} disabled={deposerFichier.isPending}><FileText />Fichiers</button>
+                  <button type="button" role="menuitem" onClick={() => { setMenuPiecesOuvert(false); onChooseModule?.("integrations"); }}><Plug />Plugins</button>
+                </div>
+              </> : null}
+            </div>}
             <textarea
               ref={zoneSaisie}
               value={question}
@@ -708,7 +885,7 @@ export function Conversation({ navigation, active = true, onActivate, onChooseMo
                 >
                   <Mic className="h-5 w-5" />
                 </button>
-                <button type="button" className="alhud-composer-voice" onClick={() => onChooseModule?.("voix")} aria-label="Conversation vocale"><AudioLines className="h-5 w-5" /></button>
+                <button type="button" className={`alhud-composer-voice ${conversationVocale ? "active" : ""}`} onClick={basculerConversationVocale} aria-pressed={conversationVocale} aria-label={conversationVocale ? "Terminer la conversation vocale" : "Démarrer la conversation vocale directe"} title="Conversation vocale directe, sans limite de durée côté PDG"><AudioLines className="h-5 w-5" /></button>
                 <div className="relative">
                   <button
                     type="button"
@@ -793,4 +970,3 @@ export function Conversation({ navigation, active = true, onActivate, onChooseMo
     </div>
   );
 }
-
