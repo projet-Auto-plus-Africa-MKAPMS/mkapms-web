@@ -31,6 +31,8 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import "../workspace.css";
 import {
   AlertTriangle,
+  ArrowDown,
+  ArrowUp,
   Check,
   Copy,
   Gauge,
@@ -38,7 +40,6 @@ import {
   Pencil,
   Plus,
   RotateCcw,
-  Send,
   Share2,
   Sparkles,
   Mic,
@@ -55,6 +56,8 @@ import { EtatServiceIntelligence } from "../../../components/EtatServiceIntellig
 import { startDictation } from "../../../lib/speech";
 import { type Intensite, NIVEAUX_INTENSITE, intensiteValide, CLE_INTENSITE_STOCKAGE } from "../../../lib/intensite";
 
+import { ProgressiveReply, WaitingReply } from "./ReplyPresentation";
+
 interface Bulle {
   id: string;
   role: "moi" | "moteur";
@@ -62,6 +65,7 @@ interface Bulle {
   ok: boolean;
   motif: string;
   outils: string[];
+  progressive?: boolean;
 }
 
 function idBulle(): string {
@@ -97,6 +101,8 @@ export function Conversation({ navigation, active = true, onActivate, onChooseMo
   const [intensiteMenuOuvert, setIntensiteMenuOuvert] = useState(false);
   const sessionChargee = useRef<number | null>(null);
   const finDuFil = useRef<HTMLDivElement>(null);
+  const suitLeFil = useRef(true);
+  const [retourAuBas, setRetourAuBas] = useState(false);
   const zoneSaisie = useRef<HTMLTextAreaElement>(null);
   const drawer = useRef<HTMLDialogElement>(null);
   const menu = useRef<HTMLButtonElement>(null);
@@ -169,10 +175,16 @@ export function Conversation({ navigation, active = true, onActivate, onChooseMo
     );
   }, [sessionId, filServeur.data, filServeur.isFetching, filServeur.isError]);
 
-  useEffect(() => {
+  function suivreReponse() {
     const scroller = finDuFil.current?.parentElement;
-    if (active && scroller) scroller.scrollTop = scroller.scrollHeight;
-  }, [fil, active]);
+    if (active && suitLeFil.current && scroller) scroller.scrollTop = scroller.scrollHeight;
+  }
+  function allerAuBas() {
+    suitLeFil.current = true;
+    setRetourAuBas(false);
+    suivreReponse();
+  }
+  useEffect(() => { suivreReponse(); }, [fil, active]);
 
   const demander = trpc.intelligences.demander.useMutation({
     onMutate: () => sent.current,
@@ -193,6 +205,7 @@ export function Conversation({ navigation, active = true, onActivate, onChooseMo
           role: "moteur",
           texte: r.reponse,
           ok: r.ok,
+          progressive: r.ok,
           // Point 5/02A — jamais le motif interne (fournisseur, modèle, code HTTP) dans cette interface.
           motif: r.motifPublic || "Aucune réponse — le service n'a pas communiqué de motif.",
           outils: r.appelsOutils.map((a) => `${a.toolId} — ${a.verdictPolitique}${a.statutExecution ? `/${a.statutExecution}` : ""}`),
@@ -247,6 +260,7 @@ export function Conversation({ navigation, active = true, onActivate, onChooseMo
   function nouvelleConversation() {
     if (busy) return;
     saveDraft();
+    suitLeFil.current = true; setRetourAuBas(false);
     setQuestion(drafts.current.get("new") ?? "");
     setDerniereQuestion(""); setNotice(""); onActivate?.();
     setSessionId(null);
@@ -258,6 +272,7 @@ export function Conversation({ navigation, active = true, onActivate, onChooseMo
   function ouvrirConversation(id: number) {
     if (busy) return;
     saveDraft();
+    suitLeFil.current = true; setRetourAuBas(false);
     setQuestion(drafts.current.get(String(id)) ?? "");
     if (sessionId !== id) { sessionChargee.current = null; setFil([]); setDerniereQuestion(""); }
     setNotice(""); onActivate?.();
@@ -321,6 +336,8 @@ export function Conversation({ navigation, active = true, onActivate, onChooseMo
     const q = (texte ?? question).trim();
     if (q.length < 2 || busy || historyUnavailable || !active || !mounted.current) return;
     sendLock.current = true;
+    suitLeFil.current = true; setRetourAuBas(false);
+    setFil(f => f.map(b => ({ ...b, progressive: false })));
     const key = String(sessionId ?? "new");
     const consumesDraft = mode === "composer";
     sent.current = { key, text: q, consumesDraft };
@@ -525,7 +542,12 @@ export function Conversation({ navigation, active = true, onActivate, onChooseMo
         <div hidden={!active} className="alhud-live-conversation flex min-h-0 flex-1 flex-col">
         {sessionId && filServeur.isFetching ? <p role="status" className="p-3 text-sm">Chargement de la conversation…</p> : null}
         {sessionId && filServeur.isError ? <div role="alert" className="p-3 text-sm">Cette conversation n’a pas pu être chargée. L’envoi reste bloqué pour préserver son contexte. <button type="button" onClick={() => void filServeur.refetch()}>Réessayer</button></div> : null}
-        <div className="min-h-0 flex-1 space-y-3 overflow-y-auto p-4" role="log" aria-label="Conversation" aria-live="polite" aria-busy={demander.isPending || (!!sessionId && filServeur.isFetching)}>
+        <div className="min-h-0 flex-1 space-y-3 overflow-y-auto p-4" role="log" aria-label="Conversation" aria-live="polite" aria-busy={demander.isPending || (!!sessionId && filServeur.isFetching)} onScroll={e => {
+          const el = e.currentTarget;
+          const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 48;
+          suitLeFil.current = atBottom;
+          setRetourAuBas(!atBottom);
+        }}>
           {fil.length === 0 ? (
             <div className="flex h-full flex-col items-center justify-center gap-2 text-center text-black/40">
               <Sparkles className="h-6 w-6" />
@@ -544,6 +566,7 @@ export function Conversation({ navigation, active = true, onActivate, onChooseMo
                 }`}
               >
                 {b.ok ? (
+                  b.role === "moteur" ? <ProgressiveReply text={b.texte} animate={!!b.progressive && active} onProgress={suivreReponse} /> :
                   <p className="whitespace-pre-wrap text-[#111]">{b.texte}</p>
                 ) : (
                   <p className="flex items-start gap-2 text-red-700">
@@ -624,13 +647,12 @@ export function Conversation({ navigation, active = true, onActivate, onChooseMo
             ))
           )}
           {demander.isPending && (
-            <div className="max-w-[85%] rounded-xl border border-black/5 bg-[#FAFAFA] p-3 text-sm text-black/40">
-              AL-HUDHUD·M réfléchit…
-            </div>
+            <WaitingReply />
           )}
           <div ref={finDuFil} />
         </div>
 
+        {retourAuBas ? <button type="button" className="alhud-scroll-bottom" onClick={allerAuBas} aria-label="Aller à la dernière réponse"><ArrowDown className="h-4 w-4" /></button> : null}
         <div className="alhud-composer-wrap border-t border-black/5 p-3">
           <div className="alhud-composer flex items-end gap-2">
             {!ecoute && <button type="button" className="alhud-composer-action" onClick={() => onChooseModule?.("documents")} aria-label="Ajouter un fichier"><Paperclip className="h-5 w-5" /></button>}
@@ -668,7 +690,7 @@ export function Conversation({ navigation, active = true, onActivate, onChooseMo
                   title="Envoyer"
                   className="alhud-composer-send grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-[#111] text-white disabled:opacity-40"
                 >
-                  <Send className="h-4 w-4" />
+                  <ArrowUp className="h-4 w-4" />
                 </button>
               </>
             ) : (
@@ -758,15 +780,12 @@ export function Conversation({ navigation, active = true, onActivate, onChooseMo
                   aria-label="Envoyer le message"
                   className="alhud-composer-send grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-[#111] text-white disabled:opacity-40"
                 >
-                  <Send className="h-4 w-4" />
+                  <ArrowUp className="h-4 w-4" />
                 </button>
               </>
             )}
           </div>
           <p role="status" className="text-xs text-black/60">{notice}</p>
-          <p className="mt-1 text-[10px] text-black/50">
-            Réponse envoyée en un seul bloc (streaming non disponible dans ce lot — aucun arrêt de génération n'est donc proposé).
-          </p>
         </div>
         </div>
       </div>
@@ -774,3 +793,4 @@ export function Conversation({ navigation, active = true, onActivate, onChooseMo
     </div>
   );
 }
+
