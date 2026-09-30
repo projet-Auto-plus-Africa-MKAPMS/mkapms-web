@@ -62,6 +62,7 @@ import { trpc } from "../../../lib/trpc";
 import { EtatServiceIntelligence } from "../../../components/EtatServiceIntelligence";
 import { speechRecognitionConstructor, startDictation } from "../../../lib/speech";
 import { type Intensite, NIVEAUX_INTENSITE, intensiteValide, CLE_INTENSITE_STOCKAGE } from "../../../lib/intensite";
+import { addDictationHistory, recognitionLanguage, useVoicePreferences } from "../../../lib/voicePreferences";
 
 import { ProgressiveReply, WaitingReply } from "./ReplyPresentation";
 
@@ -133,7 +134,9 @@ export function Conversation({ navigation, active = true, onActivate, onChooseMo
   const [notice, setNotice] = useState("");
   const [ecoute, setEcoute] = useState(false);
   const [conversationVocale, setConversationVocale] = useState(false);
+  const [voicePreferences] = useVoicePreferences();
   const conversationVocaleRef = useRef(false);
+  const autoStartAttempted = useRef(false);
   const envoiVocalEnCours = useRef(false);
   const [etatVocal, setEtatVocal] = useState("");
   const dictation = useRef<{ stop: () => void } | null>(null);
@@ -271,7 +274,10 @@ export function Conversation({ navigation, active = true, onActivate, onChooseMo
           outils: [],
         },
       ]);
-      if (submitted.vocal && conversationVocaleRef.current) window.setTimeout(demarrerEcouteVocale, 700);
+      if (submitted.vocal && conversationVocaleRef.current) {
+        if (voicePreferences.mode === "live") window.setTimeout(demarrerEcouteVocale, 700);
+        else arreterConversationVocale();
+      }
     },
     onSettled: (_result, _error, _variables, submitted) => { if (sent.current === submitted) { sendLock.current = false; sent.current = null; } },
   });
@@ -342,10 +348,11 @@ export function Conversation({ navigation, active = true, onActivate, onChooseMo
     if (!conversationVocaleRef.current || busy || !active) return;
     envoiVocalEnCours.current = false;
     setEtatVocal("Je vous écoute…");
-    const control = startDictation("fr-FR", {
+    const control = startDictation(recognitionLanguage(voicePreferences), {
       onText: (texte, final) => {
         setQuestion(texte);
         if (!final || texte.trim().length < 2 || envoiVocalEnCours.current) return;
+        addDictationHistory(texte, "conversation");
         envoiVocalEnCours.current = true;
         dictationVocale.current?.stop();
         dictationVocale.current = null;
@@ -369,19 +376,23 @@ export function Conversation({ navigation, active = true, onActivate, onChooseMo
   function repondreEtReecouter(texte: string) {
     if (!conversationVocaleRef.current) return;
     if (!ttsSupporte || !texte.trim()) {
-      window.setTimeout(demarrerEcouteVocale, 300);
+      if (voicePreferences.mode === "live") window.setTimeout(demarrerEcouteVocale, 300);
+      else arreterConversationVocale();
       return;
     }
     window.speechSynthesis.cancel();
     setEtatVocal("AL-HUDHUD·M vous répond…");
     const u = new SpeechSynthesisUtterance(texte);
-    let voixChoisie = "";
-    try { voixChoisie = localStorage.getItem("mkapms_voix_tts") ?? ""; } catch { /* voix système */ }
-    const choisie = window.speechSynthesis.getVoices().find((v) => v.name === voixChoisie);
-    u.lang = choisie?.lang ?? "fr-FR";
+    const choisie = window.speechSynthesis.getVoices().find((v) => v.name === voicePreferences.voiceName);
+    u.lang = choisie?.lang ?? recognitionLanguage(voicePreferences);
     if (choisie) u.voice = choisie;
-    u.onend = () => { if (conversationVocaleRef.current) window.setTimeout(demarrerEcouteVocale, 250); };
-    u.onerror = () => { if (conversationVocaleRef.current) window.setTimeout(demarrerEcouteVocale, 250); };
+    const apresLecture = () => {
+      if (!conversationVocaleRef.current) return;
+      if (voicePreferences.mode === "live") window.setTimeout(demarrerEcouteVocale, 250);
+      else arreterConversationVocale();
+    };
+    u.onend = apresLecture;
+    u.onerror = apresLecture;
     window.speechSynthesis.speak(u);
   }
 
@@ -398,13 +409,39 @@ export function Conversation({ navigation, active = true, onActivate, onChooseMo
     demarrerEcouteVocale();
   }
 
+  useEffect(() => {
+    if (!active) {
+      autoStartAttempted.current = false;
+      if (conversationVocaleRef.current) arreterConversationVocale();
+      return;
+    }
+    if (!voicePreferences.autoStart || autoStartAttempted.current || conversationVocaleRef.current) return;
+    autoStartAttempted.current = true;
+    const timer = window.setTimeout(basculerConversationVocale, 0);
+    return () => window.clearTimeout(timer);
+  }, [active, voicePreferences.autoStart]);
+
+  useEffect(() => {
+    const onVisibility = () => {
+      if (document.hidden && !voicePreferences.background && conversationVocaleRef.current) {
+        arreterConversationVocale();
+        setNotice("Conversation vocale mise en pause lorsque l’application est passée en arrière-plan.");
+      }
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => document.removeEventListener("visibilitychange", onVisibility);
+  }, [voicePreferences.background]);
+
   function basculerDictee() {
     if (conversationVocaleRef.current) arreterConversationVocale();
     if (ecoute) { arreterDictee(); return; }
     const base = question;
     texteAvantDictee.current = base;
-    const control = startDictation("fr-FR", {
-      onText: (texte) => setQuestion(base ? `${base} ${texte}` : texte),
+    const control = startDictation(recognitionLanguage(voicePreferences), {
+      onText: (texte, final) => {
+        setQuestion(base ? `${base} ${texte}` : texte);
+        if (final) addDictationHistory(texte, "dictation");
+      },
       onError: (texte) => { setNotice(texte); setEcoute(false); dictation.current = null; },
       onEnd: () => { dictation.current = null; setEcoute(false); },
     });
@@ -546,14 +583,8 @@ export function Conversation({ navigation, active = true, onActivate, onChooseMo
       return;
     }
     const u = new SpeechSynthesisUtterance(texte);
-    let voixChoisie = "";
-    try {
-      voixChoisie = localStorage.getItem("mkapms_voix_tts") ?? "";
-    } catch {
-      // Stockage local indisponible : voix par défaut du navigateur.
-    }
-    const choisie = window.speechSynthesis.getVoices().find((v) => v.name === voixChoisie);
-    u.lang = choisie?.lang ?? "fr-FR";
+    const choisie = window.speechSynthesis.getVoices().find((v) => v.name === voicePreferences.voiceName);
+    u.lang = choisie?.lang ?? recognitionLanguage(voicePreferences);
     if (choisie) u.voice = choisie;
     u.onend = () => setLectureId((c) => (c === id ? null : c));
     u.onerror = () => setLectureId((c) => (c === id ? null : c));

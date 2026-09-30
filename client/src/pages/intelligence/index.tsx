@@ -209,7 +209,11 @@ export default function MKAPMSIntelligence() {
           onChooseModule={(key)=>choose(key as CleModule)}
           onSendToDeveloper={(instruction)=>{setWorkInstruction(instruction); choose("developpeur");}}
           searchQuery={moduleSearch}
-        >{module !== "conversation" && module !== "accueil" && module !== "developpeur" ? <Actif/> : null}</Conversation>
+        >{module === "parametres"
+          ? <Parametres onChooseModule={(key) => choose(key as CleModule)} />
+          : module !== "conversation" && module !== "accueil" && module !== "developpeur"
+            ? <Actif />
+            : null}</Conversation>
       </div>
     </main>
     <footer className="alhud-approved-footer">Niveau d'accès : {LABEL_NIVEAU[niveau]} · Plateforme principale</footer>
