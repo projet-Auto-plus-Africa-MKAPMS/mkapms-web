@@ -60,7 +60,7 @@ import {
 } from "lucide-react";
 import { trpc } from "../../../lib/trpc";
 import { EtatServiceIntelligence } from "../../../components/EtatServiceIntelligence";
-import { speechRecognitionConstructor, startDictation } from "../../../lib/speech";
+import { requestMicrophoneAccess, speechRecognitionConstructor, startDictation } from "../../../lib/speech";
 import { type Intensite, NIVEAUX_INTENSITE, intensiteValide, CLE_INTENSITE_STOCKAGE } from "../../../lib/intensite";
 import { addDictationHistory, recognitionLanguage, useVoicePreferences } from "../../../lib/voicePreferences";
 
@@ -98,8 +98,8 @@ function outilsDepuisContexte(contexte: string[]): string[] {
   return contexte.filter((l) => l.startsWith("Outil appelé :")).map((l) => l.replace("Outil appelé : ", ""));
 }
 
-export function Conversation({ navigation, active = true, onActivate, onChooseModule, onSendToDeveloper, children, searchQuery = "" }: {
-  navigation?: ReactNode; active?: boolean; onActivate?: () => void; onChooseModule?: (key: string) => void; onSendToDeveloper?: (instruction: string) => void; children?: ReactNode; searchQuery?: string;
+export function Conversation({ navigation, active = true, mode = "chat", onActivate, onChooseModule, children, searchQuery = "" }: {
+  navigation?: ReactNode; active?: boolean; mode?: "chat" | "travail"; onActivate?: () => void; onChooseModule?: (key: string) => void; children?: ReactNode; searchQuery?: string;
 } = {}) {
   const [sessionId, setSessionId] = useState<number | null>(null);
   const [fil, setFil] = useState<Bulle[]>([]);
@@ -136,7 +136,8 @@ export function Conversation({ navigation, active = true, onActivate, onChooseMo
   const [conversationVocale, setConversationVocale] = useState(false);
   const [voicePreferences] = useVoicePreferences();
   const conversationVocaleRef = useRef(false);
-  const autoStartAttempted = useRef(false);
+  const missionVocaleRef = useRef(false);
+  const missionDraftKeyRef = useRef("new");
   const envoiVocalEnCours = useRef(false);
   const [etatVocal, setEtatVocal] = useState("");
   const dictation = useRef<{ stop: () => void } | null>(null);
@@ -302,8 +303,23 @@ export function Conversation({ navigation, active = true, onActivate, onChooseMo
     },
   });
 
+  const mission = trpc.intelligences.lancerMission.useMutation({
+    onSuccess: (r) => {
+      setNotice("");
+      drafts.current.delete(missionDraftKeyRef.current);
+      setFil((f) => [...f, { id: idBulle(), role: "moteur", texte: r.rapport, ok: r.statut !== "echouee", motif: r.motif || "Mission interrompue.", outils: r.etapes.filter((e) => e.statut === "fait").map((e) => e.libelle), progressive: true }]);
+      if (missionVocaleRef.current && conversationVocaleRef.current) repondreEtReecouter(r.rapport);
+    },
+    onError: (_error, variables) => {
+      setQuestion((current) => current || variables.objectif);
+      setNotice("La mission n’a pas abouti. Votre ordre est conservé pour réessayer.");
+      if (missionVocaleRef.current && conversationVocaleRef.current) arreterConversationVocale();
+    },
+    onSettled: () => { missionVocaleRef.current = false; },
+  });
+
   const historyUnavailable = !!sessionId && (filServeur.isFetching || filServeur.isError || sessionChargee.current !== sessionId);
-  const busy = demander.isPending || supprimer.isPending || deposerFichier.isPending || sendLock.current;
+  const busy = demander.isPending || mission.isPending || supprimer.isPending || deposerFichier.isPending || sendLock.current;
   function nouvelleConversation() {
     if (busy) return;
     arreterConversationVocale();
@@ -396,12 +412,14 @@ export function Conversation({ navigation, active = true, onActivate, onChooseMo
     window.speechSynthesis.speak(u);
   }
 
-  function basculerConversationVocale() {
+  async function basculerConversationVocale() {
     if (conversationVocaleRef.current) { arreterConversationVocale(); return; }
     if (!speechRecognitionConstructor() || !ttsSupporte) {
       setNotice("La conversation vocale exige l’accès au micro et la lecture audio du navigateur.");
       return;
     }
+    const micro = await requestMicrophoneAccess();
+    if (!micro.ok) { setNotice(micro.message); return; }
     arreterDictee();
     conversationVocaleRef.current = true;
     setConversationVocale(true);
@@ -410,16 +428,8 @@ export function Conversation({ navigation, active = true, onActivate, onChooseMo
   }
 
   useEffect(() => {
-    if (!active) {
-      autoStartAttempted.current = false;
-      if (conversationVocaleRef.current) arreterConversationVocale();
-      return;
-    }
-    if (!voicePreferences.autoStart || autoStartAttempted.current || conversationVocaleRef.current) return;
-    autoStartAttempted.current = true;
-    const timer = window.setTimeout(basculerConversationVocale, 0);
-    return () => window.clearTimeout(timer);
-  }, [active, voicePreferences.autoStart]);
+    if (!active && conversationVocaleRef.current) arreterConversationVocale();
+  }, [active]);
 
   useEffect(() => {
     const onVisibility = () => {
@@ -432,9 +442,11 @@ export function Conversation({ navigation, active = true, onActivate, onChooseMo
     return () => document.removeEventListener("visibilitychange", onVisibility);
   }, [voicePreferences.background]);
 
-  function basculerDictee() {
+  async function basculerDictee() {
     if (conversationVocaleRef.current) arreterConversationVocale();
     if (ecoute) { arreterDictee(); return; }
+    const micro = await requestMicrophoneAccess();
+    if (!micro.ok) { setNotice(micro.message); return; }
     const base = question;
     texteAvantDictee.current = base;
     const control = startDictation(recognitionLanguage(voicePreferences), {
@@ -479,19 +491,17 @@ export function Conversation({ navigation, active = true, onActivate, onChooseMo
   }
   function clicMicro() {
     if (appuiLongDeclenche.current) { appuiLongDeclenche.current = false; return; }
-    basculerDictee();
+    void basculerDictee();
   }
 
-  function envoyer(texte?: string, mode: "composer" | "regenerate" = "composer", vocal = false) {
+  function envoyer(texte?: string, action: "composer" | "regenerate" = "composer", vocal = false) {
     const q = (texte ?? question).trim();
     if (q.length < 2 || busy || historyUnavailable || !active || !mounted.current) return;
     if (!vocal && conversationVocaleRef.current) arreterConversationVocale();
-    sendLock.current = true;
     suitLeFil.current = true; setRetourAuBas(false);
     setFil(f => f.map(b => ({ ...b, progressive: false })));
     const key = String(sessionId ?? "new");
-    const consumesDraft = mode === "composer";
-    sent.current = { key, text: q, consumesDraft, vocal };
+    const consumesDraft = action === "composer";
     // Regenerating an earlier answer never consumes the text being composed.
     if (consumesDraft) drafts.current.set(key, q);
     else saveDraft();
@@ -502,7 +512,19 @@ export function Conversation({ navigation, active = true, onActivate, onChooseMo
     const images = pieces.filter((p): p is Extract<PieceConversation, { type: "image" }> => p.type === "image").map((p) => p.donnees);
     const fichierIds = pieces.filter((p): p is Extract<PieceConversation, { type: "fichier" }> => p.type === "fichier").map((p) => p.fichierId);
     if (consumesDraft) setPieces([]);
-    demander.mutate({ question: q, sessionId, effort: intensite, images: images.length ? images : undefined, fichierIds: fichierIds.length ? fichierIds : undefined });
+    if (mode === "travail") {
+      missionVocaleRef.current = vocal;
+      missionDraftKeyRef.current = key;
+      mission.mutate({
+        objectif: q,
+        pieces: images.map((source, index) => ({ type: "image" as const, nom: pieces.filter((p) => p.type === "image")[index]?.nom, source })),
+        fichierIds: fichierIds.length ? fichierIds : undefined,
+      });
+    } else {
+      sendLock.current = true;
+      sent.current = { key, text: q, consumesDraft, vocal };
+      demander.mutate({ question: q, sessionId, effort: intensite, images: images.length ? images : undefined, fichierIds: fichierIds.length ? fichierIds : undefined });
+    }
   }
 
   async function ajouterImages(liste: FileList | null) {
@@ -717,7 +739,7 @@ export function Conversation({ navigation, active = true, onActivate, onChooseMo
             onClick={() => setPanneauOuvert((v) => !v)}
             className="flex items-center gap-1.5 text-xs font-bold text-black/60"
           >
-            {panneauOuvert ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />} Récents
+            {panneauOuvert ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />} {mode === "travail" ? "Agent développeur" : "Récents"}
           </button>
           <button type="button" onClick={nouvelleConversation} disabled={busy} className="flex items-center gap-1 text-xs font-bold text-[#8B7500]">
             <Plus className="h-3.5 w-3.5" /> Nouvelle
@@ -737,7 +759,7 @@ export function Conversation({ navigation, active = true, onActivate, onChooseMo
           {fil.length === 0 ? (
             <div className="flex h-full flex-col items-center justify-center gap-2 text-center text-black/40">
               <Sparkles className="h-6 w-6" />
-              <p className="text-sm">Écris ta demande — même moteur que le Centre Intelligence direction.</p>
+              <p className="text-sm">{mode === "travail" ? "Agent développeur — décris le travail, ajoute tes captures ou tes documents." : "Écris ta demande — même moteur que le Centre Intelligence direction."}</p>
             </div>
           ) : (
             fil.map((b) => (
@@ -824,7 +846,6 @@ export function Conversation({ navigation, active = true, onActivate, onChooseMo
                       >
                         <Pencil className="h-3.5 w-3.5" />
                       </button>
-                      {onSendToDeveloper ? <button type="button" onClick={() => onSendToDeveloper(b.texte)} className="alhud-send-work" title="Donner cet ordre à l’agent développeur">Travail</button> : null}
                     </>
                   )}
                 </div>
@@ -878,7 +899,7 @@ export function Conversation({ navigation, active = true, onActivate, onChooseMo
               }}
               rows={ecoute ? 2 : 4}
               maxLength={8000}
-              placeholder="Demander à AL-HUDHUD·M"
+              placeholder={mode === "travail" ? "Donner un ordre à l’Agent développeur" : "Demander à AL-HUDHUD·M"}
               className="alhud-composer-input flex-1 rounded-xl border-0 p-2 text-sm outline-none"
             />
             {ecoute ? (
@@ -916,7 +937,7 @@ export function Conversation({ navigation, active = true, onActivate, onChooseMo
                 >
                   <Mic className="h-5 w-5" />
                 </button>
-                <button type="button" className={`alhud-composer-voice ${conversationVocale ? "active" : ""}`} onClick={basculerConversationVocale} aria-pressed={conversationVocale} aria-label={conversationVocale ? "Terminer la conversation vocale" : "Démarrer la conversation vocale directe"} title="Conversation vocale directe, sans limite de durée côté PDG"><AudioLines className="h-5 w-5" /></button>
+                <button type="button" className={`alhud-composer-voice ${conversationVocale ? "active" : ""}`} onClick={()=>void basculerConversationVocale()} aria-pressed={conversationVocale} aria-label={conversationVocale ? "Terminer la conversation vocale" : "Démarrer la conversation vocale directe"} title="Conversation vocale directe, sans limite de durée côté PDG"><AudioLines className="h-5 w-5" /></button>
                 <div className="relative">
                   <button
                     type="button"
@@ -985,7 +1006,7 @@ export function Conversation({ navigation, active = true, onActivate, onChooseMo
                   type="button"
                   onClick={() => envoyer()}
                   disabled={busy || historyUnavailable || question.trim().length < 2}
-                  aria-label="Envoyer le message"
+                  aria-label={mode === "travail" ? "Envoyer l’ordre à l’Agent développeur" : "Envoyer le message"}
                   className="alhud-composer-send grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-[#111] text-white disabled:opacity-40"
                 >
                   <ArrowUp className="h-4 w-4" />
