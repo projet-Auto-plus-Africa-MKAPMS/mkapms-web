@@ -1,0 +1,59 @@
+name: AL-HUDHUD progressive interface verification
+on:
+  push:
+    branches: [ai/main-progressive-gold-20260930]
+permissions:
+  contents: write
+concurrency:
+  group: alhud-progressive-interface
+  cancel-in-progress: false
+jobs:
+  verify:
+    if: github.ref == 'refs/heads/ai/main-progressive-gold-20260930'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: 22}
+      - run: npm ci
+      - name: Refresh existing inventories on this isolated branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          BEFORE=$(git rev-parse HEAD)
+          npm run gen:routes
+          npm run gen:boutons
+          npm run gen:cliquables
+          npm run gen:sections
+          npm run gen:moteurs
+          git add server/data/
+          if ! git diff --cached --quiet; then
+            test "$(git ls-remote origin refs/heads/ai/main-progressive-gold-20260930 | cut -f1)" = "$BEFORE"
+            git config user.name 'MKA.P-MS interface verification'
+            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+            git commit -m 'build(ai): refresh inventories for progressive conversation controls'
+            git push origin HEAD:refs/heads/ai/main-progressive-gold-20260930
+          fi
+          git rev-parse HEAD > alhud-tested-sha.txt
+          git config --local --unset-all http.https://github.com/.extraheader || true
+      - run: npm run typecheck
+        env: {NODE_OPTIONS: --max-old-space-size=6144}
+      - run: npm run build
+        env: {NODE_OPTIONS: --max-old-space-size=6144}
+      - run: node scripts/test-alhud-workspace.mjs
+      - name: Browser tooling without changing the application lockfile
+        run: |
+          npm install --no-save --package-lock=false @playwright/test@1.63.0
+          npx playwright install --with-deps chromium webkit
+      - name: Real conversation UI with isolated synthetic APIs
+        run: node scripts/test-alhud-progressive-browser.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: alhud-progressive-interface-evidence
+          path: |
+            alhud-tested-sha.txt
+            test-results/alhud-progressive-*.png
+            test-results/alhud-progressive-browser.json
+          retention-days: 7
