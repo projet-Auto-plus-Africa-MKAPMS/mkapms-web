@@ -212,7 +212,7 @@ export default function Pieces() {
   const selectedCat = PARTS_CATEGORIES.find(c => c.label === categorie);
   // Les visuels de catégorie viennent des vraies pièces chargées dans le
   // catalogue. On ne remplace jamais une pièce par un dessin décoratif.
-  const imageCategorie = (label: string) => catalog.data?.items.find((piece) => piece.categorie === label && piece.photoUrl)?.photoUrl;
+  const imageCategorie = (label: string) => catalog.data?.items.find((piece) => piece.categorie === label && piece.photoUrl)?.photoUrl ?? undefined;
 
   return (
     <div className="container-page max-w-7xl bg-white py-4 sm:py-6">
