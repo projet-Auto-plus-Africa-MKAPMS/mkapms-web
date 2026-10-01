@@ -38,24 +38,31 @@ export default function Livraison() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F5F3EF] pb-24">
-      <div className="bg-[#111] px-4 pt-8 pb-6 border-b border-white/5">
-        <h1 className="text-2xl font-black text-white tracking-tighter italic uppercase">Livraison</h1>
-        <p className="mt-1 text-[10px] font-bold text-white/40 uppercase tracking-widest leading-relaxed">
-          Réseau logistique : moto, scooter, utilitaire, fourgon, camion.<br />
-          Limite moto : 20 kg / 60×40×40 cm.
-        </p>
-      </div>
+    <div className="min-h-screen bg-[#F5F3EF] pb-24 text-[#111]">
+      <header className="border-b border-white/10 bg-[#101010] px-4 py-9 text-white sm:px-6 sm:py-12">
+        <div className="mx-auto max-w-5xl">
+          <p className="text-[10px] font-black uppercase tracking-[.24em] text-[#D4AF37]">Logistique MKA.P-MS</p>
+          <h1 className="mt-2 text-3xl font-black tracking-tighter italic uppercase sm:text-5xl">Livraison</h1>
+          <p className="mt-3 max-w-2xl text-[11px] font-bold uppercase leading-relaxed tracking-[.12em] text-white/55 sm:text-xs">
+            Réseau logistique : moto, scooter, utilitaire, fourgon, camion.<br />
+            Limite moto : 20 kg / 60×40×40 cm.
+          </p>
+        </div>
+      </header>
 
-      <div className="px-4 mt-6 space-y-6">
-        <BoutonMoteur code="livraison_colis_vers_vehicule" className="flex items-center gap-3 rounded-2xl border border-[#D4AF37]/40 bg-white p-4 shadow-sm hover:border-[#D4AF37] transition">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#F5F3EF]"><Truck size={18} className="text-[#D4AF37]" /></div>
-          <div className="flex-1 text-left">
-            <p className="text-sm font-black text-[#111]">Faire livrer un véhicule ou un camion</p>
-            <p className="text-[10px] text-[#6B7280]">Voiture, utilitaire, camion, engin, bus — devis d'acheminement réel</p>
+      <main className="mx-auto max-w-5xl px-4 sm:px-6">
+      <div className="mt-6 space-y-6 sm:mt-8">
+        <BoutonMoteur code="livraison_colis_vers_vehicule" className="group flex items-center gap-4 rounded-3xl border border-[#D4AF37]/45 bg-white p-5 shadow-[0_14px_34px_rgba(17,17,17,.08)] transition hover:border-[#D4AF37] hover:shadow-[0_18px_40px_rgba(212,175,55,.16)]">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#F5F3EF]"><Truck size={21} className="text-[#D4AF37]" /></div>
+          <div className="min-w-0 flex-1 text-left">
+            <p className="text-base font-black text-[#111]">Faire livrer un véhicule ou un camion</p>
+            <p className="mt-1 text-xs leading-relaxed text-[#6B7280]">Voiture, utilitaire, camion, engin, bus — devis d’acheminement réel</p>
           </div>
+          <span className="hidden text-xs font-black text-[#B8962E] sm:block">Demander un devis →</span>
         </BoutonMoteur>
-        <div className="rounded-3xl bg-white border border-[#E5E7EB] p-6 shadow-sm">
+
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,1.08fr)_minmax(320px,.92fr)] lg:items-start">
+        <div className="rounded-3xl border border-[#E5E7EB] bg-white p-5 shadow-[0_14px_34px_rgba(17,17,17,.06)] sm:p-6">
           <h2 className="text-xs font-black text-[#111] uppercase tracking-widest mb-6 flex items-center gap-2">
             <div className="h-1 w-4 bg-[#D4AF37] rounded-full"></div> Calculer un tarif
           </h2>
@@ -125,7 +132,7 @@ export default function Livraison() {
           </div>
         </div>
 
-        <div id="livraison-estimation" className="rounded-3xl bg-white border border-[#E5E7EB] p-6 shadow-sm overflow-hidden relative">
+        <div id="livraison-estimation" className="rounded-3xl border border-[#E5E7EB] bg-white p-5 shadow-[0_14px_34px_rgba(17,17,17,.06)] sm:p-6 lg:sticky lg:top-6">
           <h2 className="text-xs font-black text-[#111] uppercase tracking-widest mb-6 flex items-center gap-2">
             <div className="h-1 w-4 bg-[#D4AF37] rounded-full"></div> Estimation
           </h2>
@@ -210,7 +217,9 @@ export default function Livraison() {
             </div>
           )}
         </div>
+        </div>
       </div>
+      </main>
     </div>
   );
 }
