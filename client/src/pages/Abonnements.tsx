@@ -105,7 +105,6 @@ export default function Abonnements() {
   const track = trpc.smartEngine.trackAction.useMutation();
 
   const filtered = tab !== "publicite" ? (plans.data?.filter((p) => p.category === tab) ?? []) : [];
-  const selectedPlan = filtered.find((p) => p.code === selectedCode) ?? null;
 
   // Le changement d'onglet remet la sélection à zéro (offres différentes).
   useEffect(() => {
@@ -282,11 +281,6 @@ export default function Abonnements() {
                 <Check size={18} strokeWidth={3} />
               </span>
             )}
-            {p.highlight && (
-              <span className="badge absolute -top-3 left-1/2 -translate-x-1/2 bg-gold text-noir">
-                Le plus choisi
-              </span>
-            )}
             <h3 className="text-lg font-extrabold text-slate-900">{p.label}</h3>
             <div className="mt-2 flex min-w-0 flex-wrap items-baseline gap-x-1 text-xl font-extrabold leading-tight text-noir sm:text-2xl">
               {p.priceEur == null ? (
@@ -346,36 +340,6 @@ export default function Abonnements() {
         })}
       </div>
 
-      {/* Barre de confirmation (parcours §3) : la carte sélectionnée active le
-          bouton inférieur qui ouvre le tunnel de paiement. */}
-      {selectedPlan && (
-        <div className="sticky bottom-4 z-20 mx-auto mt-8 flex max-w-2xl flex-col items-center gap-3 rounded-2xl border border-gold bg-white/95 p-4 shadow-xl backdrop-blur sm:flex-row sm:justify-between">
-          <div className="text-center sm:text-left">
-            <p className="text-xs font-semibold uppercase tracking-widest text-slate-400">Offre sélectionnée</p>
-            <p className="text-base font-extrabold text-slate-900">
-              {selectedPlan.label}
-              {selectedPlan.priceEur != null && (
-                <span className="ml-2 text-gold-dark">
-                  {formatPrice(selectedPlan.priceEur)}
-                  {selectedPlan.recurring ? " /mois" : selectedPlan.durationDays ? ` / ${selectedPlan.durationDays}j` : ""}
-                </span>
-              )}
-            </p>
-          </div>
-          <button
-            className="btn-primary shrink-0"
-            disabled={checkout.isPending && pendingCode === selectedPlan.code}
-            onClick={() => subscribe(selectedPlan.code, selectedPlan.priceEur)}
-            data-testid="plan-continue-btn"
-          >
-            {checkout.isPending && pendingCode === selectedPlan.code
-              ? "Redirection Stripe…"
-              : selectedPlan.priceEur == null
-                ? `Continuer — ${selectedPlan.label} (sur demande)`
-                : `Continuer avec l'offre ${selectedPlan.label} — ${formatPrice(selectedPlan.priceEur)}${selectedPlan.recurring ? "/mois" : ""}`}
-          </button>
-        </div>
-      )}
       {tab === "particulier" && (
         <div className="mt-12">
           <h2 className="text-center text-lg font-bold text-slate-700">Photos supplémentaires (à l'unité)</h2>
