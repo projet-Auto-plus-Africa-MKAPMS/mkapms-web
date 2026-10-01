@@ -77,6 +77,7 @@ export interface CountrySelection {
   langCode: string;
   currency: string;
   region: string;
+  source?: "automatic" | "manual";
 }
 
 export function getStoredCountrySelection(): CountrySelection | null {
@@ -126,7 +127,7 @@ export default function CountrySelectModal({ onClose }: Props) {
     if (!isSite) return;
     let cancelled = false;
     const stored = getStoredCountrySelection();
-    if (stored) {
+    if (stored?.source === "manual") {
       setCountry(stored.countryCode);
       applyLanguage(stored.langCode);
       return;
@@ -146,6 +147,7 @@ export default function CountrySelectModal({ onClose }: Props) {
           langCode: detected.langCode,
           currency: detected.currency,
           region: detected.region,
+          source: "automatic",
         };
         storeCountrySelection(selection);
         setCountry(detected.code);
@@ -166,6 +168,7 @@ export default function CountrySelectModal({ onClose }: Props) {
       langCode: country.langCode,
       currency: country.currency,
       region: country.region,
+      source: "manual",
     };
     storeCountrySelection(sel);
     setCountry(country.code);
