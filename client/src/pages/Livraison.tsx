@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Truck, AlertTriangle, CheckCircle, Loader2, Calculator } from "lucide-react";
+import { Truck, AlertTriangle, CheckCircle, Loader2, Calculator, ShieldCheck, MapPin, Clock3, FileCheck2, PackageCheck, Globe2 } from "lucide-react";
 import { trpc } from "../lib/trpc";
 import { BoutonMoteur } from "../lib/boutonMoteur";
 import { useCurrency } from "../lib/currency";
@@ -44,14 +44,14 @@ export default function Livraison() {
 
   return (
     <div className="min-h-screen bg-[#F5F3EF] pb-24 text-[#111]">
-      <header className="border-b border-white/10 bg-[#101010] px-4 py-9 text-white sm:px-6 sm:py-12">
-        <div className="mx-auto max-w-5xl">
-          <p className="text-[10px] font-black uppercase tracking-[.24em] text-[#D4AF37]">Logistique MKA.P-MS</p>
-          <h1 className="mt-2 text-3xl font-black tracking-tighter italic uppercase sm:text-5xl">Livraison</h1>
-          <p className="mt-3 max-w-2xl text-[11px] font-bold uppercase leading-relaxed tracking-[.12em] text-white/55 sm:text-xs">
-            Réseau logistique : moto, scooter, utilitaire, fourgon, camion.<br />
-            Limite moto : 20 kg / 60×40×40 cm.
-          </p>
+      <header className="relative overflow-hidden border-b border-white/10 bg-[#101010] px-4 py-10 text-white sm:px-6 sm:py-16">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_40%,rgba(212,175,55,.16),transparent_36%),radial-gradient(circle_at_20%_85%,rgba(13,115,145,.18),transparent_30%)]" />
+        <div className="relative mx-auto max-w-5xl text-center">
+          <div className="mx-auto grid h-16 w-16 place-items-center rounded-3xl border border-[#D4AF37]/40 bg-[#D4AF37]/10 text-[#D4AF37] shadow-[0_0_46px_rgba(212,175,55,.18)]"><PackageCheck size={30} /></div>
+          <p className="mt-5 text-[10px] font-black uppercase tracking-[.24em] text-[#D4AF37]">Logistique pièces & marchandises MKA.P-MS</p>
+          <h1 className="mt-2 text-3xl font-black tracking-tight sm:text-5xl">Livraison simple, suivie et transparente</h1>
+          <p className="mx-auto mt-4 max-w-2xl text-sm leading-6 text-white/65 sm:text-base">Pour les pièces, accessoires et commandes de l’écosystème MKA.P‑MS. Le tarif affiché dépend toujours du pays, du poids, du volume et du niveau de service sélectionné.</p>
+          <div className="mx-auto mt-6 flex max-w-md items-center justify-center gap-3 text-[10px] font-bold uppercase tracking-[.12em] text-white/70"><span>Devis clair</span><span className="h-1 w-1 rounded-full bg-[#D4AF37]"/><span>Suivi</span><span className="h-1 w-1 rounded-full bg-[#D4AF37]"/><span>Paiement sécurisé</span></div>
         </div>
       </header>
 
@@ -65,6 +65,12 @@ export default function Livraison() {
           </div>
           <span className="hidden text-xs font-black text-[#B8962E] sm:block">Demander un devis →</span>
         </BoutonMoteur>
+
+        <section className="grid gap-2 rounded-3xl border border-[#D4AF37]/30 bg-white p-3 shadow-[0_14px_34px_rgba(17,17,17,.06)] sm:grid-cols-3 sm:p-4">
+          <div className="flex items-center gap-3 p-2"><ShieldCheck size={20} className="shrink-0 text-[#0d7391]"/><p className="text-xs font-semibold leading-5 text-slate-700">Commande confirmée avant toute demande de paiement.</p></div>
+          <div className="flex items-center gap-3 border-y border-slate-100 p-2 sm:border-x sm:border-y-0"><Clock3 size={20} className="shrink-0 text-[#D4AF37]"/><p className="text-xs font-semibold leading-5 text-slate-700">Délais annoncés selon le service disponible, jamais inventés.</p></div>
+          <div className="flex items-center gap-3 p-2"><Globe2 size={20} className="shrink-0 text-[#0d7391]"/><p className="text-xs font-semibold leading-5 text-slate-700">Pays, monnaie et réseau local pris en compte dans le devis.</p></div>
+        </section>
 
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1.08fr)_minmax(320px,.92fr)] lg:items-start">
         <div className="rounded-3xl border border-[#E5E7EB] bg-white p-5 shadow-[0_14px_34px_rgba(17,17,17,.06)] sm:p-6">
@@ -230,6 +236,12 @@ export default function Livraison() {
           )}
         </div>
         </div>
+
+        <section className="grid gap-4 rounded-3xl border border-[#E5E7EB] bg-white p-5 shadow-[0_14px_34px_rgba(17,17,17,.06)] sm:grid-cols-3 sm:p-7">
+          <div><MapPin size={22} className="text-[#D4AF37]"/><h2 className="mt-3 text-sm font-black text-[#111]">Adresse et accessibilité</h2><p className="mt-1 text-xs leading-5 text-slate-600">Vérifiez l’adresse, le pays, le code postal et les contraintes d’accès avant la commande.</p></div>
+          <div><FileCheck2 size={22} className="text-[#0d7391]"/><h2 className="mt-3 text-sm font-black text-[#111]">Contenu déclaré</h2><p className="mt-1 text-xs leading-5 text-slate-600">Le poids, les dimensions et la nature de la pièce doivent correspondre à l’envoi réel.</p></div>
+          <div><ShieldCheck size={22} className="text-[#D4AF37]"/><h2 className="mt-3 text-sm font-black text-[#111]">International</h2><p className="mt-1 text-xs leading-5 text-slate-600">Les documents et coûts de douane sont précisés lorsqu’une règle pays est disponible ; sinon la commande n’est pas présentée comme finalisée.</p></div>
+        </section>
       </div>
       </main>
     </div>
