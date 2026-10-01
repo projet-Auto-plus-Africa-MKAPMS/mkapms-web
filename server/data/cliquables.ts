@@ -748,7 +748,7 @@ export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
 export const CLIQUABLES_ANOMALIES: readonly AnomalieCliquable[] = [
   { fichier: "client/src/components/BoutonIntelligences.tsx", ligne: 22, genre: "moteur", libelle: "BoutonMoteur sans code littéral", motif: "code_non_declare" },
   { fichier: "client/src/pages/TableauBordProVente.tsx", ligne: 170, genre: "moteur", libelle: "BoutonMoteur sans code littéral", motif: "code_non_declare" },
-  { fichier: "client/src/pages/Abonnements.tsx", ligne: 495, genre: "lien", libelle: "/contact?sujet=Conseil%20abonnement", motif: "destination_inconnue" },
+  { fichier: "client/src/pages/Abonnements.tsx", ligne: 512, genre: "lien", libelle: "/contact?sujet=Conseil%20abonnement", motif: "destination_inconnue" },
   { fichier: "client/src/lib/boutonMoteur.tsx", ligne: 81, genre: "bouton", libelle: "(sans texte)", motif: "sans_action" },
   { fichier: "client/src/lib/boutonMoteur.tsx", ligne: 88, genre: "bouton", libelle: "(sans texte)", motif: "sans_action" },
   { fichier: "client/src/pages/comptabilite/CentrePilotage.tsx", ligne: 1010, genre: "bouton", libelle: "Consommation energetique 12 450 kWh", motif: "sans_action" },

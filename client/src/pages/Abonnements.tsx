@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ArrowRight, BadgeCheck, Check, CreditCard, Headphones, LockKeyhole, ShieldCheck, Sparkles } from "lucide-react";
+import { ArrowRight, BadgeCheck, Check, ChevronDown, CreditCard, Headphones, LockKeyhole, ShieldCheck, Sparkles } from "lucide-react";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import MetaSEO from "../components/MetaSEO";
 import { trpc } from "../lib/trpc";
@@ -99,6 +99,7 @@ export default function Abonnements() {
   const [errMsg, setErrMsg] = useState<string | null>(null);
   const [pendingCode, setPendingCode] = useState<string | null>(null);
   const [selectedCode, setSelectedCode] = useState<string | null>(null);
+  const [expandedCode, setExpandedCode] = useState<string | null>(null);
 
   // Connexion Smart Engine : chaque sélection d'offre est un événement supervisé.
   const track = trpc.smartEngine.trackAction.useMutation();
@@ -109,6 +110,7 @@ export default function Abonnements() {
   // Le changement d'onglet remet la sélection à zéro (offres différentes).
   useEffect(() => {
     setSelectedCode(null);
+    setExpandedCode(null);
   }, [tab]);
 
   // Sélection d'une carte (clic n'importe où / clavier) → mémorise l'offre
@@ -264,7 +266,7 @@ export default function Abonnements() {
               }
             }}
             data-testid={`plan-card-${p.code}`}
-            className={`relative flex cursor-pointer flex-col rounded-[28px] border bg-white p-6 outline-none transition duration-200 focus-visible:ring-2 focus-visible:ring-gold ${
+            className={`relative min-w-0 cursor-pointer overflow-hidden rounded-[28px] border bg-white p-5 outline-none transition duration-200 focus-visible:ring-2 focus-visible:ring-gold sm:p-6 ${
               isSelected
                 ? "-translate-y-1 border-gold ring-2 ring-gold shadow-[0_18px_50px_rgba(212,175,55,.18)]"
                 : p.highlight
@@ -286,26 +288,41 @@ export default function Abonnements() {
               </span>
             )}
             <h3 className="text-lg font-extrabold text-slate-900">{p.label}</h3>
-            <div className="mt-2 text-3xl font-extrabold text-noir">
+            <div className="mt-2 flex min-w-0 flex-wrap items-baseline gap-x-1 text-xl font-extrabold leading-tight text-noir sm:text-2xl">
               {p.priceEur == null ? (
                 <span className="text-xl">Sur demande</span>
               ) : (
                 <>
-                  {formatPrice(p.priceEur)}
-                  <span className="text-sm font-medium text-slate-400">
+                  <span className="min-w-0 break-words">{formatPrice(p.priceEur)}</span>
+                  <span className="whitespace-nowrap text-xs font-medium text-slate-400 sm:text-sm">
                     {p.recurring ? " /mois" : p.durationDays ? ` / ${p.durationDays}j` : ""}
                   </span>
                 </>
               )}
             </div>
-            <ul className="mt-5 flex-1 space-y-2 text-sm text-slate-600">
-              {p.features.map((feat) => (
-                <li key={feat} className="flex gap-2">
-                  <Check size={16} className="mt-0.5 flex-shrink-0 text-gold-dark" />
-                  {feat}
-                </li>
-              ))}
-            </ul>
+            <button
+              type="button"
+              aria-expanded={expandedCode === p.code}
+              aria-controls={`plan-details-${p.code}`}
+              onClick={(event) => {
+                event.stopPropagation();
+                setExpandedCode((current) => current === p.code ? null : p.code);
+              }}
+              className="mt-5 flex min-h-11 w-full items-center justify-between rounded-2xl bg-[#F7F6F2] px-4 text-left text-sm font-black text-slate-700 transition hover:bg-[#F0EEE8]"
+            >
+              <span>{expandedCode === p.code ? "Masquer les détails" : `Voir les détails (${p.features.length})`}</span>
+              <ChevronDown className={`h-4 w-4 shrink-0 transition-transform ${expandedCode === p.code ? "rotate-180" : ""}`} />
+            </button>
+            {expandedCode === p.code && (
+              <ul id={`plan-details-${p.code}`} className="mt-4 space-y-2 border-t border-black/5 pt-4 text-sm text-slate-600">
+                {p.features.map((feat) => (
+                  <li key={feat} className="flex gap-2">
+                    <Check size={16} className="mt-0.5 flex-shrink-0 text-gold-dark" />
+                    <span className="min-w-0 break-words">{feat}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
             <button
               className={p.highlight || isSelected ? "btn-primary mt-6" : "btn-outline mt-6"}
               disabled={checkout.isPending && pendingCode === p.code}

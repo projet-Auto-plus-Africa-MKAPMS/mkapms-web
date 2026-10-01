@@ -93,28 +93,69 @@ export function storeCountrySelection(sel: CountrySelection): void {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(sel));
 }
 
+function applyLanguage(langCode: string): void {
+  document.documentElement.lang = langCode;
+  document.documentElement.dir = langCode === "ar" ? "rtl" : "ltr";
+  document.cookie = `mkapms_lang=${encodeURIComponent(langCode)};path=/;max-age=${60 * 60 * 24 * 365};samesite=lax`;
+}
+
+async function detectCountryCode(): Promise<string | null> {
+  try {
+    const response = await fetch("https://ipapi.co/country_code/", { signal: AbortSignal.timeout(3500) });
+    if (!response.ok) return null;
+    const code = (await response.text()).trim().toUpperCase();
+    return /^[A-Z]{2}$/.test(code) ? code : null;
+  } catch {
+    const region = navigator.language?.split("-")[1]?.toUpperCase();
+    return region && /^[A-Z]{2}$/.test(region) ? region : null;
+  }
+}
+
 interface Props {
   onClose?: () => void;
 }
 
 export default function CountrySelectModal({ onClose }: Props) {
   const { isSite } = useDomain();
-  const { setCurrency } = useCurrency();
+  const { setCountry } = useCurrency();
   const [visible, setVisible] = useState(false);
   const [search, setSearch] = useState("");
   const [activeRegion, setActiveRegion] = useState<string | null>(null);
 
   useEffect(() => {
     if (!isSite) return;
+    let cancelled = false;
     const stored = getStoredCountrySelection();
-    if (!stored) {
-      // Afficher le modal après 800ms pour laisser la page se charger
-      const t = setTimeout(() => setVisible(true), 800);
-      return () => clearTimeout(t);
+    if (stored) {
+      setCountry(stored.countryCode);
+      applyLanguage(stored.langCode);
+      return;
     }
-    // Appliquer la devise stockée
-    setCurrency(stored.currency);
-  }, [isSite, setCurrency]);
+
+    // Première visite : détecter le pays sans demander une étape inutile.
+    // Le sélecteur reste disponible si la détection échoue ou doit être changée.
+    void detectCountryCode().then((code) => {
+      if (cancelled) return;
+      const detected = COUNTRIES.find((country) => country.code === code);
+      if (detected) {
+        const selection: CountrySelection = {
+          countryCode: detected.code,
+          countryName: detected.name,
+          flag: detected.flag,
+          lang: detected.lang,
+          langCode: detected.langCode,
+          currency: detected.currency,
+          region: detected.region,
+        };
+        storeCountrySelection(selection);
+        setCountry(detected.code);
+        applyLanguage(detected.langCode);
+      } else {
+        setVisible(true);
+      }
+    });
+    return () => { cancelled = true; };
+  }, [isSite, setCountry]);
 
   function handleSelect(country: CountryConfig) {
     const sel: CountrySelection = {
@@ -127,7 +168,8 @@ export default function CountrySelectModal({ onClose }: Props) {
       region: country.region,
     };
     storeCountrySelection(sel);
-    setCurrency(country.currency);
+    setCountry(country.code);
+    applyLanguage(country.langCode);
     setVisible(false);
     onClose?.();
   }

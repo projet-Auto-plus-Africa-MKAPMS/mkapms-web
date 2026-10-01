@@ -60,7 +60,7 @@ function BadgeChip({ badge }: { badge: Badge }) {
 
 export { BadgeChip };
 
-export default function VehicleCard({ v }: { v: VehicleCardData }) {
+export default function VehicleCard({ v, compact = false }: { v: VehicleCardData; compact?: boolean }) {
   const { format: formatPrice } = useCurrency();
   const isLocation = v.type === "location";
   const isMkapmsStock = (v.id >= 8000 && v.id <= 8005) || v.categorieAnnonce === "officielle" || v.ownership === "plateforme";
@@ -117,7 +117,7 @@ export default function VehicleCard({ v }: { v: VehicleCardData }) {
           )}
         </div>
       </div>
-      <div className="p-4">
+      <div className={compact ? "min-w-0 p-3 sm:p-4" : "min-w-0 p-4"}>
         <p className="text-[11px] font-semibold uppercase tracking-wide text-gold-dark">
           {sellerLabel}
         </p>
@@ -143,16 +143,16 @@ export default function VehicleCard({ v }: { v: VehicleCardData }) {
             </span>
           )}
         </div>
-        <div className="mt-3 flex items-end justify-between">
-          <div className="text-lg font-extrabold text-slate-900">
+        <div className={`mt-3 min-w-0 ${compact ? "flex flex-col gap-1.5" : "flex items-end justify-between gap-2"}`}>
+          <div className={`min-w-0 break-words font-extrabold leading-tight text-slate-900 ${compact ? "text-sm sm:text-base" : "text-base sm:text-lg"}`}>
             {isLocation && v.prixJour
               ? `${formatPrice(Number(v.prixJour))} /j`
               : formatPrice(Number(v.prix))}
           </div>
           {v.ville && (
-            <span className="inline-flex items-center gap-1 text-xs text-slate-500">
+            <span className={`inline-flex min-w-0 items-center gap-1 text-slate-500 ${compact ? "text-[11px]" : "text-xs"}`}>
               <MapPin size={13} />
-              {v.ville}
+              <span className="truncate">{v.ville}</span>
             </span>
           )}
         </div>

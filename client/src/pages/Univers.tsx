@@ -98,7 +98,7 @@ export default function Univers() {
 
       <section className="relative isolate min-h-[440px] overflow-hidden bg-[#07111F] px-5 py-16 text-white sm:px-8 sm:py-24">
         <video
-          className="absolute inset-0 -z-20 h-full w-full object-cover opacity-45"
+          className="absolute inset-0 -z-20 h-full w-full object-cover opacity-65"
           autoPlay
           muted
           loop
@@ -109,7 +109,7 @@ export default function Univers() {
         >
           <source src="/videos/home/home_services.mp4" type="video/mp4" />
         </video>
-        <div className="absolute inset-0 -z-10 bg-gradient-to-b from-[#07111F]/55 via-[#07111F]/65 to-[#07111F]" />
+        <div className="absolute inset-0 -z-10 bg-gradient-to-b from-[#07111F]/35 via-[#07111F]/50 to-[#07111F]/90" />
         <div className="mx-auto flex max-w-5xl flex-col items-center text-center">
           <span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs font-black uppercase tracking-[.18em] backdrop-blur">
             <Sparkles className="h-4 w-4 text-[#E2B82D]" /> Un écosystème, plusieurs métiers
@@ -128,7 +128,7 @@ export default function Univers() {
 
       <main className="relative z-10 mx-auto -mt-12 max-w-7xl px-4 sm:px-6 lg:px-8">
         {modules.isLoading ? (
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid min-w-0 gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {Array.from({ length: 6 }).map((_, index) => <div key={index} className="h-80 animate-pulse rounded-[30px] bg-white shadow-sm" />)}
           </div>
         ) : (
@@ -139,27 +139,27 @@ export default function Univers() {
               const Icon = presentation.icon;
               const active = module.status === "active" && Boolean(to);
               const card = (
-                <article className={`group relative isolate flex min-h-[350px] overflow-hidden rounded-[30px] bg-[#0A1630] p-6 text-white shadow-[0_18px_50px_rgba(9,21,44,.16)] transition duration-300 sm:min-h-[390px] ${active ? "hover:-translate-y-1 hover:shadow-[0_24px_70px_rgba(9,21,44,.24)]" : "opacity-75"}`}>
-                  <img src={presentation.image} alt="" loading={index < 3 ? "eager" : "lazy"} className={`absolute inset-0 -z-20 h-full w-full object-cover transition duration-700 ${active ? "group-hover:scale-105" : "grayscale"}`} />
-                  <div className="absolute inset-0 -z-10 bg-gradient-to-t from-[#061020] via-[#061020]/72 to-[#061020]/10" />
-                  <div className="flex w-full flex-col">
+                <article className={`group relative isolate flex min-h-[350px] min-w-0 overflow-hidden rounded-[30px] bg-[#0A1630] p-5 text-white shadow-[0_18px_50px_rgba(9,21,44,.16)] transition duration-300 sm:min-h-[390px] sm:p-6 ${active ? "hover:-translate-y-1 hover:shadow-[0_24px_70px_rgba(9,21,44,.24)]" : "opacity-80"}`}>
+                  <img src={presentation.image} alt="" loading={index < 3 ? "eager" : "lazy"} className={`absolute inset-0 -z-20 h-full w-full object-cover brightness-[1.12] transition duration-700 ${active ? "group-hover:scale-105" : "grayscale-[.55]"}`} />
+                  <div className="absolute inset-0 -z-10 bg-gradient-to-t from-[#061020]/95 via-[#061020]/50 to-transparent" />
+                  <div className="flex min-w-0 w-full flex-col">
                     <div className="flex items-start justify-between gap-3">
                       <span className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/20 bg-white/15 backdrop-blur"><Icon className="h-6 w-6 text-[#E2B82D]" /></span>
                       <span className={`rounded-full border px-3 py-1.5 text-[11px] font-black uppercase tracking-wider backdrop-blur ${active ? "border-emerald-300/30 bg-emerald-400/15 text-emerald-100" : "border-white/20 bg-black/20 text-white/70"}`}>{STATUS_LABEL[module.status] ?? module.status}</span>
                     </div>
-                    <div className="mt-auto">
-                      <p className="text-xs font-black uppercase tracking-[.2em] text-[#E2B82D]">{presentation.eyebrow}</p>
-                      <h2 className="mt-2 text-3xl font-black tracking-tight">{module.nom}</h2>
-                      {module.description && <p className="mt-3 max-w-sm text-sm leading-relaxed text-white/70">{module.description}</p>}
-                      <div className={`mt-6 flex items-center gap-2 text-sm font-black ${active ? "text-white" : "text-white/55"}`}>
-                        {active ? presentation.action : "Ouverture prochaine"}
+                    <div className="mt-auto min-w-0 overflow-hidden">
+                      <p className="break-words text-[11px] font-black uppercase tracking-[.16em] text-[#E2B82D] sm:text-xs sm:tracking-[.2em]">{presentation.eyebrow}</p>
+                      <h2 className="mt-2 max-w-full break-words text-2xl font-black leading-[1.08] tracking-tight sm:text-3xl">{module.nom}</h2>
+                      {module.description && <p className="mt-3 max-w-full break-words text-sm leading-relaxed text-white/80">{module.description}</p>}
+                      <div className={`mt-6 flex min-w-0 items-center gap-2 text-sm font-black ${active ? "text-white" : "text-white/65"}`}>
+                        <span className="min-w-0 break-words">{active ? presentation.action : "Ouverture prochaine"}</span>
                         {active && <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />}
                       </div>
                     </div>
                   </div>
                 </article>
               );
-              return active ? <Link key={module.id} to={to} className="block rounded-[30px] focus:outline-none focus-visible:ring-4 focus-visible:ring-[#D4AF37]/50">{card}</Link> : <div key={module.id}>{card}</div>;
+              return active ? <Link key={module.id} to={to} className="block min-w-0 rounded-[30px] focus:outline-none focus-visible:ring-4 focus-visible:ring-[#D4AF37]/50">{card}</Link> : <div key={module.id} className="min-w-0">{card}</div>;
             })}
           </div>
         )}
@@ -179,7 +179,7 @@ export default function Univers() {
                 <Link to="/abonnements" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl border border-black/10 px-6 text-sm font-black">Voir les abonnements <BadgeEuro className="h-4 w-4 text-[#B28B09]" /></Link>
               </div>
             </div>
-            <div className="relative min-h-64 bg-[#0A1630]"><img src="/pubs/hero5-pro.jpg" alt="Professionnel automobile MKA.P-MS" loading="lazy" className="absolute inset-0 h-full w-full object-cover opacity-80" /><div className="absolute inset-0 bg-gradient-to-r from-[#0A1630]/50 to-transparent" /></div>
+            <div className="relative min-h-64 bg-[#0A1630]"><img src="/pubs/hero5-pro.jpg" alt="Professionnel automobile MKA.P-MS" loading="lazy" className="absolute inset-0 h-full w-full object-cover brightness-110" /><div className="absolute inset-0 bg-gradient-to-r from-[#0A1630]/25 to-transparent" /></div>
           </div>
         </section>
       </main>

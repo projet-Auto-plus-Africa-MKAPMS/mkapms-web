@@ -66,8 +66,10 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
   function setCountry(c: string) {
     setCountryState(c);
     localStorage.setItem(COUNTRY_KEY, c);
-    // Si l'utilisateur n'a pas forcé une devise, on suit le pays.
-    if (!manual) localStorage.removeItem(CURRENCY_KEY);
+    // Un changement de pays remet la devise en mode automatique. L'utilisateur
+    // peut toujours la surcharger ensuite avec le sélecteur de devise.
+    setManual(null);
+    localStorage.removeItem(CURRENCY_KEY);
   }
 
   const liveRates = ratesQuery.data?.rates ?? null;
@@ -78,7 +80,7 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
     const rate = liveRates?.[currency];
     const def = CURRENCIES[currency] || CURRENCIES.EUR;
     if (rate == null) return formatPrice(amountEur, currency);
-    const noDecimals = ["XOF", "XAF", "GNF", "DZD"].includes(def.code);
+    const noDecimals = ["XOF", "XAF", "GNF", "DZD", "CDF", "JPY"].includes(def.code);
     return new Intl.NumberFormat(def.locale, {
       style: "currency",
       currency: def.code,
