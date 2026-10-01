@@ -40,6 +40,13 @@ const LINKS: Record<string, string> = {
   import_africa: "/import-africa",
   historique: "/historique",
   wallet: "/wallet",
+  finance: "/finance",
+  paiement_fractionne: "/finance/paiement-fractionne",
+  marketing: "/marketing",
+  controle_technique: "/garage/controle-technique",
+  carte_mondiale: "/carte",
+  qualite: "/operations/controle-qualite-global",
+  investisseurs: "/investisseurs/espace-investisseurs",
 };
 
 type Presentation = {
@@ -61,6 +68,13 @@ const PRESENTATIONS: Record<string, Presentation> = {
   historique: { image: "/categories/premium.jpg", eyebrow: "Plaque & VIN", action: "Consulter un historique", icon: History },
   import_africa: { image: "/categories/camion_porte_voitures.jpg", eyebrow: "Europe vers Afrique", action: "Découvrir l’import", icon: Plane },
   wallet: { image: "/pubs/hero5-pro.jpg", eyebrow: "Services professionnels", action: "Ouvrir le wallet", icon: Landmark },
+  finance: { image: "/pubs/hero5-pro.jpg", eyebrow: "Pilotage financier", action: "Ouvrir Finance+", icon: BadgeEuro },
+  paiement_fractionne: { image: "/categories/premium.jpg", eyebrow: "Solutions de paiement", action: "Voir le paiement fractionné", icon: BadgeEuro },
+  marketing: { image: "/pubs/hero2-vendez.jpg", eyebrow: "Visibilité & croissance", action: "Ouvrir le marketing", icon: Sparkles },
+  controle_technique: { image: "/categories/cover_pro.jpg", eyebrow: "Sécurité & conformité", action: "Prendre rendez-vous", icon: ShieldCheck },
+  carte_mondiale: { image: "/categories/cover_mkapms.jpg", eyebrow: "Services autour du monde", action: "Explorer la carte", icon: MapPinned },
+  qualite: { image: "/categories/cover_pro.jpg", eyebrow: "Contrôle & amélioration", action: "Ouvrir le centre qualité", icon: PackageCheck },
+  investisseurs: { image: "/pubs/hero5-pro.jpg", eyebrow: "Vision & développement", action: "Ouvrir l’espace investisseurs", icon: Landmark },
 };
 
 const FALLBACK: Presentation = {
