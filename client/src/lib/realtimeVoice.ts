@@ -26,16 +26,16 @@ type RealtimeEvent = {
   error?: { message?: string };
 };
 
-/** Session audio WebRTC continue, compatible Safari iOS. */
+/** Session audio WebRTC continue pour Safari, Chrome, Edge et Firefox, mobile ou ordinateur. */
 export async function startRealtimeVoice(options: RealtimeVoiceOptions): Promise<RealtimeVoiceControl> {
   if (typeof RTCPeerConnection === "undefined" || !navigator.mediaDevices?.getUserMedia) {
     throw new Error("REALTIME_NOT_SUPPORTED");
   }
   options.onState?.("connexion");
-  const stream = await navigator.mediaDevices.getUserMedia({
-    audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true },
-    video: false,
-  });
+  // `audio: true` laisse chaque navigateur choisir ses contraintes réellement
+  // prises en charge. Certains Android/WebView et ordinateurs refusaient les
+  // contraintes avancées avant même d'ouvrir la connexion.
+  const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
   const peer = new RTCPeerConnection();
   const channel = peer.createDataChannel("oai-events");
   const audio = document.createElement("audio");
@@ -65,8 +65,8 @@ export async function startRealtimeVoice(options: RealtimeVoiceOptions): Promise
   };
   peer.onconnectionstatechange = () => {
     if (peer.connectionState === "connected") options.onState?.("ecoute");
-    // `disconnected` est souvent transitoire sur iPhone lors d'un changement
-    // Wi-Fi/5G : WebRTC peut se rétablir. Seuls les états terminaux ferment.
+    // `disconnected` est souvent transitoire sur mobile ou Wi-Fi : WebRTC peut
+    // se rétablir. Seuls les états terminaux ferment réellement la session.
     if (["failed", "closed"].includes(peer.connectionState) && !closed) {
       if (peer.connectionState === "failed") options.onError?.("La connexion vocale a été interrompue.");
       close();

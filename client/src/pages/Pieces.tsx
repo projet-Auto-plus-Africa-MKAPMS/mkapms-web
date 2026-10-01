@@ -74,6 +74,9 @@ export default function Pieces() {
     limit: 40,
   });
   const partDetail = trpc.pieces.part.useQuery({ id: selectedPart ?? 0 }, { enabled: selectedPart !== null });
+  // Le JSX historique ci-dessous est désactivé au profit de la route dédiée.
+  // L'assertion évite que TypeScript analyse comme exécutable ce bloc `false &&`.
+  const partDetailData = partDetail.data!;
   useEffect(() => { writePiecesCart(cart); }, [cart]);
 
   // Delivery estimate
@@ -691,44 +694,44 @@ export default function Pieces() {
       {false && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-noir/40 p-4 backdrop-blur-sm" onClick={() => setSelectedPart(null)}>
           <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl" onClick={e => e.stopPropagation()}>
-            {partDetail.data ? (
+            {partDetailData ? (
               <>
                 <div className="flex items-start justify-between">
                   <div>
-                    <h2 className="text-xl font-extrabold text-noir">{partDetail.data.nom}</h2>
-                    {partDetail.data.categorie && <p className="text-sm text-gold-dark">{partDetail.data.categorie}{partDetail.data.sousCategorie ? ` / ${partDetail.data.sousCategorie}` : ""}</p>}
+                    <h2 className="text-xl font-extrabold text-noir">{partDetailData.nom}</h2>
+                    {partDetailData.categorie && <p className="text-sm text-gold-dark">{partDetailData.categorie}{partDetailData.sousCategorie ? ` / ${partDetailData.sousCategorie}` : ""}</p>}
                   </div>
                   <button onClick={() => setSelectedPart(null)} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
                 </div>
 
                 <div className="mt-4 rounded-lg bg-gold-soft/30 p-4">
-                  <p className="text-2xl font-extrabold text-gold-dark">{Number(partDetail.data.prixHt).toLocaleString("fr-FR")} € <span className="text-sm font-normal text-slate-500">HT</span></p>
-                  {partDetail.data.prixTtc && <p className="text-sm text-slate-500">{Number(partDetail.data.prixTtc).toLocaleString("fr-FR")} € TTC (TVA {partDetail.data.tvaRate}%)</p>}
+                  <p className="text-2xl font-extrabold text-gold-dark">{Number(partDetailData.prixHt).toLocaleString("fr-FR")} € <span className="text-sm font-normal text-slate-500">HT</span></p>
+                  {partDetailData.prixTtc && <p className="text-sm text-slate-500">{Number(partDetailData.prixTtc).toLocaleString("fr-FR")} € TTC (TVA {partDetailData.tvaRate}%)</p>}
                 </div>
 
                 <div className="mt-4">
                   <h3 className="mb-2 flex items-center gap-1.5 text-sm font-bold text-slate-700"><Tag size={14} /> Références</h3>
                   <div className="grid grid-cols-2 gap-2 text-sm">
-                    <div className="rounded bg-slate-50 p-2"><span className="text-xs text-slate-400">Réf. interne</span><br /><span className="font-mono font-semibold">{partDetail.data.referenceInterne}</span></div>
-                    {partDetail.data.referenceOem && <div className="rounded bg-slate-50 p-2"><span className="text-xs text-slate-400">Réf. OEM</span><br /><span className="font-mono font-semibold">{partDetail.data.referenceOem}</span></div>}
-                    {partDetail.data.referenceEquipementier && <div className="rounded bg-slate-50 p-2"><span className="text-xs text-slate-400">Équipementier</span><br /><span className="font-mono font-semibold">{partDetail.data.referenceEquipementier}</span></div>}
-                    {partDetail.data.codeBarre && <div className="rounded bg-slate-50 p-2"><span className="text-xs text-slate-400">Code-barres</span><br /><span className="font-mono font-semibold">{partDetail.data.codeBarre}</span></div>}
+                    <div className="rounded bg-slate-50 p-2"><span className="text-xs text-slate-400">Réf. interne</span><br /><span className="font-mono font-semibold">{partDetailData.referenceInterne}</span></div>
+                    {partDetailData.referenceOem && <div className="rounded bg-slate-50 p-2"><span className="text-xs text-slate-400">Réf. OEM</span><br /><span className="font-mono font-semibold">{partDetailData.referenceOem}</span></div>}
+                    {partDetailData.referenceEquipementier && <div className="rounded bg-slate-50 p-2"><span className="text-xs text-slate-400">Équipementier</span><br /><span className="font-mono font-semibold">{partDetailData.referenceEquipementier}</span></div>}
+                    {partDetailData.codeBarre && <div className="rounded bg-slate-50 p-2"><span className="text-xs text-slate-400">Code-barres</span><br /><span className="font-mono font-semibold">{partDetailData.codeBarre}</span></div>}
                   </div>
                 </div>
 
                 <div className="mt-4">
                   <h3 className="mb-2 flex items-center gap-1.5 text-sm font-bold text-slate-700"><Warehouse size={14} /> Stock</h3>
                   <div className="grid grid-cols-3 gap-2 text-center text-sm">
-                    <div className="rounded-lg bg-success/10 p-3"><p className="text-2xl font-extrabold text-success">{partDetail.data.stockDisponible}</p><p className="text-xs text-slate-500">Disponible</p></div>
-                    <div className="rounded-lg bg-warning/10 p-3"><p className="text-2xl font-extrabold text-warning">{partDetail.data.stockReserve}</p><p className="text-xs text-slate-500">Réservé</p></div>
-                    <div className="rounded-lg bg-slate-100 p-3"><p className="text-2xl font-extrabold text-slate-700">{partDetail.data.stockTotal}</p><p className="text-xs text-slate-500">Total</p></div>
+                    <div className="rounded-lg bg-success/10 p-3"><p className="text-2xl font-extrabold text-success">{partDetailData.stockDisponible}</p><p className="text-xs text-slate-500">Disponible</p></div>
+                    <div className="rounded-lg bg-warning/10 p-3"><p className="text-2xl font-extrabold text-warning">{partDetailData.stockReserve}</p><p className="text-xs text-slate-500">Réservé</p></div>
+                    <div className="rounded-lg bg-slate-100 p-3"><p className="text-2xl font-extrabold text-slate-700">{partDetailData.stockTotal}</p><p className="text-xs text-slate-500">Total</p></div>
                   </div>
                 </div>
 
                 <div className="mt-4">
                   <h3 className="mb-2 flex items-center gap-1.5 text-sm font-bold text-slate-700"><Car size={14} /> Compatibilité véhicule</h3>
                   {(() => {
-                    const etat = evaluerCompatibilite(partDetail.data.compatibilites, {
+                    const etat = evaluerCompatibilite(partDetailData.compatibilites, {
                       marque: marqueVehicule || undefined,
                       modele: modeleVehicule || undefined,
                       annee: anneeVehicule ? parseInt(anneeVehicule) : undefined,
@@ -750,9 +753,9 @@ export default function Pieces() {
                     );
                     return null;
                   })()}
-                  {partDetail.data.compatibilites.length > 0 && (
+                  {partDetailData.compatibilites.length > 0 && (
                     <div className="space-y-1">
-                      {partDetail.data.compatibilites.map((c) => (
+                      {partDetailData.compatibilites.map((c) => (
                         <div key={c.id} className="flex items-center gap-2 rounded bg-info/5 px-3 py-1.5 text-sm">
                           <CheckCircle size={14} className="text-success" />
                           <span className="font-semibold">{c.marque}</span>
@@ -765,22 +768,22 @@ export default function Pieces() {
                   )}
                 </div>
 
-                {(partDetail.data.poidsKg || partDetail.data.longueurCm) && (
+                {(partDetailData.poidsKg || partDetailData.longueurCm) && (
                   <div className="mt-4">
                     <h3 className="mb-2 flex items-center gap-1.5 text-sm font-bold text-slate-700"><Truck size={14} /> Dimensions & Poids</h3>
                     <div className="flex flex-wrap gap-3 text-sm text-slate-600">
-                      {partDetail.data.poidsKg && <span>{partDetail.data.poidsKg} kg</span>}
-                      {partDetail.data.longueurCm && <span>{partDetail.data.longueurCm} cm L</span>}
-                      {partDetail.data.largeurCm && <span>{partDetail.data.largeurCm} cm l</span>}
-                      {partDetail.data.hauteurCm && <span>{partDetail.data.hauteurCm} cm H</span>}
+                      {partDetailData.poidsKg && <span>{partDetailData.poidsKg} kg</span>}
+                      {partDetailData.longueurCm && <span>{partDetailData.longueurCm} cm L</span>}
+                      {partDetailData.largeurCm && <span>{partDetailData.largeurCm} cm l</span>}
+                      {partDetailData.hauteurCm && <span>{partDetailData.hauteurCm} cm H</span>}
                     </div>
                   </div>
                 )}
 
-                {partDetail.data.description && (
+                {partDetailData.description && (
                   <div className="mt-4">
                     <h3 className="mb-1 text-sm font-bold text-slate-700">Description</h3>
-                    <p className="text-sm text-slate-600">{partDetail.data.description}</p>
+                    <p className="text-sm text-slate-600">{partDetailData.description}</p>
                   </div>
                 )}
 
@@ -788,7 +791,7 @@ export default function Pieces() {
                   <button
                     className="btn-acheter mt-6 w-full"
                     onClick={() => {
-                      addToCart({ id: partDetail.data!.id, nom: partDetail.data!.nom, prixHt: partDetail.data!.prixHt, currency: partDetail.data!.currency, shopId: partDetail.data!.shopId });
+                      addToCart({ id: partDetailData.id, nom: partDetailData.nom, prixHt: partDetailData.prixHt, currency: partDetailData.currency, shopId: partDetailData.shopId });
                       setSelectedPart(null);
                       setShowCart(true);
                     }}

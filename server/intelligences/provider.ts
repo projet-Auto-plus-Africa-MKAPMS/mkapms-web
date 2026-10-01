@@ -1051,49 +1051,73 @@ export async function creerAppelVocalTempsReel(
   const langue = options.langue?.split("-")[0]?.toLowerCase();
   const voixAutorisee = new Set(["alloy", "ash", "ballad", "coral", "echo", "marin", "sage", "shimmer", "verse"]);
   const voix = voixAutorisee.has(options.voix ?? "") ? options.voix! : "marin";
-  const session = {
-    type: "realtime",
-    model: "gpt-realtime-2.1",
-    output_modalities: ["audio"],
-    instructions: mode === "conversation"
-      ? "Tu es AL-HUDHUD·M, l'intelligence privée créée par MKA.P-MS. Réponds naturellement à l'oral, dans la langue de l'utilisateur, avec des tours courts et utiles. N'affirme jamais avoir exécuté une action externe que cette session vocale n'a pas réellement exécutée. Respecte la confidentialité, la sécurité et la politique commerciale halal MKA.P-MS."
-      : "Transcris fidèlement la parole de l'utilisateur. Ne réponds pas et ne reformule pas.",
-    audio: {
-      input: {
-        noise_reduction: { type: "near_field" },
-        transcription: {
-          model: "whisper-1",
-          ...(langue && /^[a-z]{2,3}$/.test(langue) ? { language: langue } : {}),
-          prompt: "AL-HUDHUD·M, MKA.P-MS. Ponctuation naturelle et transcription fidèle.",
-        },
-        turn_detection: mode === "conversation"
-          ? { type: "semantic_vad", eagerness: "auto", create_response: true, interrupt_response: true }
-          : { type: "server_vad", threshold: 0.45, prefix_padding_ms: 300, silence_duration_ms: 650, create_response: false, interrupt_response: false },
-      },
-      output: { voice: voix, speed: 1 },
-    },
-  };
+  // `gpt-realtime` est l'alias GA le plus largement ouvert. Une installation
+  // peut épingler une version plus récente, mais on revient automatiquement à
+  // l'alias stable si cette version n'est pas autorisée pour son projet API.
+  const configure = process.env.OPENAI_REALTIME_MODEL?.trim();
+  const modeles = [...new Set([
+    configure && /^[A-Za-z0-9._-]{1,80}$/.test(configure) ? configure : null,
+    "gpt-realtime",
+  ].filter((modele): modele is string => !!modele))];
+  let derniereErreur = "REALTIME_PROVIDER_UNAVAILABLE";
 
-  const form = new FormData();
-  form.set("sdp", offre);
-  form.set("session", JSON.stringify(session));
-  const response = await fetchImpl("https://api.openai.com/v1/realtime/calls", {
-    method: "POST",
-    redirect: "error",
-    signal: AbortSignal.timeout(30_000),
-    headers: {
-      Authorization: `Bearer ${cle}`,
-      ...(options.safetyId ? { "OpenAI-Safety-Identifier": options.safetyId } : {}),
-    },
-    body: form,
-  });
-  if (!response.ok) {
-    await response.body?.cancel();
-    throw new Error(`REALTIME_PROVIDER_UNAVAILABLE_${response.status}`);
+  for (const modele of modeles) {
+    const session = {
+      type: "realtime",
+      model: modele,
+      output_modalities: ["audio"],
+      instructions: mode === "conversation"
+        ? "Tu es AL-HUDHUD·M, l'intelligence privée créée par MKA.P-MS. Réponds naturellement à l'oral, dans la langue de l'utilisateur, avec des tours courts et utiles. N'affirme jamais avoir exécuté une action externe que cette session vocale n'a pas réellement exécutée. Respecte la confidentialité, la sécurité et la politique commerciale halal MKA.P-MS."
+        : "Transcris fidèlement la parole de l'utilisateur. Ne réponds pas et ne reformule pas.",
+      audio: {
+        input: {
+          noise_reduction: { type: "near_field" },
+          transcription: {
+            model: "whisper-1",
+            ...(langue && /^[a-z]{2,3}$/.test(langue) ? { language: langue } : {}),
+            prompt: "AL-HUDHUD·M, MKA.P-MS. Ponctuation naturelle et transcription fidèle.",
+          },
+          turn_detection: mode === "conversation"
+            ? { type: "semantic_vad", create_response: true, interrupt_response: true }
+            : { type: "server_vad", threshold: 0.45, prefix_padding_ms: 300, silence_duration_ms: 650, create_response: false, interrupt_response: false },
+        },
+        output: { voice: voix },
+      },
+    };
+
+    const form = new FormData();
+    form.set("sdp", offre);
+    form.set("session", JSON.stringify(session));
+    const response = await fetchImpl("https://api.openai.com/v1/realtime/calls", {
+      method: "POST",
+      redirect: "error",
+      signal: AbortSignal.timeout(30_000),
+      headers: {
+        Authorization: `Bearer ${cle}`,
+        ...(options.safetyId ? { "OpenAI-Safety-Identifier": options.safetyId } : {}),
+      },
+      body: form,
+    });
+    const corps = (await response.text()).trim();
+    if (response.ok) {
+      if (corps.length < 64 || corps.length > 100_000 || !corps.startsWith("v=0")) {
+        throw new Error("REALTIME_ANSWER_INVALID");
+      }
+      return corps;
+    }
+
+    // Aucun secret n'est journalisé : seulement le statut, le modèle demandé
+    // et le code d'erreur public renvoyé par l'API.
+    let code = "unknown";
+    try {
+      const erreur = JSON.parse(corps) as { error?: { code?: unknown; type?: unknown } };
+      code = String(erreur.error?.code ?? erreur.error?.type ?? "unknown").replace(/[^A-Za-z0-9._-]/g, "").slice(0, 80) || "unknown";
+    } catch {
+      // Une réponse non JSON ne doit jamais être recopiée dans les journaux.
+    }
+    derniereErreur = `REALTIME_PROVIDER_${response.status}_${modele}_${code}`;
+    if (![400, 403, 404].includes(response.status)) break;
   }
-  const reponse = (await response.text()).trim();
-  if (reponse.length < 64 || reponse.length > 100_000 || !reponse.startsWith("v=0")) {
-    throw new Error("REALTIME_ANSWER_INVALID");
-  }
-  return reponse;
+
+  throw new Error(derniereErreur);
 }

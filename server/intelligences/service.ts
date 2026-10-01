@@ -474,7 +474,7 @@ export async function enregistrerEchangeVocal(input: {
       role: "moteur",
       contenu: reponse,
       fournisseur: "realtime",
-      modele: "gpt-realtime-2.1",
+      modele: "gpt-realtime",
       traceId,
     },
   ]);

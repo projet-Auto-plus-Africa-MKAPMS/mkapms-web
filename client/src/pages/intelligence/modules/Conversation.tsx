@@ -486,7 +486,7 @@ export function Conversation({ navigation, active = true, mode = "chat", onActiv
     } catch {
       if (generation === dicteeGeneration.current) {
         setEcoute(false);
-        setNotice("La dictée n’a pas pu démarrer. Autorisez le micro dans Safari puis réessayez.");
+        setNotice("La dictée n’a pas pu démarrer. Autorisez le micro dans les réglages de votre navigateur ou de votre appareil, puis réessayez.");
       }
     }
   }

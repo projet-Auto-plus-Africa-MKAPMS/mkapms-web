@@ -100,14 +100,14 @@ export interface PerimetreMoteur {
 }
 
 export const MOTEURS_TOTAL = 94;
-export const MANQUES_TOTAL = 515;
+export const MANQUES_TOTAL = 517;
 export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
   "ecran_sans_contenu": 341,
-  "dependance_non_declaree": 57,
+  "dependance_non_declaree": 58,
   "sans_logique_serveur": 10,
   "sans_ecran": 8,
   "dependance_sans_preuve": 41,
-  "bouton_sans_action": 50,
+  "bouton_sans_action": 51,
   "bouton_declare_absent_ecran": 6,
   "emission_dynamique": 2
 };
@@ -15773,7 +15773,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "notification",
       "payment",
       "payment_orchestrator",
-      "product_engine"
+      "product_engine",
+      "redirection"
     ],
     "dependances": [
       "avis_reputation",
@@ -15783,7 +15784,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "notification",
       "payment",
       "payment_orchestrator",
-      "product_engine"
+      "product_engine",
+      "redirection"
     ],
     "integrationsTechniques": [
       "identity"
@@ -15816,6 +15818,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       ],
       "product_engine": [
         "publie piece.modifiee, consommé par product_engine"
+      ],
+      "redirection": [
+        "client/src/pages/PiecesProduit.tsx embarque lib/redirect.tsx (trpc.redirectionEngine)"
       ]
     },
     "dependants": [
@@ -15852,6 +15857,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "/pieces/pieces-moteur",
       "/pieces/pieces-pneumatiques",
       "/pieces/pieces-suspension",
+      "/pieces/produit/:id",
       "/pieces/recherche-intelligente-pieces",
       "/pieces/retours-pieces",
       "/pieces/statistiques-pieces",
@@ -15870,6 +15876,17 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "sansAction": 0,
         "textes": 12,
         "mots": 82
+      },
+      {
+        "fichier": "client/src/pages/PiecesProduit.tsx",
+        "routes": [
+          "/pieces/produit/:id"
+        ],
+        "cliquables": 11,
+        "parMoteur": 0,
+        "sansAction": 1,
+        "textes": 27,
+        "mots": 90
       },
       {
         "fichier": "client/src/pages/pieces/AbonnementsProPieces.tsx",
@@ -16187,10 +16204,14 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "professionnel",
       "public"
     ],
-    "textes": 137,
-    "mots": 319,
+    "textes": 164,
+    "mots": 409,
     "battement": "sonde",
     "manques": [
+      {
+        "genre": "bouton_sans_action",
+        "detail": "« Ajouter aux favoris » client/src/pages/PiecesProduit.tsx:27"
+      },
       {
         "genre": "bouton_sans_action",
         "detail": "« Choisir » client/src/pages/pieces/AbonnementsProPieces.tsx:17"
@@ -16258,6 +16279,10 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "genre": "ecran_sans_contenu",
         "detail": "client/src/pages/pieces/RetoursPieces.tsx (2 texte(s))"
+      },
+      {
+        "genre": "dependance_non_declaree",
+        "detail": "redirection — client/src/pages/PiecesProduit.tsx embarque lib/redirect.tsx (trpc.redirectionEngine)"
       }
     ]
   },
@@ -19556,6 +19581,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "comptabilite",
       "continuous_test",
       "location",
+      "pieces",
       "resilience",
       "seo",
       "smart"
@@ -19585,6 +19611,13 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "fichier": "client/src/pages/Comptabilite.tsx",
         "route": "/comptabilite",
+        "composants": [
+          "lib/redirect.tsx"
+        ]
+      },
+      {
+        "fichier": "client/src/pages/PiecesProduit.tsx",
+        "route": "/pieces/produit/:id",
         "composants": [
           "lib/redirect.tsx"
         ]
