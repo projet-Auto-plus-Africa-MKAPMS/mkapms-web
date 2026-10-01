@@ -18,6 +18,7 @@
 import { emitSafe } from "../event-bus/service.js";
 import { seedLivraisons } from "../intelligences/livraisons.js";
 import { seedFondations, seedPipelines } from "../intelligences/fondations.js";
+import { seedConnaissancesPublication } from "../intelligences/connaissances-publication.js";
 import { initialiserBaremes } from "../vehicle-delivery/service.js";
 import { retenir } from "../intelligences/memoire.js";
 import { notifyDirection } from "../notification-os/triggers.js";
@@ -498,6 +499,20 @@ export async function bootstrapEngines(): Promise<void> {
   } catch (err) {
     console.error(
       "[MKA.P-MS] pose des fondations de mémoire échouée:",
+      (err as Error).message,
+    );
+  }
+
+  // Connaissances de la plateforme sur la publication des applications (Android, Apple, Google Play, GitHub, Railway)
+  // (base de connaissances, catégorie « procedures ») : posées une fois.
+  try {
+    const r = await seedConnaissancesPublication();
+    if (r.nouvelles > 0) {
+      console.log(`[MKA.P-MS] Intelligences : ${r.nouvelles} connaissance(s) de publication (Android, Apple, GitHub, Railway) posée(s).`);
+    }
+  } catch (err) {
+    console.error(
+      "[MKA.P-MS] pose des connaissances de publication échouée:",
       (err as Error).message,
     );
   }

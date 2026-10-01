@@ -2730,6 +2730,23 @@ export const LIVRAISONS: Livraison[] = [
       "Vérifié dans Chromium avec micro factice : (a) service vocal absent → message précis + relais de dictée navigateur, barre « Dictée en cours » active et texte conservé après stop ; (b) faux service vocal → dictée et conversation vocale stables ; (c) faux moteur de reconnaissance qui s'arrête seul toutes les 2,5 s → relance automatique sur les deux écrans, texte cumulé. Non vérifié : le vrai service vocal de production (aucune clé dans ce bac à sable) — le message du micro donnera maintenant son code exact au prochain essai du PDG.\n\nLeçon générale : un message d'erreur qui nomme la mauvaise cause est pire qu'un silence — il envoie chercher au mauvais endroit. Et quand plusieurs personnes ont déjà bâti une fonction (ici speech.ts), compléter en réutilisant leur aide plutôt qu'en réécrivant à côté.",
     domaine: "confiance",
   },
+  {
+    cle: "branche-connaissances-publication-android-apple-github-railway",
+    titre: "Connaissances de publication : Android, Google Play, Apple, GitHub, Railway et l'emplacement des identifiants",
+    moteurs: ["intelligences"],
+    quoi:
+      "Nouveau server/intelligences/connaissances-publication.ts : 12 entrées de la base de connaissances (catégorie « procedures », statut confirmé, visibilité interne), posées une fois au démarrage (bootstrap.ts), idempotentes. Android : les cinq applications et leurs identifiants, construire les .aab (commande, sortie, où ça tourne), signer et vérifier, ce qu'il ne faut jamais faire, publier sur Google Play Console, ce que le moteur peut ou non faire seul, assetlinks. Apple : état réel du dépôt (aucun projet iOS) et procédure générale App Store Connect, clairement signalée comme non vérifiée ici. Identifiants nécessaires par plateforme et leur place dans le Coffre secret. GitHub : flux décidé par le PDG (le moteur pousse et ouvre une PR, le PDG déploie à la main). Railway : ce que le moteur lit, ce qu'il ne fait pas, niveau 5 du Plan d'autonomie réservé au PDG.",
+    pourquoi:
+      "Le PDG a demandé que le moteur connaisse le parcours complet — construire, signer, récupérer les fichiers, déposer sur Google Play Console et Apple, avec toutes les identifiants nécessaires, l'emplacement des jetons et la connexion à GitHub. Chaque entrée reprend uniquement ce que le dépôt établit (variants.json, build-apps.mjs, build.gradle, workflows, railway.json, docs de passation) ; la partie Apple, que le dépôt ne contient pas, est étiquetée procédure générale. Aucune entrée ne dit qu'un outil de signature, de dépôt Play ou de GitHub existe : elles disent explicitement de vérifier le registre d'outils.",
+    ou: [
+      "server/intelligences/connaissances-publication.ts",
+      "server/engine-registry/bootstrap.ts",
+      "server/intelligences/__tests__/connaissances-publication.test.ts",
+    ],
+    lecon:
+      "Test sur base Postgres LOCALE : pose idempotente (rejouée, rien n'est réécrit) et six questions en langage naturel (signer, publier sur Play Console, où mettre le mot de passe du trousseau, identifiants Apple, connecter GitHub, déployer sur Railway) retrouvent la bonne entrée dans les trois premiers résultats par la recherche de la conversation. Aucun secret ni versionCode figé dans les textes (contrôle automatique). Non vérifié : l'état réel de Google Play Console, d'Apple et du compte GitHub — rien de tout cela n'est accessible depuis ce bac à sable.\n\nLeçon générale : ce qu'on ne peut pas vérifier dans le dépôt (ici Apple) s'écrit comme tel dans la connaissance elle-même, sinon le moteur le répétera comme un fait ; et un test qui rejette ma propre formulation (« mot de passe : » dans une phrase) se corrige en reformulant, pas en affaiblissant le test.",
+    domaine: "confiance",
+  },
 ];
 
 /**
