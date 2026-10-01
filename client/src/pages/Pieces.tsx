@@ -12,6 +12,7 @@ import { useCurrency } from "../lib/currency";
 import { PARTS_CATEGORIES, evaluerCompatibilite } from "@shared/partsCategories";
 import { useReportNavigation } from "../lib/redirect";
 import { readPiecesCart, writePiecesCart } from "../lib/piecesCartStore";
+import { WORLD_COUNTRIES, countryName } from "@shared/countries";
 
 const CONDITIONS = [
   { value: "neuf", label: "Neuf" },
@@ -65,7 +66,7 @@ export default function Pieces() {
   const [modeRetrait, setModeRetrait] = useState<"retrait" | "livraison">("livraison");
   const [selectedLivraison, setSelectedLivraison] = useState("");
 
-  const { country } = useCurrency();
+  const { country, setCountry } = useCurrency();
   // Boutiques filtrées sur le pays actif (contenu par pays, structure identique).
   const shops = trpc.pieces.shops.useQuery({ country: country || undefined, limit: 50 });
   const catalog = trpc.pieces.catalog.useQuery({
@@ -76,6 +77,7 @@ export default function Pieces() {
     marqueVehicule: marqueVehicule || undefined,
     modeleVehicule: modeleVehicule || undefined,
     anneeVehicule: anneeVehicule ? parseInt(anneeVehicule) : undefined,
+    country: country || undefined,
     limit: 40,
   });
   const partDetail = trpc.pieces.part.useQuery({ id: selectedPart ?? 0 }, { enabled: selectedPart !== null });
@@ -222,7 +224,11 @@ export default function Pieces() {
           <img src="/brand/wordmark.png" alt="MKA.P-MS" className="h-9 w-auto object-contain sm:h-11" />
         </button>
         <div className="flex items-center gap-2">
-          <span className="hidden rounded-lg border border-slate-200 px-2 py-1 text-xs font-semibold text-slate-600 sm:inline">🇫🇷 FR</span>
+          <label className="sr-only" htmlFor="pieces-country">Pays du catalogue et des boutiques</label>
+          <select id="pieces-country" value={country ?? ""} onChange={(event) => setCountry(event.target.value)} className="max-w-32 rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs font-semibold text-slate-600 sm:max-w-44" aria-label="Pays du catalogue et des boutiques">
+            <option value="">Monde</option>
+            {WORLD_COUNTRIES.map((item) => <option key={item.code} value={item.code}>{item.flag} {item.name}</option>)}
+          </select>
           <button onClick={() => setShowCart(!showCart)} className="btn-gold relative flex items-center gap-2 !px-3 !py-2 text-sm">
             <ShoppingCart size={18} />
             Panier
@@ -413,14 +419,14 @@ export default function Pieces() {
               {([['immatriculation', 'Immatriculation', Car], ['vin', 'VIN / châssis', Barcode], ['modele', 'Par modèle', Wrench]] as const).map(([key,label,Icon]) => <button key={key} onClick={() => setIdentification(key)} className={`flex min-h-16 items-center justify-center gap-2 px-3 py-3 ${identification===key ? 'bg-[#426f95] text-white' : 'text-slate-600 hover:bg-slate-50'}`}><Icon size={18}/><span className="hidden sm:inline">{label}</span><span className="sm:hidden">{key==='immatriculation'?'Plaque':key==='vin'?'VIN':'Modèle'}</span></button>)}
             </div>
             <div className="grid gap-3 p-5 sm:p-6 lg:grid-cols-[.7fr_1fr_1.45fr_auto] lg:items-end">
-              <label className="grid gap-1.5 text-sm font-bold text-slate-700"><span>Pays</span><select aria-label="Pays de l'immatriculation" className="input min-h-12 !py-3" defaultValue="FR"><option value="FR">🇫🇷 France</option></select></label>
+              <label className="grid gap-1.5 text-sm font-bold text-slate-700"><span>Pays</span><select aria-label="Pays de l'immatriculation" className="input min-h-12 !py-3" value={country ?? ""} onChange={(event) => setCountry(event.target.value)}><option value="">Sélectionner un pays</option>{WORLD_COUNTRIES.map((item) => <option key={item.code} value={item.code}>{item.flag} {item.name}</option>)}</select></label>
               {identification === 'immatriculation' && <label className="grid gap-1.5 text-sm font-bold text-slate-700"><span>Plaque d’immatriculation</span><input className="input min-h-12 !py-3" value={immatriculation} onChange={e=>setImmatriculation(e.target.value.toUpperCase())} placeholder="AA-123-AA" /></label>}
               {identification === 'vin' && <label className="grid gap-1.5 text-sm font-bold text-slate-700 lg:col-span-2"><span>Numéro VIN / châssis</span><input className="input min-h-12 !py-3" value={vin} onChange={e=>setVin(e.target.value.toUpperCase())} placeholder="Saisir le numéro VIN complet" /></label>}
               {identification === 'modele' && <><label className="grid gap-1.5 text-sm font-bold text-slate-700"><span>Marque</span><input className="input min-h-12 !py-3" value={marqueVehicule} onChange={e=>setMarqueVehicule(e.target.value)} placeholder="Ex. Peugeot"/></label><label className="grid gap-1.5 text-sm font-bold text-slate-700"><span>Modèle et motorisation</span><input className="input min-h-12 !py-3" value={modeleVehicule} onChange={e=>setModeleVehicule(e.target.value)} placeholder="Ex. 308 · 1.5 BlueHDi"/></label></>}
               {identification === 'immatriculation' && <label className="grid gap-1.5 text-sm font-bold text-slate-700"><span>VIN / châssis <small className="font-medium text-slate-400">(facultatif)</small></span><input className="input min-h-12 !py-3" value={vin} onChange={e=>setVin(e.target.value.toUpperCase())} placeholder="Compléter avec le VIN" /></label>}
               <button onClick={() => { setShowVehicleSearch(true); void catalog.refetch(); }} className="btn-gold min-h-12 whitespace-nowrap !px-6 !py-3"><Search size={18} className="mr-2 inline"/>Trouver les pièces</button>
             </div>
-            <div className="flex flex-wrap items-center justify-between gap-x-8 gap-y-3 border-t border-slate-100 px-5 py-4 text-sm sm:px-7"><button onClick={() => { setIdentification('modele'); setShowVehicleSearch(true); }} className="font-bold text-[#0d7391] hover:underline"><Wrench size={17} className="mr-1.5 inline"/>Choisir par marque, modèle et motorisation</button><span className="font-medium text-slate-500">🛥️ Bateau : moteur ou numéro de série</span></div>
+            <div className="flex flex-wrap items-center justify-between gap-x-8 gap-y-3 border-t border-slate-100 px-5 py-4 text-sm sm:px-7"><button onClick={() => { setIdentification('modele'); setShowVehicleSearch(true); }} className="font-bold text-[#0d7391] hover:underline"><Wrench size={17} className="mr-1.5 inline"/>Choisir par marque, modèle et motorisation</button><span className="font-medium text-slate-500">{country ? `Catalogue et boutiques : ${countryName(country)} · ` : ""}🛥️ Bateau : moteur ou numéro de série</span></div>
           </section>
 
           {/* Search bar */}
