@@ -14,6 +14,9 @@ import {
   Wrench,
   Globe2,
   ExternalLink,
+  ShieldCheck,
+  FileCheck2,
+  CarFront,
 } from "lucide-react";
 import VehicleIdentification, { type VehicleData } from "../components/VehicleIdentification";
 import { trpc } from "../lib/trpc";
@@ -88,18 +91,32 @@ export default function EstimationAuto() {
 
   return (
     <div className="min-h-screen bg-[#F5F3EF] pb-24">
-      <div className="bg-[#111] px-4 pt-6 pb-5">
-        <Link to="/acheter" className="flex items-center gap-1 text-sm text-white/60 mb-2"><ChevronLeft size={14} /> Retour Vente</Link>
-        <h1 className="text-xl font-black text-white flex items-center gap-2"><Calculator size={20} className="text-[#D4AF37]" /> Estimation automobile</h1>
-        <p className="mt-1 text-sm text-white/60 flex items-center gap-1"><Sparkles size={12} /> Fourchette calculee sur le marche reel</p>
+      <div className="overflow-hidden bg-[#111] px-4 pt-6 pb-8 sm:px-6 sm:pb-10">
+        <div className="mx-auto max-w-5xl">
+          <Link to="/acheter" className="flex items-center gap-1 text-sm text-white/60 mb-8"><ChevronLeft size={14} /> Retour Vente</Link>
+          <div className="mx-auto max-w-2xl text-center">
+            <div className="mx-auto grid h-14 w-14 place-items-center rounded-2xl border border-[#D4AF37]/40 bg-[#D4AF37]/10 text-[#D4AF37] shadow-[0_0_40px_rgba(212,175,55,.12)]"><Calculator size={27} /></div>
+            <p className="mt-5 text-[10px] font-black uppercase tracking-[.24em] text-[#D4AF37]">Valeur de marché, sans engagement</p>
+            <h1 className="mt-2 text-3xl font-black tracking-tight text-white sm:text-5xl">Estimation automobile</h1>
+            <p className="mx-auto mt-3 max-w-xl text-sm leading-6 text-white/65 sm:text-base">Identifiez le véhicule, indiquez son état et obtenez une fourchette expliquée. Aucun prix de rachat ferme n’est promis avant contrôle du véhicule.</p>
+          </div>
+        </div>
       </div>
 
-      <div className="px-4 mt-4">
-        <VehicleIdentification onVehicleFound={(v) => { setVehicle(v); setErreur(null); }} />
+      <div className="mx-auto max-w-5xl px-4 sm:px-6">
+        <div className="-mt-4 grid gap-2 rounded-2xl border border-[#D4AF37]/30 bg-white p-3 shadow-[0_12px_28px_rgba(17,17,17,.08)] sm:grid-cols-3 sm:p-4">
+          <div className="flex items-center gap-3 px-2 py-1"><ShieldCheck size={19} className="shrink-0 text-[#0d7391]"/><p className="text-xs font-semibold text-slate-700">Vos données d’identification restent privées.</p></div>
+          <div className="flex items-center gap-3 border-y border-slate-100 px-2 py-3 sm:border-x sm:border-y-0 sm:py-1"><FileCheck2 size={19} className="shrink-0 text-[#D4AF37]"/><p className="text-xs font-semibold text-slate-700">La méthode et le niveau de confiance sont affichés.</p></div>
+          <div className="flex items-center gap-3 px-2 py-1"><CarFront size={19} className="shrink-0 text-[#0d7391]"/><p className="text-xs font-semibold text-slate-700">L’offre finale dépend toujours du contrôle réel.</p></div>
+        </div>
+
+        <div className="mt-5 rounded-3xl border border-[#E5E7EB] bg-white p-2 shadow-[0_14px_34px_rgba(17,17,17,.06)] sm:p-4">
+          <VehicleIdentification onVehicleFound={(v) => { setVehicle(v); setErreur(null); }} />
+        </div>
       </div>
 
       {vehicle && (
-        <div className="mx-4 mt-3 rounded-xl bg-white border border-[#E5E7EB] p-3 space-y-3">
+        <div className="mx-auto mt-4 max-w-5xl rounded-2xl bg-white border border-[#E5E7EB] p-4 space-y-3 shadow-sm sm:p-5">
           <div>
             <label className="text-[11px] font-bold text-[#6B7280]">Kilometrage</label>
             <input
@@ -137,11 +154,11 @@ export default function EstimationAuto() {
       )}
 
       {erreur && (
-        <p className="mx-4 mt-3 rounded-xl bg-red-50 border border-red-200 p-3 text-xs text-red-700">{erreur}</p>
+        <p className="mx-auto mt-3 max-w-5xl rounded-xl bg-red-50 border border-red-200 p-3 text-xs text-red-700">{erreur}</p>
       )}
 
       {resultat && (
-        <div className="mx-4 mt-4 space-y-3">
+        <div className="mx-auto mt-5 max-w-5xl space-y-3 px-4 sm:px-6">
           <div className="grid grid-cols-3 gap-2">
             <div className="rounded-xl bg-red-50 border border-red-200 p-3 text-center">
               <TrendingDown size={14} className="mx-auto text-red-500" />
