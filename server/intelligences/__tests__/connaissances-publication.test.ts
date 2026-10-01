@@ -16,7 +16,7 @@ import { CONNAISSANCES_PUBLICATION } from "../connaissances-publication.js";
 test("entrées : titres uniques, sources documentées, aucun secret, pas de versionCode figé faux", () => {
   const titres = CONNAISSANCES_PUBLICATION.map((c) => c.titre);
   assert.equal(new Set(titres).size, titres.length);
-  assert.ok(CONNAISSANCES_PUBLICATION.length >= 12);
+  assert.ok(CONNAISSANCES_PUBLICATION.length >= 13);
   for (const c of CONNAISSANCES_PUBLICATION) {
     assert.ok(c.contenu.length > 200 && c.source.length > 5, c.titre);
     assert.ok(!/(?:\bsk-|-----BEGIN|password\s*[:=]|mot de passe\s*[:=])/i.test(c.contenu), `secret apparent dans « ${c.titre} »`);
@@ -47,6 +47,7 @@ test(
         ["Quels identifiants faut-il pour publier sur l'App Store d'Apple ?", "Apple"],
         ["Comment connecter GitHub avec un jeton ?", "GitHub"],
         ["Le moteur peut-il déployer sur Railway ?", "Railway"],
+        ["Comment vérifier la connexion GitHub et voir les exécutions du workflow Android ?", "outils de lecture"],
       ];
       for (const [question, extraitTitre] of cas) {
         const trouves = await rechercher(question, ["interne"], 5);

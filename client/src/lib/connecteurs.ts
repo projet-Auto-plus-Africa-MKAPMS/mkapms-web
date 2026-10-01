@@ -82,7 +82,8 @@ export const CONNECTEURS: Connecteur[] = [
     elements: [
       { nom: "GitHub — jeton mkapms-web", type: "cle_api", aide: "Jeton à portée fine limité au dépôt mkapms-web : Contents et Pull requests en lecture/écriture, Actions en lecture (écriture seulement si vous voulez que le moteur lance le workflow Android)." },
     ],
-    usage: "Aucun outil du moteur n'utilise encore ce jeton. Aujourd'hui le code est poussé par la session de développement, et vous déployez à la main.",
+    usage:
+      "Deux outils en lecture seule : vérifier la connexion au dépôt et consulter les exécutions du workflow Android (nom attendu : « GitHub — jeton mkapms-web »). Le moteur ne pousse, ne fusionne ni ne lance rien avec ce jeton : le code est poussé par la session de développement, et vous déployez à la main.",
   },
   {
     id: "railway",
