@@ -2765,6 +2765,26 @@ export const LIVRAISONS: Livraison[] = [
       "Vérifié dans Chromium sur une base Postgres LOCALE avec clé maître de test : cinq outils affichés, « Déposer » pré-remplit nom/service/mode, enregistrement, coche « Éléments déposés » et bouton « Remplacer… », valeur du jeton absente de la page (aperçu masqué seulement), nettoyage de la donnée de test. Tests : catalogue (noms uniques, types valides, aucun secret, usage franc) et résumé (obligatoires seulement, insensible à la casse) ; coffre.test.ts toujours 6/6. Non vérifié : aucune connexion réelle à ces services (aucun accès depuis ce bac à sable).\n\nLeçon générale : « connecté » est un mot qui engage — une interface de connexion doit distinguer « secret déposé » de « outil branché » et dire ce que le moteur en fait réellement, sinon elle promet une autonomie qui n'existe pas encore.",
     domaine: "confiance",
   },
+  {
+    cle: "branche-outils-github-lecture-seule-coffre",
+    titre: "Outils GitHub en lecture seule qui utilisent le jeton du Coffre secret",
+    moteurs: ["intelligences"],
+    quoi:
+      "Nouveau server/intelligences/github.ts et deux outils du Tool Registry (famille developpement, IMPLEMENTED, READ_ONLY, super_admin seulement, sans approbation humaine car sans effet) : developpement.githubVerifierConnexion (le jeton déposé sous le nom « GitHub — jeton mkapms-web » donne-t-il accès au dépôt mkapms-web, en lecture seule ou en lecture/écriture ?) et developpement.githubExecutionsAndroid (5 dernières exécutions du workflow android-aab.yml : statut, branche, commit ; fichiers .aab de la dernière exécution réussie). Le jeton est lu par le code serveur via lireSecretPourOutil, avec un motif, journalisé dans le coffre, et n'est jamais renvoyé au modèle. Hôte et dépôt FIXES (rien n'est pris de la demande du modèle), GET seulement, aucune redirection suivie, délai de 15 s, erreurs brutes jamais renvoyées (elles pourraient citer le jeton). Nouvelle entrée de connaissances qui corrige les mentions « aucun outil n'utilise ce jeton ».",
+    pourquoi:
+      "Le PDG a demandé la possibilité de connecter GitHub et que le moteur pousse le code pendant qu'il déploie lui-même à la main. Première étape sûre : lecture seule. Volontairement ABSENT : pousser, ouvrir ou fusionner une PR, lancer le workflow Android, déployer — le lancement du workflow demandera un outil distinct avec approbation humaine, et le déploiement automatique ne viendra que lorsque le PDG jugera le travail irréprochable (niveau 5 du Plan d'autonomie, qu'il est seul à monter).",
+    ou: [
+      "server/intelligences/github.ts",
+      "server/intelligences/outils/familles/github.ts",
+      "server/intelligences/outils/familles/outils-github.ts",
+      "server/intelligences/outils/registre.ts",
+      "server/intelligences/outils/implementations.ts",
+      "server/intelligences/__tests__/github.test.ts",
+    ],
+    lecon:
+      "Tests : avec un faux fetch (URL et dépôt fixes, GET, redirect=error, en-tête Authorization, droits lus, 401/403/rate limit/404/500/panne réseau → messages lisibles, jeton jamais présent dans les résultats, y compris quand l'erreur brute le cite) ; sur base Postgres LOCALE, via l'exécuteur : sans jeton → réponse qui dit où le déposer et aucun appel réseau, mauvais type de secret refusé, jeton déposé → appel avec « Bearer <jeton> » sur l'URL du dépôt, usage journalisé avec l'outil et le motif, jeton absent du résultat et du journal, autre compte sans accès. `npx tsc --noEmit`, check:providers et `npm run build` complets verts. Non vérifié : un appel réel à GitHub avec un vrai jeton (aucun jeton ni accès GitHub depuis ce bac à sable) — le PDG le vérifiera en déposant son jeton puis en demandant « vérifie la connexion GitHub ».\n\nLeçon générale : quand une nouvelle capacité rend fausse une phrase écrite plus tôt dans la base de connaissances, on ajoute une entrée qui la corrige (les entrées déjà posées ne sont jamais réécrites) et on met à jour le texte de l'interface — sinon le moteur continue d'affirmer qu'il ne peut pas.",
+    domaine: "confiance",
+  },
 ];
 
 /**
