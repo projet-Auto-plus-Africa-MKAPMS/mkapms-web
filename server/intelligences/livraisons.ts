@@ -2747,6 +2747,24 @@ export const LIVRAISONS: Livraison[] = [
       "Test sur base Postgres LOCALE : pose idempotente (rejouée, rien n'est réécrit) et six questions en langage naturel (signer, publier sur Play Console, où mettre le mot de passe du trousseau, identifiants Apple, connecter GitHub, déployer sur Railway) retrouvent la bonne entrée dans les trois premiers résultats par la recherche de la conversation. Aucun secret ni versionCode figé dans les textes (contrôle automatique). Non vérifié : l'état réel de Google Play Console, d'Apple et du compte GitHub — rien de tout cela n'est accessible depuis ce bac à sable.\n\nLeçon générale : ce qu'on ne peut pas vérifier dans le dépôt (ici Apple) s'écrit comme tel dans la connaissance elle-même, sinon le moteur le répétera comme un fait ; et un test qui rejette ma propre formulation (« mot de passe : » dans une phrase) se corrige en reformulant, pas en affaiblissant le test.",
     domaine: "confiance",
   },
+  {
+    cle: "branche-connecter-les-outils-coffre",
+    titre: "Coffre secret : section « Connecter les outils » (Google Play Console, Apple, GitHub, Railway, boîte mail)",
+    moteurs: ["intelligences"],
+    quoi:
+      "Complète le Coffre secret existant (Coffre.tsx, rien retiré) avec une section « Connecter les outils » alimentée par un nouveau catalogue client/src/lib/connecteurs.ts : pour Google Play Console, Apple App Store Connect, GitHub, Railway et boîte mail, la liste des secrets réellement nécessaires (compte de service JSON, trousseau, clé API .p8 + Key ID + Issuer ID + Team ID, certificat, jeton GitHub, jeton et identifiants Railway, adresse + mot de passe), un bouton « Déposer » qui pré-remplit nom, service et mode du formulaire d'ajout, une coche « déposé » (détectée par le NOM du secret, jamais par sa valeur), et un bouton « Autre outil ou autre développeur… ». La longueur minimale d'une clé ou d'un jeton passe de 8 à 4 caractères (client et serveur) : un Key ID ou un Team ID Apple n'en a que 10 mais certains mots de passe de certificat sont courts.",
+    pourquoi:
+      "Le PDG a demandé une interface où l'on connecte les outils — Google Play Console, la boîte mail, GitHub, Railway, les autres développeurs — en un clic, dans un paramètre dédié, avec l'emplacement des identifiants et des jetons. Choix de franchise : une coche veut dire « déposé dans le coffre », pas « branché » ; chaque outil affiche la ligne « Ce que le moteur en fait aujourd'hui » (souvent : rien encore — aucun outil de signature, de dépôt Play, de GitHub ou de boîte mail n'utilise le coffre ; l'état Railway lit les variables du serveur, pas le coffre). Aucun logo de marque reproduit (le dépôt interdit les illustrations de substitution) : une initiale neutre.",
+    ou: [
+      "client/src/pages/intelligence/modules/Coffre.tsx",
+      "client/src/lib/connecteurs.ts",
+      "client/src/lib/__tests__/connecteurs.test.ts",
+      "server/intelligences/coffre.ts",
+    ],
+    lecon:
+      "Vérifié dans Chromium sur une base Postgres LOCALE avec clé maître de test : cinq outils affichés, « Déposer » pré-remplit nom/service/mode, enregistrement, coche « Éléments déposés » et bouton « Remplacer… », valeur du jeton absente de la page (aperçu masqué seulement), nettoyage de la donnée de test. Tests : catalogue (noms uniques, types valides, aucun secret, usage franc) et résumé (obligatoires seulement, insensible à la casse) ; coffre.test.ts toujours 6/6. Non vérifié : aucune connexion réelle à ces services (aucun accès depuis ce bac à sable).\n\nLeçon générale : « connecté » est un mot qui engage — une interface de connexion doit distinguer « secret déposé » de « outil branché » et dire ce que le moteur en fait réellement, sinon elle promet une autonomie qui n'existe pas encore.",
+    domaine: "confiance",
+  },
 ];
 
 /**

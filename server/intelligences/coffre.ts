@@ -50,7 +50,7 @@ const contenuSchema = z.discriminatedUnion("type", [
   z
     .object({
       type: z.literal("cle_api"),
-      valeur: z.string().trim().min(8).max(8000),
+      valeur: z.string().trim().min(4).max(8000),
     })
     .strict(),
   z
