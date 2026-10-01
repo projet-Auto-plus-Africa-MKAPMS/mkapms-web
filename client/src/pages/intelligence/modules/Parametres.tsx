@@ -60,7 +60,9 @@ export function Parametres({ onChooseModule }: { onChooseModule?: (key: string) 
       navigate(action.value);
       return;
     }
-    document.getElementById(action.value)?.scrollIntoView({ behavior: "smooth", block: "start" });
+    const target = document.getElementById(action.value);
+    if (target instanceof HTMLDetailsElement) target.open = true;
+    target?.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
   return (
@@ -76,17 +78,25 @@ export function Parametres({ onChooseModule }: { onChooseModule?: (key: string) 
         </div>)}
       </section>
       <div id="alhud-voice-settings" className="scroll-mt-4"><VoiceSettingsPanel title="Voix AL-HUDHUD·M" /></div>
-      <div id="alhud-live-settings"><FonctionsControle /></div>
-      <div id="alhud-voix-settings" className="rounded-xl border border-black/10 p-4">
-        <div className="mb-3 flex items-center gap-2">
+      <details id="alhud-live-settings" className="scroll-mt-4 rounded-xl border border-black/10 bg-white">
+        <summary className="flex cursor-pointer list-none items-center gap-2 p-4 [&::-webkit-details-marker]:hidden">
+          <Gauge className="h-5 w-5 text-black/40" />
+          <span className="flex-1 text-base font-black text-[#111]">Intensité & fonctions</span><ChevronRight className="h-5 w-5 text-black/40" />
+        </summary>
+        <div className="border-t border-black/10 p-4"><FonctionsControle /></div>
+      </details>
+      <details id="alhud-voix-settings" className="scroll-mt-4 rounded-xl border border-black/10 bg-white">
+        <summary className="flex cursor-pointer list-none items-center gap-2 p-4 [&::-webkit-details-marker]:hidden">
           <Settings className="h-5 w-5 text-black/40" />
-          <h2 className="text-base font-black text-[#111]">Voix & production</h2>
-        </div>
+          <span className="flex-1 text-base font-black text-[#111]">Voix & production</span><ChevronRight className="h-5 w-5 text-black/40" />
+        </summary>
+        <div className="border-t border-black/10 p-4">
         <p className="mb-3 text-sm text-black/60">
           Rester appuyé sur le micro du Chat ramène ici. Génération audio à partir d'un texte, et transcription d'un fichier audio.
         </p>
         <VoixTempsReel />
-      </div>
+        </div>
+      </details>
       <DeploiementApprobateurs />
       <DeploiementSuivi />
       <div id="alhud-master-rules" className="scroll-mt-4 rounded-xl border border-black/10 p-4">

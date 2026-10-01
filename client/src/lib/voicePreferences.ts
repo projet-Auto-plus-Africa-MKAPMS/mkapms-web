@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 
 export type VoiceMode = "live" | "one_turn";
 export type VoiceLanguage = "auto" | "fr-FR" | "en-US" | "ar-SA";
+export type VoiceNoiseReduction = "auto" | "near_field" | "far_field";
 export type RealtimeVoiceName = "marin" | "coral" | "sage" | "verse" | "alloy" | "ash" | "ballad" | "echo" | "shimmer";
 
 export interface VoicePreferences {
@@ -11,6 +12,8 @@ export interface VoicePreferences {
   language: VoiceLanguage;
   autoStart: boolean;
   background: boolean;
+  /** Profil sonore envoyé au serveur, sans transmettre d'information sur l'appareil. */
+  noiseReduction: VoiceNoiseReduction;
 }
 
 export interface DictationHistoryEntry {
@@ -33,6 +36,7 @@ export const DEFAULT_VOICE_PREFERENCES: VoicePreferences = {
   language: "auto",
   autoStart: false,
   background: false,
+  noiseReduction: "auto",
 };
 
 function storageAvailable(): boolean {
@@ -55,6 +59,9 @@ export function readVoicePreferences(): VoicePreferences {
         : "auto",
       autoStart: parsed.autoStart === true,
       background: parsed.background === true,
+      noiseReduction: ["auto", "near_field", "far_field"].includes(String(parsed.noiseReduction))
+        ? parsed.noiseReduction as VoiceNoiseReduction
+        : "auto",
     };
   } catch {
     try {
@@ -98,6 +105,15 @@ export function useVoicePreferences(): [VoicePreferences, (next: VoicePreference
 export function recognitionLanguage(preferences: VoicePreferences): string {
   if (preferences.language !== "auto") return preferences.language;
   return typeof navigator !== "undefined" && navigator.language ? navigator.language : "fr-FR";
+}
+
+/** Résout un réglage réellement exploité par la réduction de bruit Realtime. */
+export function noiseReductionFor(preferences: VoicePreferences): Exclude<VoiceNoiseReduction, "auto"> {
+  if (preferences.noiseReduction !== "auto") return preferences.noiseReduction;
+  // Le téléphone est habituellement tenu près de la bouche ; ordinateur et tablette
+  // ont plus souvent un micro distant. Seule la catégorie acoustique est envoyée.
+  const userAgent = typeof navigator === "undefined" ? "" : navigator.userAgent;
+  return /android|iphone|ipod|mobile/i.test(userAgent) ? "near_field" : "far_field";
 }
 
 export function readDictationHistory(): DictationHistoryEntry[] {
