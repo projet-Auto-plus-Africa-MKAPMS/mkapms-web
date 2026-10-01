@@ -100,9 +100,9 @@ export interface PerimetreMoteur {
 }
 
 export const MOTEURS_TOTAL = 94;
-export const MANQUES_TOTAL = 518;
+export const MANQUES_TOTAL = 520;
 export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
-  "dependance_non_declaree": 59,
+  "dependance_non_declaree": 61,
   "sans_logique_serveur": 10,
   "ecran_sans_contenu": 340,
   "sans_ecran": 8,
@@ -6881,6 +6881,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "investment",
       "knowledge",
       "language",
+      "livraison",
       "livraison_vehicule",
       "location",
       "location_particulier",
@@ -6899,6 +6900,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "rd_lab",
       "resilience",
       "risque_import",
+      "search",
       "seo",
       "smart",
       "supplier_engine",
@@ -7330,6 +7332,13 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         ]
       },
       {
+        "fichier": "client/src/pages/Livraison.tsx",
+        "route": "/livraison",
+        "composants": [
+          "lib/currency.tsx"
+        ]
+      },
+      {
         "fichier": "client/src/pages/Abonnements.tsx",
         "route": "/abonnements",
         "composants": [
@@ -7375,6 +7384,13 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "fichier": "client/src/pages/VoitureOccasion.tsx",
         "route": "/voiture-occasion",
+        "composants": [
+          "lib/currency.tsx"
+        ]
+      },
+      {
+        "fichier": "client/src/pages/RechercheGeolocalisee.tsx",
+        "route": "/recherche",
         "composants": [
           "lib/currency.tsx"
         ]
@@ -10680,7 +10696,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "routeurs": [
       "intelligences"
     ],
-    "fichiersServeur": 95,
+    "fichiersServeur": 96,
     "dependancesDeclarees": [
       "ai_fabric",
       "code_graph",
@@ -11765,6 +11781,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "avis_reputation",
       "boutons",
       "core",
+      "country",
       "identity",
       "notification",
       "payment"
@@ -11773,6 +11790,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "avis_reputation",
       "boutons",
       "core",
+      "country",
       "identity",
       "notification",
       "payment"
@@ -11792,6 +11810,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routers/livraison.ts importe trpc.ts",
         "routers/livraison.ts importe db.ts",
         "routers/livraison.ts importe schema.ts"
+      ],
+      "country": [
+        "client/src/pages/Livraison.tsx embarque lib/currency.tsx (trpc.currency)"
       ],
       "identity": [
         "routers/livraison.ts exige une session Identity (procédure protégée)"
@@ -11819,7 +11840,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "genre": "navigation",
         "ecran": "/livraison",
         "fichier": "client/src/pages/Livraison.tsx",
-        "ligne": 55
+        "ligne": 60
       }
     ],
     "routes": [
@@ -11834,8 +11855,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "cliquables": 2,
         "parMoteur": 1,
         "sansAction": 0,
-        "textes": 27,
-        "mots": 114
+        "textes": 30,
+        "mots": 130
       }
     ],
     "ecransHotes": [],
@@ -11861,10 +11882,15 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "connecte",
       "public"
     ],
-    "textes": 27,
-    "mots": 114,
+    "textes": 30,
+    "mots": 130,
     "battement": "sonde",
-    "manques": []
+    "manques": [
+      {
+        "genre": "dependance_non_declaree",
+        "detail": "country — client/src/pages/Livraison.tsx embarque lib/currency.tsx (trpc.currency)"
+      }
+    ]
   },
   {
     "moteur": "livraison_vehicule",
@@ -20358,6 +20384,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "achat",
       "avis_reputation",
       "core",
+      "country",
       "identity",
       "permission"
     ],
@@ -20365,6 +20392,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "achat",
       "avis_reputation",
       "core",
+      "country",
       "identity",
       "permission"
     ],
@@ -20383,6 +20411,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "search-os/index.ts importe db.ts",
         "search-os/index.ts importe schema.ts",
         "search-os/index.ts importe trpc.ts"
+      ],
+      "country": [
+        "client/src/pages/RechercheGeolocalisee.tsx embarque lib/currency.tsx (trpc.currency)"
       ],
       "identity": [
         "search-os/index.ts importe identity-os/contract.ts",
@@ -20417,7 +20448,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "parMoteur": 0,
         "sansAction": 0,
         "textes": 27,
-        "mots": 150
+        "mots": 151
       },
       {
         "fichier": "client/src/pages/RechercheUniverselle.tsx",
@@ -20479,12 +20510,16 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "public"
     ],
     "textes": 197,
-    "mots": 930,
+    "mots": 931,
     "battement": "pont_os",
     "manques": [
       {
         "genre": "dependance_non_declaree",
         "detail": "achat — client/src/pages/RechercheGeolocalisee.tsx appelle trpc.annonces"
+      },
+      {
+        "genre": "dependance_non_declaree",
+        "detail": "country — client/src/pages/RechercheGeolocalisee.tsx embarque lib/currency.tsx (trpc.currency)"
       }
     ]
   },
