@@ -116,7 +116,9 @@ export const livraisonRouter = router({
     .input(z.object({ country: z.string().optional(), limit: z.number().min(1).max(100).default(30) }).default({}))
     .query(async ({ input }) => {
       const conds = [eq(deliveryProfiles.active, true)];
-      if (input.country) conds.push(or(eq(deliveryProfiles.countryCode, input.country), isNull(deliveryProfiles.countryCode))!);
+      // Un prestataire sans pays n'est jamais montré comme local : les réseaux
+      // nationaux restent distincts dans la recherche et la livraison.
+      if (input.country) conds.push(eq(deliveryProfiles.countryCode, input.country));
       return db.select().from(deliveryProfiles).where(and(...conds)).orderBy(desc(deliveryProfiles.rating)).limit(input.limit);
     }),
 
