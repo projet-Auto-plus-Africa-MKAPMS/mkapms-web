@@ -63,7 +63,7 @@ async function main() {
 
   // ── 0. La liste partagée frontend/backend couvre exactement l'enum serveur ──
   const codesPartages = PARTS_VEHICLE_TYPES.map((v) => v.code).sort();
-  const codesEnum = ["voiture", "utilitaire", "moto", "agricole", "engin_chantier", "bateau"].sort();
+  const codesEnum = ["voiture", "utilitaire", "moto", "agricole", "engin_chantier", "bateau", "electrique"].sort();
   verif("PARTS_VEHICLE_TYPES couvre exactement les valeurs de partsVehicleTypeEnum", JSON.stringify(codesPartages) === JSON.stringify(codesEnum));
 
   const [shop] = await db.insert(partsShops).values({

@@ -100,14 +100,14 @@ export interface PerimetreMoteur {
 }
 
 export const MOTEURS_TOTAL = 94;
-export const MANQUES_TOTAL = 517;
+export const MANQUES_TOTAL = 516;
 export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
   "ecran_sans_contenu": 341,
   "dependance_non_declaree": 58,
   "sans_logique_serveur": 10,
   "sans_ecran": 8,
   "dependance_sans_preuve": 41,
-  "bouton_sans_action": 51,
+  "bouton_sans_action": 50,
   "bouton_declare_absent_ecran": 6,
   "emission_dynamique": 2
 };
@@ -15882,11 +15882,11 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/pieces/produit/:id"
         ],
-        "cliquables": 11,
+        "cliquables": 25,
         "parMoteur": 0,
-        "sansAction": 1,
-        "textes": 27,
-        "mots": 90
+        "sansAction": 0,
+        "textes": 53,
+        "mots": 192
       },
       {
         "fichier": "client/src/pages/pieces/AbonnementsProPieces.tsx",
@@ -16204,14 +16204,10 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "professionnel",
       "public"
     ],
-    "textes": 164,
-    "mots": 409,
+    "textes": 190,
+    "mots": 511,
     "battement": "sonde",
     "manques": [
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« Ajouter aux favoris » client/src/pages/PiecesProduit.tsx:27"
-      },
       {
         "genre": "bouton_sans_action",
         "detail": "« Choisir » client/src/pages/pieces/AbonnementsProPieces.tsx:17"

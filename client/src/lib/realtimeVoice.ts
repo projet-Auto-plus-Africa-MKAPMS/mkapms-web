@@ -26,6 +26,28 @@ type RealtimeEvent = {
   error?: { message?: string };
 };
 
+/**
+ * Ne transmet jamais une offre SDP incomplète. Sur iPhone, Android et certains
+ * navigateurs d'ordinateur, `setLocalDescription()` revient avant la collecte
+ * des candidats ICE ; envoyer l'offre à cet instant conduit le service à la refuser
+ * (`invalid_offer`) et l'interface donne l'impression que le micro s'arrête.
+ */
+function attendreIceComplet(peer: RTCPeerConnection, timeoutMs = 10_000): Promise<void> {
+  if (peer.iceGatheringState === "complete") return Promise.resolve();
+  return new Promise((resolve, reject) => {
+    let timeout: number | undefined;
+    const verifier = () => { if (peer.iceGatheringState === "complete") terminer(); };
+    function terminer(erreur?: Error) {
+      window.clearTimeout(timeout);
+      peer.removeEventListener("icegatheringstatechange", verifier);
+      if (erreur) reject(erreur); else resolve();
+    }
+    peer.addEventListener("icegatheringstatechange", verifier);
+    timeout = window.setTimeout(() => terminer(new Error("REALTIME_ICE_TIMEOUT")), timeoutMs);
+    verifier();
+  });
+}
+
 /** Session audio WebRTC continue pour Safari, Chrome, Edge et Firefox, mobile ou ordinateur. */
 export async function startRealtimeVoice(options: RealtimeVoiceOptions): Promise<RealtimeVoiceControl> {
   if (typeof RTCPeerConnection === "undefined" || !navigator.mediaDevices?.getUserMedia) {
@@ -111,7 +133,10 @@ export async function startRealtimeVoice(options: RealtimeVoiceOptions): Promise
   try {
     const offer = await peer.createOffer();
     await peer.setLocalDescription(offer);
-    const answerSdp = await options.exchangeSdp(offer.sdp ?? "");
+    // Le serveur reçoit l'offre locale finale (candidats ICE inclus), pas la
+    // copie initiale de `createOffer()`. C'est indispensable aux mobiles.
+    await attendreIceComplet(peer);
+    const answerSdp = await options.exchangeSdp(peer.localDescription?.sdp ?? "");
     if (closed) throw new Error("REALTIME_CLOSED");
     await peer.setRemoteDescription({ type: "answer", sdp: answerSdp });
   } catch (error) {

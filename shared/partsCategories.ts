@@ -5,7 +5,7 @@
 // synchronisé avec l'enum partsVehicleTypeEnum de server/schema.ts : une seule
 // liste de vérité, jamais deux valeurs qui divergent.
 export interface PartsVehicleType {
-  code: "voiture" | "utilitaire" | "moto" | "agricole" | "engin_chantier" | "bateau";
+  code: "voiture" | "utilitaire" | "moto" | "agricole" | "engin_chantier" | "bateau" | "electrique";
   label: string;
   icon: string;
 }
@@ -17,6 +17,7 @@ export const PARTS_VEHICLE_TYPES: PartsVehicleType[] = [
   { code: "agricole", label: "Agricole", icon: "🚜" },
   { code: "engin_chantier", label: "Engin de chantier", icon: "🏗️" },
   { code: "bateau", label: "Bateau", icon: "⛵" },
+  { code: "electrique", label: "Véhicule électrique", icon: "⚡" },
 ];
 
 export interface PartsSubCategory {
@@ -97,6 +98,16 @@ export const PARTS_CATEGORIES: PartsCategory[] = [
       { code: "capteurs", label: "Capteurs", keywords: ["capteur ABS", "capteur vitesse", "capteur température", "capteur pression", "capteur recul", "capteur pluie", "capteur parking", "sonde température"] },
       { code: "fusibles", label: "Fusibles / Relais", keywords: ["fusible", "boîte fusibles", "relais", "porte-fusible"] },
       { code: "faisceau", label: "Faisceau électrique", keywords: ["faisceau électrique", "câblage", "connecteur", "fiche", "prise"] },
+    ],
+  },
+  {
+    code: "mobilite_electrique", label: "Mobilité électrique", icon: "⚡",
+    subs: [
+      { code: "batterie_traction", label: "Batterie de traction", keywords: ["batterie traction", "pack batterie", "module batterie", "cellule batterie", "batterie haute tension"] },
+      { code: "recharge", label: "Recharge et connecteurs", keywords: ["câble recharge", "prise charge", "port charge", "chargeur embarqué", "borne recharge", "connecteur type 2", "connecteur ccs"] },
+      { code: "gestion_energie", label: "Gestion d’énergie", keywords: ["BMS", "convertisseur", "onduleur", "convertisseur DC DC", "boîtier énergie", "contacteur haute tension"] },
+      { code: "propulsion_electrique", label: "Propulsion électrique", keywords: ["moteur électrique", "réducteur électrique", "transmission électrique", "câble haute tension", "onduleur moteur"] },
+      { code: "refroidissement_batterie", label: "Refroidissement batterie", keywords: ["refroidissement batterie", "pompe refroidissement batterie", "radiateur batterie", "liquide refroidissement électrique"] },
     ],
   },
   {
