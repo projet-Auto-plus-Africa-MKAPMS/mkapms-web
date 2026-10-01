@@ -40,7 +40,7 @@ export interface AnomalieCliquable {
   readonly motif: MotifAnomalie;
 }
 
-export const CLIQUABLES_TOTAL = 2687;
+export const CLIQUABLES_TOTAL = 2693;
 
 export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/components/AccessDenied.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
@@ -70,7 +70,7 @@ export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/components/VoiceSettingsPanel.tsx", total: 3, moteur: 0, liens: 0, boutonsLocaux: 3, sansAction: 0, zones: 0 },
   { fichier: "client/src/components/VoProGate.tsx", total: 4, moteur: 0, liens: 4, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/lib/boutonMoteur.tsx", total: 5, moteur: 1, liens: 0, boutonsLocaux: 2, sansAction: 2, zones: 0 },
-  { fichier: "client/src/pages/Abonnements.tsx", total: 6, moteur: 0, liens: 1, boutonsLocaux: 4, sansAction: 0, zones: 1 },
+  { fichier: "client/src/pages/Abonnements.tsx", total: 7, moteur: 0, liens: 2, boutonsLocaux: 4, sansAction: 0, zones: 1 },
   { fichier: "client/src/pages/AbonnementsDefinitifs.tsx", total: 6, moteur: 0, liens: 1, boutonsLocaux: 4, sansAction: 0, zones: 1 },
   { fichier: "client/src/pages/AccesPDG.tsx", total: 1, moteur: 0, liens: 0, boutonsLocaux: 1, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/Acheter.tsx", total: 5, moteur: 0, liens: 1, boutonsLocaux: 4, sansAction: 0, zones: 0 },
@@ -592,7 +592,7 @@ export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/pages/ProgrammeVTC.tsx", total: 3, moteur: 0, liens: 1, boutonsLocaux: 1, sansAction: 1, zones: 0 },
   { fichier: "client/src/pages/PubliciteDetail.tsx", total: 4, moteur: 0, liens: 1, boutonsLocaux: 3, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/PubliciteInterne.tsx", total: 2, moteur: 0, liens: 1, boutonsLocaux: 1, sansAction: 0, zones: 0 },
-  { fichier: "client/src/pages/RechercheGeolocalisee.tsx", total: 4, moteur: 0, liens: 0, boutonsLocaux: 4, sansAction: 0, zones: 0 },
+  { fichier: "client/src/pages/RechercheGeolocalisee.tsx", total: 7, moteur: 0, liens: 2, boutonsLocaux: 5, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/RechercheLocale.tsx", total: 3, moteur: 0, liens: 1, boutonsLocaux: 2, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/Rechercher.tsx", total: 18, moteur: 0, liens: 0, boutonsLocaux: 18, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/RechercheUniverselle.tsx", total: 11, moteur: 0, liens: 0, boutonsLocaux: 9, sansAction: 0, zones: 2 },
@@ -653,6 +653,7 @@ export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/pages/TableauBordLoueur.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/TableauBordParticulier.tsx", total: 6, moteur: 0, liens: 6, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/TableauBordProVente.tsx", total: 7, moteur: 2, liens: 5, boutonsLocaux: 0, sansAction: 0, zones: 0 },
+  { fichier: "client/src/pages/Univers.tsx", total: 2, moteur: 0, liens: 2, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/utilisateurs/AbonnementsUtilisateur.tsx", total: 3, moteur: 0, liens: 2, boutonsLocaux: 1, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/utilisateurs/CentreAlertesUtilisateur.tsx", total: 3, moteur: 0, liens: 1, boutonsLocaux: 2, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/utilisateurs/CentreFavorisUtilisateur.tsx", total: 2, moteur: 0, liens: 1, boutonsLocaux: 1, sansAction: 0, zones: 0 },
@@ -747,6 +748,7 @@ export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
 export const CLIQUABLES_ANOMALIES: readonly AnomalieCliquable[] = [
   { fichier: "client/src/components/BoutonIntelligences.tsx", ligne: 22, genre: "moteur", libelle: "BoutonMoteur sans code littéral", motif: "code_non_declare" },
   { fichier: "client/src/pages/TableauBordProVente.tsx", ligne: 170, genre: "moteur", libelle: "BoutonMoteur sans code littéral", motif: "code_non_declare" },
+  { fichier: "client/src/pages/Abonnements.tsx", ligne: 495, genre: "lien", libelle: "/contact?sujet=Conseil%20abonnement", motif: "destination_inconnue" },
   { fichier: "client/src/lib/boutonMoteur.tsx", ligne: 81, genre: "bouton", libelle: "(sans texte)", motif: "sans_action" },
   { fichier: "client/src/lib/boutonMoteur.tsx", ligne: 88, genre: "bouton", libelle: "(sans texte)", motif: "sans_action" },
   { fichier: "client/src/pages/comptabilite/CentrePilotage.tsx", ligne: 1010, genre: "bouton", libelle: "Consommation energetique 12 450 kWh", motif: "sans_action" },

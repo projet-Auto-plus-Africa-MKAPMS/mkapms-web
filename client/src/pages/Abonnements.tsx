@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
-import { Check } from "lucide-react";
+import { ArrowRight, BadgeCheck, Check, CreditCard, Headphones, LockKeyhole, ShieldCheck, Sparkles } from "lucide-react";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
+import MetaSEO from "../components/MetaSEO";
 import { trpc } from "../lib/trpc";
 import { useAuth } from "../lib/auth";
 import { useCurrency } from "../lib/currency";
@@ -140,11 +141,49 @@ export default function Abonnements() {
   }
 
   return (
-    <div className="container-page py-10">
-      <h1 className="text-center text-3xl font-extrabold text-slate-900">Tarifs & abonnements</h1>
-      <p className="mt-2 text-center text-slate-500">
-        Sans engagement. Paiement sécurisé Stripe. Affichage multi-devises automatique.
-      </p>
+    <div className="min-h-screen bg-[#F5F3EE] pb-24 text-[#09152C]">
+      <MetaSEO
+        title="Tarifs & abonnements"
+        description="Des abonnements transparents pour particuliers et professionnels de l’automobile, sans engagement et avec paiement sécurisé."
+        url="https://mkapms.com/abonnements"
+      />
+
+      <section className="relative isolate overflow-hidden bg-[#07111F] px-5 pb-28 pt-16 text-white sm:px-8 sm:pb-36 sm:pt-24">
+        <video className="absolute inset-0 -z-20 h-full w-full object-cover opacity-40" autoPlay muted loop playsInline preload="metadata" poster="/pubs/hero5-pro.jpg" aria-hidden="true">
+          <source src="/videos/home/home_services.mp4" type="video/mp4" />
+        </video>
+        <div className="absolute inset-0 -z-10 bg-gradient-to-r from-[#050B14] via-[#07111F]/90 to-[#07111F]/55" />
+        <div className="mx-auto max-w-6xl text-center">
+          <span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs font-black uppercase tracking-[.18em] backdrop-blur"><Sparkles className="h-4 w-4 text-[#E2B82D]" /> Des offres pensées pour chaque métier</span>
+          <h1 className="mx-auto mt-7 max-w-4xl text-4xl font-black tracking-tight sm:text-6xl lg:text-7xl">Le bon abonnement, sans zone d’ombre.</h1>
+          <p className="mx-auto mt-5 max-w-2xl text-base leading-relaxed text-white/70 sm:text-xl">Comparez ce qui est inclus, choisissez votre profil et gardez le contrôle sur votre abonnement depuis votre espace.</p>
+          <div className="mt-8 flex flex-wrap justify-center gap-3 text-xs font-bold text-white/85">
+            <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 backdrop-blur"><LockKeyhole className="h-4 w-4 text-emerald-300" /> Paiement sécurisé</span>
+            <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 backdrop-blur"><BadgeCheck className="h-4 w-4 text-[#E2B82D]" /> Prix affichés clairement</span>
+            <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 backdrop-blur"><ShieldCheck className="h-4 w-4 text-blue-300" /> Sans engagement</span>
+          </div>
+        </div>
+      </section>
+
+      <main className="relative z-10 mx-auto -mt-16 max-w-7xl px-4 sm:px-6 lg:px-8">
+        <section className="rounded-[30px] border border-black/5 bg-white p-3 shadow-[0_24px_70px_rgba(9,21,44,.15)] sm:p-4" aria-label="Choisir un profil">
+          <p className="px-3 pb-3 pt-2 text-center text-xs font-black uppercase tracking-[.18em] text-black/40">Quel est votre profil ?</p>
+          <div className="overflow-x-auto pb-1">
+            <div className="flex min-w-max justify-start gap-2">
+              {TABS.map(([v, l]) => (
+                <button
+                  key={v}
+                  type="button"
+                  onClick={() => setTab(v)}
+                  aria-pressed={tab === v}
+                  className={`min-h-12 shrink-0 rounded-2xl px-5 text-sm font-black transition ${tab === v ? "bg-[#D9B323] text-[#111] shadow-md shadow-[#D4AF37]/20" : "bg-[#F4F5F7] text-slate-600 hover:bg-slate-100"}`}
+                >
+                  {l}
+                </button>
+              ))}
+            </div>
+          </div>
+        </section>
 
       {/* Bannière d'erreur (KYC manquant, Stripe non configuré, etc.) */}
       {errMsg && (
@@ -201,21 +240,11 @@ export default function Abonnements() {
         </div>
       )}
 
-      <div className="mt-8 flex justify-center">
-        <div className="inline-flex max-w-full flex-wrap justify-center gap-2 rounded-2xl border border-slate-200 bg-white p-2">
-          {TABS.map(([v, l]) => (
-            <button
-              key={v}
-              onClick={() => setTab(v)}
-              className={`rounded-xl px-5 py-3 text-sm font-semibold transition ${tab === v ? "bg-gold text-noir shadow-sm" : "text-slate-600 hover:bg-slate-50"}`}
-            >
-              {l}
-            </button>
-          ))}
-        </div>
+      <div className="mt-10 text-center">
+        <p className="text-xs font-black uppercase tracking-[.2em] text-[#B18B08]">Offres adaptées à votre activité</p>
+        <h2 className="mt-2 text-2xl font-black text-[#09152C] sm:text-3xl">{tab === "publicite" ? "Publicité — Emplacements & Tarifs" : PLAN_CATEGORY_LABELS[tab as PlanCategory]}</h2>
+        <p className="mx-auto mt-2 max-w-xl text-sm text-black/50">Sélectionnez une offre pour voir clairement votre choix avant de continuer.</p>
       </div>
-
-      <h2 className="mt-8 text-center text-lg font-bold text-slate-700">{tab === "publicite" ? "Publicité — Emplacements & Tarifs" : PLAN_CATEGORY_LABELS[tab as PlanCategory]}</h2>
 
       <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
         {filtered.map((p) => {
@@ -235,12 +264,12 @@ export default function Abonnements() {
               }
             }}
             data-testid={`plan-card-${p.code}`}
-            className={`card relative flex cursor-pointer flex-col p-6 outline-none transition duration-150 focus-visible:ring-2 focus-visible:ring-gold ${
+            className={`relative flex cursor-pointer flex-col rounded-[28px] border bg-white p-6 outline-none transition duration-200 focus-visible:ring-2 focus-visible:ring-gold ${
               isSelected
-                ? "-translate-y-1 ring-2 ring-gold shadow-[0_0_0_4px_rgba(212,175,55,0.25)]"
+                ? "-translate-y-1 border-gold ring-2 ring-gold shadow-[0_18px_50px_rgba(212,175,55,.18)]"
                 : p.highlight
-                  ? "ring-2 ring-gold hover:-translate-y-0.5 hover:shadow-lg"
-                  : "hover:-translate-y-0.5 hover:shadow-lg"
+                  ? "border-gold shadow-[0_14px_40px_rgba(9,21,44,.10)] hover:-translate-y-1 hover:shadow-xl"
+                  : "border-black/5 shadow-[0_12px_36px_rgba(9,21,44,.07)] hover:-translate-y-1 hover:shadow-xl"
             }`}
           >
             {isSelected && (
@@ -414,6 +443,59 @@ export default function Abonnements() {
       {checkout.error && (
         <p className="mt-6 text-center text-sm text-red-600">{checkout.error.message}</p>
       )}
+        <section className="mt-16 rounded-[32px] bg-[#09152C] p-7 text-white shadow-[0_24px_70px_rgba(9,21,44,.18)] sm:p-10">
+          <div className="max-w-3xl">
+            <p className="text-xs font-black uppercase tracking-[.2em] text-[#E2B82D]">Un parcours simple et transparent</p>
+            <h2 className="mt-3 text-3xl font-black tracking-tight sm:text-4xl">Vous savez ce que vous choisissez, avant de payer.</h2>
+          </div>
+          <div className="mt-9 grid gap-4 md:grid-cols-3">
+            {[
+              ["01", "Choisissez votre profil", "Les offres sont regroupées selon votre activité pour éviter les options inutiles."],
+              ["02", "Comparez les éléments inclus", "Chaque fonctionnalité et chaque durée sont affichées directement dans l’offre."],
+              ["03", "Gardez le contrôle", "Retrouvez la gestion, les factures et les changements d’abonnement depuis votre espace."],
+            ].map(([number, title, description]) => (
+              <div key={number} className="rounded-3xl border border-white/10 bg-white/[.06] p-6">
+                <span className="text-sm font-black text-[#E2B82D]">{number}</span>
+                <h3 className="mt-4 text-lg font-black">{title}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-white/60">{description}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {[
+            [CreditCard, "Paiement protégé", "Le paiement est traité sur un parcours sécurisé."],
+            [BadgeCheck, "Prix transparents", "Le montant et la périodicité restent visibles avant validation."],
+            [ShieldCheck, "Gestion autonome", "Gérez vos factures et votre abonnement depuis votre portail."],
+            [Headphones, "Une équipe disponible", "Une question sur une offre ? Contactez-nous avant de choisir."],
+          ].map(([Icon, title, description]) => {
+            const TrustIcon = Icon as typeof CreditCard;
+            return <div key={String(title)} className="rounded-[26px] border border-black/5 bg-white p-6 shadow-sm"><TrustIcon className="h-7 w-7 text-[#B18B08]" /><h3 className="mt-4 font-black">{String(title)}</h3><p className="mt-2 text-sm leading-relaxed text-black/50">{String(description)}</p></div>;
+          })}
+        </section>
+
+        <section className="mt-12 rounded-[32px] border border-black/5 bg-white p-7 shadow-sm sm:p-10">
+          <div className="grid gap-8 lg:grid-cols-[.75fr_1.25fr]">
+            <div><p className="text-xs font-black uppercase tracking-[.2em] text-[#B18B08]">Questions fréquentes</p><h2 className="mt-3 text-3xl font-black tracking-tight">Décidez en confiance.</h2><p className="mt-3 text-sm leading-relaxed text-black/50">Les informations essentielles restent accessibles avant la souscription. Pour une offre sur mesure, la Direction peut vous accompagner.</p></div>
+            <div className="space-y-3">
+              {[
+                ["Puis-je gérer mon abonnement après l’achat ?", "Oui. Une fois connecté, le portail de gestion permet d’accéder aux factures, aux changements de plan et aux options d’annulation disponibles."],
+                ["Le prix peut-il changer au moment du paiement ?", "Le prix de l’offre sélectionnée est affiché avant la redirection. Les offres sur demande vous dirigent vers la Direction sans paiement immédiat."],
+                ["Puis-je demander de l’aide avant de choisir ?", "Oui. Les offres sur demande et le formulaire de contact permettent d’échanger avec l’équipe avant tout engagement."],
+                ["Les offres sont-elles adaptées aux professionnels ?", "Chaque métier dispose de sa propre catégorie : vente, garage, carrosserie, location, livraison, pièces et autres activités."],
+              ].map(([question, answer]) => <details key={question} className="group rounded-2xl border border-black/5 bg-[#F7F6F2] px-5 py-4"><summary className="cursor-pointer list-none pr-6 font-black marker:hidden">{question}</summary><p className="mt-3 text-sm leading-relaxed text-black/55">{answer}</p></details>)}
+            </div>
+          </div>
+        </section>
+
+        <section className="mt-8 overflow-hidden rounded-[32px] bg-gradient-to-r from-[#D9B323] to-[#E8C84A] p-7 sm:p-10">
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+            <div><p className="text-xs font-black uppercase tracking-[.2em] text-black/55">Besoin d’un conseil ?</p><h2 className="mt-2 text-3xl font-black tracking-tight text-[#09152C]">Parlez-nous de votre activité.</h2><p className="mt-2 max-w-2xl text-sm text-black/60">L’équipe vous aide à identifier l’offre adaptée, sans modifier votre sélection ni déclencher un paiement.</p></div>
+            <Link to="/contact?sujet=Conseil%20abonnement" className="inline-flex min-h-12 shrink-0 items-center justify-center gap-2 rounded-2xl bg-[#09152C] px-6 py-4 text-sm font-black text-white">Contacter l’équipe <ArrowRight className="h-4 w-4" /></Link>
+          </div>
+        </section>
+      </main>
     </div>
   );
 }
