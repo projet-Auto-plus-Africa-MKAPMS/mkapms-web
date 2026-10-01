@@ -346,6 +346,8 @@ export default function CentreIntelligences() {
       setSessionId(r.sessionId);
       conversationDrafts.current.delete(sent.key);
       void workspaceUtils.intelligences.conversations.invalidate();
+      // Le titre de sujet est généré juste après la réponse : on relit la liste un peu plus tard.
+      window.setTimeout(() => { if (liveWorkspace.current) void workspaceUtils.intelligences.conversations.invalidate(); }, 5000);
       setFil((f) => [
         ...f,
         {

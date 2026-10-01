@@ -76,6 +76,13 @@ export function WorkspaceRail(props: WorkspaceRailProps) {
     <button type="button" className="alhud-new-chat" disabled={props.busy} onClick={() => { props.onNew(); props.onClose(); }}><Plus size={17} /> Nouvelle conversation</button>
     <label className="alhud-search"><Search size={16} aria-hidden="true" /><input ref={search} type="search" value={query} onChange={e => setQuery(e.target.value)} aria-label="Rechercher un outil ou une conversation" placeholder="Rechercher…" /></label>
     <div className="alhud-rail-scroll">
+      <section className="alhud-history" aria-label="Conversations enregistrées">
+        <h2>Récents</h2>
+        {conversations.isLoading ? <p role="status">Chargement de l’historique…</p> : null}
+        {conversations.isError ? <><p role="alert">L’historique n’a pas pu être chargé. Aucune conversation n’a été supprimée.</p><button type="button" onClick={() => void conversations.refetch()}>Réessayer</button></> : null}
+        {(conversations.data ?? []).filter(c => matches(c.titre || "Sans titre")).map(c => <button key={c.id} type="button" disabled={props.busy} aria-current={props.sessionId === c.id ? "page" : undefined} title={c.titre || "Sans titre"} onClick={() => { props.onConversation(c.id); props.onClose(); }}>{c.titre || "Sans titre"}</button>)}
+        {!conversations.isLoading && !conversations.isError && !(conversations.data ?? []).some(c => matches(c.titre || "Sans titre")) ? <p>{query ? "Aucune conversation ne correspond à cette recherche." : "Vos conversations enregistrées apparaîtront ici."}</p> : null}
+      </section>
       <nav aria-label="Outils AL-HUDHUD·M" className="alhud-tools">
         <button type="button" aria-current={props.active === "echange" ? "page" : undefined} onClick={() => choose("echange")}>Conversation en cours</button>
         {props.groups.map(group => {
@@ -83,13 +90,6 @@ export function WorkspaceRail(props: WorkspaceRailProps) {
           return items.length ? <section key={group.titre}><h2>{group.titre}</h2>{items.map(tab => <button key={tab.cle} type="button" aria-current={props.active === tab.cle ? "page" : undefined} onClick={() => choose(tab.cle)}>{tab.label}</button>)}</section> : null;
         })}
       </nav>
-      <section className="alhud-history" aria-label="Conversations enregistrées">
-        <h2>Conversations</h2>
-        {conversations.isLoading ? <p role="status">Chargement de l’historique…</p> : null}
-        {conversations.isError ? <><p role="alert">L’historique n’a pas pu être chargé. Aucune conversation n’a été supprimée.</p><button type="button" onClick={() => void conversations.refetch()}>Réessayer</button></> : null}
-        {(conversations.data ?? []).filter(c => matches(c.titre || "Sans titre")).map(c => <button key={c.id} type="button" disabled={props.busy} aria-current={props.sessionId === c.id ? "page" : undefined} title={c.titre || "Sans titre"} onClick={() => { props.onConversation(c.id); props.onClose(); }}>{c.titre || "Sans titre"}</button>)}
-        {!conversations.isLoading && !conversations.isError && !(conversations.data ?? []).some(c => matches(c.titre || "Sans titre")) ? <p>{query ? "Aucune conversation ne correspond à cette recherche." : "Vos conversations enregistrées apparaîtront ici."}</p> : null}
-      </section>
     </div>
     <p className="alhud-caption">Les outils existants sont conservés. Aucun changement d’autorisation à l’ouverture.</p>
   </>;

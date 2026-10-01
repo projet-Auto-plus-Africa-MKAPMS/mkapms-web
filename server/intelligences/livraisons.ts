@@ -2692,6 +2692,26 @@ export const LIVRAISONS: Livraison[] = [
       "Nouveau test server/intelligences/__tests__/recherche-memoire-entreprise.test.ts, sur une base Postgres LOCALE (schéma complet migré) : il démontre d'abord que l'ancienne méthode ne trouve rien pour la question posée (contrôle), puis que la nouvelle retrouve le bon souvenir en première position, exclut un souvenir archivé et un souvenir hors sujet, renvoie un score de pertinence réel (entre 0 et 1) et une liste vide pour une requête sans mot exploitable. Le test refuse de tourner hors PGHOST=localhost. `npx tsc --noEmit` et `npm run build` complets verts. Non vérifié : le comportement sur les données réelles de production.\n\nLeçon générale : une fonctionnalité de recherche se valide avec une VRAIE question en langage naturel posée à la VRAIE fonction de lecture, pas en constatant que l'écriture a bien eu lieu — la livraison précédente avait vérifié le point d'écriture et le branchement, jamais que la lecture retrouvait quelque chose. Et : copier le motif d'une fonction voisine du même fichier (ici chercherMemoire, elle aussi faible sur ce point) copie ses défauts avec ses qualités — comparer d'abord à la source qui marche (ts_rank en OU, déjà utilisée par les conversations et la base de connaissances).",
     domaine: "confiance",
   },
+  {
+    cle: "branche-conversations-recents-et-titres-par-sujet",
+    titre: "Conversations : la liste « Récents » redevient visible et cliquable, et chaque conversation est nommée d'après son sujet",
+    moteurs: ["intelligences"],
+    quoi:
+      "(1) Dans le panneau de gauche de /intelligence (Conversation.tsx), le bouton « Nouvelle conversation » passe en tête et la liste « Récents » (plus récentes d'abord, renommer/supprimer) a désormais une hauteur propre (jusqu'à 40 % de l'écran, défilement interne) ; dans le menu de Centre Intelligence direction (WorkspaceRail.tsx), « Récents » est placé avant les outils. (2) Nouveau server/intelligences/conversation-titre.ts : à la création, un titre provisoire court et propre tiré de la question (sans « Bonjour, peux-tu… », coupé proprement à 60 caractères) ; après le PREMIER échange réussi, un titre de 3 à 6 mots demandé au moteur, sans jamais retarder la réponse. Un titre renommé à la main n'est jamais écrasé ; moteur indisponible → le titre provisoire reste. Les deux écrans relisent la liste 5 s après la réponse pour afficher le titre de sujet.",
+    pourquoi:
+      "Le PDG a signalé qu'il ne savait pas si « Nouvelle conversation » fonctionnait et demandé un champ « Récents » où les conversations apparaissent dans l'ordre, nommées d'après ce dont on parle. Constat réel dans un navigateur : le bouton répondait, mais la liste des conversations était écrasée à zéro de hauteur (bloc « flex-1 » dans une colonne qui rétrécit) et débordait SOUS le menu des outils — invisible et non cliquable (Playwright : « le menu intercepte les clics »). Et le titre n'était que la première question copiée telle quelle (jusqu'à 180 caractères).",
+    ou: [
+      "client/src/pages/intelligence/modules/Conversation.tsx",
+      "client/src/pages/intelligence/WorkspaceRail.tsx",
+      "client/src/pages/intelligence/workspace.css",
+      "client/src/pages/CentreIntelligences.tsx",
+      "server/intelligences/conversation-titre.ts",
+      "server/intelligences/service.ts",
+    ],
+    lecon:
+      "Vérifié en navigateur réel sur une base Postgres LOCALE avec des conversations de test : avant correction, clic impossible (élément recouvert) ; après, la liste est visible, un clic ouvre la conversation et « Nouvelle conversation » vide le fil. Tests server/intelligences/__tests__/conversation-titre.test.ts (titre provisoire, nettoyage, base locale : premier échange nommé ; titre manuel, moteur en panne, conversation déjà avancée → jamais touchés). Non vérifié ici : la qualité des titres générés par le vrai moteur (aucune clé de fournisseur dans ce bac à sable ; le moteur y est injecté).\n\nLeçon générale : un « bouton qui ne marche pas » signalé par le PDG se diagnostique en cliquant réellement dans un navigateur, pas en relisant le gestionnaire — ici le gestionnaire était correct, c'est la mise en page qui rendait la cible inaccessible.",
+    domaine: "confiance",
+  },
 ];
 
 /**
