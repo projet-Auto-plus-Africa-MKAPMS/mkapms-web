@@ -7,9 +7,10 @@
  * supprimer. Le contenu est chiffré côté serveur ; cet écran ne stocke rien
  * dans le navigateur.
  */
-import { useState } from "react";
-import { KeyRound, RefreshCw, Trash2, Copy } from "lucide-react";
+import { useRef, useState } from "react";
+import { KeyRound, RefreshCw, Trash2, Copy, Check, Plug } from "lucide-react";
 import { trpc } from "../../../lib/trpc";
+import { CONNECTEURS, resumerConnecteur, type ElementConnecteur } from "../../../lib/connecteurs";
 
 type TypeSecret = "identifiants" | "cle_api" | "fichier";
 
@@ -61,7 +62,7 @@ function contenuDepuis(type: TypeSecret, v: Valeur):
     };
   }
   if (type === "cle_api") {
-    if (v.cle.trim().length < 8) return { ok: false, raison: "La clé ou le jeton semble trop court." };
+    if (v.cle.trim().length < 4) return { ok: false, raison: "La clé ou le jeton semble trop court." };
     return { ok: true, contenu: { type, valeur: v.cle.trim() } };
   }
   if (!v.contenuBase64) return { ok: false, raison: "Choisissez un fichier." };
@@ -160,6 +161,7 @@ export function Coffre() {
   const [remplacementId, setRemplacementId] = useState<number | null>(null);
   const [valeurRemplacement, setValeurRemplacement] = useState<Valeur>(VALEUR_VIDE);
   const [cleGeneree, setCleGeneree] = useState("");
+  const formulaire = useRef<HTMLDivElement>(null);
 
   const rafraichir = async () => {
     await Promise.all([utils.intelligences.coffreEtat.invalidate(), utils.intelligences.coffreSecrets.invalidate(), utils.intelligences.coffreJournal.invalidate()]);
@@ -207,6 +209,17 @@ export function Coffre() {
     remplacer.mutate({ id, contenu: analyse.contenu });
   }
 
+  /** Pré-remplit le formulaire d'ajout pour un élément du catalogue, sans jamais rien envoyer. */
+  function preparer(element: ElementConnecteur | null, service: string) {
+    setMessage("");
+    setNom(element?.nom ?? "");
+    setService(service);
+    setType(element?.type ?? "identifiants");
+    setValeur(VALEUR_VIDE);
+    formulaire.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+  const nomsPresents = (secrets.data ?? []).map((s) => s.nom);
+
   return (
     <section className="space-y-4" aria-label="Coffre secret">
       <div className="rounded-xl border border-black/10 p-4 space-y-2">
@@ -244,7 +257,59 @@ export function Coffre() {
         </div>
       ) : null}
 
-      <div className="rounded-xl border border-black/10 p-4 space-y-3">
+      <div className="rounded-xl border border-black/10 p-4 space-y-3" aria-label="Connecter les outils">
+        <h3 className="flex items-center gap-2 text-sm font-black"><Plug className="h-4 w-4" /> Connecter les outils</h3>
+        <p className="text-xs text-black/60">
+          Pour chaque outil, les éléments à déposer. « Déposer » pré-remplit le formulaire plus bas : vous n'avez plus qu'à coller la valeur.
+          Une coche veut dire « déposé dans le coffre », pas « branché » : la ligne « Ce que le moteur en fait aujourd'hui » dit la vérité.
+        </p>
+        {CONNECTEURS.map((c) => {
+          const resume = resumerConnecteur(c, nomsPresents);
+          return (
+            <div key={c.id} className="space-y-2 rounded-lg border border-black/10 p-3">
+              <div className="flex items-center justify-between gap-2">
+                <span className="flex min-w-0 items-center gap-2">
+                  <span aria-hidden="true" className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-black/5 text-sm font-black">{c.initiale}</span>
+                  <span className="min-w-0">
+                    <strong className="block truncate text-sm">{c.libelle}</strong>
+                    <span className="text-[11px] text-black/50">{c.groupe}</span>
+                  </span>
+                </span>
+                <span className={`shrink-0 rounded-full px-2 py-0.5 text-[11px] font-bold ${resume.complet ? "bg-green-100 text-green-800" : "bg-black/5 text-black/60"}`}>
+                  {resume.complet ? "Éléments déposés" : `${resume.obligatoiresDeposes}/${resume.obligatoiresTotal} déposés`}
+                </span>
+              </div>
+              <ul className="space-y-1">
+                {c.elements.map((e, i) => {
+                  const depose = resume.etats[i]?.etat === "depose";
+                  return (
+                    <li key={e.nom} className="flex items-start justify-between gap-2 text-xs">
+                      <span className="min-w-0">
+                        <span className="flex items-center gap-1 font-semibold">
+                          {depose ? <Check className="h-3 w-3 text-green-700" aria-label="Déposé" /> : <span className="inline-block h-3 w-3 rounded-full border border-black/30" aria-label="À déposer" />}
+                          {e.nom}{e.facultatif ? <span className="font-normal text-black/50"> (facultatif)</span> : null}
+                        </span>
+                        <span className="block text-black/60">{e.aide}</span>
+                      </span>
+                      <button type="button" disabled={!disponible} onClick={() => preparer(e, c.service)}
+                        className="shrink-0 whitespace-nowrap rounded border px-2 py-1 font-bold disabled:opacity-40">
+                        {depose ? "Remplacer…" : "Déposer"}
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+              <p className="text-[11px] text-black/70"><strong>Ce que le moteur en fait aujourd'hui :</strong> {c.usage}</p>
+              {c.avertissement ? <p className="text-[11px] text-amber-800">{c.avertissement}</p> : null}
+            </div>
+          );
+        })}
+        <button type="button" disabled={!disponible} onClick={() => preparer(null, "")} className="rounded border px-2 py-1 text-xs font-bold disabled:opacity-40">
+          Autre outil ou autre développeur…
+        </button>
+      </div>
+
+      <div ref={formulaire} className="rounded-xl border border-black/10 p-4 space-y-3">
         <h3 className="text-sm font-black">Ajouter une clé secrète</h3>
         <label className="block text-xs">
           Nom
