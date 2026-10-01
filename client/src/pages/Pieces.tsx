@@ -27,7 +27,7 @@ const VEHICLES = [
   { label: "Voiture", icon: "🚗", type: "voiture", image: "/categories/vente_sportive.jpg" }, { label: "Utilitaire", icon: "🚐", type: "utilitaire", image: "/categories/utilitaire.jpg" },
   { label: "Camion", icon: "🚚", type: "utilitaire", image: "/categories/camion_fourgon.jpg" }, { label: "Moto", icon: "🏍️", type: "moto", image: "/categories/moto_touring.jpg" },
   { label: "Scooter", icon: "🛵", type: "moto", image: "/categories/moto_scooter.jpg" }, { label: "Tracteur", icon: "🚜", type: "agricole", image: "/categories/engin_tracteur.jpg" },
-  { label: "Engin de chantier", icon: "🏗️", type: "engin_chantier", image: "/categories/engin_minipelle.jpg" }, { label: "Bateau", icon: "🛥️", type: "bateau" },
+  { label: "Engin de chantier", icon: "🏗️", type: "engin_chantier", image: "/categories/engin_minipelle.jpg" }, { label: "Bateau", icon: "🛥️", type: "bateau", image: undefined },
   { label: "Électrique", icon: "⚡", type: "electrique", image: "/categories/pro_electrique_vente.jpg" },
 ] as const;
 
