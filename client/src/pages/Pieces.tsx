@@ -210,6 +210,9 @@ export default function Pieces() {
   };
 
   const selectedCat = PARTS_CATEGORIES.find(c => c.label === categorie);
+  // Les visuels de catégorie viennent des vraies pièces chargées dans le
+  // catalogue. On ne remplace jamais une pièce par un dessin décoratif.
+  const imageCategorie = (label: string) => catalog.data?.items.find((piece) => piece.categorie === label && piece.photoUrl)?.photoUrl;
 
   return (
     <div className="container-page max-w-7xl bg-white py-4 sm:py-6">
@@ -390,36 +393,39 @@ export default function Pieces() {
       {/* CATALOGUE TAB */}
       {tab === "catalogue" && (
         <>
-          <section className="mt-5">
-            <h1 className="text-2xl font-extrabold tracking-tight text-slate-950 sm:text-3xl">Catalogue de pièces</h1>
-            <p className="mt-1 text-sm text-slate-500">Pièces détachées automobile, moto et véhicules spécialisés.</p>
-            <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-8">
-              {VEHICLES.map(v => <button key={v.label} onClick={() => setTypeVehicule(v.type === typeVehicule ? "" : v.type)} className={`group overflow-hidden rounded-lg border bg-white text-center shadow-sm transition ${typeVehicule === v.type ? "border-[#0d7391] ring-2 ring-[#0d7391]/15" : "border-slate-200 hover:border-[#0d7391]/50"}`}>
-                {v.image ? <img src={v.image} alt="" className="h-14 w-full object-cover sm:h-16" /> : <div className="grid h-14 place-items-center bg-sky-50 text-3xl sm:h-16" aria-hidden="true">{v.icon}</div>}
-                <span className="flex items-center justify-center gap-1 px-1 py-1.5 text-xs font-bold text-slate-800">{v.icon} {v.label}</span>
+          <section className="mt-6">
+            <div className="flex flex-wrap items-end justify-between gap-2">
+              <div><h1 className="text-2xl font-extrabold tracking-tight text-slate-950 sm:text-3xl">Catalogue de pièces</h1><p className="mt-1 text-sm text-slate-500">Pièces pour tous les véhicules roulants : route, chantier, agricole, nautique et électrique.</p></div>
+              {typeVehicule ? <button type="button" onClick={() => setTypeVehicule("")} className="text-sm font-bold text-[#0d7391] hover:underline">Voir tous les véhicules</button> : null}
+            </div>
+            <div className="mt-4 -mx-1 flex snap-x snap-mandatory gap-3 overflow-x-auto px-1 pb-3 [scrollbar-width:thin]">
+              {VEHICLES.map(v => <button key={v.label} onClick={() => setTypeVehicule(v.type === typeVehicule ? "" : v.type)} className={`group w-36 shrink-0 snap-start overflow-hidden rounded-xl border bg-white text-center shadow-sm transition sm:w-40 ${typeVehicule === v.type ? "border-[#0d7391] ring-2 ring-[#0d7391]/15" : "border-slate-200 hover:border-[#0d7391]/50"}`}>
+                {v.image ? <img src={v.image} alt="" className="h-24 w-full object-cover sm:h-28" /> : <div className="grid h-24 place-items-center bg-sky-50 text-4xl sm:h-28" aria-hidden="true">{v.icon}</div>}
+                <span className="flex min-h-12 items-center justify-center gap-1 px-2 py-2 text-sm font-bold text-slate-800">{v.label}</span>
               </button>)}
             </div>
+            <p className="text-xs font-medium text-slate-500">Glissez horizontalement pour choisir voiture, camion, moto, bateau, engin ou véhicule électrique.</p>
           </section>
 
-          <section className="mt-4 overflow-hidden rounded-xl border border-[#d4af37]/30 bg-[#fffdf7] shadow-sm">
-            <div className="flex items-center gap-2 bg-[#f7f2e5] px-4 py-3"><Car className="text-[#0d7391]" size={22}/><div><h2 className="font-extrabold text-slate-950">Identifier mon véhicule</h2><p className="text-xs text-slate-500">Trouvez les pièces parfaitement compatibles avec votre véhicule.</p></div></div>
-            <div className="grid grid-cols-3 border-b border-slate-200 bg-white text-sm font-bold">
-              {([['immatriculation', 'Immatriculation', Car], ['vin', 'VIN / châssis', Barcode], ['modele', 'Par modèle', Wrench]] as const).map(([key,label,Icon]) => <button key={key} onClick={() => setIdentification(key)} className={`flex items-center justify-center gap-1.5 px-2 py-2.5 ${identification===key ? 'bg-[#426f95] text-white' : 'text-slate-600 hover:bg-slate-50'}`}><Icon size={16}/><span className="hidden sm:inline">{label}</span><span className="sm:hidden">{key==='immatriculation'?'Plaque':key==='vin'?'VIN':'Modèle'}</span></button>)}
+          <section className="mx-auto mt-6 max-w-6xl overflow-hidden rounded-2xl border border-[#d4af37]/40 bg-[#fffdf7] shadow-sm">
+            <div className="flex items-center gap-3 bg-[#f7f2e5] px-5 py-5 sm:px-7"><span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-white text-[#0d7391] shadow-sm"><Car size={23}/></span><div><h2 className="text-xl font-extrabold text-slate-950">Identifier mon véhicule</h2><p className="mt-1 text-sm text-slate-500">Plaque, VIN ou modèle : trouvez les pièces compatibles avant de commander.</p></div></div>
+            <div className="grid grid-cols-3 border-y border-slate-200 bg-white text-sm font-bold sm:text-base">
+              {([['immatriculation', 'Immatriculation', Car], ['vin', 'VIN / châssis', Barcode], ['modele', 'Par modèle', Wrench]] as const).map(([key,label,Icon]) => <button key={key} onClick={() => setIdentification(key)} className={`flex min-h-16 items-center justify-center gap-2 px-3 py-3 ${identification===key ? 'bg-[#426f95] text-white' : 'text-slate-600 hover:bg-slate-50'}`}><Icon size={18}/><span className="hidden sm:inline">{label}</span><span className="sm:hidden">{key==='immatriculation'?'Plaque':key==='vin'?'VIN':'Modèle'}</span></button>)}
             </div>
-            <div className="grid gap-2 p-3 sm:grid-cols-[.8fr_1fr_1.1fr_auto]">
-              <select aria-label="Pays de l'immatriculation" className="input !py-2" defaultValue="FR"><option value="FR">🇫🇷 France</option></select>
-              {identification === 'immatriculation' && <input className="input !py-2" value={immatriculation} onChange={e=>setImmatriculation(e.target.value.toUpperCase())} placeholder="AA-123-AA" />}
-              {identification === 'vin' && <input className="input !py-2 sm:col-span-2" value={vin} onChange={e=>setVin(e.target.value.toUpperCase())} placeholder="Saisir le numéro VIN / châssis" />}
-              {identification === 'modele' && <><input className="input !py-2" value={marqueVehicule} onChange={e=>setMarqueVehicule(e.target.value)} placeholder="Marque"/><input className="input !py-2" value={modeleVehicule} onChange={e=>setModeleVehicule(e.target.value)} placeholder="Modèle et motorisation"/></>}
-              {identification === 'immatriculation' && <input className="input !py-2" value={vin} onChange={e=>setVin(e.target.value.toUpperCase())} placeholder="VIN / châssis (facultatif)" />}
-              <button onClick={() => { setShowVehicleSearch(true); void catalog.refetch(); }} className="btn-gold flex items-center justify-center gap-2 !py-2"><Search size={17}/> Trouver</button>
+            <div className="grid gap-3 p-5 sm:p-6 lg:grid-cols-[.7fr_1fr_1.45fr_auto] lg:items-end">
+              <label className="grid gap-1.5 text-sm font-bold text-slate-700"><span>Pays</span><select aria-label="Pays de l'immatriculation" className="input min-h-12 !py-3" defaultValue="FR"><option value="FR">🇫🇷 France</option></select></label>
+              {identification === 'immatriculation' && <label className="grid gap-1.5 text-sm font-bold text-slate-700"><span>Plaque d’immatriculation</span><input className="input min-h-12 !py-3" value={immatriculation} onChange={e=>setImmatriculation(e.target.value.toUpperCase())} placeholder="AA-123-AA" /></label>}
+              {identification === 'vin' && <label className="grid gap-1.5 text-sm font-bold text-slate-700 lg:col-span-2"><span>Numéro VIN / châssis</span><input className="input min-h-12 !py-3" value={vin} onChange={e=>setVin(e.target.value.toUpperCase())} placeholder="Saisir le numéro VIN complet" /></label>}
+              {identification === 'modele' && <><label className="grid gap-1.5 text-sm font-bold text-slate-700"><span>Marque</span><input className="input min-h-12 !py-3" value={marqueVehicule} onChange={e=>setMarqueVehicule(e.target.value)} placeholder="Ex. Peugeot"/></label><label className="grid gap-1.5 text-sm font-bold text-slate-700"><span>Modèle et motorisation</span><input className="input min-h-12 !py-3" value={modeleVehicule} onChange={e=>setModeleVehicule(e.target.value)} placeholder="Ex. 308 · 1.5 BlueHDi"/></label></>}
+              {identification === 'immatriculation' && <label className="grid gap-1.5 text-sm font-bold text-slate-700"><span>VIN / châssis <small className="font-medium text-slate-400">(facultatif)</small></span><input className="input min-h-12 !py-3" value={vin} onChange={e=>setVin(e.target.value.toUpperCase())} placeholder="Compléter avec le VIN" /></label>}
+              <button onClick={() => { setShowVehicleSearch(true); void catalog.refetch(); }} className="btn-gold min-h-12 whitespace-nowrap !px-6 !py-3"><Search size={18} className="mr-2 inline"/>Trouver les pièces</button>
             </div>
-            <div className="flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 px-4 py-2 text-xs"><button onClick={() => { setIdentification('modele'); setShowVehicleSearch(true); }} className="font-semibold text-[#0d7391]">⚙️ Choisir par marque, modèle et motorisation</button><span className="text-slate-500">🚚 Bateau : moteur ou numéro de série</span></div>
+            <div className="flex flex-wrap items-center justify-between gap-x-8 gap-y-3 border-t border-slate-100 px-5 py-4 text-sm sm:px-7"><button onClick={() => { setIdentification('modele'); setShowVehicleSearch(true); }} className="font-bold text-[#0d7391] hover:underline"><Wrench size={17} className="mr-1.5 inline"/>Choisir par marque, modèle et motorisation</button><span className="font-medium text-slate-500">🛥️ Bateau : moteur ou numéro de série</span></div>
           </section>
 
           {/* Search bar */}
-          <div className="mt-4 flex flex-wrap gap-2">
-            <div className="relative flex-1">
+          <div className="mt-5 grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto_auto]">
+            <div className="relative min-w-0">
               <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
                 className="input pl-10"
@@ -429,14 +435,11 @@ export default function Pieces() {
                 onKeyDown={(e) => e.key === "Enter" && catalog.refetch()}
               />
             </div>
-            <button onClick={() => catalog.refetch()} className="btn-gold flex items-center gap-1.5">
+            <button onClick={() => catalog.refetch()} className="btn-gold min-h-12 whitespace-nowrap px-6">
               <Search size={16} /> Rechercher
             </button>
-            <button onClick={() => setShowFilters(!showFilters)} className="btn-outline flex items-center gap-1.5">
+            <button onClick={() => setShowFilters(!showFilters)} className="btn-outline min-h-12 whitespace-nowrap px-5">
               <Filter size={16} /> Filtres {showFilters ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-            </button>
-            <button onClick={() => setShowVehicleSearch(!showVehicleSearch)} className="btn-outline flex items-center gap-1.5">
-              <Car size={16} /> Compatibilité
             </button>
           </div>
 
@@ -468,15 +471,15 @@ export default function Pieces() {
           )}
 
           {/* Grille des catégories (Architecture 3 — sélecteur visuel de la maquette homepage Pièces) */}
-          <div className="mt-4 grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-6">
+          <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
             {PARTS_CATEGORIES.map(c => (
               <button
                 key={c.code}
                 onClick={() => { setCategorie(c.label === categorie ? "" : c.label); setSousCategorie(""); }}
-                className={`flex flex-col items-center gap-1 rounded-xl border-2 p-3 text-center transition ${categorie === c.label ? "border-gold bg-gold-soft text-gold-dark" : "border-slate-200 bg-white text-slate-600 hover:border-gold/40"}`}
+                className={`group overflow-hidden rounded-xl border-2 bg-white text-left transition ${categorie === c.label ? "border-gold bg-gold-soft text-gold-dark" : "border-slate-200 text-slate-700 hover:border-gold/40"}`}
               >
-                <span className="text-2xl">{c.icon}</span>
-                <span className="text-[11px] font-semibold leading-tight">{c.label}</span>
+                {imageCategorie(c.label) ? <img src={imageCategorie(c.label)} alt="" className="h-24 w-full object-contain bg-slate-50 p-2" /> : <div className="grid h-24 place-items-center bg-slate-50 text-[#0d7391]"><Package size={34}/></div>}
+                <span className="block px-3 py-3 text-sm font-bold leading-tight">{c.label}</span>
               </button>
             ))}
           </div>
