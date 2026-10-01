@@ -1,145 +1,130 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { MapPin, Search, Navigation, Car, Bike, Truck, Home, Wrench, ChevronDown, Star, Shield, SlidersHorizontal } from "lucide-react";
+import { Bike, Building2, Car, ChevronDown, Loader2, MapPin, Navigation, Search, ShieldCheck, Truck, Wrench } from "lucide-react";
 import MetaSEO from "../components/MetaSEO";
+import VehicleCard, { type VehicleCardData } from "../components/VehicleCard";
+import { trpc } from "../lib/trpc";
 
-/* ══════════════════════════════════════════════════════════════════════════
-   RECHERCHE GÉOLOCALISÉE MONDIALE
-   Détection position → Autour de moi → Distance → Carte → Filtre rayon
-   ══════════════════════════════════════════════════════════════════════════ */
-
-const RAYONS = ["5 km", "10 km", "25 km", "50 km", "100 km", "250 km", "Tout le pays"];
-
+const RAYONS = [5, 10, 25, 50, 100, 250];
 const TYPES_RECHERCHE = [
-  { label: "Véhicules", icon: Car, color: "#D4AF37" },
-  { label: "Motos", icon: Bike, color: "#EF4444" },
-  { label: "Utilitaires", icon: Truck, color: "#F97316" },
-  { label: "Location", icon: Home, color: "#3B82F6" },
-  { label: "Garages", icon: Wrench, color: "#F59E0B" },
-];
+  { label: "Véhicules", icon: Car },
+  { label: "Motos", icon: Bike },
+  { label: "Utilitaires", icon: Truck },
+  { label: "Location", icon: Building2 },
+  { label: "Garages", icon: Wrench },
+] as const;
 
-const RESULTATS_DEMO = [
-  { id: 1, nom: "Peugeot 308 GT Line", prix: 18500, annee: 2022, km: 35000, ville: "Paris 15e", distance: 2, badge: "PRO", photo: "https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=400&h=200&fit=crop" },
-  { id: 2, nom: "Renault Clio V Intens", prix: 14900, annee: 2023, km: 18000, ville: "Boulogne-B.", distance: 5, badge: "VÉRIFIÉ", photo: "https://images.unsplash.com/photo-1604410869154-3c16714cd476?w=400&h=200&fit=crop" },
-  { id: 3, nom: "BMW Série 3 320d", prix: 29500, annee: 2021, km: 52000, ville: "Saint-Denis", distance: 8, badge: "PREMIUM", photo: "https://images.unsplash.com/photo-1555215695-3004980ad54e?w=400&h=200&fit=crop" },
-  { id: 4, nom: "Toyota Yaris Hybrid", prix: 16800, annee: 2023, km: 12000, ville: "Versailles", distance: 15, badge: "PRO", photo: "https://images.unsplash.com/photo-1549194898-60fd030ecc0f?w=400&h=200&fit=crop" },
-  { id: 5, nom: "Mercedes GLA 200", prix: 32000, annee: 2022, km: 28000, ville: "Créteil", distance: 12, badge: "ELITE", photo: "https://images.unsplash.com/photo-1553440569-bcc63803a83d?w=400&h=200&fit=crop" },
-  { id: 6, nom: "Volkswagen Golf 8", prix: 22900, annee: 2022, km: 42000, ville: "Meaux", distance: 42, badge: "VÉRIFIÉ", photo: "https://images.unsplash.com/photo-1549317661-bd32c8ce0afa?w=400&h=200&fit=crop" },
-];
-
-const BADGE_COLORS: Record<string, string> = { PRO: "bg-blue-600", VÉRIFIÉ: "bg-green-600", PREMIUM: "bg-[#D4AF37]", ELITE: "bg-[#111]" };
+function distanceKm(a: { latitude: number; longitude: number }, latitude: unknown, longitude: unknown): number | null {
+  if (latitude == null || longitude == null || latitude === "" || longitude === "") return null;
+  const lat = Number(latitude);
+  const lng = Number(longitude);
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+  const radians = (value: number) => value * Math.PI / 180;
+  const dLat = radians(lat - a.latitude);
+  const dLng = radians(lng - a.longitude);
+  const h = Math.sin(dLat / 2) ** 2 + Math.cos(radians(a.latitude)) * Math.cos(radians(lat)) * Math.sin(dLng / 2) ** 2;
+  return Math.round(6371 * 2 * Math.atan2(Math.sqrt(h), Math.sqrt(1 - h)) * 10) / 10;
+}
 
 export default function RechercheGeolocalisee() {
-  const [located, setLocated] = useState(false);
-  const [rayon, setRayon] = useState("50 km");
+  const [position, setPosition] = useState<{ latitude: number; longitude: number } | null>(null);
+  const [locating, setLocating] = useState(false);
+  const [geoError, setGeoError] = useState("");
+  const [rayon, setRayon] = useState(50);
   const [showRayons, setShowRayons] = useState(false);
-  const [typeActif, setTypeActif] = useState("Véhicules");
+  const [typeActif, setTypeActif] = useState<(typeof TYPES_RECHERCHE)[number]["label"]>("Véhicules");
   const [query, setQuery] = useState("");
+  const [ville, setVille] = useState("");
+  const [applied, setApplied] = useState({ query: "", ville: "" });
+
+  const annonces = trpc.annonces.list.useQuery({
+    type: typeActif === "Location" ? "location" : "vente",
+    q: applied.query.trim() || undefined,
+    ville: applied.ville.trim() || undefined,
+    famille: typeActif === "Motos" ? "moto" : undefined,
+    categorie: typeActif === "Utilitaires" ? "utilitaire" : undefined,
+    limit: 100,
+  }, { enabled: typeActif !== "Garages" });
+
+  const resultats = useMemo(() => {
+    return (annonces.data?.items ?? [])
+      .map((annonce) => ({ annonce, distance: position ? distanceKm(position, annonce.latitude, annonce.longitude) : null }))
+      .filter(({ distance }) => distance === null || distance <= rayon)
+      .sort((a, b) => a.distance === null ? 1 : b.distance === null ? -1 : a.distance - b.distance);
+  }, [annonces.data?.items, position, rayon]);
+
+  function localiser() {
+    if (!navigator.geolocation) {
+      setGeoError("La géolocalisation n’est pas disponible sur cet appareil. Recherchez par ville.");
+      return;
+    }
+    setLocating(true);
+    setGeoError("");
+    navigator.geolocation.getCurrentPosition(
+      ({ coords }) => {
+        setPosition({ latitude: coords.latitude, longitude: coords.longitude });
+        setLocating(false);
+      },
+      () => {
+        setGeoError("Position refusée ou indisponible. Vous pouvez toujours rechercher par ville.");
+        setLocating(false);
+      },
+      { enableHighAccuracy: true, timeout: 15_000, maximumAge: 60_000 },
+    );
+  }
+
+  function rechercher() {
+    setApplied({ query: query.trim(), ville: ville.trim() });
+  }
 
   return (
-    <div className="min-h-screen bg-[#F5F3EF] pb-24">
-      <MetaSEO title="Recherche géolocalisée" description="Trouvez véhicules, motos, garages et locations autour de vous sur MKA.P-MS. Recherche mondiale géolocalisée." url="https://mkapms.com/recherche" />
-      <div className="bg-[#111] px-4 pt-6 pb-5">
-        <h1 className="text-xl font-black text-white flex items-center gap-2"><MapPin size={20} className="text-[#D4AF37]" /> Autour de moi</h1>
-        <p className="mt-1 text-xs text-white/50">Recherche géolocalisée mondiale · France · Afrique · Monde</p>
-      </div>
+    <div className="min-h-screen bg-[#F6F4EF] pb-24 text-[#0A1630]">
+      <MetaSEO title="Véhicules autour de moi" description="Trouvez les véhicules, motos, utilitaires, locations et professionnels réellement publiés près de vous sur MKA.P-MS." url="https://mkapms.com/recherche" />
 
-      {/* Localisation */}
-      {!located ? (
-        <div className="mx-4 -mt-3 relative z-10 rounded-xl bg-white border border-[#E5E7EB] p-4 shadow-sm text-center">
-          <Navigation size={28} className="text-[#D4AF37] mx-auto mb-2" />
-          <p className="text-sm font-bold text-[#111]">Activez la géolocalisation</p>
-          <p className="text-[10px] text-[#6B7280] mt-1">Pour trouver les véhicules les plus proches de vous</p>
-          <button onClick={() => setLocated(true)} className="mt-3 w-full py-2.5 bg-[#D4AF37] text-white rounded-xl text-xs font-bold">Autoriser ma position</button>
-          <div className="mt-3 flex items-center gap-2">
-            <div className="h-px flex-1 bg-[#E5E7EB]" /><span className="text-[9px] text-[#6B7280]">ou</span><div className="h-px flex-1 bg-[#E5E7EB]" />
-          </div>
-          <div className="mt-3 flex items-center gap-2 rounded-lg bg-[#F5F3EF] px-3 py-2.5">
-            <Search size={14} className="text-[#6B7280]" />
-            <input type="text" placeholder="Entrer une ville ou un pays…" className="w-full bg-transparent text-sm outline-none" onFocus={() => setLocated(true)} />
-          </div>
+      <section className="relative isolate overflow-hidden bg-[#07111F] px-4 pb-20 pt-10 text-white sm:px-8 lg:pb-28 lg:pt-16">
+        <img src="/hero/car_hero_2.jpg" alt="" className="absolute inset-0 -z-20 h-full w-full object-cover opacity-35" />
+        <div className="absolute inset-0 -z-10 bg-gradient-to-r from-[#050B14] via-[#07111F]/90 to-[#07111F]/45" />
+        <div className="mx-auto max-w-6xl">
+          <span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-xs font-bold backdrop-blur"><Navigation className="h-4 w-4 text-[#E2B82D]" /> Recherche locale mondiale</span>
+          <h1 className="mt-5 max-w-3xl text-4xl font-black tracking-tight sm:text-6xl">Le bon véhicule, au bon endroit.</h1>
+          <p className="mt-4 max-w-2xl text-base text-white/70 sm:text-lg">Explorez les annonces réellement publiées, puis activez votre position pour les classer par proximité.</p>
         </div>
-      ) : (
-        <>
-          {/* Position détectée */}
-          <div className="mx-4 -mt-3 relative z-10 rounded-xl bg-green-50 border border-green-200 px-3 py-2 shadow-sm flex items-center gap-2">
-            <MapPin size={14} className="text-green-500" />
-            <p className="text-xs font-bold text-green-700 flex-1">Paris, France</p>
-            <button onClick={() => setShowRayons(!showRayons)} className="flex items-center gap-1 text-[10px] font-bold text-[#D4AF37] bg-[#D4AF37]/10 px-2 py-1 rounded-full">
-              {rayon} <ChevronDown size={10} />
-            </button>
-          </div>
-          {showRayons && (
-            <div className="mx-4 mt-1 flex flex-wrap gap-1.5">
-              {RAYONS.map(r => (
-                <button key={r} onClick={() => { setRayon(r); setShowRayons(false); }} className={`rounded-full px-3 py-1 text-[10px] font-bold border ${rayon === r ? "bg-[#D4AF37] text-white border-[#D4AF37]" : "bg-white text-[#6B7280] border-[#E5E7EB]"}`}>{r}</button>
-              ))}
-            </div>
-          )}
+      </section>
 
-          {/* Recherche */}
-          <div className="mx-4 mt-3 rounded-xl bg-white border border-[#E5E7EB] p-3 shadow-sm">
-            <div className="flex items-center gap-2 rounded-lg bg-[#F5F3EF] px-3 py-2.5">
-              <Search size={14} className="text-[#6B7280]" />
-              <input type="text" value={query} onChange={e => setQuery(e.target.value)} placeholder="Peugeot 206, BMW Série 3, Yamaha MT-07…" className="w-full bg-transparent text-sm outline-none" />
-            </div>
+      <main className="relative z-10 mx-auto -mt-12 max-w-6xl px-4 sm:px-6">
+        <section className="rounded-[28px] border border-black/5 bg-white p-4 shadow-[0_24px_70px_rgba(15,23,42,.14)] sm:p-6">
+          <div className="grid gap-3 lg:grid-cols-[1.2fr_.8fr_auto]">
+            <label className="flex min-h-14 items-center gap-3 rounded-2xl bg-[#F3F4F6] px-4 ring-1 ring-black/5 focus-within:ring-2 focus-within:ring-[#D4AF37]"><Search className="h-5 w-5 text-black/40" /><input value={query} onChange={(e) => setQuery(e.target.value)} onKeyDown={(e) => e.key === "Enter" && rechercher()} className="w-full bg-transparent text-sm font-semibold outline-none" placeholder="Marque, modèle ou mot-clé" /></label>
+            <label className="flex min-h-14 items-center gap-3 rounded-2xl bg-[#F3F4F6] px-4 ring-1 ring-black/5 focus-within:ring-2 focus-within:ring-[#D4AF37]"><MapPin className="h-5 w-5 text-black/40" /><input value={ville} onChange={(e) => setVille(e.target.value)} onKeyDown={(e) => e.key === "Enter" && rechercher()} className="w-full bg-transparent text-sm font-semibold outline-none" placeholder="Ville" /></label>
+            <button type="button" onClick={rechercher} className="min-h-14 rounded-2xl bg-[#D9B323] px-7 text-sm font-black text-[#111] shadow-lg shadow-[#D4AF37]/20 transition hover:-translate-y-0.5 hover:brightness-105">Rechercher</button>
           </div>
 
-          {/* Types */}
-          <div className="px-4 mt-3 flex gap-2 overflow-x-auto scrollbar-hide pb-1">
-            {TYPES_RECHERCHE.map(t => { const Icon = t.icon; return (
-              <button key={t.label} onClick={() => setTypeActif(t.label)} className={`shrink-0 flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[10px] font-semibold border ${typeActif === t.label ? "text-white border-transparent" : "bg-white text-[#6B7280] border-[#E5E7EB]"}`} style={typeActif === t.label ? { backgroundColor: t.color } : {}}>
-                <Icon size={12} /> {t.label}
-              </button>
-            ); })}
+          <div className="mt-4 flex flex-col gap-3 border-t border-black/5 pt-4 sm:flex-row sm:items-center sm:justify-between">
+            <button type="button" onClick={localiser} disabled={locating} className="flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-emerald-50 px-4 text-sm font-black text-emerald-700 ring-1 ring-emerald-200 disabled:opacity-60">{locating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Navigation className="h-4 w-4" />}{position ? "Position détectée" : "Utiliser ma position"}</button>
+            <div className="relative">
+              <button type="button" onClick={() => setShowRayons((open) => !open)} className="flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl border border-black/10 px-4 text-sm font-bold sm:w-auto">Rayon : {rayon} km <ChevronDown className="h-4 w-4" /></button>
+              {showRayons && <div className="absolute right-0 top-full z-30 mt-2 grid w-full grid-cols-3 gap-1 rounded-2xl border border-black/10 bg-white p-2 shadow-xl sm:w-64">{RAYONS.map((r) => <button type="button" key={r} onClick={() => { setRayon(r); setShowRayons(false); }} className={`rounded-xl px-2 py-2 text-xs font-bold ${rayon === r ? "bg-[#D4AF37] text-[#111]" : "hover:bg-black/5"}`}>{r} km</button>)}</div>}
+            </div>
           </div>
+          {geoError && <p className="mt-3 rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-800">{geoError}</p>}
+        </section>
 
-          {/* Carte placeholder */}
-          <div className="mx-4 mt-3 rounded-xl bg-[#E5E7EB] border border-[#D4D4D4] h-[150px] flex items-center justify-center overflow-hidden relative">
-            <div className="absolute inset-0 bg-gradient-to-br from-green-100 to-blue-100 opacity-50" />
-            <div className="relative text-center">
-              <MapPin size={24} className="text-[#D4AF37] mx-auto mb-1" />
-              <p className="text-xs font-bold text-[#111]">Carte interactive</p>
-              <p className="text-[8px] text-[#6B7280]">Véhicules · Garages · Agences · Partenaires</p>
-            </div>
-            {/* Marqueurs simulés */}
-            <div className="absolute top-4 left-8"><MapPin size={12} className="text-red-500" /></div>
-            <div className="absolute top-12 right-12"><MapPin size={12} className="text-blue-500" /></div>
-            <div className="absolute bottom-8 left-16"><MapPin size={12} className="text-green-500" /></div>
-            <div className="absolute bottom-4 right-8"><MapPin size={12} className="text-[#D4AF37]" /></div>
-          </div>
+        <nav className="mt-6 flex snap-x gap-2 overflow-x-auto pb-2" aria-label="Type de recherche">{TYPES_RECHERCHE.map(({ label, icon: Icon }) => <button type="button" key={label} onClick={() => setTypeActif(label)} className={`flex min-h-11 shrink-0 snap-start items-center gap-2 rounded-full px-5 text-sm font-bold transition ${typeActif === label ? "bg-[#0A1630] text-white shadow-lg" : "border border-black/10 bg-white text-black/60"}`}><Icon className="h-4 w-4" />{label}</button>)}</nav>
 
-          {/* Résultats triés par distance */}
-          <div className="px-4 mt-4">
-            <div className="flex items-center justify-between mb-2">
-              <h2 className="text-sm font-bold text-[#111]">{RESULTATS_DEMO.length} résultats dans un rayon de {rayon}</h2>
-            </div>
-            <p className="text-[9px] text-[#6B7280] mb-3">Tri : Distance → Récent → Qualité → Vérifié → Premium</p>
-            <div className="space-y-2">
-              {RESULTATS_DEMO.map(r => (
-                <div key={r.id} className="rounded-xl bg-white border border-[#E5E7EB] overflow-hidden shadow-sm">
-                  <div className="flex">
-                    <img src={r.photo} alt={r.nom} className="w-[120px] h-[90px] object-cover" loading="lazy" />
-                    <div className="flex-1 p-2.5">
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <p className="text-xs font-bold text-[#111] leading-tight">{r.nom}</p>
-                          <p className="text-[9px] text-[#6B7280]">{r.annee} · {r.km.toLocaleString("fr-FR")} km</p>
-                        </div>
-                        <span className={`text-[7px] font-black px-1.5 py-0.5 rounded-full text-white ${BADGE_COLORS[r.badge] || "bg-gray-400"}`}>{r.badge}</span>
-                      </div>
-                      <div className="mt-1.5 flex items-center justify-between">
-                        <p className="text-sm font-black text-[#D4AF37]">{r.prix.toLocaleString("fr-FR")} €</p>
-                        <span className="flex items-center gap-0.5 text-[9px] font-bold text-blue-600"><MapPin size={10} /> {r.distance} km — {r.ville}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </>
-      )}
+        {typeActif === "Garages" ? (
+          <section className="mt-6 overflow-hidden rounded-[28px] bg-[#0A1630] p-6 text-white sm:p-10"><Wrench className="h-9 w-9 text-[#D4AF37]" /><h2 className="mt-4 text-2xl font-black">Ateliers et professionnels près de vous</h2><p className="mt-2 max-w-2xl text-white/65">Accédez à l’annuaire local réel, avec distance lorsque le professionnel a renseigné ses coordonnées.</p><Link to="/pres-de-moi?service=garage" className="mt-6 inline-flex rounded-xl bg-[#D4AF37] px-5 py-3 text-sm font-black text-[#111]">Rechercher un garage</Link></section>
+        ) : (
+          <section className="mt-7">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between"><div><p className="text-xs font-black uppercase tracking-[.2em] text-[#B18B08]">Stock publié</p><h2 className="mt-1 text-2xl font-black">{annonces.isLoading ? "Recherche en cours…" : `${resultats.length} annonce${resultats.length === 1 ? "" : "s"} disponible${resultats.length === 1 ? "" : "s"}`}</h2></div><p className="text-xs text-black/45">Distance réelle uniquement quand l’annonce possède des coordonnées.</p></div>
+            {annonces.isLoading ? <div className="mt-6 flex min-h-48 items-center justify-center rounded-3xl bg-white"><Loader2 className="h-7 w-7 animate-spin text-[#D4AF37]" /></div> : resultats.length ? <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">{resultats.map(({ annonce, distance }) => {
+              const vehicle: VehicleCardData = { ...annonce, createdAt: annonce.createdAt ? new Date(annonce.createdAt).toISOString() : null };
+              return <div key={annonce.id} className="relative"><VehicleCard v={vehicle} />{distance !== null && <span className="absolute right-3 top-3 z-10 rounded-full bg-white/95 px-2.5 py-1 text-[10px] font-black text-[#0A1630] shadow"><MapPin className="mr-1 inline h-3 w-3 text-[#D4AF37]" />{distance} km</span>}</div>;
+            })}</div> : <div className="mt-6 rounded-[28px] border border-black/5 bg-white p-8 text-center shadow-sm"><Car className="mx-auto h-10 w-10 text-[#D4AF37]" /><h3 className="mt-4 text-lg font-black">Aucune annonce pour ces critères</h3><p className="mt-2 text-sm text-black/50">Élargissez le rayon ou consultez tout le catalogue de la plateforme.</p><Link to="/acheter" className="mt-5 inline-flex rounded-xl bg-[#0A1630] px-5 py-3 text-sm font-black text-white">Voir tous les véhicules</Link></div>}
+          </section>
+        )}
+
+        <section className="mt-10 grid gap-4 rounded-[28px] border border-black/5 bg-white p-6 sm:grid-cols-3 sm:p-8"><div><ShieldCheck className="h-6 w-6 text-emerald-600" /><h3 className="mt-3 font-black">Annonces réelles</h3><p className="mt-1 text-sm text-black/50">Aucun véhicule fictif n’est ajouté aux résultats.</p></div><div><Navigation className="h-6 w-6 text-[#D4AF37]" /><h3 className="mt-3 font-black">Proximité transparente</h3><p className="mt-1 text-sm text-black/50">Une distance n’est affichée que lorsqu’elle peut être calculée.</p></div><div><Car className="h-6 w-6 text-blue-600" /><h3 className="mt-3 font-black">Tout l’écosystème</h3><p className="mt-1 text-sm text-black/50">Vente, location, motos, utilitaires et garages au même endroit.</p></div></section>
+      </main>
     </div>
   );
 }
