@@ -51,6 +51,7 @@ const AvisPro = lazy(() => import("./pages/pro/AvisPro"));
 const Admin = lazy(() => import("./pages/Admin"));
 const Univers = lazy(() => import("./pages/Univers"));
 const Pieces = lazy(() => import("./pages/Pieces"));
+const PiecesProduit = lazy(() => import("./pages/PiecesProduit"));
 const Livraison = lazy(() => import("./pages/Livraison"));
 const Depannage = lazy(() => import("./pages/Depannage"));
 const VtcTaxi = lazy(() => import("./pages/VtcTaxi"));
@@ -1005,6 +1006,7 @@ export default function App() {
             <Route path="/garage-plus" element={<U name="Garage+"><GaragePlus /></U>} />
             <Route path="/univers" element={<U name="Univers"><Univers /></U>} />
             <Route path="/pieces" element={<U name="Pièces Auto"><Pieces /></U>} />
+            <Route path="/pieces/produit/:id" element={<U name="Fiche pièce"><PiecesProduit /></U>} />
             <Route path="/pieces/commande/:id" element={<U name="Paiement"><PiecesCommande /></U>} />
             <Route path="/livraison" element={<U name="Livraison"><Livraison /></U>} />
             <Route path="/depannage" element={<U name="Dépannage"><Depannage /></U>} />
