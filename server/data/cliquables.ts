@@ -40,7 +40,7 @@ export interface AnomalieCliquable {
   readonly motif: MotifAnomalie;
 }
 
-export const CLIQUABLES_TOTAL = 2651;
+export const CLIQUABLES_TOTAL = 2687;
 
 export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/components/AccessDenied.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
@@ -558,7 +558,7 @@ export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/pages/partenaires/SuspensionPartenaires.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/PartenairesPilotage.tsx", total: 6, moteur: 0, liens: 0, boutonsLocaux: 6, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/PermissionEngine/ControlCenter.tsx", total: 4, moteur: 0, liens: 1, boutonsLocaux: 3, sansAction: 0, zones: 0 },
-  { fichier: "client/src/pages/Pieces.tsx", total: 22, moteur: 0, liens: 0, boutonsLocaux: 19, sansAction: 0, zones: 3 },
+  { fichier: "client/src/pages/Pieces.tsx", total: 44, moteur: 0, liens: 0, boutonsLocaux: 41, sansAction: 0, zones: 3 },
   { fichier: "client/src/pages/pieces/AbonnementsProPieces.tsx", total: 2, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 1, zones: 0 },
   { fichier: "client/src/pages/pieces/AvisProduitsPieces.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/pieces/FournisseursPieces.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
@@ -581,7 +581,7 @@ export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/pages/pieces/VendeursPieces.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/pieces/VerificationCompatibilite.tsx", total: 2, moteur: 0, liens: 1, boutonsLocaux: 1, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/PiecesCommande.tsx", total: 3, moteur: 0, liens: 0, boutonsLocaux: 3, sansAction: 0, zones: 0 },
-  { fichier: "client/src/pages/PiecesProduit.tsx", total: 11, moteur: 0, liens: 6, boutonsLocaux: 4, sansAction: 1, zones: 0 },
+  { fichier: "client/src/pages/PiecesProduit.tsx", total: 25, moteur: 0, liens: 20, boutonsLocaux: 5, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/PresDeMoi.tsx", total: 1, moteur: 0, liens: 0, boutonsLocaux: 1, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/pro/AvisPro.tsx", total: 3, moteur: 0, liens: 2, boutonsLocaux: 1, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/pro/DossierPro.tsx", total: 5, moteur: 0, liens: 1, boutonsLocaux: 4, sansAction: 0, zones: 0 },
@@ -777,7 +777,6 @@ export const CLIQUABLES_ANOMALIES: readonly AnomalieCliquable[] = [
   { fichier: "client/src/pages/pieces/MontageGarage.tsx", ligne: 13, genre: "bouton", libelle: "Réserver le montage", motif: "sans_action" },
   { fichier: "client/src/pages/pieces/PanierPiecesDetachees.tsx", ligne: 16, genre: "bouton", libelle: "Commander", motif: "sans_action" },
   { fichier: "client/src/pages/pieces/RechercheIntelligentePieces.tsx", ligne: 10, genre: "bouton", libelle: "Rechercher", motif: "sans_action" },
-  { fichier: "client/src/pages/PiecesProduit.tsx", ligne: 27, genre: "bouton", libelle: "Ajouter aux favoris", motif: "sans_action" },
   { fichier: "client/src/pages/ProduitVtcTaxi.tsx", ligne: 493, genre: "bouton", libelle: "Télécharger", motif: "sans_action" },
   { fichier: "client/src/pages/ProgrammeVTC.tsx", ligne: 85, genre: "bouton", libelle: "Voir le véhicule", motif: "sans_action" },
   { fichier: "client/src/pages/RemplacementVehicule.tsx", ligne: 65, genre: "bouton", libelle: "+ Ajouter des photos", motif: "sans_action" },

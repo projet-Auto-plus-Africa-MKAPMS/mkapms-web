@@ -4,6 +4,7 @@ import {
   MapPin, Phone, Package, Search, Filter, ShoppingCart, ChevronDown, ChevronUp,
   Car, Tag, Truck, CheckCircle, Store, Plus, Minus, X, Warehouse,
   Clock, MapPinned, Bell, ClipboardList, CreditCard, XCircle, HelpCircle,
+  Heart, Barcode, Wrench, CircleHelp, ShieldCheck,
 } from "lucide-react";
 import { trpc } from "../lib/trpc";
 import { useAuth } from "../lib/auth";
@@ -23,10 +24,11 @@ const LIVRAISON_LABELS: Record<string, string> = {
   moto: "🏍️ Moto", scooter: "🛵 Scooter", utilitaire: "🚐 Utilitaire", fourgon: "🚛 Fourgon", camion: "🚚 Camion",
 };
 const VEHICLES = [
-  { label: "Voiture", icon: "🚗", type: "voiture" }, { label: "Utilitaire", icon: "🚐", type: "utilitaire" },
-  { label: "Camion", icon: "🚚", type: "utilitaire" }, { label: "Moto", icon: "🏍️", type: "moto" },
-  { label: "Scooter", icon: "🛵", type: "moto" }, { label: "Tracteur", icon: "🚜", type: "agricole" },
-  { label: "Engin de chantier", icon: "🏗️", type: "engin_chantier" }, { label: "Bateau", icon: "🛥️", type: "bateau" },
+  { label: "Voiture", icon: "🚗", type: "voiture", image: "/categories/vente_sportive.jpg" }, { label: "Utilitaire", icon: "🚐", type: "utilitaire", image: "/categories/utilitaire.jpg" },
+  { label: "Camion", icon: "🚚", type: "utilitaire", image: "/categories/camion_fourgon.jpg" }, { label: "Moto", icon: "🏍️", type: "moto", image: "/categories/moto_touring.jpg" },
+  { label: "Scooter", icon: "🛵", type: "moto", image: "/categories/moto_scooter.jpg" }, { label: "Tracteur", icon: "🚜", type: "agricole", image: "/categories/engin_tracteur.jpg" },
+  { label: "Engin de chantier", icon: "🏗️", type: "engin_chantier", image: "/categories/engin_minipelle.jpg" }, { label: "Bateau", icon: "🛥️", type: "bateau", image: undefined },
+  { label: "Électrique", icon: "⚡", type: "electrique", image: "/categories/pro_electrique_vente.jpg" },
 ] as const;
 
 type CartItem = { catalogId: number; nom: string; prixHt: number; currency: string; quantite: number; shopId: number };
@@ -37,13 +39,16 @@ export default function Pieces() {
   const [searchParams] = useSearchParams();
   const signaler = useReportNavigation();
   const [q, setQ] = useState("");
-  const [typeVehicule, setTypeVehicule] = useState<"" | "voiture" | "utilitaire" | "moto" | "agricole" | "engin_chantier" | "bateau">("");
+  const [typeVehicule, setTypeVehicule] = useState<"" | "voiture" | "utilitaire" | "moto" | "agricole" | "engin_chantier" | "bateau" | "electrique">("");
   const [categorie, setCategorie] = useState("");
   const [sousCategorie, setSousCategorie] = useState("");
   const [condition, setCondition] = useState("");
   const [marqueVehicule, setMarqueVehicule] = useState("");
   const [modeleVehicule, setModeleVehicule] = useState("");
   const [anneeVehicule, setAnneeVehicule] = useState("");
+  const [identification, setIdentification] = useState<"immatriculation" | "vin" | "modele">("immatriculation");
+  const [immatriculation, setImmatriculation] = useState(() => searchParams.get("plaque") ?? "");
+  const [vin, setVin] = useState(() => searchParams.get("vin") ?? "");
   const [showFilters, setShowFilters] = useState(false);
   const [showVehicleSearch, setShowVehicleSearch] = useState(false);
   const [cart, setCart] = useState<CartItem[]>(() => readPiecesCart());
@@ -207,16 +212,15 @@ export default function Pieces() {
   const selectedCat = PARTS_CATEGORIES.find(c => c.label === categorie);
 
   return (
-    <div className="container-page py-8">
+    <div className="container-page max-w-7xl bg-white py-4 sm:py-6">
       {/* Header */}
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-extrabold text-noir">Boutique Pièces Auto</h1>
-          <p className="mt-1 text-sm text-slate-500">
-            Marketplace professionnelle — références OEM, équipementier, compatibilité véhicule.
-          </p>
-        </div>
-        <button onClick={() => setShowCart(!showCart)} className="btn-gold relative flex items-center gap-2">
+      <div className="flex items-center justify-between gap-3 border-b border-slate-100 pb-3">
+        <button type="button" onClick={() => { setTab("catalogue"); setCategorie(""); }} className="shrink-0" aria-label="Accueil pièces">
+          <img src="/brand/wordmark.png" alt="MKA.P-MS" className="h-9 w-auto object-contain sm:h-11" />
+        </button>
+        <div className="flex items-center gap-2">
+          <span className="hidden rounded-lg border border-slate-200 px-2 py-1 text-xs font-semibold text-slate-600 sm:inline">🇫🇷 FR</span>
+          <button onClick={() => setShowCart(!showCart)} className="btn-gold relative flex items-center gap-2 !px-3 !py-2 text-sm">
             <ShoppingCart size={18} />
             Panier
             {cartCount > 0 && (
@@ -225,10 +229,11 @@ export default function Pieces() {
               </span>
             )}
           </button>
+        </div>
       </div>
 
       {/* Tabs */}
-      <div className="mt-6 flex gap-1 overflow-x-auto rounded-lg bg-slate-100 p-1">
+      <div className="mt-3 flex gap-1 overflow-x-auto rounded-lg border border-slate-100 bg-slate-50 p-1">
         {([
           { key: "catalogue", icon: Package, label: "Catalogue" },
           { key: "boutiques", icon: Store, label: "Boutique" },
@@ -242,7 +247,7 @@ export default function Pieces() {
               return;
             }
             setTab(t.key);
-          }} className={`flex shrink-0 items-center gap-1.5 rounded-md px-4 py-2 text-sm font-semibold transition ${tab === t.key ? "bg-gold text-noir shadow" : "text-slate-500 hover:text-slate-700"}`}>
+          }} className={`flex min-w-max flex-1 shrink-0 items-center justify-center gap-1.5 rounded-md px-4 py-2.5 text-sm font-bold transition ${tab === t.key ? "bg-[#0d7391] text-white shadow" : "text-slate-600 hover:bg-white hover:text-slate-900"}`}>
             <t.icon size={16} /> {t.label}
           </button>
         ))}
@@ -385,31 +390,35 @@ export default function Pieces() {
       {/* CATALOGUE TAB */}
       {tab === "catalogue" && (
         <>
-          <section className="mt-6 overflow-hidden rounded-2xl bg-gradient-to-br from-slate-950 via-slate-800 to-[#0f6f86] p-5 text-white shadow-lg md:p-7">
-            <p className="text-xs font-bold uppercase tracking-[.16em] text-gold-soft">Catalogue de pièces</p>
-            <div className="mt-2 flex flex-wrap items-end justify-between gap-4"><div><h2 className="text-2xl font-extrabold">Trouvez la pièce compatible</h2><p className="mt-1 text-sm text-slate-200">Plaque d’immatriculation, VIN/châssis ou recherche par référence OEM.</p></div><button onClick={() => setShowVehicleSearch(true)} className="rounded-lg bg-gold px-4 py-3 text-sm font-bold text-noir">Identifier mon véhicule</button></div>
+          <section className="mt-5">
+            <h1 className="text-2xl font-extrabold tracking-tight text-slate-950 sm:text-3xl">Catalogue de pièces</h1>
+            <p className="mt-1 text-sm text-slate-500">Pièces détachées automobile, moto et véhicules spécialisés.</p>
+            <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-8">
+              {VEHICLES.map(v => <button key={v.label} onClick={() => setTypeVehicule(v.type === typeVehicule ? "" : v.type)} className={`group overflow-hidden rounded-lg border bg-white text-center shadow-sm transition ${typeVehicule === v.type ? "border-[#0d7391] ring-2 ring-[#0d7391]/15" : "border-slate-200 hover:border-[#0d7391]/50"}`}>
+                {v.image ? <img src={v.image} alt="" className="h-14 w-full object-cover sm:h-16" /> : <div className="grid h-14 place-items-center bg-sky-50 text-3xl sm:h-16" aria-hidden="true">{v.icon}</div>}
+                <span className="flex items-center justify-center gap-1 px-1 py-1.5 text-xs font-bold text-slate-800">{v.icon} {v.label}</span>
+              </button>)}
+            </div>
           </section>
-          {/* Vehicle type selector */}
-          <div className="mt-5 flex gap-2 overflow-x-auto pb-1">
-            <button
-              onClick={() => setTypeVehicule("")}
-              className={`rounded-lg border-2 px-3 py-2 text-xs font-semibold transition ${typeVehicule === "" ? "border-gold bg-gold-soft text-gold-dark" : "border-slate-200 text-slate-500 hover:border-gold/40"}`}
-            >
-              Tous véhicules
-            </button>
-            {VEHICLES.map(v => (
-              <button
-                key={v.label}
-                onClick={() => setTypeVehicule(v.type === typeVehicule ? "" : v.type)}
-                className={`shrink-0 rounded-lg border-2 px-3 py-2 text-xs font-semibold transition ${typeVehicule === v.type ? "border-gold bg-gold-soft text-gold-dark" : "border-slate-200 text-slate-500 hover:border-gold/40"}`}
-              >
-                {v.icon} {v.label}
-              </button>
-            ))}
-          </div>
+
+          <section className="mt-4 overflow-hidden rounded-xl border border-[#d4af37]/30 bg-[#fffdf7] shadow-sm">
+            <div className="flex items-center gap-2 bg-[#f7f2e5] px-4 py-3"><Car className="text-[#0d7391]" size={22}/><div><h2 className="font-extrabold text-slate-950">Identifier mon véhicule</h2><p className="text-xs text-slate-500">Trouvez les pièces parfaitement compatibles avec votre véhicule.</p></div></div>
+            <div className="grid grid-cols-3 border-b border-slate-200 bg-white text-sm font-bold">
+              {([['immatriculation', 'Immatriculation', Car], ['vin', 'VIN / châssis', Barcode], ['modele', 'Par modèle', Wrench]] as const).map(([key,label,Icon]) => <button key={key} onClick={() => setIdentification(key)} className={`flex items-center justify-center gap-1.5 px-2 py-2.5 ${identification===key ? 'bg-[#426f95] text-white' : 'text-slate-600 hover:bg-slate-50'}`}><Icon size={16}/><span className="hidden sm:inline">{label}</span><span className="sm:hidden">{key==='immatriculation'?'Plaque':key==='vin'?'VIN':'Modèle'}</span></button>)}
+            </div>
+            <div className="grid gap-2 p-3 sm:grid-cols-[.8fr_1fr_1.1fr_auto]">
+              <select aria-label="Pays de l'immatriculation" className="input !py-2" defaultValue="FR"><option value="FR">🇫🇷 France</option></select>
+              {identification === 'immatriculation' && <input className="input !py-2" value={immatriculation} onChange={e=>setImmatriculation(e.target.value.toUpperCase())} placeholder="AA-123-AA" />}
+              {identification === 'vin' && <input className="input !py-2 sm:col-span-2" value={vin} onChange={e=>setVin(e.target.value.toUpperCase())} placeholder="Saisir le numéro VIN / châssis" />}
+              {identification === 'modele' && <><input className="input !py-2" value={marqueVehicule} onChange={e=>setMarqueVehicule(e.target.value)} placeholder="Marque"/><input className="input !py-2" value={modeleVehicule} onChange={e=>setModeleVehicule(e.target.value)} placeholder="Modèle et motorisation"/></>}
+              {identification === 'immatriculation' && <input className="input !py-2" value={vin} onChange={e=>setVin(e.target.value.toUpperCase())} placeholder="VIN / châssis (facultatif)" />}
+              <button onClick={() => { setShowVehicleSearch(true); void catalog.refetch(); }} className="btn-gold flex items-center justify-center gap-2 !py-2"><Search size={17}/> Trouver</button>
+            </div>
+            <div className="flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 px-4 py-2 text-xs"><button onClick={() => { setIdentification('modele'); setShowVehicleSearch(true); }} className="font-semibold text-[#0d7391]">⚙️ Choisir par marque, modèle et motorisation</button><span className="text-slate-500">🚚 Bateau : moteur ou numéro de série</span></div>
+          </section>
 
           {/* Search bar */}
-          <div className="mt-6 flex flex-wrap gap-3">
+          <div className="mt-4 flex flex-wrap gap-2">
             <div className="relative flex-1">
               <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
@@ -420,7 +429,7 @@ export default function Pieces() {
                 onKeyDown={(e) => e.key === "Enter" && catalog.refetch()}
               />
             </div>
-            <button onClick={() => catalog.refetch()} className="btn-primary flex items-center gap-1.5">
+            <button onClick={() => catalog.refetch()} className="btn-gold flex items-center gap-1.5">
               <Search size={16} /> Rechercher
             </button>
             <button onClick={() => setShowFilters(!showFilters)} className="btn-outline flex items-center gap-1.5">
@@ -549,12 +558,19 @@ export default function Pieces() {
       {/* BOUTIQUES TAB */}
       {tab === "boutiques" && (
         <>
-          <section className="mt-6 rounded-2xl bg-gradient-to-r from-[#16325c] to-[#147c91] p-6 text-white"><p className="text-xs font-bold uppercase tracking-[.16em] text-gold-soft">Boutique de pièces</p><h2 className="mt-2 text-2xl font-extrabold">Pièces automobiles et moto, en détail</h2><p className="mt-2 max-w-2xl text-sm text-slate-100">Freinage, filtration, moteur, électricité, carrosserie et consommables multi-véhicules. Sans articles hors univers Pièces.</p><button onClick={() => setTab("catalogue")} className="mt-4 rounded-lg bg-gold px-4 py-2.5 text-sm font-bold text-noir">Rechercher une pièce</button></section>
-          <h2 className="mt-6 text-lg font-bold text-slate-800"><Package size={20} className="mr-1.5 inline text-gold-dark" /> Sélection de pièces</h2>
-          <div className="mt-3 flex snap-x gap-3 overflow-x-auto pb-2">
-            {catalog.data?.items.slice(0, 8).map((p) => <button key={p.id} onClick={() => navigate(`/pieces/produit/${p.id}`)} className="card w-56 shrink-0 snap-start p-3 text-left hover:border-gold"><div className="grid h-24 place-items-center rounded-lg bg-slate-100 text-slate-400">{p.photoUrl ? <img src={p.photoUrl} alt="" className="h-full w-full object-contain"/> : <Package size={30}/>}</div><p className="mt-2 line-clamp-2 text-sm font-bold text-slate-800">{p.nom}</p><p className="mt-1 font-extrabold text-gold-dark">{Number(p.prixHt).toLocaleString("fr-FR")} {p.currency}</p><span className="mt-2 inline-block text-xs font-semibold text-[#147c91]">Voir les détails →</span></button>)}
-          </div>
-          <p className="mt-4 text-xs text-slate-500">Les prix, stocks et visuels affichés proviennent des vendeurs. Les consommables (balais, ampoules, durites, lave-glace, gants et produits techniques) restent identifiés comme multi-véhicules.</p>
+          <section className="mt-5">
+            <h1 className="text-2xl font-extrabold tracking-tight text-slate-950 sm:text-3xl">Boutique de pièces</h1>
+            <p className="mt-1 text-sm text-slate-500">Pièces automobiles, moto et véhicules spécialisés.</p>
+            <div className="mt-4 flex gap-2 overflow-x-auto pb-1">
+              <div className="relative min-w-[240px] flex-1"><Search size={17} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"/><input className="input !py-2 pl-10" value={q} onChange={e=>setQ(e.target.value)} onKeyDown={e=>e.key==='Enter'&&catalog.refetch()} placeholder="Pièce, référence OEM, marque ou dimensions"/></div><button onClick={()=>catalog.refetch()} className="btn-gold !py-2"><Search size={18}/></button>
+            </div>
+            <div className="mt-3 grid grid-cols-4 gap-2 sm:grid-cols-8">{VEHICLES.map(v=><button key={v.label} onClick={()=>{setTypeVehicule(v.type);setTab('catalogue');}} className="rounded-lg border border-slate-200 bg-white px-1 py-2 text-xs font-bold text-slate-700 hover:border-[#0d7391]"><span className="block text-lg">{v.icon}</span>{v.label}</button>)}</div>
+            <div className="mt-3 flex gap-2 overflow-x-auto pb-1"><button onClick={()=>{setCategorie('');setTab('catalogue');}} className="min-w-max rounded-lg bg-[#0d7391] px-4 py-2 text-sm font-bold text-white"><Wrench size={16} className="mr-1 inline"/>Toutes les pièces</button><button onClick={()=>{setQ('promotion');void catalog.refetch();}} className="min-w-max rounded-lg bg-slate-100 px-4 py-2 text-sm font-bold text-slate-700"><Tag size={16} className="mr-1 inline"/>Promotions</button><button onClick={()=>{setQ('');setTab('catalogue');}} className="min-w-max rounded-lg bg-slate-100 px-4 py-2 text-sm font-bold text-slate-700">✨ Nouveautés</button><button onClick={()=>setTab('catalogue')} className="min-w-max rounded-lg bg-slate-100 px-4 py-2 text-sm font-bold text-slate-700"><Warehouse size={16} className="mr-1 inline"/>En stock</button></div>
+          </section>
+          <section className="mt-6"><div className="flex items-center justify-between"><h2 className="text-xl font-extrabold text-slate-900">🏷️ Promotions sur les pièces</h2><button onClick={()=>setTab('catalogue')} className="text-sm font-bold text-[#0d7391]">Tout voir ›</button></div>
+          <div className="mt-3 flex snap-x gap-3 overflow-x-auto pb-2">{catalog.data?.items.slice(0,8).map((p)=><article key={p.id} className="w-64 shrink-0 snap-start rounded-xl border border-slate-200 bg-white p-3 shadow-sm"><div className="relative grid h-28 place-items-center overflow-hidden rounded-lg bg-slate-50">{p.photoUrl?<img src={p.photoUrl} alt={p.nom} className="h-full w-full object-contain"/>:<Package size={36} className="text-slate-300"/>}<span className="absolute left-2 top-2 rounded bg-[#bd6c1a] px-2 py-1 text-xs font-black text-white">-10 %</span><Heart size={17} className="absolute right-2 top-2 text-[#0d7391]"/></div><h3 className="mt-2 line-clamp-2 text-sm font-extrabold text-slate-900">{p.nom}</h3><p className="mt-1 text-xs text-slate-500">Réf. OEM {p.referenceOem ?? p.referenceInterne}</p><div className="mt-2 flex items-center justify-between"><p className="text-lg font-black text-slate-900">{Number(p.prixTtc??p.prixHt).toLocaleString('fr-FR')} €</p><button onClick={()=>navigate(`/pieces/produit/${p.id}`)} className="btn-gold !px-3 !py-2 text-xs">Voir les détails</button></div></article>)}</div></section>
+          <section className="mt-6"><div className="flex items-center justify-between"><h2 className="text-xl font-extrabold text-slate-900">✨ Nouveautés</h2><button onClick={()=>setTab('catalogue')} className="text-sm font-bold text-[#0d7391]">Tout voir ›</button></div><div className="mt-3 flex snap-x gap-3 overflow-x-auto pb-2">{catalog.data?.items.slice(0,8).map((p)=><button key={p.id} onClick={()=>navigate(`/pieces/produit/${p.id}`)} className="w-48 shrink-0 snap-start rounded-xl border border-slate-200 bg-white p-3 text-left shadow-sm hover:border-[#0d7391]"><div className="grid h-20 place-items-center rounded-lg bg-slate-50">{p.photoUrl?<img src={p.photoUrl} alt="" className="h-full w-full object-contain"/>:<Package className="text-slate-300"/>}</div><p className="mt-2 line-clamp-2 text-sm font-bold">{p.nom}</p><p className="mt-1 font-extrabold text-slate-900">{Number(p.prixHt).toLocaleString('fr-FR')} €</p><span className="mt-1 block text-xs font-bold text-emerald-600">● En stock</span></button>)}</div></section>
+          <p className="mt-5 rounded-lg bg-[#edf5fa] p-3 text-xs text-slate-600"><CircleHelp size={16} className="mr-1 inline text-[#0d7391]"/>Comparez la référence, les dimensions et le montage avant de commander. Une pièce peut convenir à plusieurs véhicules.</p>
           <h2 className="mt-7 text-lg font-bold text-slate-800"><Store size={20} className="mr-1.5 inline text-gold-dark" /> Boutiques partenaires</h2>
           <div className="mt-4 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {shops.data?.items.map((s) => (
@@ -689,6 +705,21 @@ export default function Pieces() {
           </div>
         </>
       )}
+
+      <section className="mt-10 grid gap-2 border-y border-slate-100 py-4 sm:grid-cols-3">
+        <button onClick={() => navigate('/livraison')} className="flex items-center gap-3 rounded-lg p-3 text-left hover:bg-slate-50"><Truck className="text-[#0d7391]"/><span><b className="block text-sm text-slate-900">Livraison suivie</b><small className="text-slate-500">Choix du mode et suivi après commande</small></span></button>
+        <button onClick={() => setTab('commandes')} className="flex items-center gap-3 rounded-lg p-3 text-left hover:bg-slate-50"><ShieldCheck className="text-[#0d7391]"/><span><b className="block text-sm text-slate-900">Paiement sécurisé</b><small className="text-slate-500">Commande, facture et statut accessibles</small></span></button>
+        <button onClick={() => navigate('/aide')} className="flex items-center gap-3 rounded-lg p-3 text-left hover:bg-slate-50"><CircleHelp className="text-[#0d7391]"/><span><b className="block text-sm text-slate-900">Besoin d’aide ?</b><small className="text-slate-500">Assistance et informations techniques</small></span></button>
+      </section>
+      <footer className="mt-6 rounded-xl bg-slate-950 px-5 py-7 text-slate-300 sm:px-8">
+        <div className="grid gap-7 sm:grid-cols-2 lg:grid-cols-4">
+          <div><img src="/brand/wordmark.png" alt="MKA.P-MS" className="h-9 w-auto brightness-0 invert"/><p className="mt-3 text-sm leading-6 text-slate-400">Pièces, services automobiles et suivi de commande au sein de la plateforme principale MKA.P‑MS.</p></div>
+          <div><h2 className="font-bold text-white">Mes achats</h2><div className="mt-3 grid gap-2 text-sm"><button onClick={()=>setTab('commandes')} className="text-left hover:text-white">Mes commandes</button><button onClick={()=>setTab('suivi')} className="text-left hover:text-white">Suivi de mes services</button><button onClick={()=>setShowCart(true)} className="text-left hover:text-white">Mon panier</button><button onClick={()=>navigate('/pieces/retours-pieces')} className="text-left hover:text-white">Retours et garanties</button></div></div>
+          <div><h2 className="font-bold text-white">Pièces & services</h2><div className="mt-3 grid gap-2 text-sm"><button onClick={()=>setTab('catalogue')} className="text-left hover:text-white">Catalogue de pièces</button><button onClick={()=>setTab('boutiques')} className="text-left hover:text-white">Boutiques partenaires</button><button onClick={()=>navigate('/livraison')} className="text-left hover:text-white">Livraison</button><button onClick={()=>navigate('/aide')} className="text-left hover:text-white">Aide et compatibilité</button></div></div>
+          <div><h2 className="font-bold text-white">MKA.P‑MS</h2><div className="mt-3 grid gap-2 text-sm"><a href="https://www.mkapms.fr" className="hover:text-white">Plateforme principale</a><button onClick={()=>navigate('/aide')} className="text-left hover:text-white">Contact et assistance</button><button onClick={()=>navigate('/aide')} className="text-left hover:text-white">Informations légales</button><button onClick={()=>navigate('/confidentialite')} className="text-left hover:text-white">Confidentialité</button></div></div>
+        </div>
+        <div className="mt-7 flex flex-wrap items-center justify-between gap-3 border-t border-white/10 pt-4 text-xs text-slate-500"><span>© {new Date().getFullYear()} MKA.P‑MS · Plateforme principale</span><span>Les références, dimensions et compatibilités doivent être vérifiées avant montage.</span></div>
+      </footer>
 
       {/* Part detail modal — remplacé par la route dédiée /pieces/produit/:id */}
       {false && (

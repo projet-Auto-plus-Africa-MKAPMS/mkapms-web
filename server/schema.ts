@@ -639,7 +639,7 @@ export const partsInvoiceStatusEnum = pgEnum("parts_invoice_status", [
 // automobile (compatibilité marque/modèle/moteur), aucune pièce réelle n'était
 // déclarée pour un autre type avant ce lot.
 export const partsVehicleTypeEnum = pgEnum("parts_vehicle_type", [
-  "voiture", "utilitaire", "moto", "agricole", "engin_chantier", "bateau",
+  "voiture", "utilitaire", "moto", "agricole", "engin_chantier", "bateau", "electrique",
 ]);
 
 export const partsShops = pgTable("parts_shops", {
