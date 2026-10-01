@@ -114,6 +114,7 @@ export const piecesRouter = router({
     .input(
       z.object({
         shopId: z.number().optional(),
+        country: z.string().length(2).optional(),
         q: z.string().optional(),
         categorie: z.string().optional(),
         condition: z.enum(["neuf", "occasion", "reconditionne", "echange_standard"]).optional(),
@@ -127,6 +128,13 @@ export const piecesRouter = router({
     )
     .query(async ({ input }) => {
       const conds = [eq(partsCatalog.active, true)];
+      if (input.country) {
+        const shops = await db.select({ id: partsShops.id }).from(partsShops)
+          .where(and(eq(partsShops.active, true), eq(partsShops.countryCode, input.country)));
+        const shopIds = shops.map((shop) => shop.id);
+        if (shopIds.length === 0) return { total: 0, items: [] };
+        conds.push(inArray(partsCatalog.shopId, shopIds));
+      }
       if (input.shopId) conds.push(eq(partsCatalog.shopId, input.shopId));
       if (input.categorie) conds.push(eq(partsCatalog.categorie, input.categorie));
       if (input.condition) conds.push(eq(partsCatalog.condition, input.condition));
