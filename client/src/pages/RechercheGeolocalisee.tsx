@@ -4,6 +4,8 @@ import { Bike, Building2, Car, ChevronDown, Loader2, MapPin, Navigation, Search,
 import MetaSEO from "../components/MetaSEO";
 import VehicleCard, { type VehicleCardData } from "../components/VehicleCard";
 import { trpc } from "../lib/trpc";
+import { useCurrency } from "../lib/currency";
+import { WORLD_COUNTRIES, countryName } from "@shared/countries";
 
 const RAYONS = [5, 10, 25, 50, 100, 250];
 const TYPES_RECHERCHE = [
@@ -27,6 +29,7 @@ function distanceKm(a: { latitude: number; longitude: number }, latitude: unknow
 }
 
 export default function RechercheGeolocalisee() {
+  const { country, setCountry } = useCurrency();
   const [position, setPosition] = useState<{ latitude: number; longitude: number } | null>(null);
   const [locating, setLocating] = useState(false);
   const [geoError, setGeoError] = useState("");
@@ -35,12 +38,14 @@ export default function RechercheGeolocalisee() {
   const [typeActif, setTypeActif] = useState<(typeof TYPES_RECHERCHE)[number]["label"]>("Véhicules");
   const [query, setQuery] = useState("");
   const [ville, setVille] = useState("");
-  const [applied, setApplied] = useState({ query: "", ville: "" });
+  const [selectedCountry, setSelectedCountry] = useState(country ?? "");
+  const [applied, setApplied] = useState({ query: "", ville: "", country: country ?? "" });
 
   const annonces = trpc.annonces.list.useQuery({
     type: typeActif === "Location" ? "location" : "vente",
     q: applied.query.trim() || undefined,
     ville: applied.ville.trim() || undefined,
+    pays: applied.country || undefined,
     famille: typeActif === "Motos" ? "moto" : undefined,
     categorie: typeActif === "Utilitaires" ? "utilitaire" : undefined,
     limit: 100,
@@ -74,7 +79,8 @@ export default function RechercheGeolocalisee() {
   }
 
   function rechercher() {
-    setApplied({ query: query.trim(), ville: ville.trim() });
+    setCountry(selectedCountry);
+    setApplied({ query: query.trim(), ville: ville.trim(), country: selectedCountry });
   }
 
   return (
@@ -93,9 +99,10 @@ export default function RechercheGeolocalisee() {
 
       <main className="relative z-10 mx-auto -mt-12 max-w-6xl px-4 sm:px-6">
         <section className="rounded-[28px] border border-black/5 bg-white p-4 shadow-[0_24px_70px_rgba(15,23,42,.14)] sm:p-6">
-          <div className="grid gap-3 lg:grid-cols-[1.2fr_.8fr_auto]">
+          <div className="grid gap-3 lg:grid-cols-[1.1fr_.75fr_.75fr_auto]">
             <label className="flex min-h-14 items-center gap-3 rounded-2xl bg-[#F3F4F6] px-4 ring-1 ring-black/5 focus-within:ring-2 focus-within:ring-[#D4AF37]"><Search className="h-5 w-5 text-black/40" /><input value={query} onChange={(e) => setQuery(e.target.value)} onKeyDown={(e) => e.key === "Enter" && rechercher()} className="w-full bg-transparent text-sm font-semibold outline-none" placeholder="Marque, modèle ou mot-clé" /></label>
             <label className="flex min-h-14 items-center gap-3 rounded-2xl bg-[#F3F4F6] px-4 ring-1 ring-black/5 focus-within:ring-2 focus-within:ring-[#D4AF37]"><MapPin className="h-5 w-5 text-black/40" /><input value={ville} onChange={(e) => setVille(e.target.value)} onKeyDown={(e) => e.key === "Enter" && rechercher()} className="w-full bg-transparent text-sm font-semibold outline-none" placeholder="Ville" /></label>
+            <label className="flex min-h-14 items-center gap-3 rounded-2xl bg-[#F3F4F6] px-4 ring-1 ring-black/5 focus-within:ring-2 focus-within:ring-[#D4AF37]"><MapPin className="h-5 w-5 text-black/40" /><select value={selectedCountry} onChange={(event) => setSelectedCountry(event.target.value)} className="w-full bg-transparent text-sm font-semibold outline-none" aria-label="Pays des annonces"><option value="">Tous les pays</option>{WORLD_COUNTRIES.map((item) => <option key={item.code} value={item.code}>{item.flag} {item.name}</option>)}</select></label>
             <button type="button" onClick={rechercher} className="min-h-14 rounded-2xl bg-[#D9B323] px-7 text-sm font-black text-[#111] shadow-lg shadow-[#D4AF37]/20 transition hover:-translate-y-0.5 hover:brightness-105">Rechercher</button>
           </div>
 
@@ -115,7 +122,7 @@ export default function RechercheGeolocalisee() {
           <section className="mt-6 overflow-hidden rounded-[28px] bg-[#0A1630] p-6 text-white sm:p-10"><Wrench className="h-9 w-9 text-[#D4AF37]" /><h2 className="mt-4 text-2xl font-black">Ateliers et professionnels près de vous</h2><p className="mt-2 max-w-2xl text-white/65">Accédez à l’annuaire local réel, avec distance lorsque le professionnel a renseigné ses coordonnées.</p><Link to="/pres-de-moi?service=garage" className="mt-6 inline-flex rounded-xl bg-[#D4AF37] px-5 py-3 text-sm font-black text-[#111]">Rechercher un garage</Link></section>
         ) : (
           <section className="mt-7">
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between"><div><p className="text-xs font-black uppercase tracking-[.2em] text-[#B18B08]">Stock publié</p><h2 className="mt-1 text-2xl font-black">{annonces.isLoading ? "Recherche en cours…" : `${resultats.length} annonce${resultats.length === 1 ? "" : "s"} disponible${resultats.length === 1 ? "" : "s"}`}</h2></div><p className="text-xs text-black/45">Distance réelle uniquement quand l’annonce possède des coordonnées.</p></div>
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between"><div><p className="text-xs font-black uppercase tracking-[.2em] text-[#B18B08]">{applied.country ? `Stock publié · ${countryName(applied.country)}` : "Stock publié mondial"}</p><h2 className="mt-1 text-2xl font-black">{annonces.isLoading ? "Recherche en cours…" : `${resultats.length} annonce${resultats.length === 1 ? "" : "s"} disponible${resultats.length === 1 ? "" : "s"}`}</h2></div><p className="text-xs text-black/45">Distance réelle uniquement quand l’annonce possède des coordonnées.</p></div>
             {annonces.isLoading ? <div className="mt-6 flex min-h-48 items-center justify-center rounded-3xl bg-white"><Loader2 className="h-7 w-7 animate-spin text-[#D4AF37]" /></div> : resultats.length ? <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">{resultats.map(({ annonce, distance }) => {
               const vehicle: VehicleCardData = { ...annonce, createdAt: annonce.createdAt ? new Date(annonce.createdAt).toISOString() : null };
               return <div key={annonce.id} className="relative min-w-0"><VehicleCard v={vehicle} compact />{distance !== null && <span className="absolute right-3 top-3 z-10 rounded-full bg-white/95 px-2.5 py-1 text-[10px] font-black text-[#0A1630] shadow"><MapPin className="mr-1 inline h-3 w-3 text-[#D4AF37]" />{distance} km</span>}</div>;
