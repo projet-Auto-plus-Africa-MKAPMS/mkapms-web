@@ -2,8 +2,11 @@ import { useState } from "react";
 import { Truck, AlertTriangle, CheckCircle, Loader2, Calculator } from "lucide-react";
 import { trpc } from "../lib/trpc";
 import { BoutonMoteur } from "../lib/boutonMoteur";
+import { useCurrency } from "../lib/currency";
+import { WORLD_COUNTRIES } from "@shared/countries";
 
 export default function Livraison() {
+  const { country, setCountry, format } = useCurrency();
   const [poids, setPoids] = useState(5);
   const [distance, setDistance] = useState(10);
   const [urgent, setUrgent] = useState(false);
@@ -11,6 +14,7 @@ export default function Livraison() {
   const [largeur, setLargeur] = useState(30);
   const [hauteur, setHauteur] = useState(30);
   const [heavyPart, setHeavyPart] = useState(false);
+  const providers = trpc.livraison.providers.useQuery({ country: country || undefined, limit: 100 });
   // La query se déclenche automatiquement, mais on garde aussi un bouton
   // explicite pour rassurer l'utilisateur et permettre un recalcul volontaire.
   const quote = trpc.livraison.quote.useQuery(
@@ -22,6 +26,7 @@ export default function Livraison() {
       largeurCm: largeur,
       hauteurCm: hauteur,
       heavyPart,
+      countryCode: country || undefined,
     },
     { enabled: poids > 0 },
   );
@@ -68,6 +73,14 @@ export default function Livraison() {
           </h2>
           
           <div className="space-y-5">
+            <div>
+              <label className="text-[10px] font-black text-[#6B7280] uppercase tracking-widest mb-2 block">Pays de livraison</label>
+              <select value={country ?? ""} onChange={(event) => setCountry(event.target.value)} className="w-full h-14 bg-[#F9FAFB] border border-[#E5E7EB] rounded-2xl px-4 text-sm font-bold outline-none focus:border-[#D4AF37] transition-all" aria-label="Pays de livraison">
+                <option value="">Sélectionner un pays</option>
+                {WORLD_COUNTRIES.map((item) => <option key={item.code} value={item.code}>{item.flag} {item.name}</option>)}
+              </select>
+              {country ? <p className="mt-2 text-xs text-slate-500">{providers.isLoading ? "Recherche du réseau local…" : `${providers.data?.length ?? 0} partenaire${(providers.data?.length ?? 0) > 1 ? "s" : ""} de livraison dans ce pays.`}</p> : <p className="mt-2 text-xs text-slate-500">Choisissez un pays pour consulter uniquement son réseau de livraison.</p>}
+            </div>
             <div>
               <label className="text-[10px] font-black text-[#6B7280] uppercase tracking-widest mb-2 block">Poids (kg)</label>
               <input type="number" className="w-full h-14 bg-[#F9FAFB] border border-[#E5E7EB] rounded-2xl px-5 text-sm font-bold outline-none focus:border-[#D4AF37] transition-all" value={poids} onChange={(e) => setPoids(Number(e.target.value))} />
@@ -164,8 +177,7 @@ export default function Livraison() {
           ) : quote.data ? (
             <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
               <div className="flex items-baseline gap-2">
-                <span className="text-5xl font-black text-[#111] tracking-tighter italic">{quote.data.tarif == null ? "Tarif indisponible" : quote.data.tarif.toLocaleString("fr-FR")}</span>
-                {quote.data.tarif != null && <span className="text-xl font-black text-[#D4AF37] italic">€</span>}
+                <span className="text-4xl font-black text-[#111] tracking-tighter italic sm:text-5xl">{quote.data.tarif == null ? "Tarif indisponible" : format(quote.data.tarif)}</span>
               </div>
               
               <div className="mt-6 space-y-4">
