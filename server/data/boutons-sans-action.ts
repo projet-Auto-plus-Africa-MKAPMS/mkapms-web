@@ -49,6 +49,7 @@ export const BOUTONS_SANS_ACTION: readonly BoutonSansAction[] = [
   { fichier: "client/src/pages/pieces/MontageGarage.tsx", ligne: 13, libelle: "Réserver le montage" },
   { fichier: "client/src/pages/pieces/PanierPiecesDetachees.tsx", ligne: 16, libelle: "Commander" },
   { fichier: "client/src/pages/pieces/RechercheIntelligentePieces.tsx", ligne: 10, libelle: "Rechercher" },
+  { fichier: "client/src/pages/PiecesProduit.tsx", ligne: 27, libelle: "Ajouter aux favoris" },
   { fichier: "client/src/pages/ProduitVtcTaxi.tsx", ligne: 493, libelle: "Télécharger" },
   { fichier: "client/src/pages/ProgrammeVTC.tsx", ligne: 85, libelle: "Voir le véhicule" },
   { fichier: "client/src/pages/RemplacementVehicule.tsx", ligne: 65, libelle: "+ Ajouter des photos" },
