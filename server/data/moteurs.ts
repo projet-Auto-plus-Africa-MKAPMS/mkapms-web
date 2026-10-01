@@ -11819,7 +11819,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "genre": "navigation",
         "ecran": "/livraison",
         "fichier": "client/src/pages/Livraison.tsx",
-        "ligne": 51
+        "ligne": 55
       }
     ],
     "routes": [
@@ -11834,8 +11834,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "cliquables": 2,
         "parMoteur": 1,
         "sansAction": 0,
-        "textes": 25,
-        "mots": 108
+        "textes": 27,
+        "mots": 114
       }
     ],
     "ecransHotes": [],
@@ -11861,8 +11861,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "connecte",
       "public"
     ],
-    "textes": 25,
-    "mots": 108,
+    "textes": 27,
+    "mots": 114,
     "battement": "sonde",
     "manques": []
   },
@@ -15034,8 +15034,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "cliquables": 7,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 42,
-        "mots": 240
+        "textes": 41,
+        "mots": 238
       },
       {
         "fichier": "client/src/pages/AbonnementsDefinitifs.tsx",
@@ -15300,13 +15300,13 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "professionnel",
       "public"
     ],
-    "textes": 219,
-    "mots": 844,
+    "textes": 218,
+    "mots": 842,
     "battement": "sonde",
     "manques": [
       {
         "genre": "destination_inconnue",
-        "detail": "/contact?sujet=Conseil%20abonnement client/src/pages/Abonnements.tsx:512"
+        "detail": "/contact?sujet=Conseil%20abonnement client/src/pages/Abonnements.tsx:476"
       },
       {
         "genre": "ecran_sans_contenu",
@@ -22308,8 +22308,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "cliquables": 7,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 42,
-        "mots": 240
+        "textes": 41,
+        "mots": 238
       },
       {
         "fichier": "client/src/pages/DossierClient.tsx",
@@ -23054,13 +23054,13 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "procedures": [],
     "tables": [],
     "acces": [],
-    "textes": 968,
-    "mots": 3453,
+    "textes": 967,
+    "mots": 3451,
     "battement": "sonde",
     "manques": [
       {
         "genre": "destination_inconnue",
-        "detail": "/contact?sujet=Conseil%20abonnement client/src/pages/Abonnements.tsx:512"
+        "detail": "/contact?sujet=Conseil%20abonnement client/src/pages/Abonnements.tsx:476"
       },
       {
         "genre": "ecran_sans_contenu",
