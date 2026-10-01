@@ -10,6 +10,8 @@ import { useState, useEffect } from "react";
 import { Globe, Search, X, ChevronRight } from "lucide-react";
 import { useDomain } from "../lib/domain";
 import { useCurrency } from "../lib/currency";
+import { WORLD_COUNTRIES } from "@shared/countries";
+import { currencyForCountry } from "@shared/currency";
 
 interface CountryConfig {
   code: string;
@@ -22,7 +24,7 @@ interface CountryConfig {
   region: string;
 }
 
-const COUNTRIES: CountryConfig[] = [
+const CORE_COUNTRIES: CountryConfig[] = [
   // Europe
   { code: "FR", name: "France", nativeName: "France", flag: "🇫🇷", lang: "Français", langCode: "fr", currency: "EUR", region: "Europe" },
   { code: "DE", name: "Allemagne", nativeName: "Deutschland", flag: "🇩🇪", lang: "Deutsch", langCode: "de", currency: "EUR", region: "Europe" },
@@ -65,7 +67,21 @@ const COUNTRIES: CountryConfig[] = [
   { code: "IN", name: "Inde", nativeName: "India", flag: "🇮🇳", lang: "English / Hindi", langCode: "en", currency: "INR", region: "Asie" },
 ];
 
-const REGIONS = ["Europe", "Afrique du Nord", "Afrique de l'Ouest", "Afrique Centrale", "Moyen-Orient", "Amérique", "Asie"];
+// Tous les pays ISO sont proposés. Les fiches détaillées restent prioritaires
+// pour les pays déjà configurés (langue/région métier), les autres suivent la
+// locale du navigateur et la devise prévue par le moteur mondial.
+const CORE_BY_CODE = new Map(CORE_COUNTRIES.map((country) => [country.code, country]));
+const COUNTRIES: CountryConfig[] = WORLD_COUNTRIES.map((country) => CORE_BY_CODE.get(country.code) ?? ({
+  ...country,
+  nativeName: country.name,
+  flag: country.flag,
+  lang: "Langue du navigateur",
+  langCode: "fr",
+  currency: currencyForCountry(country.code),
+  region: "Monde",
+}));
+
+const REGIONS = ["Europe", "Afrique du Nord", "Afrique de l'Ouest", "Afrique Centrale", "Moyen-Orient", "Amérique", "Asie", "Monde"];
 
 const STORAGE_KEY = "mkapms_country_selection";
 
