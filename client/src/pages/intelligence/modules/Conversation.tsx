@@ -66,6 +66,7 @@ import { EtatServiceIntelligence } from "../../../components/EtatServiceIntellig
 import { type Intensite, NIVEAUX_INTENSITE, intensiteValide, CLE_INTENSITE_STOCKAGE } from "../../../lib/intensite";
 import { addDictationHistory, noiseReductionFor, recognitionLanguage, useVoicePreferences } from "../../../lib/voicePreferences";
 import { startRealtimeVoice, type RealtimeVoiceControl, type RealtimeVoiceState } from "../../../lib/realtimeVoice";
+import { startDictation } from "../../../lib/speech";
 
 import { ProgressiveReply, WaitingReply } from "./ReplyPresentation";
 
@@ -99,6 +100,33 @@ function idBulle(): string {
 /** Les lignes de contexte "Outil appelé : …" (server/intelligences/service.ts) deviennent des puces visibles, sans jamais nommer un fournisseur. */
 function outilsDepuisContexte(contexte: string[]): string[] {
   return contexte.filter((l) => l.startsWith("Outil appelé :")).map((l) => l.replace("Outil appelé : ", ""));
+}
+
+/**
+ * Pourquoi un micro s'est coupé tout de suite. Signalé par le PDG : « quand je clique
+ * pour parler, ça coupe automatiquement ». Cas réel reproduit : le service vocal refuse
+ * la session (erreur 503) — le micro s'allumait puis s'éteignait, et le message accusait
+ * à tort l'autorisation du micro. On distingue maintenant les causes.
+ */
+type CauseVocale = { type: "permission" | "micro" | "service" | "autre"; texte: string };
+function causeVocale(erreur: unknown): CauseVocale {
+  const nom = erreur instanceof DOMException ? erreur.name : "";
+  if (nom === "NotAllowedError" || nom === "SecurityError") {
+    return { type: "permission", texte: "Micro bloqué par le navigateur : autorisez le microphone pour AL-HUDHUD·M dans les réglages, puis réessayez." };
+  }
+  if (nom === "NotFoundError") return { type: "micro", texte: "Aucun microphone n’est disponible sur cet appareil." };
+  const code = (erreur as { data?: { code?: string } } | null)?.data?.code;
+  if (code === "SERVICE_UNAVAILABLE" || code === "INTERNAL_SERVER_ERROR") {
+    const detail = erreur instanceof Error ? erreur.message : "";
+    return { type: "service", texte: detail || "Le service vocal temps réel est momentanément indisponible." };
+  }
+  if (erreur instanceof Error && erreur.message === "REALTIME_ICE_TIMEOUT") {
+    return { type: "service", texte: "La connexion vocale n’a pas pu s’établir (réseau). Réessayez dans un instant." };
+  }
+  if (erreur instanceof Error && erreur.message === "REALTIME_NOT_SUPPORTED") {
+    return { type: "autre", texte: "Ce navigateur ne permet pas la conversation vocale temps réel." };
+  }
+  return { type: "autre", texte: "La session vocale n’a pas pu démarrer." };
 }
 
 export function Conversation({ navigation, active = true, mode = "chat", onActivate, onChooseModule, children, searchQuery = "" }: {
@@ -426,9 +454,9 @@ export function Conversation({ navigation, active = true, mode = "chat", onActiv
         return;
       }
       realtimeVocal.current = control;
-    } catch {
+    } catch (erreur) {
       if (generation !== vocalGeneration.current) return;
-      setNotice("Impossible d’ouvrir la conversation vocale. Vérifiez l’autorisation du micro puis réessayez.");
+      setNotice(`Impossible d’ouvrir la conversation vocale. ${causeVocale(erreur).texte}`);
       arreterConversationVocale();
     }
   }
@@ -485,11 +513,35 @@ export function Conversation({ navigation, active = true, mode = "chat", onActiv
       });
       if (generation !== dicteeGeneration.current) { control.close(); return; }
       dictation.current = { stop: control.close };
-    } catch {
-      if (generation === dicteeGeneration.current) {
-        setEcoute(false);
-        setNotice("La dictée n’a pas pu démarrer. Autorisez le micro dans les réglages de votre navigateur ou de votre appareil, puis réessayez.");
+    } catch (erreur) {
+      if (generation !== dicteeGeneration.current) return;
+      const cause = causeVocale(erreur);
+      // Service vocal temps réel refusé : la dictée du navigateur (sans service externe)
+      // prend le relais au lieu de couper le micro. Micro bloqué : aucun relais possible.
+      if (cause.type === "service" || cause.type === "autre") {
+        const relais = startDictation(recognitionLanguage(voicePreferences), {
+          onText: (texte) => {
+            if (generation !== dicteeGeneration.current) return;
+            const prochain = [base.trim(), texte.trim()].filter(Boolean).join(" ");
+            questionRef.current = prochain;
+            setQuestion(prochain);
+          },
+          onError: (message) => setNotice(message),
+          onEnd: () => {
+            if (generation !== dicteeGeneration.current) return;
+            dictation.current = null;
+            setEcoute(false);
+          },
+        });
+        if (relais) {
+          dictation.current = relais;
+          setEcoute(true); // la fermeture de la session temps réel avortée a éteint l'indicateur
+          setNotice(`${cause.texte} La dictée du navigateur est utilisée à la place.`);
+          return;
+        }
       }
+      setEcoute(false);
+      setNotice(`La dictée n’a pas pu démarrer. ${cause.texte}`);
     }
   }
 

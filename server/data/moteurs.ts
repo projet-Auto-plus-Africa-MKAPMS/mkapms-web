@@ -6334,7 +6334,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "parMoteur": 0,
         "sansAction": 0,
         "textes": 198,
-        "mots": 1350
+        "mots": 1362
       },
       {
         "fichier": "client/src/pages/EngineRegistry/ControlCenter.tsx",
@@ -6781,7 +6781,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "public"
     ],
     "textes": 571,
-    "mots": 2926,
+    "mots": 2938,
     "battement": "contrat",
     "manques": [
       {

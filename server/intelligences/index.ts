@@ -290,8 +290,13 @@ export const intelligencesRouter = router({
       const sdp = await creerAppelVocalTempsReel(input.sdp, input.mode, { langue: input.langue, voix: input.voix, reductionBruit: input.reductionBruit, safetyId });
       return { sdp };
     } catch (error) {
-      console.error("[MKA.P-MS] session vocale refusée :", error instanceof Error ? error.message : "REALTIME_UNKNOWN");
-      throw new TRPCError({ code: "SERVICE_UNAVAILABLE", message: "Le service vocal temps réel est momentanément indisponible." });
+      const code = error instanceof Error ? error.message : "REALTIME_UNKNOWN";
+      console.error("[MKA.P-MS] session vocale refusée :", code);
+      // Procédure réservée au PDG : on lui donne le code public de la cause (statut, modèle,
+      // code d'erreur du service — jamais de clé ni de corps de réponse) pour qu'un micro qui
+      // se coupe soit diagnostiquable sans aller lire les journaux du serveur.
+      const detail = /^REALTIME_[A-Za-z0-9._-]{1,120}$/.test(code) ? ` (${code})` : "";
+      throw new TRPCError({ code: "SERVICE_UNAVAILABLE", message: `Le service vocal temps réel est momentanément indisponible${detail}.` });
     }
   }),
 
