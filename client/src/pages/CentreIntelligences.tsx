@@ -41,36 +41,11 @@ import {
   X,
 } from "lucide-react";
 
-/**
- * L'API de reconnaissance vocale (dictée) n'est pas standardisée : elle
- * n'existe pas dans les types DOM fournis par TypeScript, contrairement à la
- * synthèse vocale (SpeechSynthesisUtterance, elle, standard). On ne déclare
- * ici que le strict nécessaire à son usage réel, jamais un type "any" —
- * jamais câblée si le navigateur ne l'expose pas (voir `vocalSupporte`).
- */
-interface ReconnaissanceVocale extends EventTarget {
-  lang: string;
-  continuous: boolean;
-  interimResults: boolean;
-  start: () => void;
-  stop: () => void;
-  abort: () => void;
-  onresult: ((evenement: { results: { [i: number]: { [j: number]: { transcript: string } } } }) => void) | null;
-  onerror: (() => void) | null;
-  onend: (() => void) | null;
-}
-type ConstructeurReconnaissanceVocale = new () => ReconnaissanceVocale;
-function constructeurVocal(): ConstructeurReconnaissanceVocale | null {
-  const w = window as unknown as {
-    SpeechRecognition?: ConstructeurReconnaissanceVocale;
-    webkitSpeechRecognition?: ConstructeurReconnaissanceVocale;
-  };
-  return w.SpeechRecognition ?? w.webkitSpeechRecognition ?? null;
-}
 import { trpc } from "../lib/trpc";
 import { useAuth } from "../lib/auth";
 import { type Intensite, NIVEAUX_INTENSITE, intensiteValide, CLE_INTENSITE_STOCKAGE } from "../lib/intensite";
-import { readVoicePreferences, writeVoicePreferences } from "../lib/voicePreferences";
+import { readVoicePreferences, writeVoicePreferences, recognitionLanguage } from "../lib/voicePreferences";
+import { speechRecognitionConstructor, startDictation } from "../lib/speech";
 
 type Onglet =
   | "medias"
@@ -187,11 +162,14 @@ export default function CentreIntelligences() {
   const [pieces, setPieces] = useState<string[]>([]);
   const [ecoute, setEcoute] = useState(false);
   const [lectureIndex, setLectureIndex] = useState<number | null>(null);
-  const reconnaissanceRef = useRef<ReconnaissanceVocale | null>(null);
+  const reconnaissanceRef = useRef<{ stop: () => void } | null>(null);
+  const texteAvantDicteeRef = useRef("");
+  const texteDicteRef = useRef("");
+  const dicteeAnnuleeRef = useRef(false);
   /** Vrai entre le clic sur la flèche d'envoi pendant la dictée et l'arrivée du texte final (onresult est asynchrone). */
   const envoyerApresDicteeRef = useRef(false);
   const fichierRef = useRef<HTMLInputElement>(null);
-  const vocalSupporte = useMemo(() => constructeurVocal() !== null, []);
+  const vocalSupporte = useMemo(() => speechRecognitionConstructor() !== null, []);
   const ttsSupporte = typeof window !== "undefined" && "speechSynthesis" in window;
   const partageSupporte = typeof navigator !== "undefined" && typeof navigator.share === "function";
   /**
@@ -693,43 +671,53 @@ export default function CentreIntelligences() {
     }
   }
 
-  /** Dictée réelle (Web Speech API du navigateur) — jamais câblée si le navigateur ne l'expose pas (vocalSupporte). */
+  /**
+   * Dictée réelle (reconnaissance du navigateur) — jamais câblée si le navigateur ne
+   * l'expose pas (vocalSupporte). Signalé par le PDG : le micro se coupait tout seul.
+   * Cause : `continuous = false` — le navigateur arrête la dictée à la première pause de
+   * parole, et une erreur éteignait le micro sans rien dire. On utilise désormais l'aide
+   * partagée de lib/speech.ts (déjà éprouvée) : dictée continue, relancée automatiquement
+   * tant que le PDG n'a pas cliqué sur stop, erreur réelle affichée (micro refusé…).
+   */
   function basculerEcoute() {
     if (ecoute) {
       reconnaissanceRef.current?.stop();
       return;
     }
-    const Ctor = constructeurVocal();
-    if (!Ctor) return;
-    const r = new Ctor();
-    r.lang = "fr-FR";
-    r.continuous = false;
-    r.interimResults = false;
-    r.onresult = (evenement) => {
-      const transcript = evenement.results[0]?.[0]?.transcript ?? "";
-      setQuestion((q) => {
-        const fusion = transcript ? (q.trim().length ? `${q.trim()} ${transcript}` : transcript) : q;
+    const base = question;
+    texteAvantDicteeRef.current = base;
+    texteDicteRef.current = "";
+    dicteeAnnuleeRef.current = false;
+    envoyerApresDicteeRef.current = false;
+    setMessage(null);
+    const controle = startDictation(recognitionLanguage(readVoicePreferences()), {
+      onText: (texte) => {
+        if (dicteeAnnuleeRef.current) return;
+        texteDicteRef.current = texte;
+        setQuestion([base.trim(), texte.trim()].filter(Boolean).join(" "));
+      },
+      onError: (erreur) => setMessage(erreur),
+      onEnd: () => {
+        reconnaissanceRef.current = null;
+        setEcoute(false);
         if (envoyerApresDicteeRef.current) {
           envoyerApresDicteeRef.current = false;
-          if (fusion.trim().length >= 2) queueMicrotask(() => envoyer(fusion));
+          const fusion = [base.trim(), texteDicteRef.current.trim()].filter(Boolean).join(" ");
+          if (!dicteeAnnuleeRef.current && fusion.trim().length >= 2) queueMicrotask(() => envoyer(fusion));
         }
-        return fusion;
-      });
-    };
-    r.onerror = () => {
-      envoyerApresDicteeRef.current = false;
-      setEcoute(false);
-    };
-    r.onend = () => setEcoute(false);
-    reconnaissanceRef.current = r;
-    r.start();
+      },
+    });
+    if (!controle) return;
+    reconnaissanceRef.current = controle;
     setEcoute(true);
   }
 
   /** Annule la dictée en cours sans conserver le moindre mot capté (bouton « X », distinct du bouton stop qui garde le texte). */
   function annulerEcoute() {
     envoyerApresDicteeRef.current = false;
-    reconnaissanceRef.current?.abort();
+    dicteeAnnuleeRef.current = true;
+    setQuestion(texteAvantDicteeRef.current);
+    reconnaissanceRef.current?.stop();
     setEcoute(false);
   }
 

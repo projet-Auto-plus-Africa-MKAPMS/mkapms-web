@@ -2712,6 +2712,24 @@ export const LIVRAISONS: Livraison[] = [
       "Vérifié en navigateur réel sur une base Postgres LOCALE avec des conversations de test : avant correction, clic impossible (élément recouvert) ; après, la liste est visible, un clic ouvre la conversation et « Nouvelle conversation » vide le fil. Tests server/intelligences/__tests__/conversation-titre.test.ts (titre provisoire, nettoyage, base locale : premier échange nommé ; titre manuel, moteur en panne, conversation déjà avancée → jamais touchés). Non vérifié ici : la qualité des titres générés par le vrai moteur (aucune clé de fournisseur dans ce bac à sable ; le moteur y est injecté).\n\nLeçon générale : un « bouton qui ne marche pas » signalé par le PDG se diagnostique en cliquant réellement dans un navigateur, pas en relisant le gestionnaire — ici le gestionnaire était correct, c'est la mise en page qui rendait la cible inaccessible.",
     domaine: "confiance",
   },
+  {
+    cle: "branche-micros-ne-se-coupent-plus-et-cause-visible",
+    titre: "Micros : la dictée ne se coupe plus toute seule, la vraie cause d'un échec est affichée, la dictée du navigateur prend le relais",
+    moteurs: ["intelligences"],
+    quoi:
+      "(1) Centre Intelligence direction (CentreIntelligences.tsx) : le micro utilisait la reconnaissance du navigateur en mode « une phrase » (continuous = false) et s'éteignait sans rien dire à la première pause ; il utilise maintenant l'aide partagée client/src/lib/speech.ts (startDictation, déjà écrite par l'équipe : dictée continue, relancée automatiquement tant qu'on n'a pas cliqué stop, vraie erreur affichée). Les boutons annuler / arrêter / arrêter-et-envoyer sont conservés. (2) Écran /intelligence (Conversation.tsx) : les deux micros (dictée et conversation vocale) passent par le service vocal temps réel. S'il refuse la session, le micro s'allumait puis s'éteignait aussitôt avec un message qui accusait à tort l'autorisation du micro. Le message distingue maintenant micro bloqué / micro absent / service vocal refusé / réseau, et pour la dictée la reconnaissance du navigateur prend le relais au lieu de couper. (3) creerSessionVocale (index.ts, réservé au PDG) ajoute au message le code public de la cause (ex. REALTIME_CREDENTIAL_REQUIRED, REALTIME_PROVIDER_403_<modèle>_<code>) — jamais de clé ni de corps de réponse.",
+    pourquoi:
+      "Le PDG a signalé : « les deux micros, quand je clique dessus pour parler, ça coupe automatiquement ». Reproduit en navigateur réel : service vocal refusé → micro allumé puis éteint en moins d'une seconde, message trompeur. L'interface elle-même ne coupe pas : avec un faux service vocal qui répond à l'offre WebRTC, dictée et conversation vocale restent actives plus de 8 s. La cause côté production (clé absente, modèle temps réel non autorisé, quota…) est maintenant lisible dans le message au lieu d'être cherchée dans les journaux. Travail complété sans rien retirer : toutes les fonctions voix existantes sont conservées.",
+    ou: [
+      "client/src/pages/CentreIntelligences.tsx",
+      "client/src/pages/intelligence/modules/Conversation.tsx",
+      "client/src/lib/speech.ts",
+      "server/intelligences/index.ts",
+    ],
+    lecon:
+      "Vérifié dans Chromium avec micro factice : (a) service vocal absent → message précis + relais de dictée navigateur, barre « Dictée en cours » active et texte conservé après stop ; (b) faux service vocal → dictée et conversation vocale stables ; (c) faux moteur de reconnaissance qui s'arrête seul toutes les 2,5 s → relance automatique sur les deux écrans, texte cumulé. Non vérifié : le vrai service vocal de production (aucune clé dans ce bac à sable) — le message du micro donnera maintenant son code exact au prochain essai du PDG.\n\nLeçon générale : un message d'erreur qui nomme la mauvaise cause est pire qu'un silence — il envoie chercher au mauvais endroit. Et quand plusieurs personnes ont déjà bâti une fonction (ici speech.ts), compléter en réutilisant leur aide plutôt qu'en réécrivant à côté.",
+    domaine: "confiance",
+  },
 ];
 
 /**
