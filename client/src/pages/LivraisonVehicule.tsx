@@ -1,12 +1,13 @@
 import { useMemo, useState } from "react";
 import {
-  ChevronLeft, Truck, MapPin, Clock, Check, AlertTriangle, Ship, Train, Plane, Package, ShieldCheck,
+  ChevronLeft, Truck, MapPin, Clock, Check, AlertTriangle, Ship, Train, Plane, Package, ShieldCheck, FileCheck2, Route, KeyRound,
 } from "lucide-react";
 import type { inferRouterInputs } from "@trpc/server";
 import type { AppRouter } from "@server/router.js";
 import { trpc } from "../lib/trpc";
 import { useAuth } from "../lib/auth";
 import { BoutonMoteur } from "../lib/boutonMoteur";
+import { WORLD_COUNTRIES } from "@shared/countries";
 
 type DevisInput = inferRouterInputs<AppRouter>["livraisonVehicule"]["devis"];
 type ModeCode = NonNullable<DevisInput["mode"]>;
@@ -106,24 +107,43 @@ export default function LivraisonVehicule() {
 
   return (
     <div className="min-h-screen bg-[#F5F3EF] pb-24">
-      <div className="bg-[#111] px-4 pt-6 pb-5">
-        <BoutonMoteur code="livraison_vehicule_retour" className="flex items-center gap-1 text-sm text-white/60 mb-2"><ChevronLeft size={14} /> Retour</BoutonMoteur>
-        <h1 className="text-xl font-black text-white flex items-center gap-2"><Truck size={20} className="text-[#D4AF37]" /> Livraison de véhicules et camions</h1>
-        <p className="mt-1 text-sm text-white/60">Voiture, utilitaire, camion, engin, bus : mode d'acheminement, étapes, délais et prix réels</p>
+      <div className="overflow-hidden bg-[#111] px-4 pt-6 pb-9 sm:px-6 sm:pb-11">
+        <div className="mx-auto max-w-5xl">
+          <BoutonMoteur code="livraison_vehicule_retour" className="flex items-center gap-1 text-sm text-white/60 mb-8"><ChevronLeft size={14} /> Retour</BoutonMoteur>
+          <div className="mx-auto max-w-3xl text-center">
+            <div className="mx-auto grid h-14 w-14 place-items-center rounded-2xl border border-[#D4AF37]/40 bg-[#D4AF37]/10 text-[#D4AF37]"><Truck size={27} /></div>
+            <p className="mt-5 text-[10px] font-black uppercase tracking-[.24em] text-[#D4AF37]">Transport automobile MKA.P-MS</p>
+            <h1 className="mt-2 text-3xl font-black tracking-tight text-white sm:text-5xl">Acheminer un véhicule, en toute confiance</h1>
+            <p className="mx-auto mt-3 max-w-2xl text-sm leading-6 text-white/65 sm:text-base">Voiture, utilitaire, camion, engin ou bus : choisissez un mode adapté, recevez un devis honnête et suivez uniquement les étapes réellement confirmées.</p>
+          </div>
+        </div>
       </div>
 
-      <div className="px-4 mt-4 flex gap-2">
+      <div className="mx-auto max-w-5xl px-4 sm:px-6">
+      <div className="-mt-4 grid gap-2 rounded-2xl border border-[#D4AF37]/30 bg-white p-3 shadow-[0_12px_28px_rgba(17,17,17,.08)] sm:grid-cols-3 sm:p-4">
+        <div className="flex items-center gap-3 px-2 py-1"><FileCheck2 size={19} className="shrink-0 text-[#D4AF37]"/><p className="text-xs font-semibold text-slate-700">État des lieux au départ et à l’arrivée.</p></div>
+        <div className="flex items-center gap-3 border-y border-slate-100 px-2 py-3 sm:border-x sm:border-y-0 sm:py-1"><Route size={19} className="shrink-0 text-[#0d7391]"/><p className="text-xs font-semibold text-slate-700">Prix et délai affichés selon les données confirmées.</p></div>
+        <div className="flex items-center gap-3 px-2 py-1"><KeyRound size={19} className="shrink-0 text-[#D4AF37]"/><p className="text-xs font-semibold text-slate-700">Aucune acceptation avant connexion et validation.</p></div>
+      </div>
+
+      <div className="mt-5 flex gap-2">
         <BoutonMoteur code="livraison_vehicule_onglet_devis" onExecuter={() => setTab("commander")} className={`flex-1 rounded-lg py-2.5 text-sm font-bold transition ${tab === "commander" ? "bg-[#D4AF37] text-white" : "bg-white text-[#6B7280] border border-[#E5E7EB]"}`}>Devis</BoutonMoteur>
         <BoutonMoteur code="livraison_vehicule_onglet_suivi" onExecuter={() => setTab("suivi")} className={`flex-1 rounded-lg py-2.5 text-sm font-bold transition ${tab === "suivi" ? "bg-[#D4AF37] text-white" : "bg-white text-[#6B7280] border border-[#E5E7EB]"}`}>Suivi</BoutonMoteur>
       </div>
 
+      <section className="mt-4 grid gap-2 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-xs leading-5 text-slate-600 sm:grid-cols-3">
+        <p><strong className="text-slate-900">Avant l’enlèvement.</strong><br/>Le véhicule, son état roulant et l’accessibilité des lieux doivent être déclarés correctement.</p>
+        <p><strong className="text-slate-900">Pendant le transport.</strong><br/>Les objets personnels ne font pas partie du véhicule transporté et ne doivent pas rester à bord.</p>
+        <p><strong className="text-slate-900">International.</strong><br/>Les formalités, droits et taxes restent conditionnés aux règles confirmées du pays d’arrivée.</p>
+      </section>
+
       {message && (
-        <div className="mx-4 mt-4 rounded-xl border border-[#D4AF37]/40 bg-white p-3 text-xs text-[#111]">{message}</div>
+        <div className="mt-4 rounded-xl border border-[#D4AF37]/40 bg-white p-3 text-xs text-[#111]">{message}</div>
       )}
 
       {tab === "commander" && (
-        <div className="px-4 mt-4 space-y-4">
-          <div className="rounded-xl border border-[#E5E7EB] bg-white p-4 space-y-3">
+        <div className="mt-4 space-y-4">
+          <div className="rounded-2xl border border-[#E5E7EB] bg-white p-4 shadow-sm sm:p-5 space-y-4">
             <div>
               <label className="text-xs text-[#6B7280]">Gabarit du véhicule</label>
               <select value={categorie} onChange={(e) => setCategorie(e.target.value as CategorieCode)} className="mt-1 w-full rounded-lg border border-[#E5E7EB] px-3 py-2.5 text-sm">
@@ -132,14 +152,20 @@ export default function LivraisonVehicule() {
                 ))}
               </select>
             </div>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid gap-3 sm:grid-cols-2">
               <div>
                 <label className="text-xs text-[#6B7280]">Pays de départ</label>
-                <input value={paysDepart} onChange={(e) => setPaysDepart(e.target.value)} maxLength={2} placeholder="FR" className="mt-1 w-full rounded-lg border border-[#E5E7EB] px-3 py-2.5 text-sm uppercase" />
+                <select value={paysDepart} onChange={(e) => setPaysDepart(e.target.value)} className="mt-1 w-full rounded-lg border border-[#E5E7EB] bg-white px-3 py-2.5 text-sm">
+                  <option value="">Sélectionner un pays</option>
+                  {WORLD_COUNTRIES.map((p) => <option key={p.code} value={p.code}>{p.flag} {p.name}</option>)}
+                </select>
               </div>
               <div>
                 <label className="text-xs text-[#6B7280]">Pays d'arrivée</label>
-                <input value={paysArrivee} onChange={(e) => setPaysArrivee(e.target.value)} maxLength={2} placeholder="SN" className="mt-1 w-full rounded-lg border border-[#E5E7EB] px-3 py-2.5 text-sm uppercase" />
+                <select value={paysArrivee} onChange={(e) => setPaysArrivee(e.target.value)} className="mt-1 w-full rounded-lg border border-[#E5E7EB] bg-white px-3 py-2.5 text-sm">
+                  <option value="">Sélectionner un pays</option>
+                  {WORLD_COUNTRIES.map((p) => <option key={p.code} value={p.code}>{p.flag} {p.name}</option>)}
+                </select>
               </div>
             </div>
             <div className="grid grid-cols-2 gap-2">
@@ -317,7 +343,7 @@ export default function LivraisonVehicule() {
       )}
 
       {tab === "suivi" && (
-        <div className="px-4 mt-4 space-y-4">
+        <div className="mt-4 space-y-4">
           {!user && (
             <BoutonMoteur code="livraison_vehicule_connexion" className="block rounded-xl border border-[#E5E7EB] bg-white p-4 text-center text-sm font-bold text-[#111]">
               Se connecter pour voir vos acheminements
@@ -377,6 +403,7 @@ export default function LivraisonVehicule() {
           ))}
         </div>
       )}
+      </div>
     </div>
   );
 }
