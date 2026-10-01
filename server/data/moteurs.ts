@@ -100,16 +100,17 @@ export interface PerimetreMoteur {
 }
 
 export const MOTEURS_TOTAL = 94;
-export const MANQUES_TOTAL = 516;
+export const MANQUES_TOTAL = 518;
 export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
-  "ecran_sans_contenu": 341,
-  "dependance_non_declaree": 58,
+  "dependance_non_declaree": 59,
   "sans_logique_serveur": 10,
+  "ecran_sans_contenu": 340,
   "sans_ecran": 8,
   "dependance_sans_preuve": 41,
   "bouton_sans_action": 50,
   "bouton_declare_absent_ecran": 6,
-  "emission_dynamique": 2
+  "emission_dynamique": 2,
+  "destination_inconnue": 2
 };
 
 /** Routes client qu'aucun moteur ne revendique. */
@@ -195,11 +196,11 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/univers"
         ],
-        "cliquables": 0,
+        "cliquables": 2,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 4,
-        "mots": 32
+        "textes": 15,
+        "mots": 91
       }
     ],
     "ecransHotes": [
@@ -223,15 +224,10 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "connecte",
       "public"
     ],
-    "textes": 24,
-    "mots": 87,
+    "textes": 35,
+    "mots": 146,
     "battement": "sonde",
-    "manques": [
-      {
-        "genre": "ecran_sans_contenu",
-        "detail": "client/src/pages/Univers.tsx (4 texte(s))"
-      }
-    ]
+    "manques": []
   },
   {
     "moteur": "accounting_internal",
@@ -594,6 +590,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "location_particulier",
       "location_pro",
       "payment",
+      "search",
       "vente",
       "vente_particulier",
       "vo_engine"
@@ -1111,6 +1108,13 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
           "trpc.favoris",
           "trpc.reservations",
           "trpc.devis"
+        ]
+      },
+      {
+        "fichier": "client/src/pages/RechercheGeolocalisee.tsx",
+        "route": "/recherche",
+        "composants": [
+          "trpc.annonces"
         ]
       },
       {
@@ -15027,11 +15031,11 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/abonnements"
         ],
-        "cliquables": 6,
+        "cliquables": 7,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 25,
-        "mots": 125
+        "textes": 41,
+        "mots": 234
       },
       {
         "fichier": "client/src/pages/AbonnementsDefinitifs.tsx",
@@ -15296,10 +15300,14 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "professionnel",
       "public"
     ],
-    "textes": 202,
-    "mots": 729,
+    "textes": 218,
+    "mots": 838,
     "battement": "sonde",
     "manques": [
+      {
+        "genre": "destination_inconnue",
+        "detail": "/contact?sujet=Conseil%20abonnement client/src/pages/Abonnements.tsx:495"
+      },
       {
         "genre": "ecran_sans_contenu",
         "detail": "client/src/pages/PaiementSimulation.tsx (3 texte(s))"
@@ -20347,12 +20355,14 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "permission"
     ],
     "dependancesDetectees": [
+      "achat",
       "avis_reputation",
       "core",
       "identity",
       "permission"
     ],
     "dependances": [
+      "achat",
       "avis_reputation",
       "core",
       "identity",
@@ -20363,6 +20373,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "permission"
     ],
     "preuvesDependances": {
+      "achat": [
+        "client/src/pages/RechercheGeolocalisee.tsx appelle trpc.annonces"
+      ],
       "avis_reputation": [
         "search-os/index.ts importe reputation-engine/ranking.ts"
       ],
@@ -20400,11 +20413,11 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/recherche"
         ],
-        "cliquables": 4,
+        "cliquables": 7,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 23,
-        "mots": 84
+        "textes": 27,
+        "mots": 150
       },
       {
         "fichier": "client/src/pages/RechercheUniverselle.tsx",
@@ -20465,10 +20478,15 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "admin",
       "public"
     ],
-    "textes": 193,
-    "mots": 864,
+    "textes": 197,
+    "mots": 930,
     "battement": "pont_os",
-    "manques": []
+    "manques": [
+      {
+        "genre": "dependance_non_declaree",
+        "detail": "achat — client/src/pages/RechercheGeolocalisee.tsx appelle trpc.annonces"
+      }
+    ]
   },
   {
     "moteur": "seo",
@@ -22287,11 +22305,11 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/vente/abonnements"
         ],
-        "cliquables": 6,
+        "cliquables": 7,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 25,
-        "mots": 125
+        "textes": 41,
+        "mots": 234
       },
       {
         "fichier": "client/src/pages/DossierClient.tsx",
@@ -23036,10 +23054,14 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "procedures": [],
     "tables": [],
     "acces": [],
-    "textes": 951,
-    "mots": 3338,
+    "textes": 967,
+    "mots": 3447,
     "battement": "sonde",
     "manques": [
+      {
+        "genre": "destination_inconnue",
+        "detail": "/contact?sujet=Conseil%20abonnement client/src/pages/Abonnements.tsx:495"
+      },
       {
         "genre": "ecran_sans_contenu",
         "detail": "client/src/pages/depot-annonce/ConseilsIA.tsx (3 texte(s))"
