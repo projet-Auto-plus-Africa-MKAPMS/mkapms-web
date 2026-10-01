@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
 import { estApplicationMkapms } from "../lib/native";
 
 interface BeforeInstallPromptEvent extends Event {
@@ -7,6 +8,13 @@ interface BeforeInstallPromptEvent extends Event {
 }
 
 export default function InstallPrompt() {
+  const { pathname } = useLocation();
+  /**
+   * Dans l'espace AL-HUDHUD·M (PDG), la bannière « Téléchargez » (fixe, au-dessus de tout) recouvrait
+   * les boutons du bas — micros, stop, envoi — et interceptait les clics : « je clique sur stop, il ne
+   * s'arrête pas ». Elle y est masquée ; partout ailleurs elle est inchangée.
+   */
+  const espaceIA = pathname.startsWith("/intelligence") || pathname.startsWith("/admin/intelligences");
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [show, setShow] = useState(false);
   const [dismissed, setDismissed] = useState(false);
@@ -48,7 +56,7 @@ export default function InstallPrompt() {
     };
   }, []);
 
-  if (!show || dismissed || isStandalone) return null;
+  if (!show || dismissed || isStandalone || espaceIA) return null;
 
   const handleInstall = async () => {
     if (deferredPrompt) {
