@@ -231,10 +231,10 @@ export const annoncesRouter = router({
       if (input.marque) conds.push(ilike(annonces.marque, `%${input.marque}%`));
       if (input.modele) conds.push(ilike(annonces.modele, `%${input.modele}%`));
       if (input.ville) conds.push(ilike(annonces.ville, `%${input.ville}%`));
-      // Filtrage par pays : chaque pays voit ses annonces. On tolère les
-      // annonces sans pays renseigné (legacy) pour ne masquer aucun stock existant.
+      // Filtrage strict par pays : une annonce sans pays ne peut pas être
+      // présentée comme locale. Cela évite de mélanger des marchés différents.
       if (input.pays) {
-        conds.push(or(eq(annonces.pays, input.pays), isNull(annonces.pays))!);
+        conds.push(eq(annonces.pays, input.pays));
       }
       if (input.q) {
         // Search OS : accents neutralisés et synonymes (« 4x4 » → « suv »…).
@@ -309,7 +309,7 @@ export const annoncesRouter = router({
     .query(async ({ input }) => {
       const base = [eq(annonces.status, "publiee")];
       if (input?.pays) {
-        base.push(or(eq(annonces.pays, input.pays), isNull(annonces.pays))!);
+        base.push(eq(annonces.pays, input.pays));
       }
       const where = and(...base);
       const [pays, villes, couleurs, marques, categories] = await Promise.all([
