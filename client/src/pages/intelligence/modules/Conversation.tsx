@@ -266,6 +266,8 @@ export function Conversation({ navigation, active = true, mode = "chat", onActiv
         },
       ]);
       void conversations.refetch();
+      // Le titre de sujet est généré juste après la réponse : on relit la liste un peu plus tard.
+      window.setTimeout(() => { if (mounted.current) void conversations.refetch(); }, 5000);
     },
     onError: (_error, _variables, submitted) => {
       if (!mounted.current || !submitted || sent.current !== submitted) return;
@@ -668,16 +670,22 @@ export function Conversation({ navigation, active = true, mode = "chat", onActiv
   }
 
   const sidebarContent = <>
-        <h2 className="px-2 pb-1 pt-2 text-xs font-black uppercase tracking-wide text-black/45">Récents</h2>
         <button
           type="button"
           onClick={nouvelleConversation} disabled={busy}
-          className="mb-2 flex items-center gap-2 rounded-lg bg-[#111] px-3 py-2 text-sm font-bold text-white"
+          className="mb-2 flex shrink-0 items-center gap-2 rounded-lg bg-[#111] px-3 py-2 text-sm font-bold text-white"
         >
           <Plus className="h-4 w-4" /> Nouvelle conversation
         </button>
-        <div className="flex-1 space-y-1 overflow-y-auto">
-          <h2 className="px-2 py-2 text-xs font-bold">Conversations</h2>
+        {/*
+          * Signalé par le PDG : « nouvelle conversation » semblait ne rien faire et
+          * la liste des conversations n'apparaissait pas. Cause réelle : ce bloc
+          * était « flex-1 » dans une colonne qui peut rétrécir à 0 — la liste
+          * débordait alors SOUS le menu des outils, invisible et non cliquable.
+          * Hauteur propre (jusqu'à 40 % de l'écran, défilement interne), jamais écrasée.
+          */}
+        <div className="max-h-[40dvh] min-h-[7rem] shrink-0 space-y-1 overflow-y-auto" aria-label="Récents">
+          <h2 className="px-2 pb-1 pt-2 text-xs font-black uppercase tracking-wide text-black/45">Récents</h2>
           {conversations.isLoading ? <p role="status">Chargement de l’historique…</p> : null}
           {conversations.isError ? <div role="alert">Historique indisponible. <button type="button" onClick={() => void conversations.refetch()}>Réessayer</button></div> : null}
           {renommer.isError || supprimer.isError ? <p role="alert">L’action n’a pas abouti. L’historique n’a pas été modifié ici.</p> : null}

@@ -127,3 +127,4 @@
 .alhud-voice-controls button.end { background: #151515; color: #fff; }
 @keyframes alhud-orb-breathe { 50% { transform: scale(1.045) rotate(1.5deg); box-shadow: 0 42px 100px rgb(91 91 225 / 32%); } }
 @media (prefers-reduced-motion: reduce) { .alhud-voice-orb { animation: none; } }
+.alhud-history{max-height:42dvh;overflow:auto}

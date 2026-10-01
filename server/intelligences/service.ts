@@ -33,6 +33,7 @@ import { executerAvecOutils } from "./outils/boucle.js";
 import { listerActifs } from "./outils/registre.js";
 import { randomUUID } from "node:crypto";
 import { resumerSiNecessaire } from "./conversation-resume.js";
+import { nommerSiPremierEchange, titreProvisoire } from "./conversation-titre.js";
 import { rechercherGlobale } from "./recherche-globale.js";
 import { lireFichier } from "./fichiers.js";
 
@@ -436,7 +437,7 @@ async function session(input: DemandeInput): Promise<number> {
     .insert(inSessions)
     .values({
       cote: input.cote,
-      titre: input.question.slice(0, 180),
+      titre: titreProvisoire(input.question),
       userId: input.userId ?? null,
       visiteur: input.visiteur ?? null,
       countryCode: input.countryCode ?? null,
@@ -775,6 +776,10 @@ export async function demander(input: DemandeInput): Promise<DemandeResultat> {
   // un échec ici ne doit jamais faire échouer l'échange lui-même.
   if (input.cote === "direction") {
     await resumerSiNecessaire(sessionId, traceId);
+    // Nom de la conversation d'après son sujet (liste « Récents ») : lancé sans
+    // attendre pour ne jamais retarder la réponse ; sans effet si le moteur est
+    // indisponible (le titre provisoire reste).
+    if (r.ok) void nommerSiPremierEchange(sessionId, input.question, r.texte);
   }
 
   // LOT IA02A — le côté direction (PDG) garde le détail technique complet ;
