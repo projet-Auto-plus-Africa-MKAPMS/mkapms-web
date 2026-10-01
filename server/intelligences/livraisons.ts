@@ -2785,6 +2785,25 @@ export const LIVRAISONS: Livraison[] = [
       "Tests : avec un faux fetch (URL et dépôt fixes, GET, redirect=error, en-tête Authorization, droits lus, 401/403/rate limit/404/500/panne réseau → messages lisibles, jeton jamais présent dans les résultats, y compris quand l'erreur brute le cite) ; sur base Postgres LOCALE, via l'exécuteur : sans jeton → réponse qui dit où le déposer et aucun appel réseau, mauvais type de secret refusé, jeton déposé → appel avec « Bearer <jeton> » sur l'URL du dépôt, usage journalisé avec l'outil et le motif, jeton absent du résultat et du journal, autre compte sans accès. `npx tsc --noEmit`, check:providers et `npm run build` complets verts. Non vérifié : un appel réel à GitHub avec un vrai jeton (aucun jeton ni accès GitHub depuis ce bac à sable) — le PDG le vérifiera en déposant son jeton puis en demandant « vérifie la connexion GitHub ».\n\nLeçon générale : quand une nouvelle capacité rend fausse une phrase écrite plus tôt dans la base de connaissances, on ajoute une entrée qui la corrige (les entrées déjà posées ne sont jamais réécrites) et on met à jour le texte de l'interface — sinon le moteur continue d'affirmer qu'il ne peut pas.",
     domaine: "confiance",
   },
+  {
+    cle: "branche-micros-banniere-recouvrait-stop",
+    titre: "Micros : la bannière « Téléchargez » recouvrait stop ; connexion annulable, échecs de transcription et relais visibles",
+    moteurs: ["intelligences"],
+    quoi:
+      "(1) CAUSE TROUVÉE : la bannière d'installation (InstallPrompt.tsx, fixe, z-index 10000) recouvrait les boutons du bas de l'espace AL-HUDHUD·M — dictée, conversation vocale, stop, envoyer, et « Terminer » / « Couper le micro » de l'écran vocal (z-index 100). Un clic sur stop tombait sur la bannière. Elle est maintenant masquée dans /intelligence et /admin/intelligences (inchangée ailleurs) et l'écran vocal passe au-dessus de tout (z-index 10050). (2) realtimeVoice.ts : la connexion est annulable à tout moment (AbortSignal) — « stop » coupe le micro tout de suite même avant que la liaison soit établie ; veille de 15 s sur le canal d'événements (le micro ne reste plus « ouvert » sans rien écrire) ; collecte ICE bornée (3 s après le premier candidat) ; les événements d'échec de transcription et d'erreur du service, ignorés jusqu'ici, affichent leur code public ; ligne d'état visible (« Connexion sécurisée… » puis « Micro actif — parlez · canal ouvert · N événement(s) : …») pour que le PDG puisse dire exactement ce qu'il voit. (3) Conversation.tsx : si la liaison temps réel ne s'établit jamais, la dictée du navigateur prend le relais. Les deux modes de micro (dictée et conversation vocale directe) sont conservés tels quels.",
+    pourquoi:
+      "Le PDG : « les deux micros ne fonctionnent toujours pas : ça reste ouvert mais n'écrit rien, et quand je clique sur stop il ne s'arrête pas — ne change pas les deux façons de micro, développe-les pour que ça fonctionne ». Reproduit : clic réel sur « Terminer » sans effet (élément au centre du bouton = bouton « Installer » de la bannière), micro toujours actif. Aussi corrigé : pendant la mise en place de la liaison, stop ne coupait pas le micro avant qu'elle aboutisse ou échoue.",
+    ou: [
+      "client/src/components/InstallPrompt.tsx",
+      "client/src/pages/intelligence/workspace.css",
+      "client/src/lib/realtimeVoice.ts",
+      "client/src/pages/intelligence/modules/Conversation.tsx",
+      "client/src/lib/__tests__/realtimeVoice.test.ts",
+    ],
+    lecon:
+      "Vérifié dans Chromium (ordinateur et téléphone) avec un faux service vocal qui envoie de vraies transcriptions : texte écrit, stop et « Terminer » au clic souris réel ferment tout et les pistes micro passent à « ended » ; connexion lente + stop → micro coupé en 0,5 s ; échec de transcription → message avec code (sans le détail brut du service) ; canal d'événements refusé → au bout de 15 s message + relais navigateur, texte écrit, stop OK ; test de recouvrement sur chaque bouton (micro, vocal, annuler, stop, envoyer, couper, terminer) : tous atteignables. Tests realtimeVoice.test.ts 3/3. Non vérifié : le vrai service vocal de production et l'iPhone du PDG — la ligne d'état affichera ce qu'il reçoit réellement.\n\nLeçon générale : un bouton « qui ne répond pas » se teste par le clic souris réel au centre du bouton et par ce que le navigateur trouve À CET ENDROIT (elementFromPoint) — un clic programmatique le contourne et cache exactement le défaut qui frappe l'utilisateur. Ma vérification précédente (connexion stable, texte reçu) avait validé la logique sans jamais cliquer comme le PDG.",
+    domaine: "confiance",
+  },
 ];
 
 /**

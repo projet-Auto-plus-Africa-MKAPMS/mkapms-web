@@ -81,7 +81,8 @@
 .alhud-voice-screen {
   position: fixed;
   inset: 0;
-  z-index: 100;
+  /* Au-dessus de tout (bannière d'installation z-index 10000 comprise) : « Terminer » et « Couper le micro » doivent toujours recevoir le clic. */
+  z-index: 10050;
   display: grid;
   grid-template-rows: auto 1fr auto;
   min-height: 100dvh;

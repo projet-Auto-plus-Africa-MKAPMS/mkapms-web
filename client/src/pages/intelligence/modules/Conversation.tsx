@@ -187,6 +187,11 @@ export function Conversation({ navigation, active = true, mode = "chat", onActiv
   const appuiLongDeclenche = useRef(false);
   const texteAvantDictee = useRef("");
   const dicteeGeneration = useRef(0);
+  /** Annule la connexion vocale en cours de mise en place : « stop » coupe le micro tout de suite, même avant qu'elle soit établie. */
+  const dicteeAnnulation = useRef<AbortController | null>(null);
+  const vocalAnnulation = useRef<AbortController | null>(null);
+  const [etatDictee, setEtatDictee] = useState<"connexion" | "ecoute">("connexion");
+  const [diagVocal, setDiagVocal] = useState("");
   const [desktop, setDesktop] = useState(() => typeof window !== "undefined" && window.matchMedia("(min-width: 768px)").matches);
   useEffect(() => {
     mounted.current = true;
@@ -385,6 +390,9 @@ export function Conversation({ navigation, active = true, mode = "chat", onActiv
   async function arreterDictee() {
     const courante = dictation.current;
     if (!courante) dicteeGeneration.current += 1;
+    // Connexion encore en cours : on la coupe (et le micro avec) sans attendre qu'elle aboutisse.
+    dicteeAnnulation.current?.abort();
+    dicteeAnnulation.current = null;
     await courante?.stop();
     dictation.current = null;
     setEcoute(false);
@@ -392,6 +400,8 @@ export function Conversation({ navigation, active = true, mode = "chat", onActiv
 
   function arreterConversationVocale() {
     vocalGeneration.current += 1;
+    vocalAnnulation.current?.abort();
+    vocalAnnulation.current = null;
     conversationVocaleRef.current = false;
     setConversationVocale(false);
     setEtatVocal("");
@@ -414,8 +424,13 @@ export function Conversation({ navigation, active = true, mode = "chat", onActiv
     setEtatVocal("Connexion sécurisée…");
     setNotice("");
     try {
+      const annulation = new AbortController();
+      vocalAnnulation.current = annulation;
+      setDiagVocal("");
       const control = await startRealtimeVoice({
         mode: "conversation",
+        signal: annulation.signal,
+        onDiagnostic: setDiagVocal,
         exchangeSdp: async (sdp) => (await creerSessionVocale.mutateAsync({ sdp, mode: "conversation", langue: recognitionLanguage(voicePreferences), voix: voicePreferences.realtimeVoice, reductionBruit: noiseReductionFor(voicePreferences) })).sdp,
         onState: (etat) => setEtatVocal(libelleEtatVocal(etat)),
         onUserPartial: setTranscriptionVocale,
@@ -455,7 +470,7 @@ export function Conversation({ navigation, active = true, mode = "chat", onActiv
       }
       realtimeVocal.current = control;
     } catch (erreur) {
-      if (generation !== vocalGeneration.current) return;
+      if (generation !== vocalGeneration.current || (erreur instanceof Error && erreur.message === "REALTIME_ABORTED")) return;
       setNotice(`Impossible d’ouvrir la conversation vocale. ${causeVocale(erreur).texte}`);
       arreterConversationVocale();
     }
@@ -482,13 +497,49 @@ export function Conversation({ navigation, active = true, mode = "chat", onActiv
     const base = question;
     texteAvantDictee.current = base;
     const generation = ++dicteeGeneration.current;
+    const annulation = new AbortController();
+    dicteeAnnulation.current = annulation;
     setNotice("");
+    setDiagVocal("");
+    setEtatDictee("connexion");
 
     setEcoute(true);
     let confirme = "";
+
+    /**
+     * Service vocal temps réel indisponible ou qui ne s'établit pas : la dictée du navigateur
+     * (sans service externe) prend le relais au lieu de laisser un micro « ouvert » qui n'écrit rien.
+     */
+    const relayer = (raison: string): boolean => {
+      const relais = startDictation(recognitionLanguage(voicePreferences), {
+        onText: (texte) => {
+          if (generation !== dicteeGeneration.current) return;
+          const prochain = [base.trim(), texte.trim()].filter(Boolean).join(" ");
+          questionRef.current = prochain;
+          setQuestion(prochain);
+        },
+        onError: (message) => setNotice(message),
+        onEnd: () => {
+          if (generation !== dicteeGeneration.current) return;
+          dictation.current = null;
+          setEcoute(false);
+        },
+      });
+      if (!relais) return false;
+      dictation.current = relais;
+      setEcoute(true); // la fermeture de la session temps réel avortée a éteint l'indicateur
+      setEtatDictee("ecoute");
+      setDiagVocal("dictée du navigateur");
+      setNotice(`${raison} La dictée du navigateur est utilisée à la place.`);
+      return true;
+    };
+
     try {
       const control = await startRealtimeVoice({
         mode: "dictee",
+        signal: annulation.signal,
+        onDiagnostic: setDiagVocal,
+        onState: (etat) => { if (generation === dicteeGeneration.current) setEtatDictee(etat === "connexion" ? "connexion" : "ecoute"); },
         exchangeSdp: async (sdp) => (await creerSessionVocale.mutateAsync({ sdp, mode: "dictee", langue: recognitionLanguage(voicePreferences), voix: voicePreferences.realtimeVoice, reductionBruit: noiseReductionFor(voicePreferences) })).sdp,
         onUserPartial: (partiel) => {
           if (generation !== dicteeGeneration.current) return;
@@ -505,41 +556,22 @@ export function Conversation({ navigation, active = true, mode = "chat", onActiv
           addDictationHistory(texte, "dictation");
         },
         onError: (message) => setNotice(message),
-        onClosed: () => {
+        onClosed: (info) => {
           if (generation !== dicteeGeneration.current) return;
           dictation.current = null;
+          // La liaison ne s'est jamais établie : relais navigateur plutôt qu'un micro muet.
+          if (info?.echec && relayer("La connexion vocale temps réel ne s'établit pas.")) return;
           setEcoute(false);
         },
       });
       if (generation !== dicteeGeneration.current) { control.close(); return; }
       dictation.current = { stop: control.close };
     } catch (erreur) {
-      if (generation !== dicteeGeneration.current) return;
+      // Arrêt demandé pendant la connexion : le micro est déjà coupé, rien à signaler.
+      if (generation !== dicteeGeneration.current || (erreur instanceof Error && erreur.message === "REALTIME_ABORTED")) return;
       const cause = causeVocale(erreur);
-      // Service vocal temps réel refusé : la dictée du navigateur (sans service externe)
-      // prend le relais au lieu de couper le micro. Micro bloqué : aucun relais possible.
-      if (cause.type === "service" || cause.type === "autre") {
-        const relais = startDictation(recognitionLanguage(voicePreferences), {
-          onText: (texte) => {
-            if (generation !== dicteeGeneration.current) return;
-            const prochain = [base.trim(), texte.trim()].filter(Boolean).join(" ");
-            questionRef.current = prochain;
-            setQuestion(prochain);
-          },
-          onError: (message) => setNotice(message),
-          onEnd: () => {
-            if (generation !== dicteeGeneration.current) return;
-            dictation.current = null;
-            setEcoute(false);
-          },
-        });
-        if (relais) {
-          dictation.current = relais;
-          setEcoute(true); // la fermeture de la session temps réel avortée a éteint l'indicateur
-          setNotice(`${cause.texte} La dictée du navigateur est utilisée à la place.`);
-          return;
-        }
-      }
+      // Micro bloqué : aucun relais possible.
+      if ((cause.type === "service" || cause.type === "autre") && relayer(cause.texte)) return;
       setEcoute(false);
       setNotice(`La dictée n’a pas pu démarrer. ${cause.texte}`);
     }
@@ -548,6 +580,8 @@ export function Conversation({ navigation, active = true, mode = "chat", onActiv
   /** Annule : arrête la dictée et efface ce qu'elle a écrit, revient au texte d'avant. */
   function annulerDictee() {
     dicteeGeneration.current += 1;
+    dicteeAnnulation.current?.abort();
+    dicteeAnnulation.current = null;
     void dictation.current?.stop();
     dictation.current = null;
     setEcoute(false);
@@ -816,7 +850,7 @@ export function Conversation({ navigation, active = true, mode = "chat", onActiv
         <div className="alhud-voice-stage">
           <div className={`alhud-voice-orb ${etatVocal.includes("répond") ? "speaking" : etatVocal.includes("réfléchit") ? "thinking" : "listening"}`} aria-hidden="true"><span /><span /></div>
           <p className="alhud-voice-state" role="status">{etatVocal || "Je vous écoute…"}</p>
-          <p className="alhud-voice-caption" aria-hidden="true">Conversation vocale directe</p>
+          <p className="alhud-voice-caption" aria-hidden="true">Conversation vocale directe{diagVocal ? ` · ${diagVocal}` : ""}</p>
         </div>
         <div className="alhud-voice-controls">
           <button type="button" className={vocalMuet ? "active" : ""} onClick={() => {
@@ -975,6 +1009,10 @@ export function Conversation({ navigation, active = true, mode = "chat", onActiv
               <button type="button" onClick={() => setPieces((actuelles) => actuelles.filter((p) => p.cle !== piece.cle))} aria-label={`Retirer ${piece.nom}`}><X className="h-3.5 w-3.5" /></button>
             </span>)}
           </div> : null}
+          {ecoute ? <p className="px-2 pb-1 text-[11px] text-black/60" data-testid="etat-dictee">
+            {etatDictee === "connexion" ? "Connexion sécurisée… (le bouton stop coupe le micro tout de suite)" : "Micro actif — parlez"}
+            {diagVocal ? ` · ${diagVocal}` : ""}
+          </p> : null}
           <div className="alhud-composer flex items-end gap-2">
             {!ecoute && <div className="relative">
               <button type="button" className="alhud-composer-action" onClick={() => setMenuPiecesOuvert((v) => !v)} aria-haspopup="menu" aria-expanded={menuPiecesOuvert} aria-label="Ajouter une pièce jointe"><Paperclip className="h-5 w-5" /></button>
