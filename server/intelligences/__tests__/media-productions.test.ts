@@ -73,7 +73,7 @@ test('realtime WebRTC keeps the provider key server-side and configures each mic
     const form=init?.body as FormData;assert.equal(form.get('sdp'),offer.trim());
     const session=JSON.parse(String(form.get('session')));
     assert.equal(session.type,'realtime');assert.equal(session.model,'gpt-realtime');assert.equal(session.audio.input.transcription.language,'fr');assert.equal(session.audio.output.voice,'coral');
-    assert.equal(session.audio.output.speed,undefined);assert.equal(session.audio.input.turn_detection.eagerness,undefined);
+    assert.equal(session.audio.output.speed,undefined);assert.equal(session.audio.input.turn_detection.eagerness,mode==='conversation'?'low':undefined);
     assert.equal(session.audio.input.turn_detection.create_response,mode==='conversation');
     assert.equal(JSON.stringify(session).includes('sk-realtime-server-only'),false);
     return new Response(answer,{status:200,headers:{'Content-Type':'application/sdp'}});

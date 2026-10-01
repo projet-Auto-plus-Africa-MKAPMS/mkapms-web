@@ -1038,7 +1038,7 @@ export type ModeSessionVocale = "dictee" | "conversation";
 export async function creerAppelVocalTempsReel(
   sdp: string,
   mode: ModeSessionVocale,
-  options: { langue?: string; voix?: string; safetyId?: string } = {},
+  options: { langue?: string; voix?: string; reductionBruit?: "near_field" | "far_field"; safetyId?: string } = {},
   fetchImpl: typeof fetch = fetch,
 ): Promise<string> {
   const offre = sdp.trim();
@@ -1051,6 +1051,7 @@ export async function creerAppelVocalTempsReel(
   const langue = options.langue?.split("-")[0]?.toLowerCase();
   const voixAutorisee = new Set(["alloy", "ash", "ballad", "coral", "echo", "marin", "sage", "shimmer", "verse"]);
   const voix = voixAutorisee.has(options.voix ?? "") ? options.voix! : "marin";
+  const reductionBruit = options.reductionBruit === "far_field" ? "far_field" : "near_field";
   // `gpt-realtime` est l'alias GA le plus largement ouvert. Une installation
   // peut épingler une version plus récente, mais on revient automatiquement à
   // l'alias stable si cette version n'est pas autorisée pour son projet API.
@@ -1071,15 +1072,15 @@ export async function creerAppelVocalTempsReel(
         : "Transcris fidèlement la parole de l'utilisateur. Ne réponds pas et ne reformule pas.",
       audio: {
         input: {
-          noise_reduction: { type: "near_field" },
+          noise_reduction: { type: reductionBruit },
           transcription: {
-            model: "whisper-1",
+            model: "gpt-4o-mini-transcribe",
             ...(langue && /^[a-z]{2,3}$/.test(langue) ? { language: langue } : {}),
             prompt: "AL-HUDHUD·M, MKA.P-MS. Ponctuation naturelle et transcription fidèle.",
           },
           turn_detection: mode === "conversation"
-            ? { type: "semantic_vad", create_response: true, interrupt_response: true }
-            : { type: "server_vad", threshold: 0.45, prefix_padding_ms: 300, silence_duration_ms: 650, create_response: false, interrupt_response: false },
+            ? { type: "semantic_vad", eagerness: "low", create_response: true, interrupt_response: true }
+            : { type: "server_vad", threshold: 0.45, prefix_padding_ms: 500, silence_duration_ms: 1_200, create_response: false, interrupt_response: false },
         },
         output: { voice: voix },
       },

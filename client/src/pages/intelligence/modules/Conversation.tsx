@@ -64,7 +64,7 @@ import {
 import { trpc } from "../../../lib/trpc";
 import { EtatServiceIntelligence } from "../../../components/EtatServiceIntelligence";
 import { type Intensite, NIVEAUX_INTENSITE, intensiteValide, CLE_INTENSITE_STOCKAGE } from "../../../lib/intensite";
-import { addDictationHistory, recognitionLanguage, useVoicePreferences } from "../../../lib/voicePreferences";
+import { addDictationHistory, noiseReductionFor, recognitionLanguage, useVoicePreferences } from "../../../lib/voicePreferences";
 import { startRealtimeVoice, type RealtimeVoiceControl, type RealtimeVoiceState } from "../../../lib/realtimeVoice";
 
 import { ProgressiveReply, WaitingReply } from "./ReplyPresentation";
@@ -386,7 +386,7 @@ export function Conversation({ navigation, active = true, mode = "chat", onActiv
     try {
       const control = await startRealtimeVoice({
         mode: "conversation",
-        exchangeSdp: async (sdp) => (await creerSessionVocale.mutateAsync({ sdp, mode: "conversation", langue: recognitionLanguage(voicePreferences), voix: voicePreferences.realtimeVoice })).sdp,
+        exchangeSdp: async (sdp) => (await creerSessionVocale.mutateAsync({ sdp, mode: "conversation", langue: recognitionLanguage(voicePreferences), voix: voicePreferences.realtimeVoice, reductionBruit: noiseReductionFor(voicePreferences) })).sdp,
         onState: (etat) => setEtatVocal(libelleEtatVocal(etat)),
         onUserPartial: setTranscriptionVocale,
         onUserTranscript: (texte) => {
@@ -459,7 +459,7 @@ export function Conversation({ navigation, active = true, mode = "chat", onActiv
     try {
       const control = await startRealtimeVoice({
         mode: "dictee",
-        exchangeSdp: async (sdp) => (await creerSessionVocale.mutateAsync({ sdp, mode: "dictee", langue: recognitionLanguage(voicePreferences), voix: voicePreferences.realtimeVoice })).sdp,
+        exchangeSdp: async (sdp) => (await creerSessionVocale.mutateAsync({ sdp, mode: "dictee", langue: recognitionLanguage(voicePreferences), voix: voicePreferences.realtimeVoice, reductionBruit: noiseReductionFor(voicePreferences) })).sdp,
         onUserPartial: (partiel) => {
           if (generation !== dicteeGeneration.current) return;
           const prochain = [base.trim(), confirme.trim(), partiel.trim()].filter(Boolean).join(" ");
@@ -756,7 +756,7 @@ export function Conversation({ navigation, active = true, mode = "chat", onActiv
         <div className="alhud-voice-stage">
           <div className={`alhud-voice-orb ${etatVocal.includes("répond") ? "speaking" : etatVocal.includes("réfléchit") ? "thinking" : "listening"}`} aria-hidden="true"><span /><span /></div>
           <p className="alhud-voice-state" role="status">{etatVocal || "Je vous écoute…"}</p>
-          <p className="alhud-voice-caption">{transcriptionVocale}</p>
+          <p className="alhud-voice-caption" aria-hidden="true">Conversation vocale directe</p>
         </div>
         <div className="alhud-voice-controls">
           <button type="button" className={vocalMuet ? "active" : ""} onClick={() => {
@@ -1030,7 +1030,7 @@ export function Conversation({ navigation, active = true, mode = "chat", onActiv
                           ))}
                         </div>
                         <p className="mt-2 text-[10px] leading-snug text-black/45">
-                          Un seul modèle est configuré ({"gpt-5.5"}) : ce réglage ne le change pas, il le fait
+                          Un seul moteur est configuré : ce réglage ne le change pas, il le fait
                           réfléchir plus ou moins longtemps avant de répondre.
                         </p>
                       </div>

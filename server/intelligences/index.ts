@@ -283,10 +283,11 @@ export const intelligencesRouter = router({
     mode: z.enum(["dictee", "conversation"]),
     langue: z.string().max(16).optional(),
     voix: z.string().max(24).optional(),
+    reductionBruit: z.enum(["near_field", "far_field"]).optional(),
   }).strict()).mutation(async ({ input, ctx }) => {
     try {
       const safetyId = createHash("sha256").update(`mkapms:${ctx.user.uid}`).digest("hex");
-      const sdp = await creerAppelVocalTempsReel(input.sdp, input.mode, { langue: input.langue, voix: input.voix, safetyId });
+      const sdp = await creerAppelVocalTempsReel(input.sdp, input.mode, { langue: input.langue, voix: input.voix, reductionBruit: input.reductionBruit, safetyId });
       return { sdp };
     } catch (error) {
       console.error("[MKA.P-MS] session vocale refusée :", error instanceof Error ? error.message : "REALTIME_UNKNOWN");
