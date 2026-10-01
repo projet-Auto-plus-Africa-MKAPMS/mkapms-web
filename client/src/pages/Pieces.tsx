@@ -1,5 +1,5 @@
-import { useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   MapPin, Phone, Package, Search, Filter, ShoppingCart, ChevronDown, ChevronUp,
   Car, Tag, Truck, CheckCircle, Store, Plus, Minus, X, Warehouse,
@@ -8,8 +8,9 @@ import {
 import { trpc } from "../lib/trpc";
 import { useAuth } from "../lib/auth";
 import { useCurrency } from "../lib/currency";
-import { PARTS_CATEGORIES, PARTS_VEHICLE_TYPES, evaluerCompatibilite } from "@shared/partsCategories";
+import { PARTS_CATEGORIES, evaluerCompatibilite } from "@shared/partsCategories";
 import { useReportNavigation } from "../lib/redirect";
+import { readPiecesCart, writePiecesCart } from "../lib/piecesCartStore";
 
 const CONDITIONS = [
   { value: "neuf", label: "Neuf" },
@@ -21,12 +22,19 @@ const CONDITIONS = [
 const LIVRAISON_LABELS: Record<string, string> = {
   moto: "🏍️ Moto", scooter: "🛵 Scooter", utilitaire: "🚐 Utilitaire", fourgon: "🚛 Fourgon", camion: "🚚 Camion",
 };
+const VEHICLES = [
+  { label: "Voiture", icon: "🚗", type: "voiture" }, { label: "Utilitaire", icon: "🚐", type: "utilitaire" },
+  { label: "Camion", icon: "🚚", type: "utilitaire" }, { label: "Moto", icon: "🏍️", type: "moto" },
+  { label: "Scooter", icon: "🛵", type: "moto" }, { label: "Tracteur", icon: "🚜", type: "agricole" },
+  { label: "Engin de chantier", icon: "🏗️", type: "engin_chantier" }, { label: "Bateau", icon: "🛥️", type: "bateau" },
+] as const;
 
 type CartItem = { catalogId: number; nom: string; prixHt: number; currency: string; quantite: number; shopId: number };
 
 export default function Pieces() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const signaler = useReportNavigation();
   const [q, setQ] = useState("");
   const [typeVehicule, setTypeVehicule] = useState<"" | "voiture" | "utilitaire" | "moto" | "agricole" | "engin_chantier" | "bateau">("");
@@ -38,9 +46,15 @@ export default function Pieces() {
   const [anneeVehicule, setAnneeVehicule] = useState("");
   const [showFilters, setShowFilters] = useState(false);
   const [showVehicleSearch, setShowVehicleSearch] = useState(false);
-  const [cart, setCart] = useState<CartItem[]>([]);
-  const [showCart, setShowCart] = useState(false);
-  const [tab, setTab] = useState<"catalogue" | "boutiques" | "commandes" | "suivi">("catalogue");
+  const [cart, setCart] = useState<CartItem[]>(() => readPiecesCart());
+  const [showCart, setShowCart] = useState(() => searchParams.get("panier") === "1");
+  const [tab, setTab] = useState<"catalogue" | "boutiques" | "commandes" | "suivi">(() => {
+    const requested = searchParams.get("onglet");
+    if (requested === "boutique") return "boutiques";
+    if (requested === "commandes" || requested === "suivi") return requested;
+    return "catalogue";
+  });
+  // Conservé pour la compatibilité du composant historique ; les fiches utilisent désormais une route dédiée.
   const [selectedPart, setSelectedPart] = useState<number | null>(null);
   // Delivery options
   const [modeRetrait, setModeRetrait] = useState<"retrait" | "livraison">("livraison");
@@ -59,10 +73,8 @@ export default function Pieces() {
     anneeVehicule: anneeVehicule ? parseInt(anneeVehicule) : undefined,
     limit: 40,
   });
-  const partDetail = trpc.pieces.part.useQuery(
-    { id: selectedPart! },
-    { enabled: selectedPart !== null },
-  );
+  const partDetail = trpc.pieces.part.useQuery({ id: selectedPart ?? 0 }, { enabled: selectedPart !== null });
+  useEffect(() => { writePiecesCart(cart); }, [cart]);
 
   // Delivery estimate
   const deliveryEstimate = trpc.pieces.estimateLivraison.useQuery(
@@ -201,8 +213,7 @@ export default function Pieces() {
             Marketplace professionnelle — références OEM, équipementier, compatibilité véhicule.
           </p>
         </div>
-        {user && (
-          <button onClick={() => setShowCart(!showCart)} className="btn-gold relative flex items-center gap-2">
+        <button onClick={() => setShowCart(!showCart)} className="btn-gold relative flex items-center gap-2">
             <ShoppingCart size={18} />
             Panier
             {cartCount > 0 && (
@@ -211,20 +222,24 @@ export default function Pieces() {
               </span>
             )}
           </button>
-        )}
       </div>
 
       {/* Tabs */}
       <div className="mt-6 flex gap-1 overflow-x-auto rounded-lg bg-slate-100 p-1">
         {([
           { key: "catalogue", icon: Package, label: "Catalogue" },
-          { key: "boutiques", icon: Store, label: "Boutiques" },
-          ...(user ? [
-            { key: "commandes", icon: ClipboardList, label: "Mes Commandes" },
-            { key: "suivi", icon: Bell, label: "Suivi" },
-          ] : []),
+          { key: "boutiques", icon: Store, label: "Boutique" },
+          { key: "commandes", icon: ClipboardList, label: "Mes commandes" },
+          { key: "suivi", icon: Bell, label: "Suivi" },
         ] as const).map(t => (
-          <button key={t.key} onClick={() => setTab(t.key as typeof tab)} className={`flex shrink-0 items-center gap-1.5 rounded-md px-4 py-2 text-sm font-semibold transition ${tab === t.key ? "bg-gold text-noir shadow" : "text-slate-500 hover:text-slate-700"}`}>
+          <button key={t.key} onClick={() => {
+            if ((t.key === "commandes" || t.key === "suivi") && !user) {
+              signaler("piece_connexion_requise", `/connexion?next=/pieces?onglet=${t.key}`);
+              navigate(`/connexion?next=/pieces?onglet=${t.key}`);
+              return;
+            }
+            setTab(t.key);
+          }} className={`flex shrink-0 items-center gap-1.5 rounded-md px-4 py-2 text-sm font-semibold transition ${tab === t.key ? "bg-gold text-noir shadow" : "text-slate-500 hover:text-slate-700"}`}>
             <t.icon size={16} /> {t.label}
           </button>
         ))}
@@ -367,19 +382,23 @@ export default function Pieces() {
       {/* CATALOGUE TAB */}
       {tab === "catalogue" && (
         <>
+          <section className="mt-6 overflow-hidden rounded-2xl bg-gradient-to-br from-slate-950 via-slate-800 to-[#0f6f86] p-5 text-white shadow-lg md:p-7">
+            <p className="text-xs font-bold uppercase tracking-[.16em] text-gold-soft">Catalogue de pièces</p>
+            <div className="mt-2 flex flex-wrap items-end justify-between gap-4"><div><h2 className="text-2xl font-extrabold">Trouvez la pièce compatible</h2><p className="mt-1 text-sm text-slate-200">Plaque d’immatriculation, VIN/châssis ou recherche par référence OEM.</p></div><button onClick={() => setShowVehicleSearch(true)} className="rounded-lg bg-gold px-4 py-3 text-sm font-bold text-noir">Identifier mon véhicule</button></div>
+          </section>
           {/* Vehicle type selector */}
-          <div className="mt-6 flex flex-wrap gap-2">
+          <div className="mt-5 flex gap-2 overflow-x-auto pb-1">
             <button
               onClick={() => setTypeVehicule("")}
               className={`rounded-lg border-2 px-3 py-2 text-xs font-semibold transition ${typeVehicule === "" ? "border-gold bg-gold-soft text-gold-dark" : "border-slate-200 text-slate-500 hover:border-gold/40"}`}
             >
               Tous véhicules
             </button>
-            {PARTS_VEHICLE_TYPES.map(v => (
+            {VEHICLES.map(v => (
               <button
-                key={v.code}
-                onClick={() => setTypeVehicule(v.code === typeVehicule ? "" : v.code)}
-                className={`rounded-lg border-2 px-3 py-2 text-xs font-semibold transition ${typeVehicule === v.code ? "border-gold bg-gold-soft text-gold-dark" : "border-slate-200 text-slate-500 hover:border-gold/40"}`}
+                key={v.label}
+                onClick={() => setTypeVehicule(v.type === typeVehicule ? "" : v.type)}
+                className={`shrink-0 rounded-lg border-2 px-3 py-2 text-xs font-semibold transition ${typeVehicule === v.type ? "border-gold bg-gold-soft text-gold-dark" : "border-slate-200 text-slate-500 hover:border-gold/40"}`}
               >
                 {v.icon} {v.label}
               </button>
@@ -489,7 +508,7 @@ export default function Pieces() {
           {/* Catalog grid */}
           <div className="mt-4 grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
             {catalog.data?.items.map((p) => (
-              <div key={p.id} className="card group cursor-pointer p-4 transition hover:border-gold/40 hover:shadow-md" onClick={() => setSelectedPart(p.id)}>
+              <div key={p.id} className="card group cursor-pointer p-4 transition hover:border-gold/40 hover:shadow-md" onClick={() => navigate(`/pieces/produit/${p.id}`)}>
                 <div className="grid h-32 w-full place-items-center rounded-lg bg-slate-100 text-slate-400">
                   {p.photoUrl ? <img src={p.photoUrl} alt={p.nom} className="h-full w-full rounded-lg object-cover" /> : <Package size={32} />}
                 </div>
@@ -508,11 +527,9 @@ export default function Pieces() {
                     {CONDITIONS.find(c => c.value === p.condition)?.label ?? p.condition}
                   </span>
                 </div>
-                {user && (
-                  <button className="btn-acheter mt-3 w-full text-sm" onClick={(e) => { e.stopPropagation(); addToCart(p); }}>
+                <button className="btn-acheter mt-3 w-full text-sm" onClick={(e) => { e.stopPropagation(); addToCart(p); setShowCart(true); }}>
                     <ShoppingCart size={14} className="mr-1 inline" /> Ajouter au panier
-                  </button>
-                )}
+                </button>
               </div>
             ))}
           </div>
@@ -529,7 +546,13 @@ export default function Pieces() {
       {/* BOUTIQUES TAB */}
       {tab === "boutiques" && (
         <>
-          <h2 className="mt-6 text-lg font-bold text-slate-800"><Store size={20} className="mr-1.5 inline text-gold-dark" /> Boutiques partenaires</h2>
+          <section className="mt-6 rounded-2xl bg-gradient-to-r from-[#16325c] to-[#147c91] p-6 text-white"><p className="text-xs font-bold uppercase tracking-[.16em] text-gold-soft">Boutique de pièces</p><h2 className="mt-2 text-2xl font-extrabold">Pièces automobiles et moto, en détail</h2><p className="mt-2 max-w-2xl text-sm text-slate-100">Freinage, filtration, moteur, électricité, carrosserie et consommables multi-véhicules. Sans articles hors univers Pièces.</p><button onClick={() => setTab("catalogue")} className="mt-4 rounded-lg bg-gold px-4 py-2.5 text-sm font-bold text-noir">Rechercher une pièce</button></section>
+          <h2 className="mt-6 text-lg font-bold text-slate-800"><Package size={20} className="mr-1.5 inline text-gold-dark" /> Sélection de pièces</h2>
+          <div className="mt-3 flex snap-x gap-3 overflow-x-auto pb-2">
+            {catalog.data?.items.slice(0, 8).map((p) => <button key={p.id} onClick={() => navigate(`/pieces/produit/${p.id}`)} className="card w-56 shrink-0 snap-start p-3 text-left hover:border-gold"><div className="grid h-24 place-items-center rounded-lg bg-slate-100 text-slate-400">{p.photoUrl ? <img src={p.photoUrl} alt="" className="h-full w-full object-contain"/> : <Package size={30}/>}</div><p className="mt-2 line-clamp-2 text-sm font-bold text-slate-800">{p.nom}</p><p className="mt-1 font-extrabold text-gold-dark">{Number(p.prixHt).toLocaleString("fr-FR")} {p.currency}</p><span className="mt-2 inline-block text-xs font-semibold text-[#147c91]">Voir les détails →</span></button>)}
+          </div>
+          <p className="mt-4 text-xs text-slate-500">Les prix, stocks et visuels affichés proviennent des vendeurs. Les consommables (balais, ampoules, durites, lave-glace, gants et produits techniques) restent identifiés comme multi-véhicules.</p>
+          <h2 className="mt-7 text-lg font-bold text-slate-800"><Store size={20} className="mr-1.5 inline text-gold-dark" /> Boutiques partenaires</h2>
           <div className="mt-4 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {shops.data?.items.map((s) => (
               <div key={s.id} className="card p-5 transition hover:border-gold/40 hover:shadow-md">
@@ -664,8 +687,8 @@ export default function Pieces() {
         </>
       )}
 
-      {/* Part detail modal */}
-      {selectedPart !== null && (
+      {/* Part detail modal — remplacé par la route dédiée /pieces/produit/:id */}
+      {false && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-noir/40 p-4 backdrop-blur-sm" onClick={() => setSelectedPart(null)}>
           <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl" onClick={e => e.stopPropagation()}>
             {partDetail.data ? (
