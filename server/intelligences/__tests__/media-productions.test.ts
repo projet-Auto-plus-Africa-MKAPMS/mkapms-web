@@ -62,6 +62,7 @@ test('transcription validates binary format, bounds result, uses multipart and n
 
 test('realtime WebRTC keeps the provider key server-side and configures each microphone mode', async () => {
  const envName=['OPENAI','API','KEY'].join('_');const previous=process.env[envName];process.env[envName]='sk-realtime-server-only';
+ const modelEnv=['OPENAI','REALTIME','MODEL'].join('_');const previousModel=process.env[modelEnv];delete process.env[modelEnv];
  const offer=`v=0\r\n${'a=x\r\n'.repeat(20)}`;const answer=`v=0\r\n${'a=y\r\n'.repeat(20)}`;
  try {
   for(const mode of ['dictee','conversation'] as const){
@@ -71,13 +72,24 @@ test('realtime WebRTC keeps the provider key server-side and configures each mic
     assert.equal(new Headers(init?.headers).get('openai-safety-identifier'),'hashed-user');
     const form=init?.body as FormData;assert.equal(form.get('sdp'),offer.trim());
     const session=JSON.parse(String(form.get('session')));
-    assert.equal(session.type,'realtime');assert.equal(session.model,'gpt-realtime-2.1');assert.equal(session.audio.input.transcription.language,'fr');assert.equal(session.audio.output.voice,'coral');
+    assert.equal(session.type,'realtime');assert.equal(session.model,'gpt-realtime');assert.equal(session.audio.input.transcription.language,'fr');assert.equal(session.audio.output.voice,'coral');
+    assert.equal(session.audio.output.speed,undefined);assert.equal(session.audio.input.turn_detection.eagerness,undefined);
     assert.equal(session.audio.input.turn_detection.create_response,mode==='conversation');
     assert.equal(JSON.stringify(session).includes('sk-realtime-server-only'),false);
     return new Response(answer,{status:200,headers:{'Content-Type':'application/sdp'}});
    });
    assert.equal(result,answer.trim());assert.equal(result.includes('sk-realtime-server-only'),false);
   }
+  process.env[modelEnv]='gpt-realtime-2.1';let tentatives=0;
+  const fallback=await creerAppelVocalTempsReel(offer,'conversation',{},async(_url,init)=>{
+   const session=JSON.parse(String((init?.body as FormData).get('session')));tentatives+=1;
+   if(tentatives===1){assert.equal(session.model,'gpt-realtime-2.1');return Response.json({error:{code:'model_not_found'}},{status:404});}
+   assert.equal(session.model,'gpt-realtime');return new Response(answer,{status:200});
+  });
+  assert.equal(fallback,answer.trim());assert.equal(tentatives,2);
   await assert.rejects(creerAppelVocalTempsReel('not-sdp','dictee',{},async()=>{throw Error('must not call');}),/REALTIME_SDP_INVALID/);
- } finally { if(previous===undefined)delete process.env[envName];else process.env[envName]=previous; }
+ } finally {
+  if(previous===undefined)delete process.env[envName];else process.env[envName]=previous;
+  if(previousModel===undefined)delete process.env[modelEnv];else process.env[modelEnv]=previousModel;
+ }
 });

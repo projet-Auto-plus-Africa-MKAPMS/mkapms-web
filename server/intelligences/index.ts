@@ -288,7 +288,8 @@ export const intelligencesRouter = router({
       const safetyId = createHash("sha256").update(`mkapms:${ctx.user.uid}`).digest("hex");
       const sdp = await creerAppelVocalTempsReel(input.sdp, input.mode, { langue: input.langue, voix: input.voix, safetyId });
       return { sdp };
-    } catch {
+    } catch (error) {
+      console.error("[MKA.P-MS] session vocale refusée :", error instanceof Error ? error.message : "REALTIME_UNKNOWN");
       throw new TRPCError({ code: "SERVICE_UNAVAILABLE", message: "Le service vocal temps réel est momentanément indisponible." });
     }
   }),
