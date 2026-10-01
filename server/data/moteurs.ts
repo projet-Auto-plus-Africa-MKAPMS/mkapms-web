@@ -15034,8 +15034,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "cliquables": 7,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 41,
-        "mots": 234
+        "textes": 42,
+        "mots": 240
       },
       {
         "fichier": "client/src/pages/AbonnementsDefinitifs.tsx",
@@ -15300,13 +15300,13 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "professionnel",
       "public"
     ],
-    "textes": 218,
-    "mots": 838,
+    "textes": 219,
+    "mots": 844,
     "battement": "sonde",
     "manques": [
       {
         "genre": "destination_inconnue",
-        "detail": "/contact?sujet=Conseil%20abonnement client/src/pages/Abonnements.tsx:495"
+        "detail": "/contact?sujet=Conseil%20abonnement client/src/pages/Abonnements.tsx:512"
       },
       {
         "genre": "ecran_sans_contenu",
@@ -22308,8 +22308,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "cliquables": 7,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 41,
-        "mots": 234
+        "textes": 42,
+        "mots": 240
       },
       {
         "fichier": "client/src/pages/DossierClient.tsx",
@@ -23054,13 +23054,13 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "procedures": [],
     "tables": [],
     "acces": [],
-    "textes": 967,
-    "mots": 3447,
+    "textes": 968,
+    "mots": 3453,
     "battement": "sonde",
     "manques": [
       {
         "genre": "destination_inconnue",
-        "detail": "/contact?sujet=Conseil%20abonnement client/src/pages/Abonnements.tsx:495"
+        "detail": "/contact?sujet=Conseil%20abonnement client/src/pages/Abonnements.tsx:512"
       },
       {
         "genre": "ecran_sans_contenu",
