@@ -84,10 +84,10 @@ export default function RechercheGeolocalisee() {
       <section className="relative isolate overflow-hidden bg-[#07111F] px-4 pb-20 pt-10 text-white sm:px-8 lg:pb-28 lg:pt-16">
         <img src="/hero/car_hero_2.jpg" alt="" className="absolute inset-0 -z-20 h-full w-full object-cover opacity-35" />
         <div className="absolute inset-0 -z-10 bg-gradient-to-r from-[#050B14] via-[#07111F]/90 to-[#07111F]/45" />
-        <div className="mx-auto max-w-6xl">
+        <div className="mx-auto flex max-w-4xl flex-col items-center text-center">
           <span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-xs font-bold backdrop-blur"><Navigation className="h-4 w-4 text-[#E2B82D]" /> Recherche locale mondiale</span>
-          <h1 className="mt-5 max-w-3xl text-4xl font-black tracking-tight sm:text-6xl">Le bon véhicule, au bon endroit.</h1>
-          <p className="mt-4 max-w-2xl text-base text-white/70 sm:text-lg">Explorez les annonces réellement publiées, puis activez votre position pour les classer par proximité.</p>
+          <h1 className="mt-5 max-w-3xl text-4xl font-black leading-[1.04] tracking-tight sm:text-6xl">Le bon véhicule, au bon endroit.</h1>
+          <p className="mt-4 max-w-2xl text-base leading-relaxed text-white/70 sm:text-lg">Explorez les annonces réellement publiées, puis activez votre position pour les classer par proximité.</p>
         </div>
       </section>
 
