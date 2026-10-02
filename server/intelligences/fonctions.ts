@@ -481,6 +481,24 @@ export async function regler(input: {
   };
 }
 
+/**
+ * Même décision appliquée à toutes les fonctionnalités, une par une, par
+ * `regler` : une fonctionnalité sans fournisseur joignable reste refusée avec
+ * son motif, les autres changent d'état.
+ */
+export async function reglerTout(input: {
+  active: boolean;
+  motif: string;
+  actorId?: number;
+}): Promise<{ resultats: { fonction: CodeFonction; ok: boolean; detail: string }[] }> {
+  const resultats: { fonction: CodeFonction; ok: boolean; detail: string }[] = [];
+  for (const spec of FONCTIONS) {
+    const r = await regler({ fonction: spec.code, active: input.active, motif: input.motif, actorId: input.actorId });
+    resultats.push({ fonction: spec.code, ok: r.ok, detail: r.detail });
+  }
+  return { resultats };
+}
+
 /** Vue d'ensemble : ce qui tourne, ce qui attend une décision, ce qui manque. */
 export async function resume(): Promise<{
   total: number;
