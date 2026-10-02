@@ -157,6 +157,10 @@ export async function startRealtimeVoice(options: RealtimeVoiceOptions): Promise
   document.body.appendChild(audio);
   let closed = false;
   let canalOuvert = false;
+  let liaisonEtablie = false;
+  let sessionPrete = false;
+  let pret = false;
+  let veillePret: number | undefined;
   let veilleCanal: number | undefined;
   let evenements = 0;
   const typesVus: string[] = [];
@@ -173,6 +177,7 @@ export async function startRealtimeVoice(options: RealtimeVoiceOptions): Promise
   const close = (info?: { echec: boolean }) => {
     if (closed) return;
     closed = true;
+    window.clearTimeout(veillePret);
     window.clearTimeout(veilleCanal);
     options.signal?.removeEventListener("abort", surAnnulation);
     channel.close();
@@ -187,13 +192,25 @@ export async function startRealtimeVoice(options: RealtimeVoiceOptions): Promise
   // Arrêt demandé à n'importe quel moment — y compris avant que la liaison soit établie : micro coupé aussitôt.
   options.signal?.addEventListener("abort", surAnnulation, { once: true });
 
+  /**
+   * « Je vous écoute » n'est annoncé que lorsque la liaison audio, le canal d'événements et la session du service sont
+   * tous prêts : avant, les premiers mots dits étaient perdus alors que l'écran invitait déjà à parler.
+   */
+  const verifierPret = () => {
+    if (pret || closed || !canalOuvert || !liaisonEtablie || !sessionPrete) return;
+    pret = true;
+    window.clearTimeout(veillePret);
+    options.onState?.("ecoute");
+    diagnostic("prêt à écouter");
+  };
+
   peer.ontrack = (event) => {
     audio.srcObject = event.streams[0] ?? new MediaStream([event.track]);
     void audio.play().catch(() => options.onError?.("Touchez l’écran puis réessayez pour autoriser la lecture audio."));
   };
   peer.onconnectionstatechange = () => {
     diagnostic(`liaison ${peer.connectionState}`);
-    if (peer.connectionState === "connected") options.onState?.("ecoute");
+    if (peer.connectionState === "connected") { liaisonEtablie = true; verifierPret(); }
     // `disconnected` est souvent transitoire sur mobile ou Wi-Fi : WebRTC peut
     // se rétablir. Seuls les états terminaux ferment réellement la session.
     if (["failed", "closed"].includes(peer.connectionState) && !closed) {
@@ -205,8 +222,10 @@ export async function startRealtimeVoice(options: RealtimeVoiceOptions): Promise
   channel.onopen = () => {
     canalOuvert = true;
     window.clearTimeout(veilleCanal);
-    options.onState?.("ecoute");
     diagnostic("canal ouvert");
+    // Le service annonce sa session (session.created) dès l'ouverture du canal ; si l'événement tarde, on ne bloque pas plus de 2 s.
+    veillePret = window.setTimeout(() => { sessionPrete = true; liaisonEtablie = true; verifierPret(); }, 2_000);
+    verifierPret();
   };
   channel.onmessage = (message) => {
     let event: RealtimeEvent;
@@ -215,7 +234,9 @@ export async function startRealtimeVoice(options: RealtimeVoiceOptions): Promise
     evenements += 1;
     if (type && typesVus[typesVus.length - 1] !== type) { typesVus.push(type); if (typesVus.length > 12) typesVus.shift(); }
     diagnostic("canal ouvert");
-    if (type === "input_audio_buffer.speech_started") options.onState?.("ecoute");
+    if (type === "session.created" || type === "session.updated") { sessionPrete = true; verifierPret(); }
+    // Toute activité vocale prouve que la session est prête.
+    if (type === "input_audio_buffer.speech_started") { sessionPrete = true; liaisonEtablie = true; verifierPret(); options.onState?.("ecoute"); }
     if (type === "input_audio_buffer.speech_stopped") options.onState?.("reflexion");
     if (type === "conversation.item.input_audio_transcription.delta") {
       const key = event.item_id ?? "current";
@@ -230,6 +251,9 @@ export async function startRealtimeVoice(options: RealtimeVoiceOptions): Promise
       if (finalText) {
         memoriserModeleTranscription(modeleCourant);
         options.onUserTranscript?.(finalText);
+      } else {
+        // Phrase captée mais rien d'écrit : le dire plutôt que d'avoir l'air de ne pas avoir entendu.
+        options.onError?.("Votre voix a été captée mais aucun texte n'a pu être écrit pour cette phrase. Répétez-la un peu plus près du micro.");
       }
     }
     if (type === "response.output_audio_transcript.delta") {

@@ -84,8 +84,11 @@
   /* Au-dessus de tout (bannière d'installation z-index 10000 comprise) : « Terminer » et « Couper le micro » doivent toujours recevoir le clic. */
   z-index: 10050;
   display: grid;
-  grid-template-rows: auto 1fr auto;
-  min-height: 100dvh;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  /* Tout reste DANS l'écran du téléphone : rien ne déborde, quelle que soit sa taille ou l'état de la conversation. */
+  height: 100dvh;
+  max-height: 100dvh;
+  overflow: hidden;
   padding: max(1.25rem, env(safe-area-inset-top)) 1.5rem max(1.5rem, env(safe-area-inset-bottom));
   background: #fff;
   color: #0f172a;
@@ -103,15 +106,17 @@
 }
 .alhud-voice-screen-top svg,
 .alhud-voice-controls svg { width: 1.75rem; height: 1.75rem; }
-.alhud-voice-stage { display: flex; min-height: 0; flex-direction: column; align-items: center; justify-content: center; gap: 1.5rem; text-align: center; }
+.alhud-voice-stage { display: flex; min-height: 0; min-width: 0; flex-direction: column; align-items: center; justify-content: safe center; gap: 1.25rem; padding: 1.25rem 0; overflow: hidden; text-align: center; }
 .alhud-voice-orb {
   position: relative;
-  width: min(56vw, 21rem);
+  /* Taille bornée par la largeur ET la hauteur de l'écran, et jamais écrasée par le texte (flex: none) : le micro reste rond et dans le cadre. */
+  flex: none;
+  width: min(56vw, 34dvh, 21rem);
   aspect-ratio: 1;
   overflow: hidden;
   border-radius: 50%;
   background: radial-gradient(circle at 64% 62%, #fff 0 12%, #d9e7ff 35%, #7888fb 67%, #655ee8 100%);
-  box-shadow: 0 35px 85px rgb(91 91 225 / 24%);
+  box-shadow: 0 18px 44px rgb(91 91 225 / 24%);
   animation: alhud-orb-breathe 3.8s ease-in-out infinite;
 }
 .alhud-voice-orb::before,
@@ -121,11 +126,13 @@
 .alhud-voice-orb span:last-child { background: #edf4ff; transform: translate(28%, -16%) rotate(-25deg); }
 .alhud-voice-orb.speaking { animation-duration: 1.25s; }
 .alhud-voice-orb.thinking { animation-duration: 2s; filter: saturate(.8); }
-.alhud-voice-state { min-height: 1.5rem; font-size: 1rem; font-weight: 800; color: #111827; }
-.alhud-voice-caption { min-height: 3rem; max-width: 38rem; padding-inline: 1rem; font-size: .9rem; line-height: 1.45; color: rgb(15 23 42 / 55%); }
+.alhud-voice-state { min-height: 1.5rem; max-width: 100%; font-size: 1rem; font-weight: 800; color: #111827; overflow-wrap: anywhere; }
+.alhud-voice-caption { max-width: 38rem; padding-inline: 1rem; font-size: .9rem; line-height: 1.45; color: rgb(15 23 42 / 55%); overflow: hidden; overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; }
 .alhud-voice-controls { display: flex; justify-content: center; gap: 1.25rem; }
 .alhud-voice-controls button.active { background: #e8efff; color: #2563eb; }
 .alhud-voice-controls button.end { background: #151515; color: #fff; }
-@keyframes alhud-orb-breathe { 50% { transform: scale(1.045) rotate(1.5deg); box-shadow: 0 42px 100px rgb(91 91 225 / 32%); } }
+/* Écran bas (téléphone en paysage) : le texte technique cède la place, le micro et l'état restent dans le cadre. */
+@media (max-height: 520px) { .alhud-voice-caption { display: none; } .alhud-voice-orb { width: min(56vw, 30dvh, 21rem); } .alhud-voice-stage { gap: .75rem; padding: .5rem 0; } .alhud-voice-screen-top button, .alhud-voice-controls button { width: 3rem; height: 3rem; } }
+@keyframes alhud-orb-breathe { 50% { transform: scale(1.03) rotate(1.5deg); box-shadow: 0 22px 52px rgb(91 91 225 / 30%); } }
 @media (prefers-reduced-motion: reduce) { .alhud-voice-orb { animation: none; } }
 .alhud-history{max-height:42dvh;overflow:auto}

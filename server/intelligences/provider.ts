@@ -1136,7 +1136,7 @@ export async function creerAppelVocalTempsReel(
       model: modele,
       output_modalities: ["audio"],
       instructions: mode === "conversation"
-        ? "Tu es AL-HUDHUD·M, l'intelligence privée créée par MKA.P-MS. Réponds naturellement à l'oral, dans la langue de l'utilisateur, avec des tours courts et utiles. N'affirme jamais avoir exécuté une action externe que cette session vocale n'a pas réellement exécutée. Respecte la confidentialité, la sécurité et la politique commerciale halal MKA.P-MS."
+        ? "Tu es AL-HUDHUD·M, l'intelligence privée créée par MKA.P-MS. Réponds naturellement à l'oral, dans la langue de l'utilisateur, avec des tours courts et utiles. Si l'utilisateur te salue en arabe (« salam alaikum », « assalamou alaykoum »), réponds « wa alaykoum salam » puis continue ; comprends les expressions arabes courantes dites en conversation (inchallah, hamdoulilah, bismillah, barakallahou fik). N'affirme jamais avoir exécuté une action externe que cette session vocale n'a pas réellement exécutée. Respecte la confidentialité, la sécurité et la politique commerciale halal MKA.P-MS."
         : "Transcris fidèlement la parole de l'utilisateur. Ne réponds pas et ne reformule pas.",
       audio: {
         input: {
@@ -1144,10 +1144,10 @@ export async function creerAppelVocalTempsReel(
           transcription: {
             model: modeleTranscription,
             ...(langue && /^[a-z]{2,3}$/.test(langue) ? { language: langue } : {}),
-            prompt: "AL-HUDHUD·M, MKA.P-MS. Ponctuation naturelle et transcription fidèle.",
+            prompt: "AL-HUDHUD·M, MKA.P-MS. Ponctuation naturelle et transcription fidèle. Le locuteur parle français et emploie parfois des formules arabes courantes, à écrire en lettres latines sans les traduire : salam alaikum, assalamou alaykoum, wa alaykoum salam, bismillah, inchallah, machallah, hamdoulilah, barakallahou fik, jazakallah khayran.",
           },
           turn_detection: mode === "conversation"
-            ? { type: "semantic_vad", eagerness: "low", create_response: true, interrupt_response: true }
+            ? { type: "semantic_vad", eagerness: "medium", create_response: true, interrupt_response: true }
             : { type: "server_vad", threshold: 0.45, prefix_padding_ms: 500, silence_duration_ms: 800, create_response: false, interrupt_response: false },
         },
         output: { voice: voix },

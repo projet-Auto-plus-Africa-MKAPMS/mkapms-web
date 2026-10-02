@@ -135,3 +135,56 @@ test("modèle qui a transcrit : mémorisé après une vraie transcription, jamai
     if (ancien) Object.defineProperty(g, "localStorage", ancien); else delete g.localStorage;
   }
 });
+
+test("« Je vous écoute » seulement quand liaison, canal et session sont prêts ; phrase vide signalée ; veille de 2 s si la session tarde", async () => {
+  const g = globalThis as any;
+  let canal: any; let pair: any;
+  const piste = { stop() {} };
+  const flux = { getAudioTracks: () => [piste], getTracks: () => [piste] };
+  class FauxPeer {
+    iceGatheringState = "complete"; connectionState = "new"; localDescription = { sdp: "v=0\r\n" + "a=x\r\n".repeat(20) };
+    ontrack: unknown; onconnectionstatechange: any;
+    constructor() { pair = this; }
+    createDataChannel() { canal = { readyState: "open", onopen: null, onmessage: null, send() {}, close() {} }; return canal; }
+    addTrack() {} async createOffer() { return { type: "offer", sdp: this.localDescription.sdp }; } async setLocalDescription() {}
+    async setRemoteDescription() {} addEventListener() {} removeEventListener() {} close() {}
+  }
+  const fauxAudio = { setAttribute() {}, hidden: false, autoplay: false, srcObject: null, play: async () => {}, pause() {}, remove() {} };
+  const sauvegarde = { peer: g.RTCPeerConnection, nav: Object.getOwnPropertyDescriptor(g, "navigator"), doc: g.document, win: g.window };
+  const minuteries: { ms: number; fn: () => void; annulee: boolean }[] = [];
+  g.RTCPeerConnection = FauxPeer;
+  Object.defineProperty(g, "navigator", { value: { mediaDevices: { getUserMedia: async () => flux } }, configurable: true });
+  g.document = { createElement: () => fauxAudio, body: { appendChild() {} } };
+  g.window = { setTimeout: (fn: () => void, ms: number) => { const t = { ms, fn, annulee: false }; minuteries.push(t); return t; }, clearTimeout: (t: any) => { if (t) t.annulee = true; } };
+  const envoyer = (e: object) => canal.onmessage({ data: JSON.stringify(e) });
+  try {
+    for (const scenario of ["session", "veille"] as const) {
+      minuteries.length = 0;
+      const etats: string[] = []; const erreurs: string[] = [];
+      const control = await startRealtimeVoice({ mode: "conversation", exchangeSdp: async (sdp) => sdp, onState: (e) => etats.push(e), onError: (m) => erreurs.push(m) });
+      assert.deepEqual(etats, ["connexion"]);
+      canal.onopen();
+      assert.deepEqual(etats, ["connexion"], "canal ouvert seul : pas encore « Je vous écoute »");
+      pair.connectionState = "connected"; pair.onconnectionstatechange();
+      assert.deepEqual(etats, ["connexion"], "liaison établie, session pas encore annoncée");
+      if (scenario === "session") {
+        envoyer({ type: "session.created" });
+      } else {
+        const veille = minuteries.find((t) => t.ms === 2_000 && !t.annulee);
+        assert.ok(veille, "veille de 2 s armée à l'ouverture du canal");
+        veille!.fn();
+      }
+      assert.deepEqual(etats, ["connexion", "ecoute"]);
+      envoyer({ type: "session.updated" });
+      assert.deepEqual(etats, ["connexion", "ecoute"], "annoncé une seule fois");
+      // Phrase captée mais transcription vide : dit à l'écran.
+      envoyer({ type: "conversation.item.input_audio_transcription.completed", item_id: "x", transcript: "   " });
+      assert.match(erreurs.at(-1)!, /aucun texte n'a pu être écrit/);
+      control.close();
+      assert.ok(minuteries.filter((t) => t.ms === 2_000).every((t) => t.annulee || scenario === "veille"), "la veille est annulée à la fermeture");
+    }
+  } finally {
+    g.RTCPeerConnection = sauvegarde.peer; g.document = sauvegarde.doc; g.window = sauvegarde.win;
+    if (sauvegarde.nav) Object.defineProperty(g, "navigator", sauvegarde.nav);
+  }
+});

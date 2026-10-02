@@ -2944,6 +2944,25 @@ export const LIVRAISONS: Livraison[] = [
       "Un bouton qui ne mène nulle part est pire qu'un bouton absent : si une capacité n'est pas configurée, la page doit le dire. Et une variable lue à la construction du site se perd silencieusement : une valeur publique mais nécessaire au serveur se lit à l'exécution, à un seul endroit.",
     domaine: "confiance",
   },
+  {
+    cle: "branche-micro-demarrage-salutations-cadre-ecran",
+    titre: "Micro bleu : démarrage prêt avant « Je vous écoute », salutations arabes, micro qui reste dans le cadre du téléphone",
+    moteurs: ["intelligences"],
+    quoi:
+      "1) « Je vous écoute » n'est annoncé que lorsque la liaison audio, le canal d'événements et la session du service sont tous prêts (avec une veille de 2 s si la session tarde) : avant, l'écran invitait à parler alors que les premiers mots n'étaient pas encore captés. 2) La détection de fin de phrase passe de « lente » à « moyenne » : une salutation courte comme « salam alaikum » n'attend plus de longues secondes avant d'être traitée. 3) Les consignes de la conversation vocale et l'indication de transcription connaissent les formules arabes courantes écrites en lettres latines (salam alaikum, wa alaykoum salam, inchallah, hamdoulilah…), et l'IA répond à la salutation. 4) Une phrase captée dont la transcription est vide le dit à l'écran au lieu de paraître ignorée. 5) L'écran de conversation vocale tient dans l'écran du téléphone : le micro ne s'écrase plus et ne déborde plus (taille bornée par la largeur et la hauteur, ombre réduite, texte technique limité à trois lignes et masqué en paysage).",
+    pourquoi:
+      "Le PDG signale que le micro bugue surtout au départ, ne reconnaît pas « salam alaikum », et que le micro bleu s'agrandit et dépasse l'écran du téléphone pendant que l'IA parle. Le débordement a été reproduit avec le vrai CSS dans Chromium (320×568 : le micro était écrasé et sortait de sa zone) puis corrigé et vérifié sur cinq tailles (petit et grand téléphone, paysage, tablette) et trois états. Les causes du démarrage et de la reconnaissance sont des hypothèses solides mais NON confirmées en conditions réelles : aucun service vocal ni aucune voix réelle dans le bac à sable.",
+    ou: [
+      "client/src/lib/realtimeVoice.ts",
+      "client/src/pages/intelligence/workspace.css",
+      "server/intelligences/provider.ts",
+      "scripts/test-voix-ecran-browser.mjs",
+      "client/src/lib/__tests__/realtimeVoice.test.ts",
+    ],
+    lecon:
+      "Annoncer « prêt » avant que le système le soit fait perdre les premiers mots et passe pour un défaut de reconnaissance. Un élément animé doit être borné par la taille de l'écran et protégé contre l'écrasement par son contenu ; on le prouve en figeant l'animation à son sommet et en mesurant.",
+    domaine: "confiance",
+  },
 ];
 
 /**

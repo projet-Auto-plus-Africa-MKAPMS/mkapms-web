@@ -74,7 +74,7 @@ test('realtime WebRTC keeps the provider key server-side and configures each mic
     const form=init?.body as FormData;assert.equal(form.get('sdp'),offer,'SDP transmis complet : CRLF final conservé');assert.ok(String(form.get('sdp')).endsWith('\r\n'));
     const session=JSON.parse(String(form.get('session')));
     assert.equal(session.type,'realtime');assert.equal(session.model,'gpt-realtime');assert.equal(session.audio.input.transcription.language,'fr');assert.equal(session.audio.output.voice,'coral');
-    assert.equal(session.audio.output.speed,undefined);assert.equal(session.audio.input.turn_detection.eagerness,mode==='conversation'?'low':undefined);
+    assert.equal(session.audio.output.speed,undefined);assert.equal(session.audio.input.turn_detection.eagerness,mode==='conversation'?'medium':undefined);
     assert.equal(session.audio.input.turn_detection.create_response,mode==='conversation');
     assert.equal(JSON.stringify(session).includes('sk-realtime-server-only'),false);
     return new Response(answer,{status:200,headers:{'Content-Type':'application/sdp'}});
@@ -96,6 +96,10 @@ test('realtime WebRTC keeps the provider key server-side and configures each mic
   assert.equal((await modeleVu('nom-libre-du-navigateur')).audio.input.transcription.model,'gpt-4o-mini-transcribe');
   assert.equal((await modeleVu()).audio.input.transcription.model,'gpt-4o-mini-transcribe');
   assert.equal((await modeleVu('whisper-1','dictee')).audio.input.turn_detection.silence_duration_ms,800);
+  // Salutations arabes en lettres latines : dans l'indication de transcription et dans les consignes de la conversation.
+  const conv=await modeleVu(undefined,'conversation');
+  assert.match(conv.audio.input.transcription.prompt,/salam alaikum/);assert.match(conv.audio.input.transcription.prompt,/lettres latines/);
+  assert.match(conv.instructions,/wa alaykoum salam/);
  } finally {
   if(previous===undefined)delete process.env[envName];else process.env[envName]=previous;
   if(previousModel===undefined)delete process.env[modelEnv];else process.env[modelEnv]=previousModel;
