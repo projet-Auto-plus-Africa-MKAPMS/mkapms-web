@@ -3,7 +3,24 @@ import { useEffect, useState } from "react";
 export type VoiceMode = "live" | "one_turn";
 export type VoiceLanguage = "auto" | "fr-FR" | "en-US" | "ar-SA";
 export type VoiceNoiseReduction = "auto" | "near_field" | "far_field";
-export type RealtimeVoiceName = "marin" | "coral" | "sage" | "verse" | "alloy" | "ash" | "ballad" | "echo" | "shimmer";
+export type RealtimeVoiceName = "marin" | "cedar" | "coral" | "sage" | "verse" | "alloy" | "ash" | "ballad" | "echo" | "shimmer";
+
+/**
+ * Voix de la conversation directe. Le « timbre » est une impression d'écoute, pas une donnée du fournisseur :
+ * il sert à repérer des voix graves ou douces, c'est l'aperçu sonore qui décide.
+ */
+export const REALTIME_VOICES: { id: RealtimeVoiceName; label: string; timbre: "plutôt grave" | "plutôt douce" | "neutre" }[] = [
+  { id: "marin", label: "Marin", timbre: "plutôt douce" },
+  { id: "cedar", label: "Cedar", timbre: "plutôt grave" },
+  { id: "ash", label: "Ash", timbre: "plutôt grave" },
+  { id: "echo", label: "Echo", timbre: "plutôt grave" },
+  { id: "verse", label: "Verse", timbre: "plutôt grave" },
+  { id: "ballad", label: "Ballad", timbre: "plutôt grave" },
+  { id: "alloy", label: "Alloy", timbre: "neutre" },
+  { id: "coral", label: "Coral", timbre: "plutôt douce" },
+  { id: "sage", label: "Sage", timbre: "plutôt douce" },
+  { id: "shimmer", label: "Shimmer", timbre: "plutôt douce" },
+];
 
 export interface VoicePreferences {
   voiceName: string;
@@ -50,7 +67,7 @@ export function readVoicePreferences(): VoicePreferences {
     const legacyVoice = localStorage.getItem(LEGACY_VOICE_KEY) ?? "";
     return {
       voiceName: typeof parsed.voiceName === "string" ? parsed.voiceName : legacyVoice,
-      realtimeVoice: ["marin", "coral", "sage", "verse", "alloy", "ash", "ballad", "echo", "shimmer"].includes(String(parsed.realtimeVoice))
+      realtimeVoice: REALTIME_VOICES.map((v) => v.id).includes(String(parsed.realtimeVoice) as RealtimeVoiceName)
         ? parsed.realtimeVoice as RealtimeVoiceName
         : "marin",
       mode: parsed.mode === "one_turn" ? "one_turn" : "live",

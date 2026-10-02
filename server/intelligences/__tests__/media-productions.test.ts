@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {normaliserSdp,creerAppelVocalTempsReel,produireMediaNatif,transcrireAudioNatif} from '../provider.js';
+import {VOIX_TEMPS_REEL,creerApercuVoix,normaliserSdp,creerAppelVocalTempsReel,produireMediaNatif,transcrireAudioNatif} from '../provider.js';
 import {texteMediaAutorise,demandeMedia} from '../media-productions.js';
 const config={cle:'unit-test-only',modele:'configured-model'};
 const png='iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/l9sAAAAASUVORK5CYII=';
@@ -110,6 +110,37 @@ test('offre WebRTC : le SDP part complet (CRLF final) même si le navigateur ou 
   const reponse=await creerAppelVocalTempsReel(reelle.trim(),'conversation',{},async(_url,init)=>{envoye=String((init?.body as FormData).get('sdp'));return new Response(reelle.trim(),{status:200});});
   assert.equal(envoye,reelle);
   assert.equal(reponse,reelle,'la réponse rendue au navigateur est complète aussi');
+ } finally {
+  if(previous===undefined)delete process.env[envName];else process.env[envName]=previous;
+ }
+});
+
+test('aperçu de voix : toutes les voix du mode direct, repli de modèle, codes publics seulement', async () => {
+ const envName=['OPENAI','API','KEY'].join('_');const previous=process.env[envName];process.env[envName]='sk-realtime-server-only';
+ try {
+  assert.ok(VOIX_TEMPS_REEL.includes('cedar'));assert.equal(new Set(VOIX_TEMPS_REEL).size,VOIX_TEMPS_REEL.length);
+  const mp3=Buffer.alloc(2000,7);
+  const vus:string[]=[];
+  for(const voix of VOIX_TEMPS_REEL){
+   const r=await creerApercuVoix(voix,async(url,init)=>{
+    assert.ok(String(url).endsWith('/v1/audio/speech'));assert.equal(init?.redirect,'error');
+    const body=JSON.parse(String(init?.body));assert.equal(body.voice,voix);assert.equal(body.response_format,'mp3');assert.match(body.input,/AL-HUDHUD/);
+    assert.equal(new Headers(init?.headers).get('authorization'),'Bearer sk-realtime-server-only');
+    vus.push(body.model);return new Response(mp3,{status:200});
+   });
+   assert.equal(r.mime,'audio/mpeg');assert.equal(Buffer.from(r.base64,'base64').length,2000);assert.equal(r.base64.includes('sk-'),false);
+  }
+  assert.ok(vus.every(m=>m==='gpt-4o-mini-tts'));
+  // Modèle moderne refusé : repli sur tts-1 pour une voix historique ; pas de repli pour une voix récente.
+  let essais:string[]=[];
+  const refus=async(_u:unknown,init?:RequestInit)=>{essais.push(JSON.parse(String(init?.body)).model);return essais.at(-1)==='gpt-4o-mini-tts'?Response.json({error:{code:'model_not_found'}},{status:404}):new Response(mp3,{status:200});};
+  assert.equal((await creerApercuVoix('alloy',refus)).mime,'audio/mpeg');assert.deepEqual(essais,['gpt-4o-mini-tts','tts-1']);
+  essais=[];await assert.rejects(creerApercuVoix('cedar',refus),/^Error: VOICE_PREVIEW_404_gpt-4o-mini-tts_model_not_found$/);assert.deepEqual(essais,['gpt-4o-mini-tts']);
+  await assert.rejects(creerApercuVoix('inconnue',async()=>{throw Error('must not call');}),/VOICE_PREVIEW_INVALID/);
+  await assert.rejects(creerApercuVoix('marin',async()=>new Response('secret body',{status:401})),(e:Error)=>/^VOICE_PREVIEW_401_/.test(e.message)&&!e.message.includes('secret'));
+  await assert.rejects(creerApercuVoix('marin',async()=>new Response(Buffer.alloc(10),{status:200})),/OUTPUT/);
+  delete process.env[envName];
+  await assert.rejects(creerApercuVoix('marin',async()=>{throw Error('must not call');}),/CREDENTIAL_REQUIRED/);
  } finally {
   if(previous===undefined)delete process.env[envName];else process.env[envName]=previous;
  }

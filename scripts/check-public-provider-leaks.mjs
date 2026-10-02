@@ -29,6 +29,8 @@ const LISTE_BLANCHE = new Set([
   join("client", "src", "pages", "CentreCommandes.tsx"), // écran direction — /admin/commandes
   join("client", "src", "pages", "CentreIntelligences.tsx"), // écran direction — /admin/intelligences, backé par pdgProcedure (demander/etc.) ; le commentaire du curseur d'intensité nomme "GPT-x" pour expliquer honnêtement au PDG qu'aucun second modèle n'est configuré
   join("client", "src", "pages", "intelligence", "modules", "Conversation.tsx"), // écran direction — /intelligence, même moteur PDG (intelligences.demander, pdgProcedure) que CentreIntelligences.tsx ; même curseur d'intensité, même motif de transparence sur "GPT-x"
+  join("client", "src", "lib", "realtimeVoice.ts"), // voix temps réel de l'écran direction /intelligence, backée par pdgProcedure (session vocale) : la liste ordonnée des modèles de transcription de repli et le message « model_not_found » doivent nommer le fournisseur pour dire au PDG quoi autoriser dans son projet
+  join("client", "src", "lib", "__tests__", "realtimeVoice.test.ts"), // test du repli ci-dessus
   join("client", "src", "lib", "vehicleData.ts"), // "Mistral" y est un modèle utilitaire Renault, pas le fournisseur
 ]);
 

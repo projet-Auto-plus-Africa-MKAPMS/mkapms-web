@@ -100,9 +100,9 @@ export interface PerimetreMoteur {
 }
 
 export const MOTEURS_TOTAL = 94;
-export const MANQUES_TOTAL = 520;
+export const MANQUES_TOTAL = 521;
 export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
-  "dependance_non_declaree": 61,
+  "dependance_non_declaree": 62,
   "sans_logique_serveur": 10,
   "ecran_sans_contenu": 340,
   "sans_ecran": 8,
@@ -9798,6 +9798,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "country",
       "depannage",
       "garage",
+      "intelligences",
       "language",
       "media_authenticity",
       "messaging",
@@ -9817,6 +9818,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "country",
       "depannage",
       "garage",
+      "intelligences",
       "language",
       "media_authenticity",
       "messaging",
@@ -9856,6 +9858,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       ],
       "garage": [
         "client/src/pages/utilisateurs/HistoriqueEntretiens.tsx appelle trpc.garages"
+      ],
+      "intelligences": [
+        "client/src/pages/Parametres.tsx embarque components/VoiceSettingsPanel.tsx (trpc.intelligences)"
       ],
       "language": [
         "identity-os/router.ts importe language-os/index.ts"
@@ -10478,6 +10483,10 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "genre": "ecran_sans_contenu",
         "detail": "client/src/pages/utilisateurs/MessagerieGlobale.tsx (4 texte(s))"
+      },
+      {
+        "genre": "dependance_non_declaree",
+        "detail": "intelligences — client/src/pages/Parametres.tsx embarque components/VoiceSettingsPanel.tsx (trpc.intelligences)"
       }
     ]
   },
@@ -10696,7 +10705,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "routeurs": [
       "intelligences"
     ],
-    "fichiersServeur": 99,
+    "fichiersServeur": 100,
     "dependancesDeclarees": [
       "ai_fabric",
       "code_graph",
@@ -10856,6 +10865,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "continuous_test",
       "core",
       "event_bus",
+      "identity",
       "investment",
       "vo_engine"
     ],
@@ -10915,6 +10925,13 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         ]
       },
       {
+        "fichier": "client/src/pages/Parametres.tsx",
+        "route": "/parametres",
+        "composants": [
+          "components/VoiceSettingsPanel.tsx"
+        ]
+      },
+      {
         "fichier": "client/src/pages/CentreCommandes.tsx",
         "route": "/admin/commandes",
         "composants": [
@@ -10939,6 +10956,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "procedures": [
       "actions",
       "agentAutonome",
+      "apercuVoix",
       "appels",
       "appelsMoteurs",
       "approbateursDeploiement",

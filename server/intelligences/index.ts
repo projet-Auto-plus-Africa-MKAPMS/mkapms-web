@@ -21,7 +21,7 @@ import {
   type CodeCapacite,
 } from "./capacites.js";
 import { router as routerCapacite } from "./routeur.js";
-import { creerAppelVocalTempsReel, etatConfiguration, etatServicePublic } from "./provider.js";
+import { VOIX_TEMPS_REEL, creerApercuVoix, creerAppelVocalTempsReel, etatConfiguration, etatServicePublic } from "./provider.js";
 import {
   NIVEAUX_AUTONOMIE,
   PORTEE_NIVEAU,
@@ -297,6 +297,18 @@ export const intelligencesRouter = router({
       // se coupe soit diagnostiquable sans aller lire les journaux du serveur.
       const detail = /^REALTIME_[A-Za-z0-9._-]{1,120}$/.test(code) ? ` (${code})` : "";
       throw new TRPCError({ code: "SERVICE_UNAVAILABLE", message: `Le service vocal temps réel est momentanément indisponible${detail}.` });
+    }
+  }),
+
+  /** Court exemple parlé d'une voix du mode direct : pour choisir à l'oreille, sans lancer de conversation. */
+  apercuVoix: pdgProcedure.input(z.object({ voix: z.enum(VOIX_TEMPS_REEL) }).strict()).mutation(async ({ input }) => {
+    try {
+      return await creerApercuVoix(input.voix);
+    } catch (error) {
+      const code = error instanceof Error ? error.message : "VOICE_PREVIEW_UNKNOWN";
+      console.error("[MKA.P-MS] aperçu de voix refusé :", code);
+      const detail = /^VOICE_PREVIEW_[A-Za-z0-9._-]{1,100}$/.test(code) ? ` (${code})` : "";
+      throw new TRPCError({ code: "SERVICE_UNAVAILABLE", message: `L'aperçu de la voix est momentanément indisponible${detail}.` });
     }
   }),
 

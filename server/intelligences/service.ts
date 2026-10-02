@@ -33,6 +33,7 @@ import { executerAvecOutils } from "./outils/boucle.js";
 import { listerActifs } from "./outils/registre.js";
 import { randomUUID } from "node:crypto";
 import { resumerSiNecessaire } from "./conversation-resume.js";
+import { memoriserTravail } from "./apprentissage-travail.js";
 import { nommerSiPremierEchange, titreProvisoire } from "./conversation-titre.js";
 import { rechercherGlobale } from "./recherche-globale.js";
 import { lireFichier } from "./fichiers.js";
@@ -780,6 +781,17 @@ export async function demander(input: DemandeInput): Promise<DemandeResultat> {
     // attendre pour ne jamais retarder la réponse ; sans effet si le moteur est
     // indisponible (le titre provisoire reste).
     if (r.ok) void nommerSiPremierEchange(sessionId, input.question, r.texte);
+    // Mémoire des travaux : décisions, consignes et tâches réalisées avec le PDG enrichissent la mémoire
+    // d'entreprise, sans geste de sa part (fonction « memoire_travail », allumée par défaut, éteignable).
+    if (r.ok) {
+      void memoriserTravail({
+        sessionId,
+        question: input.question,
+        reponse: r.texte,
+        outils: appelsOutilsTrace.map((a) => `Outil appelé : ${a.toolId} — ${a.verdictPolitique}${a.statutExecution ? `/${a.statutExecution}` : ""} — ${a.motif}`),
+        traceId,
+      });
+    }
   }
 
   // LOT IA02A — le côté direction (PDG) garde le détail technique complet ;

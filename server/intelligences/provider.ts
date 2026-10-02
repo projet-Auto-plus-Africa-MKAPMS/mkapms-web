@@ -1029,6 +1029,55 @@ export async function transcrireAudioNatif(resolu:{cle:string}, input:FichierAud
 
 export type ModeSessionVocale = "dictee" | "conversation";
 
+/** Voix proposées par l'API temps réel (cedar et marin sont propres à cette API). */
+export const VOIX_TEMPS_REEL = ["marin", "cedar", "ash", "echo", "verse", "ballad", "alloy", "coral", "sage", "shimmer"] as const;
+export type VoixTempsReel = (typeof VOIX_TEMPS_REEL)[number];
+
+const PHRASE_APERCU = "Bonjour, je suis AL-HUDHUD·M, l'intelligence de MKA.P-MS. Voici ma voix : dis-moi si elle te convient.";
+const MODELES_APERCU = ["gpt-4o-mini-tts", "tts-1"] as const;
+// tts-1 ne connaît que les voix historiques ; marin, cedar, ash, ballad, coral, sage, verse exigent gpt-4o-mini-tts.
+const VOIX_TTS1 = new Set(["alloy", "echo", "shimmer"]);
+
+/**
+ * Court exemple parlé d'une voix (MP3), pour choisir sans tâtonner. Même clé serveur que le micro ;
+ * l'audio n'est ni stocké ni journalisé. Renvoie un code public (jamais le corps de la réponse) si le service refuse.
+ */
+export async function creerApercuVoix(voix: string, fetchImpl: typeof fetch = fetch): Promise<{ mime: "audio/mpeg"; base64: string }> {
+  if (!(VOIX_TEMPS_REEL as readonly string[]).includes(voix)) throw new Error("VOICE_PREVIEW_INVALID");
+  const cle = process.env.OPENAI_API_KEY?.trim();
+  if (!cle) throw new Error("VOICE_PREVIEW_CREDENTIAL_REQUIRED");
+  let derniere = "VOICE_PREVIEW_UNAVAILABLE";
+  for (const modele of MODELES_APERCU) {
+    if (modele === "tts-1" && !VOIX_TTS1.has(voix)) continue;
+    const response = await fetchImpl("https://api.openai.com/v1/audio/speech", {
+      method: "POST",
+      redirect: "error",
+      signal: AbortSignal.timeout(30_000),
+      headers: { Authorization: `Bearer ${cle}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: modele,
+        voice: voix,
+        input: PHRASE_APERCU,
+        response_format: "mp3",
+        ...(modele === "gpt-4o-mini-tts" ? { instructions: "Parle en français, naturellement, d'un ton posé et chaleureux." } : {}),
+      }),
+    });
+    if (response.ok) {
+      const octets = Buffer.from(await response.arrayBuffer());
+      if (octets.length < 200 || octets.length > 1_000_000) throw new Error("VOICE_PREVIEW_INVALID_OUTPUT");
+      return { mime: "audio/mpeg", base64: octets.toString("base64") };
+    }
+    let code = "unknown";
+    try {
+      const erreur = JSON.parse(await response.text()) as { error?: { code?: unknown; type?: unknown } };
+      code = String(erreur.error?.code ?? erreur.error?.type ?? "unknown").replace(/[^A-Za-z0-9._-]/g, "").slice(0, 60) || "unknown";
+    } catch { /* corps non JSON : jamais recopié */ }
+    derniere = `VOICE_PREVIEW_${response.status}_${modele}_${code}`;
+    if (![400, 403, 404].includes(response.status)) break;
+  }
+  throw new Error(derniere);
+}
+
 /**
  * Un SDP (RFC 4566) est une suite de lignes qui se terminent TOUTES par CRLF, la dernière comprise.
  * `trim()` supprimait ce dernier saut de ligne : un analyseur SDP strict (Pion, utilisé par les
@@ -1060,8 +1109,11 @@ export async function creerAppelVocalTempsReel(
   if (!cle) throw new Error("REALTIME_CREDENTIAL_REQUIRED");
 
   const langue = options.langue?.split("-")[0]?.toLowerCase();
-  const voixAutorisee = new Set(["alloy", "ash", "ballad", "coral", "echo", "marin", "sage", "shimmer", "verse"]);
+  const voixAutorisee = new Set<string>(VOIX_TEMPS_REEL);
   const voix = voixAutorisee.has(options.voix ?? "") ? options.voix! : "marin";
+  const modeleTranscription = /^[A-Za-z0-9._-]{1,60}$/.test(process.env.OPENAI_REALTIME_TRANSCRIPTION_MODEL?.trim() ?? "")
+    ? process.env.OPENAI_REALTIME_TRANSCRIPTION_MODEL!.trim()
+    : "gpt-4o-mini-transcribe";
   const reductionBruit = options.reductionBruit === "far_field" ? "far_field" : "near_field";
   // `gpt-realtime` est l'alias GA le plus largement ouvert. Une installation
   // peut épingler une version plus récente, mais on revient automatiquement à
@@ -1085,7 +1137,7 @@ export async function creerAppelVocalTempsReel(
         input: {
           noise_reduction: { type: reductionBruit },
           transcription: {
-            model: "gpt-4o-mini-transcribe",
+            model: modeleTranscription,
             ...(langue && /^[a-z]{2,3}$/.test(langue) ? { language: langue } : {}),
             prompt: "AL-HUDHUD·M, MKA.P-MS. Ponctuation naturelle et transcription fidèle.",
           },
