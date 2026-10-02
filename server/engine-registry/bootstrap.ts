@@ -20,6 +20,7 @@ import { seedLivraisons } from "../intelligences/livraisons.js";
 import { seedFondations, seedPipelines } from "../intelligences/fondations.js";
 import { seedConnaissancesPublication } from "../intelligences/connaissances-publication.js";
 import { seedConnaissancesBoutique } from "../intelligences/connaissances-boutique.js";
+import { seedConnaissancesTravaux } from "../intelligences/connaissances-travaux.js";
 import { initialiserBaremes } from "../vehicle-delivery/service.js";
 import { retenir } from "../intelligences/memoire.js";
 import { notifyDirection } from "../notification-os/triggers.js";
@@ -527,6 +528,19 @@ export async function bootstrapEngines(): Promise<void> {
   } catch (err) {
     console.error(
       "[MKA.P-MS] pose des connaissances de la boutique échouée:",
+      (err as Error).message,
+    );
+  }
+
+  // Consignes du PDG, documents de livraison de la boutique et récit des travaux des 1er et 2 octobre 2026 : posés une fois.
+  try {
+    const r = await seedConnaissancesTravaux();
+    if (r.nouvelles > 0) {
+      console.log(`[MKA.P-MS] Intelligences : ${r.nouvelles} connaissance(s) de récit des travaux posée(s).`);
+    }
+  } catch (err) {
+    console.error(
+      "[MKA.P-MS] pose des connaissances de récit des travaux échouée:",
       (err as Error).message,
     );
   }

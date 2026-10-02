@@ -693,6 +693,9 @@ export async function demander(input: DemandeInput): Promise<DemandeResultat> {
       // appels d'outils + rédaction) peut l'épuiser avant tout texte
       // visible ("répondu sans contenu utilisable" / timeout observés en
       // production sur ce chemin précis, côté direction).
+      // Autonomie de travail (décision du PDG du 2 octobre 2026) : assez de tours pour enchaîner lecture, action et contrôle
+      // (la limite par défaut de 5 coupait un travail en plein milieu). Les outils HIGH/CRITICAL restent refusés par la politique.
+      maxIterations: 12,
       maxTokens: 4000,
       actorId: input.userId ?? null,
       traceId,
