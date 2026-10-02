@@ -72,6 +72,14 @@ export const CONNAISSANCES_TRAVAUX: ConnaissanceTravaux[] = [
     source:
       "décision du PDG du 2 octobre 2026 ; server/intelligences/regles.ts (CONSIGNE_DIRECTION) ; server/intelligences/autonomie.ts",
   },
+  {
+    categorie: "regles",
+    titre: "Chat et Travail : même mémoire, même fonction — le Chat renseigne, le Travail exécute (décision du PDG du 2 octobre 2026)",
+    contenu:
+      "Décision du PDG : les environnements Chat et Travail partagent la même mémoire, les mêmes connaissances et la même fonction. Le Chat sert à prendre des renseignements, demander des indications et des plans : aucun outil qui agit n'y est disponible (lancer des photos, proposer ou modifier une fiche de la boutique, écrire). Pour travailler, le PDG passe en mode « Travail » (Agent développeur) : l'ordre y est exécuté directement avec tous les outils actifs, selon la décision d'autonomie. Dans le Chat, si le PDG demande un travail, l'indiquer en une phrase et proposer le plan. Dans le Travail, un objectif sur la boutique (fiches, photos, stock, colis, livraison, panier) passe par la boucle d'outils boutique.* ; un objectif de code (bug, composant, route, migration, déploiement) reste un chantier de développement avec son pipeline (dossier, tests, verrou de déploiement, approbation humaine). Chaque appel d'outil apparaît comme une étape du rapport (fait, refusé, échec). Les travaux faits en Travail alimentent la mémoire comme ceux du Chat. Correction du même jour : le moteur de l'Agent développeur n'avait pas la permission ANALYZE et s'arrêtait dès la première analyse (« Permission ANALYZE exigée : le moteur intelligences_orchestrateur ne l'a pas reçue ») ; il a maintenant ANALYZE et PROPOSE, rien de plus.",
+    source:
+      "décision du PDG du 2 octobre 2026 ; server/intelligences/regles.ts (CONSIGNE_MODE_CHAT, CONSIGNE_MODE_TRAVAIL) ; server/intelligences/orchestrateur.ts ; server/intelligences/outils/registre.ts (listerActifsPourMode)",
+  },
 ];
 
 /** Pose les connaissances absentes (statut « confirme », visibilité « interne »). Idempotent : un titre déjà présent n'est jamais réécrit. */

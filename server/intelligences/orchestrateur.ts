@@ -51,7 +51,16 @@ const DOMAINES: { code: string; mots: RegExp; autonomie: string }[] = [
   { code: "code", mots: /code|bouton|page|composant|route|formulaire|bug|erreur/i, autonomie: "code" },
 ];
 
-function classerObjectif(objectif: string): { domaine: string; autonomie: string } {
+/**
+ * Boutique (SHOP) : travail d'exploitation (fiches, photos, stock, colis, livraison, panier), pas un chantier de code —
+ * il passe par la boucle d'outils (mode Travail), avec la même mémoire que le Chat. Un objectif qui parle explicitement
+ * de code reste un chantier de développement.
+ */
+const MOTS_BOUTIQUE = /boutique|\bshop\b|cars4kids|fiche produit|catalogue produit|panier|colis|photos? (?:du |des )?produits?/i;
+const MOTS_CODE_EXPLICITE = /\b(code|bug|composant|route|formulaire|bouton|migration|d[ée]ploie|d[ée]ploiement|correctif|pull request|branche)\b/i;
+
+export function classerObjectif(objectif: string): { domaine: string; autonomie: string } {
+  if (MOTS_BOUTIQUE.test(objectif) && !MOTS_CODE_EXPLICITE.test(objectif)) return { domaine: "boutique", autonomie: "contenu" };
   for (const d of DOMAINES) {
     if (d.mots.test(objectif)) return { domaine: d.code, autonomie: d.autonomie };
   }
@@ -164,6 +173,7 @@ export async function orchestrer(input: OrchestrerInput): Promise<Mission> {
   const debutMission = Date.now();
   const objectif = input.objectif.trim();
   const { domaine, autonomie } = classerObjectif(objectif);
+  if (domaine === "boutique") return travailOutille(input, objectif, domaine, autonomie);
   const accordees = await permissionsDuRole(input.role);
 
   const [mission] = await db
@@ -529,4 +539,129 @@ export async function mission(id: number) {
     .where(eq(inMissionEtapes.missionId, id))
     .orderBy(inMissionEtapes.rang);
   return { ...m, etapes };
+}
+
+
+/**
+ * Travail d'exploitation de la boutique : même moteur de conversation que le Chat (mémoire, connaissances, consigne
+ * d'autonomie), mais en environnement Travail — tous les outils actifs sont proposés, dont `boutique.*`. Chaque appel
+ * d'outil devient une étape lisible du rapport (fait / refusé / échec), jamais une action annoncée sans preuve.
+ */
+async function travailOutille(input: OrchestrerInput, objectif: string, domaine: string, autonomie: string): Promise<Mission> {
+  const debut = Date.now();
+  const [ligne] = await db
+    .insert(inMissions)
+    .values({ objectif: objectif.slice(0, 4000), domaine, cote: "direction", actorId: input.actorId ?? null })
+    .returning({ id: inMissions.id });
+
+  const etapes: Etape[] = [];
+  const niveau = (await autorise(autonomie, "READ")).niveauRequis;
+  const n = await normaliser(objectif, input.pieces ?? []);
+  etapes.push({
+    etape: "comprendre",
+    libelle: "Comprendre l'objectif et les pièces jointes",
+    permission: "READ",
+    capacite: null,
+    statut: "fait",
+    observe: [
+      `Domaine identifié : ${domaine} (travail d'exploitation de la boutique).`,
+      n.pieces.length === 0 ? "Aucune pièce jointe." : `${n.pieces.filter((p) => p.lue).length}/${n.pieces.length} pièce(s) réellement lue(s).`,
+    ].join("\n"),
+    dureeMs: 0,
+    niveauRequis: niveau,
+  });
+
+  let reponse = "";
+  let ok = false;
+  let motif = "";
+  let appels: { toolId: string; verdictPolitique: string; statutExecution: string | null; motif: string }[] = [];
+  const t0 = Date.now();
+  try {
+    const { demander } = await import("./service.js");
+    const r = await demander({
+      question: n.texte,
+      cote: "direction",
+      mode: "travail",
+      userId: input.actorId ?? null,
+      role: input.role,
+      countryCode: input.countryCode ?? null,
+      images: n.images.length > 0 ? n.images : undefined,
+    });
+    ok = r.ok;
+    reponse = r.reponse;
+    motif = r.motif;
+    appels = r.appelsOutils;
+  } catch (e) {
+    motif = `Travail interrompu : ${e instanceof Error ? e.message : "erreur inconnue"}`;
+  }
+  for (const a of appels) {
+    const refuse = a.verdictPolitique === "refuse";
+    const attente = a.verdictPolitique === "attente_approbation_humaine";
+    const echec = a.statutExecution !== null && a.statutExecution !== "execute";
+    etapes.push({
+      etape: "outil",
+      libelle: `Outil : ${a.toolId}`,
+      permission: "READ",
+      capacite: null,
+      statut: refuse ? "refuse" : attente ? "en_attente_autorisation" : echec ? "echec" : "fait",
+      observe: a.motif || (a.statutExecution ?? a.verdictPolitique),
+      dureeMs: 0,
+      niveauRequis: niveau,
+    });
+  }
+  etapes.push({
+    etape: "travail",
+    libelle: "Exécuter le travail et rendre compte",
+    permission: "READ",
+    capacite: null,
+    statut: ok ? "fait" : "echec",
+    observe: ok ? reponse : `${motif || "Le moteur n'a pas répondu."}`,
+    dureeMs: Date.now() - t0,
+    niveauRequis: niveau,
+  });
+
+  const statut: Mission["statut"] = ok ? "accomplie" : "echouee";
+  const arretSur = ok ? "" : "travail";
+  const rapport = [`Objectif : ${objectif}`, `Domaine : ${domaine}.`, `${appels.length} outil(s) appelé(s).`, "", ok ? reponse : `Arrêt : ${motif}`].join("\n");
+  await db
+    .update(inMissions)
+    .set({ statut, arretSur, motif: ok ? "" : motif, rapport, niveauRequis: niveau, niveauAccorde: niveau, dureeMs: Date.now() - debut })
+    .where(eq(inMissions.id, ligne!.id));
+  await db.insert(inMissionEtapes).values(
+    etapes.map((e, i) => ({
+      missionId: ligne!.id,
+      rang: i + 1,
+      etape: e.etape,
+      libelle: e.libelle,
+      statut: e.statut,
+      capacite: e.capacite,
+      permission: e.permission,
+      niveauRequis: e.niveauRequis,
+      observe: e.observe.slice(0, 20000),
+      dureeMs: e.dureeMs,
+    })),
+  );
+  return {
+    id: ligne!.id,
+    objectif,
+    domaine,
+    statut,
+    arretSur,
+    motif: ok ? "" : motif,
+    rapport,
+    devRequestId: null,
+    pipelineRunId: null,
+    testRunId: null,
+    deploiementDemandeId: null,
+    etapes: etapes.map((e) => ({
+      etape: e.etape,
+      libelle: e.libelle,
+      statut: e.statut,
+      capacite: e.capacite,
+      permission: e.permission,
+      niveauRequis: e.niveauRequis,
+      observe: e.observe,
+      dureeMs: e.dureeMs,
+    })),
+  };
 }

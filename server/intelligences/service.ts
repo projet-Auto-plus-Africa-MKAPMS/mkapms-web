@@ -18,6 +18,8 @@ import { DOMAINE_DEFAUT, DOMAINES, domaine as specDomaine, type DomaineSpec } fr
 import {
   COMMANDES,
   CONSIGNE_DIRECTION,
+  CONSIGNE_MODE_CHAT,
+  CONSIGNE_MODE_TRAVAIL,
   CONSIGNE_PUBLIC,
   NOM_MOTEUR,
   PLAFOND_JOUR,
@@ -30,7 +32,7 @@ import { engineRegistry } from "../engine-registry/schema.js";
 import { smartAlerts } from "../smart-engine/schema.js";
 import { emitSafe } from "../event-bus/service.js";
 import { executerAvecOutils } from "./outils/boucle.js";
-import { listerActifs } from "./outils/registre.js";
+import { listerActifsPourMode } from "./outils/registre.js";
 import { randomUUID } from "node:crypto";
 import { resumerSiNecessaire } from "./conversation-resume.js";
 import { memoriserTravail } from "./apprentissage-travail.js";
@@ -333,6 +335,11 @@ export interface DemandeInput {
    * un seul est configuré par fournisseur. Côté direction uniquement.
    */
   effort?: string;
+  /**
+   * Environnement (décision du PDG, 2 octobre 2026) : « chat » renseigne et planifie sans agir ; « travail » exécute avec
+   * tous les outils actifs. Même mémoire, même conversation, même consigne des deux côtés. Défaut : chat.
+   */
+  mode?: "chat" | "travail";
 }
 
 export interface DemandeResultat {
@@ -680,11 +687,11 @@ export async function demander(input: DemandeInput): Promise<DemandeResultat> {
     const boucle = await executerAvecOutils({
       moteur: "intelligences",
       role: input.role ?? null,
-      systeme: CONSIGNE_DIRECTION,
+      systeme: `${CONSIGNE_DIRECTION}\n${input.mode === "travail" ? CONSIGNE_MODE_TRAVAIL : CONSIGNE_MODE_CHAT}`,
       message,
       images: input.images,
       reasoningEffortPrefere: input.effort,
-      outilsProposes: listerActifs().map((o) => o.toolId),
+      outilsProposes: listerActifsPourMode(input.mode ?? "chat").map((o) => o.toolId),
       confidentialite: "interne",
       countryCode: input.countryCode ?? null,
       // 2000 jetons se sont révélés trop justes en usage réel : sur un

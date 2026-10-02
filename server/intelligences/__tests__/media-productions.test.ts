@@ -89,6 +89,13 @@ test('realtime WebRTC keeps the provider key server-side and configures each mic
   });
   assert.equal(fallback,answer);assert.equal(tentatives,2);
   await assert.rejects(creerAppelVocalTempsReel('not-sdp','dictee',{},async()=>{throw Error('must not call');}),/REALTIME_SDP_INVALID/);
+  // Modèle de transcription mémorisé par le navigateur : liste fermée, jamais un nom libre ; la dictée finalise après 800 ms de silence.
+  const modeleVu=async(modeleTranscription?:string,mode:'dictee'|'conversation'='dictee')=>{let vu:any;await creerAppelVocalTempsReel(offer,mode,{modeleTranscription},async(_u,init)=>{vu=JSON.parse(String((init?.body as FormData).get('session')));return new Response(answer,{status:200});});return vu;};
+  assert.equal((await modeleVu('whisper-1')).audio.input.transcription.model,'whisper-1');
+  assert.equal((await modeleVu('gpt-4o-transcribe')).audio.input.transcription.model,'gpt-4o-transcribe');
+  assert.equal((await modeleVu('nom-libre-du-navigateur')).audio.input.transcription.model,'gpt-4o-mini-transcribe');
+  assert.equal((await modeleVu()).audio.input.transcription.model,'gpt-4o-mini-transcribe');
+  assert.equal((await modeleVu('whisper-1','dictee')).audio.input.turn_detection.silence_duration_ms,800);
  } finally {
   if(previous===undefined)delete process.env[envName];else process.env[envName]=previous;
   if(previousModel===undefined)delete process.env[modelEnv];else process.env[modelEnv]=previousModel;

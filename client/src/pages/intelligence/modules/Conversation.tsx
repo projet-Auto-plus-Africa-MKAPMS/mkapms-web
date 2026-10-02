@@ -65,7 +65,7 @@ import { trpc } from "../../../lib/trpc";
 import { EtatServiceIntelligence } from "../../../components/EtatServiceIntelligence";
 import { type Intensite, NIVEAUX_INTENSITE, intensiteValide, CLE_INTENSITE_STOCKAGE } from "../../../lib/intensite";
 import { addDictationHistory, noiseReductionFor, recognitionLanguage, useVoicePreferences } from "../../../lib/voicePreferences";
-import { startRealtimeVoice, type RealtimeVoiceControl, type RealtimeVoiceState } from "../../../lib/realtimeVoice";
+import { modeleTranscriptionMemorise, startRealtimeVoice, type RealtimeVoiceControl, type RealtimeVoiceState } from "../../../lib/realtimeVoice";
 import { startDictation } from "../../../lib/speech";
 
 import { ProgressiveReply, WaitingReply } from "./ReplyPresentation";
@@ -431,8 +431,9 @@ export function Conversation({ navigation, active = true, mode = "chat", onActiv
         mode: "conversation",
         signal: annulation.signal,
         langueTranscription: recognitionLanguage(voicePreferences),
+        modeleTranscriptionInitial: modeleTranscriptionMemorise(),
         onDiagnostic: setDiagVocal,
-        exchangeSdp: async (sdp) => (await creerSessionVocale.mutateAsync({ sdp, mode: "conversation", langue: recognitionLanguage(voicePreferences), voix: voicePreferences.realtimeVoice, reductionBruit: noiseReductionFor(voicePreferences) })).sdp,
+        exchangeSdp: async (sdp) => (await creerSessionVocale.mutateAsync({ sdp, mode: "conversation", langue: recognitionLanguage(voicePreferences), voix: voicePreferences.realtimeVoice, reductionBruit: noiseReductionFor(voicePreferences), modeleTranscription: modeleTranscriptionMemorise() })).sdp,
         onState: (etat) => setEtatVocal(libelleEtatVocal(etat)),
         onUserPartial: setTranscriptionVocale,
         onUserTranscript: (texte) => {
@@ -540,9 +541,10 @@ export function Conversation({ navigation, active = true, mode = "chat", onActiv
         mode: "dictee",
         signal: annulation.signal,
         langueTranscription: recognitionLanguage(voicePreferences),
+        modeleTranscriptionInitial: modeleTranscriptionMemorise(),
         onDiagnostic: setDiagVocal,
         onState: (etat) => { if (generation === dicteeGeneration.current) setEtatDictee(etat === "connexion" ? "connexion" : "ecoute"); },
-        exchangeSdp: async (sdp) => (await creerSessionVocale.mutateAsync({ sdp, mode: "dictee", langue: recognitionLanguage(voicePreferences), voix: voicePreferences.realtimeVoice, reductionBruit: noiseReductionFor(voicePreferences) })).sdp,
+        exchangeSdp: async (sdp) => (await creerSessionVocale.mutateAsync({ sdp, mode: "dictee", langue: recognitionLanguage(voicePreferences), voix: voicePreferences.realtimeVoice, reductionBruit: noiseReductionFor(voicePreferences), modeleTranscription: modeleTranscriptionMemorise() })).sdp,
         onUserPartial: (partiel) => {
           if (generation !== dicteeGeneration.current) return;
           const prochain = [base.trim(), confirme.trim(), partiel.trim()].filter(Boolean).join(" ");

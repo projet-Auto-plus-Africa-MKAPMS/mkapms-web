@@ -23,6 +23,8 @@ interface RealtimeVoiceOptions {
   signal?: AbortSignal;
   /** Langue de transcription (ex. « fr »), conservée quand le modèle de transcription doit être remplacé en cours de session. */
   langueTranscription?: string;
+  /** Modèle de transcription avec lequel la session a été ouverte (voir `modeleTranscriptionMemorise`). */
+  modeleTranscriptionInitial?: string;
 }
 
 type RealtimeEvent = {
@@ -68,6 +70,31 @@ const CODES_MODELE_INDISPONIBLE = new Set(["model_not_found", "invalid_model", "
 export function prochainModeleTranscription(code: string, dejaEssayes: readonly string[]): string | null {
   if (!CODES_MODELE_INDISPONIBLE.has(code)) return null;
   return MODELES_TRANSCRIPTION_REPLI.find((modele) => !dejaEssayes.includes(modele)) ?? null;
+}
+
+const CLE_MODELE_TRANSCRIPTION = "mkapms.voix.modeleTranscription";
+export const MODELES_TRANSCRIPTION = [MODELE_TRANSCRIPTION_INITIAL, "gpt-4o-transcribe", "whisper-1"] as const;
+export type ModeleTranscription = (typeof MODELES_TRANSCRIPTION)[number];
+
+/**
+ * Dernier modèle qui a réellement transcrit dans ce navigateur. Sans lui, chaque session repart du modèle par défaut,
+ * que le projet du fournisseur peut refuser : les premières phrases se perdaient avant le basculement.
+ */
+export function modeleTranscriptionMemorise(): ModeleTranscription | undefined {
+  try {
+    const v = localStorage.getItem(CLE_MODELE_TRANSCRIPTION);
+    return (MODELES_TRANSCRIPTION as readonly string[]).includes(v ?? "") ? (v as ModeleTranscription) : undefined;
+  } catch {
+    return undefined;
+  }
+}
+export function memoriserModeleTranscription(modele: string): void {
+  if (!(MODELES_TRANSCRIPTION as readonly string[]).includes(modele)) return;
+  try {
+    localStorage.setItem(CLE_MODELE_TRANSCRIPTION, modele);
+  } catch {
+    // Stockage indisponible (navigation privée) : le repli en cours de session reste actif.
+  }
 }
 
 /** Message quand plus aucun modèle de transcription n'est accessible : c'est un réglage du projet OpenAI, pas un défaut du micro. */
@@ -134,7 +161,8 @@ export async function startRealtimeVoice(options: RealtimeVoiceOptions): Promise
   let evenements = 0;
   const typesVus: string[] = [];
   const userPartial = new Map<string, string>();
-  const modelesTranscriptionEssayes: string[] = [MODELE_TRANSCRIPTION_INITIAL];
+  const modelesTranscriptionEssayes: string[] = [options.modeleTranscriptionInitial ?? MODELE_TRANSCRIPTION_INITIAL];
+  let modeleCourant: string = options.modeleTranscriptionInitial ?? MODELE_TRANSCRIPTION_INITIAL;
   let assistantPartial = "";
 
   const diagnostic = (etat: string) => {
@@ -199,7 +227,10 @@ export async function startRealtimeVoice(options: RealtimeVoiceOptions): Promise
       const key = event.item_id ?? "current";
       const finalText = (event.transcript ?? userPartial.get(key) ?? "").trim();
       userPartial.delete(key);
-      if (finalText) options.onUserTranscript?.(finalText);
+      if (finalText) {
+        memoriserModeleTranscription(modeleCourant);
+        options.onUserTranscript?.(finalText);
+      }
     }
     if (type === "response.output_audio_transcript.delta") {
       assistantPartial += event.delta ?? "";
@@ -220,6 +251,7 @@ export async function startRealtimeVoice(options: RealtimeVoiceOptions): Promise
       if (suivant && channel.readyState === "open") {
         // Le modèle de transcription n'est pas accessible à ce projet : on bascule la session en cours, sans la couper.
         modelesTranscriptionEssayes.push(suivant);
+        modeleCourant = suivant;
         const langue = options.langueTranscription?.split("-")[0]?.toLowerCase();
         channel.send(JSON.stringify({
           type: "session.update",

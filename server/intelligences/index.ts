@@ -284,10 +284,11 @@ export const intelligencesRouter = router({
     langue: z.string().max(16).optional(),
     voix: z.string().max(24).optional(),
     reductionBruit: z.enum(["near_field", "far_field"]).optional(),
+    modeleTranscription: z.enum(["gpt-4o-mini-transcribe", "gpt-4o-transcribe", "whisper-1"]).optional(),
   }).strict()).mutation(async ({ input, ctx }) => {
     try {
       const safetyId = createHash("sha256").update(`mkapms:${ctx.user.uid}`).digest("hex");
-      const sdp = await creerAppelVocalTempsReel(input.sdp, input.mode, { langue: input.langue, voix: input.voix, reductionBruit: input.reductionBruit, safetyId });
+      const sdp = await creerAppelVocalTempsReel(input.sdp, input.mode, { langue: input.langue, voix: input.voix, reductionBruit: input.reductionBruit, safetyId, modeleTranscription: input.modeleTranscription });
       return { sdp };
     } catch (error) {
       const code = error instanceof Error ? error.message : "REALTIME_UNKNOWN";

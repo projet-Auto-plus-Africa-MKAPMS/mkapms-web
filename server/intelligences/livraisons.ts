@@ -2883,6 +2883,28 @@ export const LIVRAISONS: Livraison[] = [
       "Rendre une IA autonome ne veut pas dire lever ses garde-fous : on supprime les frictions (confirmations inutiles, questions redondantes, boucle trop courte) et on écrit noir sur blanc ce qui reste interdit. Un récit utile à la mémoire dit aussi ce qui n'est pas fait.",
     domaine: "confiance",
   },
+  {
+    cle: "branche-travail-chat-orchestrateur-micro-modele",
+    titre: "Mode Travail réparé (permission ANALYZE), Chat et Travail alignés, micro : modèle de transcription retenu",
+    moteurs: ["intelligences"],
+    quoi:
+      "1) Le mode Travail (Agent développeur) s'arrêtait dès la première analyse : « Permission ANALYZE exigée : le moteur intelligences_orchestrateur ne l'a pas reçue ». Ce moteur n'avait que READ ; il reçoit ANALYZE et PROPOSE (pas WRITE, TEST, DEPLOY). 2) Chat et Travail partagent la même mémoire, la même consigne et la même conversation ; le Chat n'a plus d'outil qui agit (écriture, lancement de photos, proposition de fiche) et renvoie vers Travail, qui les a tous. Un objectif sur la boutique (fiches, photos, stock, colis, livraison, panier) passe en Travail par la boucle d'outils, avec un rapport étape par étape ; un objectif de code reste un chantier de développement. 3) Micro : le navigateur retient le modèle de transcription qui a réellement écrit et la session suivante démarre avec lui (les premières phrases se perdaient sur un modèle refusé par le projet) ; la dictée finalise après 800 ms de silence au lieu de 1,2 s.",
+    pourquoi:
+      "Le PDG a envoyé une capture : en Travail, « Est-ce que tu peux analyser la boutique ? » aboutissait à l'erreur de permission ; et il demande que Chat et Travail aient la même mémoire et la même fonction, le Chat servant à se renseigner et planifier, le Travail à exécuter. Il signale aussi que le micro écrit certaines phrases du début et pas d'autres, et ne reconnaît pas quand on parle sans s'arrêter. Limite connue et non corrigée : le service de transcription ne rend le texte d'une phrase qu'à la fin de celle-ci (silence détecté) ; parler sans pause retarde donc le texte. Non vérifié en conditions réelles (pas de clé de service vocal dans ce bac à sable).",
+    ou: [
+      "server/intelligences/permissions.ts",
+      "server/intelligences/orchestrateur.ts",
+      "server/intelligences/outils/registre.ts",
+      "server/intelligences/service.ts",
+      "server/intelligences/regles.ts",
+      "server/intelligences/provider.ts",
+      "client/src/lib/realtimeVoice.ts",
+      "server/intelligences/__tests__/travail-chat.test.ts",
+    ],
+    lecon:
+      "Un moteur appelant le routeur doit porter lui-même les permissions de ses étapes : sans elles, la première étape qui demande plus que lire échoue, quel que soit le rôle du PDG. Et quand un réglage dépend du projet du fournisseur (modèles autorisés), il faut retenir ce qui a marché plutôt que perdre les premiers essais à chaque session.",
+    domaine: "confiance",
+  },
 ];
 
 /**
