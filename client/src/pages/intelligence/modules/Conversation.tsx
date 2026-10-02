@@ -97,6 +97,16 @@ function lireFichierNavigateur(fichier: File): Promise<string> {
   });
 }
 
+/** Contenu base64 brut d'un enregistrement audio (sans l'en-tête « data: »). */
+function blobEnBase64(blob: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const lecteur = new FileReader();
+    lecteur.onload = () => resolve(String(lecteur.result ?? "").split(",")[1] ?? "");
+    lecteur.onerror = () => reject(lecteur.error ?? new Error("Lecture impossible."));
+    lecteur.readAsDataURL(blob);
+  });
+}
+
 function idBulle(): string {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 }
@@ -380,6 +390,7 @@ export function Conversation({ navigation, active = true, mode = "chat", onActiv
   );
 
   const creerSessionVocale = trpc.intelligences.creerSessionVocale.useMutation();
+  const transcrireDebut = trpc.intelligences.transcrireDictee.useMutation();
   const enregistrerVocal = trpc.intelligences.enregistrerEchangeVocal.useMutation();
 
   const historyUnavailable = !!sessionId && (filServeur.isFetching || filServeur.isError || sessionChargee.current !== sessionId);
@@ -544,6 +555,13 @@ export function Conversation({ navigation, active = true, mode = "chat", onActiv
 
     setEcoute(true);
     let confirme = "";
+    let debut = "";
+    let partielCourant = "";
+    const ecrire = () => {
+      const prochain = [base.trim(), debut.trim(), confirme.trim(), partielCourant.trim()].filter(Boolean).join(" ");
+      questionRef.current = prochain;
+      setQuestion(prochain);
+    };
 
     /**
      * Service vocal temps réel indisponible ou qui ne s'établit pas : la dictée du navigateur
@@ -590,18 +608,29 @@ export function Conversation({ navigation, active = true, mode = "chat", onActiv
           element.style.setProperty("--niveau", niveauLisse.current.toFixed(3));
         },
         exchangeSdp: async (sdp) => (await creerSessionVocale.mutateAsync({ sdp, mode: "dictee", langue: recognitionLanguage(voicePreferences), voix: voicePreferences.realtimeVoice, reductionBruit: noiseReductionFor(voicePreferences), modeleTranscription: modeleTranscriptionMemorise() })).sdp,
+        onPreroll: ({ blob, format }) => {
+          void (async () => {
+            try {
+              const base64 = await blobEnBase64(blob);
+              const { texte } = await transcrireDebut.mutateAsync({ audio: { format, base64 }, langue: recognitionLanguage(voicePreferences) });
+              if (generation !== dicteeGeneration.current) return;
+              debut = texte;
+              ecrire();
+            } catch {
+              // Silence ou bruit au démarrage : rien à écrire, la dictée continue.
+            }
+          })();
+        },
         onUserPartial: (partiel) => {
           if (generation !== dicteeGeneration.current) return;
-          const prochain = [base.trim(), confirme.trim(), partiel.trim()].filter(Boolean).join(" ");
-          questionRef.current = prochain;
-          setQuestion(prochain);
+          partielCourant = partiel;
+          ecrire();
         },
         onUserTranscript: (texte) => {
           if (generation !== dicteeGeneration.current) return;
           confirme = [confirme.trim(), texte.trim()].filter(Boolean).join(" ");
-          const prochain = [base.trim(), confirme].filter(Boolean).join(" ");
-          questionRef.current = prochain;
-          setQuestion(prochain);
+          partielCourant = "";
+          ecrire();
           setEtatDictee("ecoute");
           addDictationHistory(texte, "dictation");
         },

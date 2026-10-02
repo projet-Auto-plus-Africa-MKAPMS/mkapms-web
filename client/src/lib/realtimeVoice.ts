@@ -29,6 +29,22 @@ interface RealtimeVoiceOptions {
   onSpeech?: (parle: boolean) => void;
   /** Niveau sonore réel (0 à 1) du micro et de la voix reçue, mesuré environ 60 fois par seconde. */
   onLevel?: (niveaux: { micro: number; voix: number }) => void;
+  /**
+   * Audio enregistré localement entre l'ouverture du micro et l'établissement de la liaison, remis seulement si une voix
+   * y a été entendue : les premiers mots dits pendant la connexion ne sont plus perdus.
+   */
+  onPreroll?: (audio: { blob: Blob; format: "mp4" | "webm" }) => void;
+}
+
+/** Niveau du micro au-delà duquel l'enregistrement de démarrage est considéré comme contenant de la parole. */
+export const SEUIL_VOIX_DEMARRAGE = 0.08;
+
+/** Format d'enregistrement accepté à la fois par le navigateur et par la transcription de fichier du serveur. */
+export function formatEnregistrement(estPris: (mime: string) => boolean): { mimeType: string; format: "mp4" | "webm" } | null {
+  for (const mimeType of ["audio/mp4", "audio/webm;codecs=opus", "audio/webm"]) {
+    if (estPris(mimeType)) return { mimeType, format: mimeType.includes("mp4") ? "mp4" : "webm" };
+  }
+  return null;
 }
 
 type RealtimeEvent = {
@@ -236,6 +252,40 @@ export async function startRealtimeVoice(options: RealtimeVoiceOptions): Promise
   analyseurMicro = brancherAnalyseur(stream);
   if (contexteAudio) mesure = window.requestAnimationFrame(mesurer);
 
+  let demarrage: MediaRecorder | null = null;
+  let voixAuDemarrage = !analyseurMicro;
+  let veilleDemarrage: ReturnType<typeof setInterval> | undefined;
+  const formatDemarrage = options.onPreroll && typeof MediaRecorder !== "undefined"
+    ? formatEnregistrement((mime) => MediaRecorder.isTypeSupported(mime))
+    : null;
+  if (formatDemarrage) {
+    try {
+      const morceaux: Blob[] = [];
+      const enregistreur = new MediaRecorder(stream, { mimeType: formatDemarrage.mimeType });
+      enregistreur.ondataavailable = (e) => { if (e.data.size) morceaux.push(e.data); };
+      enregistreur.onstop = () => {
+        clearInterval(veilleDemarrage);
+        const blob = new Blob(morceaux, { type: formatDemarrage.mimeType });
+        if (!closed && voixAuDemarrage && blob.size >= 16) options.onPreroll?.({ blob, format: formatDemarrage.format });
+      };
+      enregistreur.start(250);
+      demarrage = enregistreur;
+      if (analyseurMicro) {
+        veilleDemarrage = setInterval(() => {
+          if (niveauDe(analyseurMicro) > SEUIL_VOIX_DEMARRAGE) voixAuDemarrage = true;
+        }, 50);
+      }
+    } catch {
+      demarrage = null;
+    }
+  }
+  /** La liaison transporte désormais la voix : l'enregistrement de démarrage s'arrête et est remis s'il contient de la parole. */
+  const finirDemarrage = () => {
+    const enregistreur = demarrage;
+    demarrage = null;
+    if (enregistreur?.state === "recording") enregistreur.stop();
+  };
+
   const diagnostic = (etat: string) => {
     const derniers = typesVus.slice(-3).join(", ");
     options.onDiagnostic?.(`${etat} · ${evenements} événement(s) reçu(s)${derniers ? ` : ${derniers}` : ""}`);
@@ -248,6 +298,8 @@ export async function startRealtimeVoice(options: RealtimeVoiceOptions): Promise
     window.clearTimeout(veilleCanal);
     window.clearTimeout(veilleTranscription);
     if (mesure !== undefined) window.cancelAnimationFrame(mesure);
+    clearInterval(veilleDemarrage);
+    finirDemarrage();
     void contexteAudio?.close().catch(() => undefined);
     options.signal?.removeEventListener("abort", surAnnulation);
     channel.close();
@@ -283,7 +335,7 @@ export async function startRealtimeVoice(options: RealtimeVoiceOptions): Promise
   };
   peer.onconnectionstatechange = () => {
     diagnostic(`liaison ${peer.connectionState}`);
-    if (peer.connectionState === "connected") { liaisonEtablie = true; verifierPret(); }
+    if (peer.connectionState === "connected") { liaisonEtablie = true; finirDemarrage(); verifierPret(); }
     // `disconnected` est souvent transitoire sur mobile ou Wi-Fi : WebRTC peut
     // se rétablir. Seuls les états terminaux ferment réellement la session.
     if (["failed", "closed"].includes(peer.connectionState) && !closed) {

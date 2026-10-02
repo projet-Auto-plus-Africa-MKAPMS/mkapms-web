@@ -73,6 +73,8 @@ export interface AppelInput {
   /** Opération média explicite, exécutée sans outils métier ni shadow. */
   media?: "image" | "voix" | "transcription";
   audio?: FichierAudio;
+  /** Consigne de transcription (vocabulaire attendu), pour `media: "transcription"` seulement. */
+  promptTranscription?: string;
   isolation?: "SHOP";
   /** Capacité Fabrique Intelligence : "ia_texte" ou "ia_vision". */
   capacite: "ia_texte" | "ia_vision";
@@ -470,7 +472,7 @@ export async function appeler(input: AppelInput, fetchImpl: typeof fetch = fetch
     }
     try {
       const media = input.media === "transcription"
-        ? await transcrireAudioNatif(resolu, input.audio!, fetchImpl)
+        ? await transcrireAudioNatif(resolu, input.audio!, fetchImpl, undefined, input.promptTranscription)
         : await produireMediaNatif(resolu, input.media, input.message, fetchImpl, input.images);
       await markProviderUsed(providerCode);
       await db.insert(afCostEntries).values({
@@ -1033,7 +1035,7 @@ export function codePublicErreur(corps: string): { type: string; code: string } 
  * sonde, puis la liste fermée, et on s'arrête dès qu'un modèle répond. Un refus (400/403/404) passe au suivant ;
  * l'erreur finale nomme le statut, le modèle et le code public — jamais la clé, l'audio ni le corps brut.
  */
-export async function transcrireAudioNatif(resolu:{cle:string}, input:FichierAudio, fetchImpl:typeof fetch=fetch, modelePrefere?:string):Promise<MediaProduit>{
+export async function transcrireAudioNatif(resolu:{cle:string}, input:FichierAudio, fetchImpl:typeof fetch=fetch, modelePrefere?:string, prompt?:string):Promise<MediaProduit>{
  const bytes=lireAudio(input);if(!resolu.cle)throw Error('AUDIO_CREDENTIAL_REQUIRED');
  const mime={mp3:'audio/mpeg',wav:'audio/wav',webm:'audio/webm',mp4:'audio/mp4'}[input.format];
  const modeles=[...new Set([modelePrefere,await modeleValide('transcription'),...MODELES_TRANSCRIPTION_FICHIER].filter((m):m is string=>!!m&&/^[A-Za-z0-9._-]{1,80}$/.test(m)))];
@@ -1041,6 +1043,7 @@ export async function transcrireAudioNatif(resolu:{cle:string}, input:FichierAud
  for(const modele of modeles){
   const form=new FormData();form.append('model',modele);form.append('response_format','json');
   form.append('file',new Blob([new Uint8Array(bytes)],{type:mime}),`recording.${input.format}`);
+  if(prompt?.trim())form.append('prompt',prompt.trim().slice(0,1_000));
   const response=await fetchImpl('https://api.openai.com/v1/audio/transcriptions',{method:'POST',redirect:'error',signal:AbortSignal.timeout(150_000),headers:{Authorization:`Bearer ${resolu.cle}`},body:form});
   if(!response.ok){
    const err=codePublicErreur((await response.text()).slice(0,4000));
@@ -1185,6 +1188,31 @@ const LANGUES_REPONSE_VOCALE: Record<string, string> = {
   tr: "en turc, avec une prononciation native et naturelle",
 };
 
+/** Longueur maximale du vocabulaire ajouté à la consigne de transcription. */
+export const VOCABULAIRE_MAX_CARACTERES = 700;
+
+/**
+ * Consigne donnée au modèle de transcription : marques, formules arabes courantes et, quand il y en a, les mots
+ * propres au locuteur tirés de sa mémoire, à écrire tels quels. Bornée : un vocabulaire trop long dégrade la transcription.
+ */
+export function consigneTranscription(langue: string | undefined, vocabulaire: readonly string[] = []): string {
+  const base = !langue || langue === "fr"
+    ? "AL-HUDHUD·M, MKA.P-MS. Ponctuation naturelle et transcription fidèle. Le locuteur parle français et emploie parfois des formules arabes courantes, à écrire en lettres latines sans les traduire : salam alaikum, assalamou alaykoum, wa alaykoum salam, bismillah, inchallah, machallah, hamdoulilah, barakallahou fik, jazakallah khayran."
+    : "AL-HUDHUD·M, MKA.P-MS. Ponctuation naturelle et transcription fidèle, dans la langue parlée, sans traduire ni reformuler.";
+  const retenus: string[] = [];
+  let longueur = 0;
+  for (const brut of vocabulaire) {
+    const terme = brut.replace(/[\u0000-\u001f"]/g, " ").replace(/\s+/g, " ").trim();
+    if (!terme || retenus.includes(terme)) continue;
+    if (longueur + terme.length + 2 > VOCABULAIRE_MAX_CARACTERES) break;
+    retenus.push(terme);
+    longueur += terme.length + 2;
+  }
+  return retenus.length
+    ? `${base} Mots et expressions du locuteur, à écrire exactement ainsi quand ils sont prononcés : ${retenus.join(", ")}.`
+    : base;
+}
+
 /**
  * Ouvre une session OpenAI Realtime WebRTC sans jamais transmettre la clé au
  * navigateur. L'offre SDP vient du téléphone, la réponse SDP seulement lui
@@ -1194,7 +1222,7 @@ const LANGUES_REPONSE_VOCALE: Record<string, string> = {
 export async function creerAppelVocalTempsReel(
   sdp: string,
   mode: ModeSessionVocale,
-  options: { langue?: string; voix?: string; reductionBruit?: "near_field" | "far_field"; safetyId?: string; modeleTranscription?: string } = {},
+  options: { langue?: string; voix?: string; reductionBruit?: "near_field" | "far_field"; safetyId?: string; modeleTranscription?: string; vocabulaire?: readonly string[] } = {},
   fetchImpl: typeof fetch = fetch,
 ): Promise<string> {
   const nettoye = sdp.trim();
@@ -1209,9 +1237,7 @@ export async function creerAppelVocalTempsReel(
   const consigneLangue = langue && LANGUES_REPONSE_VOCALE[langue]
     ? ` Langue choisie par l'utilisateur : réponds toujours ${LANGUES_REPONSE_VOCALE[langue]}, sauf s'il te demande explicitement d'en changer.`
     : "";
-  const promptTranscription = !langue || langue === "fr"
-    ? "AL-HUDHUD·M, MKA.P-MS. Ponctuation naturelle et transcription fidèle. Le locuteur parle français et emploie parfois des formules arabes courantes, à écrire en lettres latines sans les traduire : salam alaikum, assalamou alaykoum, wa alaykoum salam, bismillah, inchallah, machallah, hamdoulilah, barakallahou fik, jazakallah khayran."
-    : "AL-HUDHUD·M, MKA.P-MS. Ponctuation naturelle et transcription fidèle, dans la langue parlée, sans traduire ni reformuler.";
+  const promptTranscription = consigneTranscription(langue, options.vocabulaire);
   const voixAutorisee = new Set<string>(VOIX_TEMPS_REEL);
   const voix = voixAutorisee.has(options.voix ?? "") ? options.voix! : "marin";
   // Modèle qui a déjà transcrit pour ce navigateur (mémorisé côté client) : la session démarre avec lui, au lieu de perdre les
