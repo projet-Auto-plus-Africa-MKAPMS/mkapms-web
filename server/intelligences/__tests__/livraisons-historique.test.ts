@@ -4,7 +4,7 @@
  */
 import test from "node:test";
 import assert from "node:assert/strict";
-import { LIVRAISONS, TOUTES_LES_LIVRAISONS } from "../livraisons.js";
+import { LIVRAISONS, TOUTES_LES_LIVRAISONS, contenuLivraison } from "../livraisons.js";
 import { LIVRAISONS_HISTORIQUE } from "../livraisons-historique.js";
 import { CATEGORIES } from "../memoire.js";
 
@@ -76,4 +76,23 @@ test("fidélité : un message de commit est cité tel quel, et une coupure est m
     assert.match(l.quoi, /^Origine : /, l.cle);
     assert.ok(l.quoi.length <= 7600, `${l.cle} trop long`);
   }
+});
+
+test("la recherche ne transmet que le début d'une entrée : chaque récit commence par un résumé autonome", () => {
+  const recits = LIVRAISONS_HISTORIQUE.filter((l) => l.cle.startsWith("recit-"));
+  assert.ok(recits.length >= 45, "récits et sections détaillées");
+  for (const l of recits) {
+    assert.match(l.quoi, /^RÉSUMÉ — /, l.cle);
+    const debut = contenuLivraison(l).slice(0, 300);
+    // Le résumé est lisible dans les 300 premiers caractères (après « Moteurs : … Quoi : »).
+    const resume = debut.split("RÉSUMÉ — ")[1] ?? "";
+    assert.ok(resume.length >= 100 || l.quoi.length < 350, `${l.cle} : résumé trop court dans le début visible (${resume.length})`);
+    assert.ok(l.quoi.length <= 4000, `${l.cle} : section trop longue pour rester lisible`);
+  }
+  // Le point le plus important du récit des retours en arrière est dans le début visible.
+  const retour = LIVRAISONS_HISTORIQUE.find((l) => l.cle === "recit-retours-arriere-et-capacite-manquante")!;
+  assert.match(contenuLivraison(retour).slice(0, 300), /n'existe PAS encore/);
+  // Les sections détaillées sont retrouvables : titre propre à chaque problème.
+  const titres = new Set(recits.map((r) => r.titre));
+  assert.equal(titres.size, recits.length, "titres uniques");
 });

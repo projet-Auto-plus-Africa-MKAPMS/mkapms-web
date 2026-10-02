@@ -1,6 +1,6 @@
 # Journal de bord du chantier MKA.P-MS
 
-Généré à partir de l'historique de la branche main (état aa96e35, dernier commit du 3 octobre 2026). Les textes détaillés de chaque livraison sont dans la mémoire de l'assistant (entrées `pr-<numéro>`, `commit-<hash>` et `recit-*`).
+Généré à partir de l'historique de la branche main (état 24ff441, dernier commit du 3 octobre 2026). Les textes détaillés de chaque livraison sont dans la mémoire de l'assistant (entrées `pr-<numéro>`, `commit-<hash>` et `recit-*`).
 
 ## Récit complet du chantier MKA.P-MS : chronologie du 10 août au 3 octobre 2026
 
