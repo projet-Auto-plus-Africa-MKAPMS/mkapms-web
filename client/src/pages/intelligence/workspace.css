@@ -136,3 +136,20 @@
 @keyframes alhud-orb-breathe { 50% { transform: scale(1.03) rotate(1.5deg); box-shadow: 0 22px 52px rgb(91 91 225 / 30%); } }
 @media (prefers-reduced-motion: reduce) { .alhud-voice-orb { animation: none; } }
 .alhud-history{max-height:42dvh;overflow:auto}
+/* Boule vocale pilotée par le niveau sonore réel (--niveau de 0 à 1) : elle respire avec la voix entendue, puis avec la voix d'AL-HUDHUD·M. */
+.alhud-voice-orb {
+  scale: calc(1 + var(--niveau, 0) * 0.22);
+  filter: brightness(calc(1 + var(--niveau, 0) * 0.35)) saturate(calc(1 + var(--niveau, 0) * 0.6)) drop-shadow(0 0 calc(var(--niveau, 0) * 56px) rgb(100 118 255 / 0.6));
+  transition: scale 90ms linear, filter 90ms linear;
+}
+.alhud-voice-orb.voix-active {
+  filter: brightness(calc(1.05 + var(--niveau, 0) * 0.45)) saturate(calc(1.1 + var(--niveau, 0) * 0.7)) drop-shadow(0 0 calc(10px + var(--niveau, 0) * 64px) rgb(56 189 248 / 0.65));
+}
+.alhud-voice-orb::before,
+.alhud-voice-orb span { opacity: calc(0.6 + var(--niveau, 0) * 0.4); }
+.alhud-voice-screen-top { align-items: flex-start; gap: .5rem; }
+.alhud-voice-reglages { display: flex; min-width: 0; flex: 1; flex-direction: column; align-items: center; gap: .4rem; }
+.alhud-voice-reglages select { width: min(100%, 13rem); min-height: 2.5rem; padding: 0 .9rem; border: 1px solid rgb(15 23 42 / 12%); border-radius: 9999px; background: #f4f6fb; color: #0f172a; font-size: .85rem; font-weight: 800; text-align: center; }
+.alhud-recording-wave span { scale: 1 calc(1 + var(--niveau, 0) * 1.6); transition: scale 90ms linear; }
+.alhud-recording-wave.parole { box-shadow: 0 0 0 2px rgb(179 138 22 / .35); }
+@media (prefers-reduced-motion: reduce) { .alhud-voice-orb, .alhud-recording-wave span { transition: none; } }

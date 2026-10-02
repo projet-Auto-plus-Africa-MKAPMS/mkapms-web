@@ -25,6 +25,10 @@ interface RealtimeVoiceOptions {
   langueTranscription?: string;
   /** Modèle de transcription avec lequel la session a été ouverte (voir `modeleTranscriptionMemorise`). */
   modeleTranscriptionInitial?: string;
+  /** Le service détecte que la personne parle (`true`) ou vient de se taire (`false`). */
+  onSpeech?: (parle: boolean) => void;
+  /** Niveau sonore réel (0 à 1) du micro et de la voix reçue, mesuré environ 60 fois par seconde. */
+  onLevel?: (niveaux: { micro: number; voix: number }) => void;
 }
 
 type RealtimeEvent = {
@@ -37,6 +41,30 @@ type RealtimeEvent = {
 
 /** Délai laissé au canal d'événements pour s'ouvrir après la réponse du service. */
 export const DELAI_CANAL_MS = 15_000;
+
+/** Délai maximal entre la fin d'une phrase et le premier texte renvoyé par la transcription. */
+export const DELAI_TRANSCRIPTION_MS = 10_000;
+
+/** Niveau RMS (0 à 1) d'un échantillon audio temporel 8 bits centré sur 128, amplifié pour la voix parlée. */
+export function niveauRms(echantillons: ArrayLike<number>): number {
+  if (!echantillons.length) return 0;
+  let somme = 0;
+  for (let i = 0; i < echantillons.length; i += 1) {
+    const v = (echantillons[i] - 128) / 128;
+    somme += v * v;
+  }
+  return Math.min(1, Math.sqrt(somme / echantillons.length) * 4);
+}
+
+type ContexteAudioCtor = new () => AudioContext;
+
+function creerContexteAudio(): AudioContext | null {
+  if (typeof window === "undefined") return null;
+  const w = window as unknown as { AudioContext?: ContexteAudioCtor; webkitAudioContext?: ContexteAudioCtor };
+  const Ctor = w.AudioContext ?? w.webkitAudioContext;
+  if (!Ctor) return null;
+  try { return new Ctor(); } catch { return null; }
+}
 
 /**
  * Code public d'une erreur du service vocal (jamais son message libre, qui peut citer des
@@ -139,13 +167,23 @@ export async function startRealtimeVoice(options: RealtimeVoiceOptions): Promise
   }
   if (options.signal?.aborted) throw new Error("REALTIME_ABORTED");
   options.onState?.("connexion");
+  // Contexte de mesure créé pendant le geste de l'utilisateur (exigence iPhone), avant toute attente.
+  const contexteAudio = options.onLevel ? creerContexteAudio() : null;
+  void contexteAudio?.resume().catch(() => undefined);
   // `audio: true` laisse chaque navigateur choisir ses contraintes réellement
   // prises en charge. Certains Android/WebView et ordinateurs refusaient les
   // contraintes avancées avant même d'ouvrir la connexion.
-  const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+  let stream: MediaStream;
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+  } catch (error) {
+    void contexteAudio?.close().catch(() => undefined);
+    throw error;
+  }
   if (options.signal?.aborted) {
     // L'arrêt a été demandé pendant l'autorisation du micro : on le rend tout de suite.
     stream.getTracks().forEach((track) => track.stop());
+    void contexteAudio?.close().catch(() => undefined);
     throw new Error("REALTIME_ABORTED");
   }
   const peer = new RTCPeerConnection();
@@ -168,6 +206,35 @@ export async function startRealtimeVoice(options: RealtimeVoiceOptions): Promise
   const modelesTranscriptionEssayes: string[] = [options.modeleTranscriptionInitial ?? MODELE_TRANSCRIPTION_INITIAL];
   let modeleCourant: string = options.modeleTranscriptionInitial ?? MODELE_TRANSCRIPTION_INITIAL;
   let assistantPartial = "";
+  let veilleTranscription: number | undefined;
+  let mesure: number | undefined;
+  let analyseurMicro: AnalyserNode | null = null;
+  let analyseurVoix: AnalyserNode | null = null;
+  const tampon = new Uint8Array(512);
+  const niveauDe = (analyseur: AnalyserNode | null): number => {
+    if (!analyseur) return 0;
+    analyseur.getByteTimeDomainData(tampon);
+    return niveauRms(tampon);
+  };
+  const brancherAnalyseur = (source: MediaStream): AnalyserNode | null => {
+    if (!contexteAudio) return null;
+    try {
+      const analyseur = contexteAudio.createAnalyser();
+      analyseur.fftSize = 512;
+      analyseur.smoothingTimeConstant = 0.6;
+      contexteAudio.createMediaStreamSource(source).connect(analyseur);
+      return analyseur;
+    } catch {
+      return null;
+    }
+  };
+  const mesurer = () => {
+    if (closed) return;
+    options.onLevel?.({ micro: niveauDe(analyseurMicro), voix: niveauDe(analyseurVoix) });
+    mesure = window.requestAnimationFrame(mesurer);
+  };
+  analyseurMicro = brancherAnalyseur(stream);
+  if (contexteAudio) mesure = window.requestAnimationFrame(mesurer);
 
   const diagnostic = (etat: string) => {
     const derniers = typesVus.slice(-3).join(", ");
@@ -179,6 +246,9 @@ export async function startRealtimeVoice(options: RealtimeVoiceOptions): Promise
     closed = true;
     window.clearTimeout(veillePret);
     window.clearTimeout(veilleCanal);
+    window.clearTimeout(veilleTranscription);
+    if (mesure !== undefined) window.cancelAnimationFrame(mesure);
+    void contexteAudio?.close().catch(() => undefined);
     options.signal?.removeEventListener("abort", surAnnulation);
     channel.close();
     peer.close();
@@ -205,8 +275,11 @@ export async function startRealtimeVoice(options: RealtimeVoiceOptions): Promise
   };
 
   peer.ontrack = (event) => {
-    audio.srcObject = event.streams[0] ?? new MediaStream([event.track]);
-    void audio.play().catch(() => options.onError?.("Touchez l’écran puis réessayez pour autoriser la lecture audio."));
+    const distant = event.streams[0] ?? new MediaStream([event.track]);
+    audio.srcObject = distant;
+    if (!analyseurVoix) analyseurVoix = brancherAnalyseur(distant);
+    // En dictée, le service ne parle jamais : un refus de lecture n'a aucun effet et ne doit pas inquiéter.
+    void audio.play().catch(() => { if (options.mode === "conversation") options.onError?.("Touchez l’écran puis réessayez pour autoriser la lecture audio."); });
   };
   peer.onconnectionstatechange = () => {
     diagnostic(`liaison ${peer.connectionState}`);
@@ -236,8 +309,17 @@ export async function startRealtimeVoice(options: RealtimeVoiceOptions): Promise
     diagnostic("canal ouvert");
     if (type === "session.created" || type === "session.updated") { sessionPrete = true; verifierPret(); }
     // Toute activité vocale prouve que la session est prête.
-    if (type === "input_audio_buffer.speech_started") { sessionPrete = true; liaisonEtablie = true; verifierPret(); options.onState?.("ecoute"); }
-    if (type === "input_audio_buffer.speech_stopped") options.onState?.("reflexion");
+    if (type === "input_audio_buffer.speech_started") { sessionPrete = true; liaisonEtablie = true; verifierPret(); options.onState?.("ecoute"); options.onSpeech?.(true); }
+    if (type === "input_audio_buffer.speech_stopped") {
+      options.onState?.("reflexion");
+      options.onSpeech?.(false);
+      window.clearTimeout(veilleTranscription);
+      // Phrase terminée : un texte doit revenir. Sinon on le dit, au lieu d'un champ qui reste vide sans raison.
+      veilleTranscription = window.setTimeout(() => {
+        if (!closed) options.onError?.("Votre voix a été captée mais la transcription n'a renvoyé aucun texte depuis 10 secondes. Reparlez ou relancez le micro.");
+      }, DELAI_TRANSCRIPTION_MS);
+    }
+    if (type.startsWith("conversation.item.input_audio_transcription.")) window.clearTimeout(veilleTranscription);
     if (type === "conversation.item.input_audio_transcription.delta") {
       const key = event.item_id ?? "current";
       const next = `${userPartial.get(key) ?? ""}${event.delta ?? ""}`;
