@@ -122,4 +122,18 @@ export const OUTILS_MEMOIRE: OutilSpec[] = [
     implementationStatus: "IMPLEMENTED",
     riskLevel: "LOW",
   }),
+  outil({
+    toolId: "automobile.rechercherMemoire",
+    name: "rechercherMemoireAutomobile",
+    description:
+      "Interroge la Mémoire automobile (marques, types de véhicules, énergies, carrosseries, transmissions, systèmes et familles de pièces). Sans texte de recherche, renvoie l'état de la mémoire : nombre de nœuds par domaine et type, et les sources. Chaque résultat dit son statut : « propose » = vu une seule fois, NON confirmé (le référentiel de départ est une connaissance générale non vérifiée) ; « confirme » = constaté par au moins trois observations indépendantes. Ne jamais présenter un nœud « propose » comme un fait certain, ne jamais inventer ce qui n'y figure pas (années, modèles, groupes propriétaires, compatibilités de pièces) : dire que la mémoire ne le contient pas.",
+    schemaInput: {
+      type: "object",
+      properties: { recherche: { type: "string" }, domaine: { type: "string" }, type: { type: "string" }, limite: { type: "number" } },
+      required: [],
+    },
+    schemaOutput: { type: "object", properties: { resultats: { type: "array" }, etat: { type: "object" } } },
+    implementationStatus: "IMPLEMENTED",
+    riskLevel: "READ_ONLY",
+  }),
 ];

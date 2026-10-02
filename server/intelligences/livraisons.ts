@@ -2905,6 +2905,27 @@ export const LIVRAISONS: Livraison[] = [
       "Un moteur appelant le routeur doit porter lui-même les permissions de ses étapes : sans elles, la première étape qui demande plus que lire échoue, quel que soit le rôle du PDG. Et quand un réglage dépend du projet du fournisseur (modèles autorisés), il faut retenir ce qui a marché plutôt que perdre les premiers essais à chaque session.",
     domaine: "confiance",
   },
+  {
+    cle: "branche-memoire-automobile-referentiel-nhtsa",
+    titre: "Mémoire automobile remplie (marques, types de véhicules, pièces), source NHTSA, mémoires projets/recherche/décisions/apprentissage",
+    moteurs: ["intelligences", "knowledge_engine"],
+    quoi:
+      "La Mémoire automobile n'était alimentée par personne. Posé au démarrage, avec provenance : 436 marques notables du monde (voitures, motos, scooters, camions, bus, utilitaires, quads, agricole, chantier, camping-cars, voiturettes ; anciennes et actuelles) avec pays d'origine, catégories et état ; catégories de véhicules, énergies, carrosseries, transmissions ; 24 systèmes et 212 familles de pièces, reliés par des liens appartient_a. Ces faits sont une connaissance générale non vérifiée (statut « propose »). Source réelle ajoutée : les marques enregistrées auprès de la NHTSA (API publique, 12 380 noms au moment de l'essai), synchronisées au démarrage puis au plus une fois par mois, avec refus de toute réponse suspecte. Nouvel outil de l'IA : automobile.rechercherMemoire (le chat ne pouvait pas lire ce graphe). Mémoires projets, recherche, décisions et apprentissage remplies avec 23 souvenirs établis par les travaux des 1er et 2 octobre ; deux connaissances (contenu et limites de la mémoire automobile ; chaîne photo + plaque → annonce prête à publier, avec les API manquantes).",
+    pourquoi:
+      "Le PDG a constaté que la mémoire automobile et plusieurs autres mémoires étaient vides et demande de les remplir, avec toutes les marques du monde, les pièces, et de dire quelles API connecter. Aucune liste mondiale exhaustive n'existe dans une source libre : la liste NHTSA couvre l'ampleur américaine (des marques européennes et chinoises y manquent) ; le référentiel de départ comble les marques notables ; les modèles, motorisations, années, groupes propriétaires et compatibilités de pièces ne sont volontairement PAS inscrits sans source datée. L'écriture en masse ne confirme jamais un fait par simple rejeu (une observation par source).",
+    ou: [
+      "server/knowledge-engine/referentiel-automobile.ts",
+      "server/knowledge-engine/referentiel-seed.ts",
+      "server/knowledge-engine/nhtsa.ts",
+      "server/knowledge-engine/service.ts",
+      "server/intelligences/fondations-travaux.ts",
+      "server/intelligences/outils/familles/memoire.ts",
+      "server/intelligences/__tests__/memoire-automobile.integration.test.ts",
+    ],
+    lecon:
+      "Remplir une mémoire ne veut pas dire la remplir de n'importe quoi : chaque fait garde sa source et son statut, une source qui n'est pas vérifiée le dit, et rejouer une écriture ne doit jamais fabriquer de confirmation. Vérifié sur une vraie base locale, dont une mutation volontaire de la règle d'idempotence qui fait bien échouer le test.",
+    domaine: "confiance",
+  },
 ];
 
 /**

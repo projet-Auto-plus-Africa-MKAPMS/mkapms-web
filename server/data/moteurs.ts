@@ -5487,7 +5487,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "routeurs": [
       "knowledgeEngine"
     ],
-    "fichiersServeur": 7,
+    "fichiersServeur": 10,
     "dependancesDeclarees": [
       "core",
       "country",
@@ -10705,7 +10705,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "routeurs": [
       "intelligences"
     ],
-    "fichiersServeur": 105,
+    "fichiersServeur": 106,
     "dependancesDeclarees": [
       "ai_fabric",
       "code_graph",
@@ -10794,7 +10794,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "intelligences/service.ts charge completion/service.ts"
       ],
       "connaissance_auto": [
-        "intelligences/memoire.ts charge knowledge-engine/service.ts"
+        "intelligences/memoire.ts charge knowledge-engine/service.ts",
+        "intelligences/outils/familles/outils-memoire.ts charge knowledge-engine/service.ts"
       ],
       "continuous_test": [
         "intelligences/orchestrateur.ts charge continuous-test/service.ts"

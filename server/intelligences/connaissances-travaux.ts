@@ -80,6 +80,22 @@ export const CONNAISSANCES_TRAVAUX: ConnaissanceTravaux[] = [
     source:
       "décision du PDG du 2 octobre 2026 ; server/intelligences/regles.ts (CONSIGNE_MODE_CHAT, CONSIGNE_MODE_TRAVAIL) ; server/intelligences/orchestrateur.ts ; server/intelligences/outils/registre.ts (listerActifsPourMode)",
   },
+  {
+    categorie: "produits",
+    titre: "Mémoire automobile : ce qu'elle contient, le statut des faits et ses limites (2 octobre 2026)",
+    contenu:
+      "La Mémoire automobile est le graphe de connaissance du moteur de connaissance automobile (nœuds, liens, provenance). Contenu posé le 2 octobre 2026 : plus de quatre cents marques notables du monde (voitures, motos, scooters, camions, bus, utilitaires, quads, tracteurs, engins de chantier, camping-cars, voiturettes ; anciennes et actuelles) avec pays d'origine, catégories et état ; les catégories de véhicules, énergies, carrosseries et transmissions ; les systèmes du véhicule et plus de deux cents familles de pièces. Ces faits sont de la connaissance générale NON vérifiée : statut « propose » (vu une fois), source « connaissance_generale_ia ». Source réelle ajoutée : la liste des marques enregistrées auprès de la NHTSA (États-Unis, API publique, plus de douze mille noms), synchronisée au démarrage puis au plus une fois par mois ; elle ne couvre pas les marques qui ne vendent rien aux États-Unis. Un fait passe « confirme » à partir de trois observations indépendantes. Interrogation : outil automobile.rechercherMemoire (sans texte : état de la mémoire et des sources). Règles : dire le statut d'un fait (« non vérifié ») ; ne jamais inventer une année, un modèle, une motorisation, un groupe propriétaire, une compatibilité de pièce, une référence ou un prix ; si la mémoire ne contient rien, le dire. Ce que la mémoire ne contient pas encore : modèles et motorisations par marque, compatibilités pièces-véhicules (elles viennent du catalogue de pièces de la plateforme et de sources sous licence), marques créées très récemment.",
+    source:
+      "server/knowledge-engine/referentiel-automobile.ts ; nhtsa.ts ; demande du PDG du 2 octobre 2026",
+  },
+  {
+    categorie: "procedures",
+    titre: "Annonce prête à publier depuis une photo et une plaque : ce qui existe, ce qui manque, API à connecter",
+    contenu:
+      "Objectif du PDG : à partir d'une photo de véhicule avec sa plaque, préparer une annonce complète placée « prête à publier ». Chaîne cible : 1) lire la photo (modèle de vision : marque, modèle, couleur, plaque visible — déductions à confirmer, jamais présentées comme officielles) ; 2) obtenir les données officielles par la plaque ; 3) ingérer la fiche dans le moteur véhicule ; 4) normaliser, détecter les doublons, contrôler la qualité, analyser ; 5) calculer le prix avec le moteur de prix (jamais un chiffre du modèle) ; 6) définir les territoires et la disponibilité ; 7) passer en « prêt à publier » ; 8) la publication reste une décision humaine. Existe aujourd'hui : les étapes 3 à 7 (server/vehicle-engine) et la lecture d'images par le modèle. N'existe pas : l'étape 2 (aucune API de plaque n'est connectée) et l'outil de l'IA qui enchaîne les étapes depuis une photo. Le décodage de VIN de la plateforme est seulement structurel. Pistes d'API à communiquer au PDG, aucune choisie : données véhicule par plaque (selon le pays : accès officiel restreint ou fournisseur commercial) ; décodage de VIN (la NHTSA propose un service public gratuit, surtout utile pour les véhicules du marché américain) ; historique du véhicule sous licence (facultatif) ; un modèle de vision autorisé dans le projet OpenAI de la clé. Ne jamais inventer année, kilométrage, puissance, historique ou propriétaire ; sans donnée officielle, laisser le champ vide et le signaler.",
+    source:
+      "server/vehicle-engine/service.ts ; demande du PDG du 2 octobre 2026",
+  },
 ];
 
 /** Pose les connaissances absentes (statut « confirme », visibilité « interne »). Idempotent : un titre déjà présent n'est jamais réécrit. */

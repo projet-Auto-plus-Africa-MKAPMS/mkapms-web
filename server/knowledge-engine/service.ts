@@ -195,6 +195,164 @@ export async function upsertNode(input: UpsertNodeInput): Promise<{
   return { id: nodeId, created, provenanceRefusee };
 }
 
+export interface NoeudEnMasse {
+  domain: string;
+  kind: string;
+  label: string;
+  summary?: string;
+  attributes?: Record<string, unknown>;
+  /** Référence de la source pour CE nœud (ex. identifiant chez le fournisseur). */
+  sourceRef?: string;
+}
+
+/**
+ * Écriture en masse (référentiels, synchronisations de sources). Même règle que `upsertNode`, appliquée par paquets :
+ *  - un nœud nouveau est créé « propose » avec sa provenance ;
+ *  - un nœud déjà connu reçoit UNE observation de plus seulement si cette source ne l'avait pas encore constaté
+ *    (rejouer la même synchronisation ne fabrique donc jamais de fausse confirmation) ;
+ *  - une source absente, interdite ou à vérifier bloque tout : rien n'est écrit.
+ * Renvoie l'identifiant de chaque nœud, par signature.
+ */
+export async function upsertNodesEnMasse(
+  noeuds: NoeudEnMasse[],
+  provenance: Omit<ProvenanceInput, "sourceRef">,
+  learnedByEngine: string,
+): Promise<{ crees: number; confirmes: number; inchanges: number; refusee: string | null; ids: Map<string, number> }> {
+  const ids = new Map<string, number>();
+  const check = await sourceAllows(provenance.sourceCode);
+  if (!check.ok) return { crees: 0, confirmes: 0, inchanges: 0, refusee: check.reason, ids };
+  let crees = 0;
+  let confirmes = 0;
+  let inchanges = 0;
+  const now = new Date();
+  const vus = new Set<string>();
+  const uniques = noeuds.filter((n) => {
+    const sig = signatureOf(n.domain, n.kind, n.label);
+    if (vus.has(sig)) return false;
+    vus.add(sig);
+    return true;
+  });
+
+  for (let i = 0; i < uniques.length; i += 400) {
+    const paquet = uniques.slice(i, i + 400).map((n) => ({ n, signature: signatureOf(n.domain, n.kind, n.label) }));
+    const existants = await db
+      .select({ id: akeNodes.id, signature: akeNodes.signature, observations: akeNodes.observations, status: akeNodes.status })
+      .from(akeNodes)
+      .where(inArray(akeNodes.signature, paquet.map((p) => p.signature)));
+    const parSignature = new Map(existants.map((e) => [e.signature, e]));
+
+    const aCreer = paquet.filter((p) => !parSignature.has(p.signature));
+    const creesIci = new Set<string>();
+    if (aCreer.length > 0) {
+      const inseres = await db
+        .insert(akeNodes)
+        .values(
+          aCreer.map((p) => ({
+            domain: p.n.domain,
+            kind: p.n.kind,
+            label: p.n.label.slice(0, 240),
+            signature: p.signature,
+            summary: p.n.summary ?? null,
+            attributes: p.n.attributes ?? {},
+            countryCode: null,
+            dataClass: "publique",
+            learnedByEngine,
+            lastVerifiedAt: now,
+          })),
+        )
+        .onConflictDoNothing()
+        .returning({ id: akeNodes.id, signature: akeNodes.signature });
+      for (const r of inseres) {
+        ids.set(r.signature, r.id);
+        creesIci.add(r.signature);
+        crees += 1;
+      }
+      const sansId = aCreer.filter((p) => !creesIci.has(p.signature));
+      if (sansId.length > 0) {
+        const relus = await db
+          .select({ id: akeNodes.id, signature: akeNodes.signature, observations: akeNodes.observations, status: akeNodes.status })
+          .from(akeNodes)
+          .where(inArray(akeNodes.signature, sansId.map((p) => p.signature)));
+        for (const r of relus) parSignature.set(r.signature, r);
+      }
+      const nouveaux = aCreer.filter((p) => creesIci.has(p.signature));
+      if (nouveaux.length > 0) {
+        await db.insert(akeProvenance).values(
+          nouveaux.map((p) => ({
+            nodeId: ids.get(p.signature)!,
+            sourceCode: provenance.sourceCode,
+            sourceRef: p.n.sourceRef ?? null,
+            license: provenance.license ?? "inconnue",
+            licenseRef: provenance.licenseRef ?? null,
+            countryCode: provenance.countryCode ?? null,
+            reliability: provenance.reliability ?? null,
+            learnedByEngine: provenance.learnedByEngine ?? learnedByEngine,
+            lastCheckedAt: now,
+          })),
+        );
+      }
+    }
+
+    for (const p of paquet) {
+      const ex = parSignature.get(p.signature);
+      if (!ex) continue;
+      ids.set(p.signature, ex.id);
+      if (!creesIci.has(p.signature)) {
+        // nœud préexistant (ou créé par une écriture concurrente) : une observation de plus, une seule par source
+        const [deja] = await db
+          .select({ id: akeProvenance.id })
+          .from(akeProvenance)
+          .where(and(eq(akeProvenance.nodeId, ex.id), eq(akeProvenance.sourceCode, provenance.sourceCode)))
+          .limit(1);
+        if (deja) {
+          inchanges += 1;
+          continue;
+        }
+        const observations = ex.observations + 1;
+        await db
+          .update(akeNodes)
+          .set({ observations, status: ex.status === "propose" && observations >= 3 ? "confirme" : ex.status, lastVerifiedAt: now, updatedAt: now })
+          .where(eq(akeNodes.id, ex.id));
+        await db.insert(akeProvenance).values({
+          nodeId: ex.id,
+          sourceCode: provenance.sourceCode,
+          sourceRef: p.n.sourceRef ?? null,
+          license: provenance.license ?? "inconnue",
+          licenseRef: provenance.licenseRef ?? null,
+          countryCode: provenance.countryCode ?? null,
+          reliability: provenance.reliability ?? null,
+          learnedByEngine: provenance.learnedByEngine ?? learnedByEngine,
+          lastCheckedAt: now,
+        });
+        confirmes += 1;
+      }
+    }
+  }
+  return { crees, confirmes, inchanges, refusee: null, ids };
+}
+
+/** Relie des nœuds par paquets (liens déjà présents ignorés). */
+export async function lierEnMasse(liens: { fromNodeId: number; toNodeId: number; relation: string; origin?: string }[]): Promise<number> {
+  let crees = 0;
+  for (let i = 0; i < liens.length; i += 500) {
+    const paquet = liens
+      .slice(i, i + 500)
+      .filter((l) => l.fromNodeId !== l.toNodeId)
+      .map((l) => ({
+        fromNodeId: l.fromNodeId,
+        toNodeId: l.toNodeId,
+        relation: l.relation,
+        signature: `${l.fromNodeId}|${norm(l.relation)}|${l.toNodeId}`.slice(0, 400),
+        origin: l.origin ?? "manuel",
+        attributes: {},
+      }));
+    if (paquet.length === 0) continue;
+    const res = await db.insert(akeEdges).values(paquet).onConflictDoNothing().returning({ id: akeEdges.id });
+    crees += res.length;
+  }
+  return crees;
+}
+
 export interface LinkInput {
   fromNodeId: number;
   toNodeId: number;

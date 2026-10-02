@@ -20,6 +20,36 @@ function exigerActeur(contexte?: { actorId?: number | null }): number {
 }
 
 export const IMPLEMENTATIONS: Record<string, ImplementationOutil> = {
+  "automobile.rechercherMemoire": async (args) => {
+    const ake = await import("../../../knowledge-engine/service.js");
+    const texte = typeof args.recherche === "string" ? args.recherche.trim().slice(0, 120) : "";
+    const limite = typeof args.limite === "number" && Number.isFinite(args.limite) ? Math.min(60, Math.max(1, Math.trunc(args.limite))) : 20;
+    if (!texte) {
+      const lignes = await db.execute(sql`SELECT domain, kind, count(*)::int AS n, count(*) FILTER (WHERE status = 'confirme')::int AS confirmes FROM ake_nodes GROUP BY domain, kind ORDER BY domain, kind`);
+      const sources = await db.execute(sql`SELECT code, label, status, ever_synced AS "synchronisee", last_sync_at AS "derniere", last_sync_detail AS "detail" FROM ake_sources ORDER BY code`);
+      return { etat: { noeuds: (lignes as unknown as { rows?: unknown[] }).rows ?? lignes, sources: (sources as unknown as { rows?: unknown[] }).rows ?? sources } };
+    }
+    const lignes = await ake.searchNodes({
+      query: texte,
+      domain: typeof args.domaine === "string" ? args.domaine : undefined,
+      limit: limite * 3,
+    });
+    const type = typeof args.type === "string" ? args.type : "";
+    const filtrees = (type ? lignes.filter((l) => l.kind === type) : lignes).slice(0, limite);
+    return {
+      resultats: filtrees.map((l) => ({
+        domaine: l.domain,
+        type: l.kind,
+        libelle: l.label,
+        resume: (l.summary ?? "").slice(0, 400),
+        statut: l.status,
+        observations: l.observations,
+        verifie: l.status === "confirme",
+      })),
+      note: filtrees.length === 0 ? "Rien dans la mémoire automobile pour cette recherche : ne pas deviner." : undefined,
+    };
+  },
+
   "memory.read": async (args, contexte) => {
     const userId = exigerActeur(contexte);
     const entrees = await memoireUtilisateur.lister(userId, typeof args.categorie === "string" ? args.categorie : undefined);

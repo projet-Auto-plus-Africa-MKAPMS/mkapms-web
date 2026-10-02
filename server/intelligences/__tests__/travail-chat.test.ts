@@ -27,7 +27,7 @@ test("Chat : aucun outil qui agit ; Travail : tous les outils actifs", () => {
   }
   const noms = (l: { toolId: string }[]) => l.map((o) => o.toolId);
   // Lecture et mémoire restent au Chat (même mémoire des deux côtés).
-  for (const id of ["boutique.capacites", "boutique.listerProduits", "boutique.lireProduit", "memory.write", "rag.answer"]) {
+  for (const id of ["boutique.capacites", "boutique.listerProduits", "boutique.lireProduit", "memory.write", "rag.answer", "automobile.rechercherMemoire"]) {
     assert.ok(noms(chat).includes(id), `${id} au chat`);
   }
   // Ce qui agit dans la boutique n'existe qu'en Travail.
