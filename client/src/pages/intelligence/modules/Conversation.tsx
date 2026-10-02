@@ -53,6 +53,14 @@ import {
   MicOff,
   AudioLines,
   Camera,
+  Bot,
+  Brain,
+  Code2,
+  Download,
+  FolderKanban,
+  KeyRound,
+  Library,
+  Workflow,
   FileText,
   Image as ImageIcon,
   Paperclip,
@@ -763,6 +771,29 @@ export function Conversation({ navigation, active = true, mode = "chat", onActiv
     }
   }
 
+  function ouvrirModule(cle: string) {
+    setMenuPiecesOuvert(false);
+    onChooseModule?.(cle);
+  }
+
+  function telechargerConversation() {
+    setMenuPiecesOuvert(false);
+    if (!fil.length) return;
+    const titre = (conversations.data ?? []).find((c) => c.id === sessionId)?.titre || "Conversation AL-HUDHUD·M";
+    const corps = fil
+      .map((b) => `### ${b.role === "moi" ? "Moi" : "AL-HUDHUD·M"}\n\n${b.texte}`)
+      .join("\n\n");
+    const blob = new Blob([`# ${titre}\n\n${corps}\n`], { type: "text/markdown;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const lien = document.createElement("a");
+    lien.href = url;
+    lien.download = `${titre.replace(/[\\/:*?"<>|]+/g, "-").slice(0, 80)}.md`;
+    document.body.appendChild(lien);
+    lien.click();
+    lien.remove();
+    URL.revokeObjectURL(url);
+  }
+
   async function ajouterImages(liste: FileList | null) {
     if (!liste?.length) return;
     setMenuPiecesOuvert(false);
@@ -1167,7 +1198,16 @@ export function Conversation({ navigation, active = true, mode = "chat", onActiv
                   <button type="button" role="menuitem" onClick={() => cameraInput.current?.click()}><Camera />Caméra</button>
                   <button type="button" role="menuitem" onClick={() => photosInput.current?.click()}><ImageIcon />Photos</button>
                   <button type="button" role="menuitem" onClick={() => fichiersInput.current?.click()} disabled={deposerFichier.isPending}><FileText />Fichiers</button>
-                  <button type="button" role="menuitem" onClick={() => { setMenuPiecesOuvert(false); onChooseModule?.("integrations"); }}><Plug />Plugins</button>
+                  <button type="button" role="menuitem" onClick={telechargerConversation} disabled={!fil.length}><Download />Télécharger la conversation</button>
+                  <button type="button" role="menuitem" onClick={() => ouvrirModule("documents")}><Library />Bibliothèque</button>
+                  <button type="button" role="menuitem" onClick={() => ouvrirModule("code")}><Code2 />Dépôts & code</button>
+                  <button type="button" role="menuitem" onClick={() => ouvrirModule("projets")}><FolderKanban />Projets</button>
+                  <button type="button" role="menuitem" onClick={() => ouvrirModule("outils")}><Wrench />Outils</button>
+                  <button type="button" role="menuitem" onClick={() => ouvrirModule("agents")}><Bot />Agents</button>
+                  <button type="button" role="menuitem" onClick={() => ouvrirModule("automatisations")}><Workflow />Planifié</button>
+                  <button type="button" role="menuitem" onClick={() => ouvrirModule("memoire")}><Brain />Mémoire</button>
+                  <button type="button" role="menuitem" onClick={() => ouvrirModule("integrations")}><Plug />Plugins</button>
+                  <button type="button" role="menuitem" onClick={() => ouvrirModule("coffre")}><KeyRound />Coffre secret</button>
                 </div>
               </> : null}
             </div>}
