@@ -16,7 +16,7 @@ export function Automatisations() {
     onError: (e) => setMessage(e.message),
   });
   const mission = trpc.intelligences.lancerMission.useMutation({
-    onSuccess: (r) => setRapport(r.rapport),
+    onSuccess: (r) => setRapport(r.rapport || r.resume),
     onError: (e) => setMessage(e.message),
   });
   if (autonomie.isLoading) return <p>Chargement des réglages d’autonomie…</p>;

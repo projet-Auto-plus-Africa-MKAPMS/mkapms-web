@@ -3093,6 +3093,35 @@ export const LIVRAISONS: Livraison[] = [
       "Un bouton grisé sans explication se lit comme une panne. Quand une condition manque (ici une clé du serveur), le bouton reste actif et conduit à ce qui débloque, au lieu de ne rien dire.",
     domaine: "confiance",
   },
+  {
+    cle: "branche-agent-developpeur-reglages-orchestration",
+    titre: "Agent développeur : demande courte, périmètre « inconnu », statuts à preuve, autorisations par opération, reprise et mémoire sans doublons",
+    moteurs: ["intelligences_orchestrateur"],
+    quoi:
+      "Toutes les capacités de l'agent sont conservées ; seuls les réglages changent. (1) Une demande courte (« Tu peux travailler », « continue ») cherche d'abord la mission active (désignée par l'écran, puis dernier ordre de la conversation, puis missions inachevées de l'acteur) et la reprend ; sans mission identifiable, UNE question est posée (« Quelle tâche souhaites-tu que je réalise ? ») et rien n'est lancé ni écrit. (2) « inconnu » est un état de classification non résolu, jamais un composant à chercher : le périmètre est résolu par le domaine classé, les modules du Centre de Commandes puis la recherche au relevé de code ; on distingue « non identifié » (rien n'est cherché) de « absent après inspection ». (3) Une étape n'est « faite » qu'avec une preuve : l'architecture exige des fichiers confirmés au relevé, le correctif doit nommer des fichiers existants, les contrôles doivent couvrir le périmètre et être verts ; sinon partielle, bloquée, en échec, non exécutée ou non applicable, et le compteur n'additionne que le fait. (4) Chaque contrôle d'autorisation suit l'opération réelle : proposer = niveau 2, écrire un dossier = niveau 3, contrôles = 4 ; un dossier déjà ouvert est consulté (lecture) au lieu d'être recréé ; une étape bloquée n'arrête que celles qui en dépendent et dit l'action exacte et l'autorisation manquante ; le curseur n'est jamais monté automatiquement. (5) Mémoire : un même arrêt répété n'ajoute plus d'occurrence (compteur « tentatives » à part), la nature de l'issue est distinguée (mission insuffisante, blocage d'autorisation, échec technique, accomplie non vérifiée), la recherche classe par mots communs puis par fiabilité, et une classe « non classée » n'est jamais « connue ». (6) Le compte rendu tient en quatre lignes (mission, travail réalisé, arrêt précis, prochaine action) ; après précision ou changement de curseur autorisé, la mission reprend à l'étape utile avec les résultats déjà établis.",
+    pourquoi:
+      "Après « Tu peux travailler », l'agent avait lancé un parcours complet de développement sur une cible « inconnue », marqué « faite » la lecture de l'architecture et la rédaction du correctif sans résultat, affiché un compteur « 5/8 » qui comptait des étapes annoncées, créé un dossier à chaque appel, stoppé toutes les étapes à la première autorisation manquante et accumulé 1 546 occurrences de la classe « anomalie_non_classee » : chaque exécution relisait les mêmes événements sources et incrémentait le compteur, sans nouvelle information.",
+    ou: [
+      "server/intelligences/orchestrateur.ts",
+      "server/intelligences/mission-etat.ts",
+      "server/intelligences/mission-reprise.ts",
+      "server/intelligences/mission-store.ts",
+      "server/intelligences/memoire.ts",
+      "server/intelligences/index.ts",
+      "server/intelligences/api-v1.ts",
+      "server/code-graph/service.ts",
+      "server/code-graph/index.ts",
+      "server/command-center/service.ts",
+      "drizzle/0155_missions_memoire_dedoublonnage.sql",
+      "client/src/pages/intelligence/modules/Conversation.tsx",
+      "client/src/pages/CentreIntelligences.tsx",
+      "server/intelligences/__tests__/orchestration-reglages.test.ts",
+      "server/intelligences/__tests__/orchestration-memoire.integration.test.ts",
+    ],
+    lecon:
+      "Une demande floue est une question, pas un parcours : lancer un plan complet sur une cible non résolue fabrique des étapes « faites » sans résultat. Une étape ne devient « faite » que sur une preuve vérifiable (fichiers confirmés au relevé, campagne de contrôles, dossier retrouvé en base). Compter les relectures d'un même événement comme des occurrences gonfle une mémoire sans rien apprendre : séparer « tentatives/relevés » de « épisodes distincts », et garder l'ancien compteur plutôt que l'effacer. Vérification : tests unitaires à dépendances injectées pour les huit scénarios demandés, intégration PostgreSQL pour la mémoire et la migration 0155 (ancien compteur conservé), et mutations volontaires de chaque règle détectées par les tests.",
+    domaine: "confiance",
+  },
 ];
 
 /**

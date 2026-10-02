@@ -357,7 +357,7 @@ export async function listVoiceSessions(limit = 40) {
 // ─── Point 75 — agent développeur ────────────────────────────────────────
 
 /** Rattache un besoin aux modules réellement concernés, sans en inventer. */
-function analyseScope(need: string): string[] {
+export function analyseScope(need: string): string[] {
   const text = normalize(need);
   const scope: string[] = [];
   for (const [module, mots] of Object.entries(SCOPE_KEYWORDS)) {
@@ -528,6 +528,26 @@ export async function sendDevRequestToPipeline(input: {
     detail: `Passage #${run.id} ouvert. Les étapes branche, code, tests, sécurité, non-régression, aperçu, préproduction et validation restent à franchir avant la production.`,
     pipelineRunId: run.id,
   };
+}
+
+/**
+ * Consultation (aucune écriture) : le dossier de développement encore ouvert qui correspond à ce besoin, s'il existe.
+ * Permet de reprendre un dossier au lieu d'en créer un nouveau à chaque demande répétée.
+ */
+export async function trouverDossierOuvert(input: { need: string; id?: number | null; requestedBy?: number }): Promise<{ id: number; status: string } | null> {
+  // Un dossier n'est retrouvé que pour la personne qui l'a ouvert : jamais celui d'un autre utilisateur.
+  if (input.requestedBy === undefined) return null;
+  if (input.id) {
+    const [par] = await db.select({ id: ccDevRequests.id, status: ccDevRequests.status }).from(ccDevRequests).where(and(eq(ccDevRequests.id, input.id), eq(ccDevRequests.requestedBy, input.requestedBy))).limit(1);
+    if (par && !["abandonne", "livre"].includes(par.status)) return par;
+  }
+  const [meme] = await db
+    .select({ id: ccDevRequests.id, status: ccDevRequests.status })
+    .from(ccDevRequests)
+    .where(and(eq(ccDevRequests.need, input.need.slice(0, 4000)), eq(ccDevRequests.requestedBy, input.requestedBy), sql`${ccDevRequests.status} not in ('abandonne','livre')`))
+    .orderBy(desc(ccDevRequests.createdAt))
+    .limit(1);
+  return meme ?? null;
 }
 
 export async function listDevRequests(limit = 80) {

@@ -518,6 +518,10 @@ export interface RetenirInput {
   probleme: string;
   diagnostic: string;
   solution: string;
+  /**
+   * Nature du résultat : mission_insuffisante, blocage_autorisation, echec_technique, correction_verifiee,
+   * accomplie_non_verifiee, partielle — ou un statut historique (accomplie, arretee, echouee).
+   */
   resultat: string;
   blocage?: string;
   missionId?: number | null;
@@ -526,34 +530,64 @@ export interface RetenirInput {
 }
 
 /**
- * Enregistre l'expérience d'une action terminée. Une même signature n'empile pas
- * les doublons : elle incrémente le compteur d'occurrences, ce qui fait
- * apparaître les problèmes récurrents au lieu de les diluer.
+ * Enregistre l'expérience d'une action terminée.
+ *
+ * Déduplication : la même signature ne crée jamais une seconde ligne. Un essai répété qui aboutit au MÊME résultat et au
+ * MÊME blocage n'est qu'une tentative de plus (`tentatives`) : il n'ajoute pas d'« occurrence » et n'écrase pas ce qui
+ * avait été établi — répéter une demande sans intervention ne fabrique ni leçon ni correction acquise. Un résultat ou un
+ * blocage différent est un épisode distinct (`occurrences`) et met la ligne à jour.
  */
-export async function retenir(input: RetenirInput): Promise<{ id: number; recurrent: boolean }> {
+export async function retenir(input: RetenirInput): Promise<{ id: number; recurrent: boolean; nouvelEpisode: boolean }> {
   const sig = signature(input.domaine, input.probleme);
   const [existant] = await db
-    .select({ id: inExperiences.id, occurrences: inExperiences.occurrences })
+    .select({
+      id: inExperiences.id,
+      occurrences: inExperiences.occurrences,
+      tentatives: inExperiences.tentatives,
+      diagnostic: inExperiences.diagnostic,
+      solution: inExperiences.solution,
+      resultat: inExperiences.resultat,
+      blocage: inExperiences.blocage,
+    })
     .from(inExperiences)
     .where(eq(inExperiences.signature, sig))
     .limit(1);
 
+  const blocage = (input.blocage ?? "").slice(0, 20000);
   if (existant) {
+    const identique = existant.resultat === input.resultat.slice(0, 32) && existant.blocage === blocage;
+    if (identique) {
+      await db
+        .update(inExperiences)
+        .set({
+          tentatives: existant.tentatives + 1,
+          // Même issue : le compteur d'épisodes ne bouge pas, mais une proposition plus complète n'est pas perdue.
+          diagnostic: input.diagnostic.trim() ? input.diagnostic.slice(0, 20000) : existant.diagnostic,
+          solution: input.solution.trim() ? input.solution.slice(0, 20000) : existant.solution,
+          missionId: input.missionId ?? null,
+          testRunId: input.testRunId ?? null,
+          devRequestId: input.devRequestId ?? null,
+          updatedAt: new Date(),
+        })
+        .where(eq(inExperiences.id, existant.id));
+      return { id: existant.id, recurrent: true, nouvelEpisode: false };
+    }
     await db
       .update(inExperiences)
       .set({
         diagnostic: input.diagnostic.slice(0, 20000),
         solution: input.solution.slice(0, 20000),
         resultat: input.resultat.slice(0, 32),
-        blocage: (input.blocage ?? "").slice(0, 20000),
+        blocage,
         missionId: input.missionId ?? null,
         testRunId: input.testRunId ?? null,
         devRequestId: input.devRequestId ?? null,
         occurrences: existant.occurrences + 1,
+        tentatives: existant.tentatives + 1,
         updatedAt: new Date(),
       })
       .where(eq(inExperiences.id, existant.id));
-    return { id: existant.id, recurrent: true };
+    return { id: existant.id, recurrent: true, nouvelEpisode: true };
   }
 
   const [ligne] = await db
@@ -565,58 +599,85 @@ export async function retenir(input: RetenirInput): Promise<{ id: number; recurr
       diagnostic: input.diagnostic.slice(0, 20000),
       solution: input.solution.slice(0, 20000),
       resultat: input.resultat.slice(0, 32),
-      blocage: (input.blocage ?? "").slice(0, 20000),
+      blocage,
       missionId: input.missionId ?? null,
       testRunId: input.testRunId ?? null,
       devRequestId: input.devRequestId ?? null,
     })
     .returning({ id: inExperiences.id });
-  return { id: ligne.id, recurrent: false };
+  return { id: ligne.id, recurrent: false, nouvelEpisode: true };
 }
 
-/** Expériences dont la signature ou le texte recoupe le problème posé. */
+/**
+ * Expériences pertinentes pour un problème : classées d'abord par le nombre de mots communs (au moins deux quand la
+ * question en a deux ou plus), puis par fiabilité du résultat (correction vérifiée en tête), puis par date. Le simple
+ * nombre de répétitions n'est plus un critère : un blocage répété ne devient pas « la » référence.
+ */
 export async function experiencesProches(probleme: string, limit = 5) {
   const mots = motsCles(probleme, 5);
   if (mots.length === 0) {
     return db.select().from(inExperiences).orderBy(desc(inExperiences.updatedAt)).limit(limit);
   }
+  const communs = sql<number>`(${sql.join(
+    mots.map((m) => sql`(case when ${inExperiences.signature} ilike ${`%${m}%`} or ${inExperiences.probleme} ilike ${`%${m}%`} then 1 else 0 end)`),
+    sql` + `,
+  )})`;
+  const minimum = Math.min(2, mots.length);
   return db
     .select()
     .from(inExperiences)
-    .where(
-      or(
-        ...mots.map((m) => ilike(inExperiences.signature, `%${m}%`)),
-        ...mots.map((m) => ilike(inExperiences.probleme, `%${m}%`)),
-      ),
-    )
-    .orderBy(desc(inExperiences.occurrences), desc(inExperiences.updatedAt))
+    .where(sql`${communs} >= ${minimum}`)
+    .orderBy(desc(communs), desc(sql`(${inExperiences.resultat} = 'correction_verifiee')`), desc(inExperiences.updatedAt))
     .limit(limit);
 }
 
+const LIBELLE_RESULTAT: Record<string, string> = {
+  mission_insuffisante: "mission insuffisamment définie",
+  blocage_autorisation: "blocage d'autorisation",
+  echec_technique: "échec technique",
+  correction_verifiee: "correction vérifiée",
+  accomplie_non_verifiee: "accomplie, non vérifiée par des contrôles",
+  partielle: "partielle",
+  accomplie: "accomplie",
+  arretee: "arrêtée",
+  echouee: "échouée",
+};
+
 /**
- * Ce que la mémoire sait déjà d'un problème. Rendu tel quel dans la mission :
- * « rien de connu » est une réponse valable, une invention n'en est pas une.
+ * Ce que la mémoire sait déjà d'un problème. Rendu tel quel dans la mission : « rien de connu » est une réponse valable,
+ * une invention n'en est pas une. Seule une correction VÉRIFIÉE est présentée comme acquise ; un blocage répété, une mission
+ * floue ou une proposition jamais contrôlée sont dits tels quels.
  */
 export async function dejaVu(
   domaine: string,
   probleme: string,
-): Promise<{ connu: boolean; verdict: string; experiences: number }> {
+): Promise<{ connu: boolean; verdict: string; experiences: number; corrigeVerifie: boolean }> {
   const proches = await experiencesProches(`${domaine} ${probleme}`, 5);
   if (proches.length === 0) {
     return {
       connu: false,
       verdict: "Aucune expérience comparable en mémoire : ce cas est traité pour la première fois.",
       experiences: 0,
+      corrigeVerifie: false,
     };
   }
-  const lignes = proches.map(
-    (x) =>
-      `• ${x.domaine} (vu ${x.occurrences} fois, résultat ${x.resultat}) — ${x.solution.slice(0, 300) || x.diagnostic.slice(0, 300) || "solution non écrite"}`,
-  );
+  const lignes = proches.map((x) => {
+    const nature = LIBELLE_RESULTAT[x.resultat] ?? x.resultat;
+    const verifiee = x.resultat === "correction_verifiee";
+    const detail = verifiee
+      ? x.solution.slice(0, 300) || x.diagnostic.slice(0, 300)
+      : x.blocage.slice(0, 200) || "aucune correction acquise";
+    return `• ${x.domaine} — ${nature} (${x.occurrences} épisode(s), ${x.tentatives} tentative(s)) — ${detail}`;
+  });
+  const corrigeVerifie = proches.some((x) => x.resultat === "correction_verifiee");
   return {
     connu: true,
-    verdict: [`${proches.length} expérience(s) comparable(s) :`, ...lignes].join("\n"),
+    verdict: [
+      `${proches.length} expérience(s) comparable(s)${corrigeVerifie ? "" : " — aucune correction vérifiée :"}`,
+      ...lignes,
+    ].join("\n"),
     experiences: proches.length,
+    corrigeVerifie,
   };
 }
 

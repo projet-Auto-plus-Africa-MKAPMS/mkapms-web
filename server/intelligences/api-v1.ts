@@ -263,8 +263,10 @@ apiV1.post("/agent/run", async (req: Request, res: Response) => {
     objectif?: string;
     pieces?: Piece[];
     countryCode?: string | null;
+    missionActiveId?: number | null;
+    contexte?: string[];
   };
-  if (!body.objectif || body.objectif.trim().length < 5) {
+  if (!body.objectif || body.objectif.trim().length < 2) {
     return res.status(400).json({
       ok: false,
       motif: "Objectif trop court : décrivez ce qui doit être obtenu.",
@@ -277,8 +279,12 @@ apiV1.post("/agent/run", async (req: Request, res: Response) => {
     actorId: uid ?? undefined,
     pieces: body.pieces ?? [],
     countryCode: body.countryCode ?? null,
+    missionActiveId: typeof body.missionActiveId === "number" ? body.missionActiveId : null,
+    contexte: Array.isArray(body.contexte) ? body.contexte.filter((t): t is string => typeof t === "string").slice(-12) : [],
   });
 
+  // Demande trop courte sans mission identifiable : ce n'est pas un échec, c'est une question (rien n'a été lancé).
+  if (mission.statut === "a_clarifier") return res.status(200).json({ ok: false, mission, clarification: mission.clarification });
   // Une mission arrêtée n'est pas une erreur serveur : c'est un refus motivé.
   return res.status(mission.statut === "accomplie" ? 200 : 409).json({
     ok: mission.statut === "accomplie",

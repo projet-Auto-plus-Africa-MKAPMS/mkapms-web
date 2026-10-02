@@ -575,7 +575,7 @@ export const intelligencesRouter = router({
   lancerMission: pdgProcedure
     .input(
       z.object({
-        objectif: z.string().min(5).max(4000),
+        objectif: z.string().min(2).max(4000),
         countryCode: z.string().max(8).nullable().optional(),
         pieces: z
           .array(
@@ -589,6 +589,10 @@ export const intelligencesRouter = router({
           .max(8)
           .optional(),
         fichierIds: z.array(z.number().int().positive()).max(4).optional(),
+        /** Dernière mission affichée dans cette conversation : une demande courte (« continue ») la reprend. */
+        missionActiveId: z.number().int().positive().nullable().optional(),
+        /** Derniers ordres de la conversation (les plus anciens d'abord), pour reconnaître la mission d'une demande courte. */
+        contexte: z.array(z.string().max(2000)).max(12).optional(),
       }),
     )
     .mutation(async ({ input, ctx }) => {
@@ -603,6 +607,8 @@ export const intelligencesRouter = router({
         actorId: ctx.user?.uid,
         pieces,
         countryCode: input.countryCode ?? null,
+        missionActiveId: input.missionActiveId ?? null,
+        contexte: input.contexte ?? [],
       });
     }),
 
