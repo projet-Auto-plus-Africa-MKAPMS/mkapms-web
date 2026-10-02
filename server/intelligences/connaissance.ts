@@ -152,7 +152,7 @@ export async function rechercher(query: string, visibiliteAutorisee: string[], l
  */
 async function completerParLeSens(query: string, visibiliteAutorisee: string[], limit: number, textuels: ResultatRechercheConnaissance[]): Promise<ResultatRechercheConnaissance[]> {
   try {
-    const proches = await rechercherParLeSens("connaissance", query, limit);
+    const proches = await rechercherParLeSens("connaissance", query, limit, undefined, { visibilites: visibiliteAutorisee });
     const dejaVus = new Set(textuels.map((t) => t.id));
     const nouveaux = (proches ?? []).filter((p) => !dejaVus.has(p.id));
     if (nouveaux.length === 0) return textuels;

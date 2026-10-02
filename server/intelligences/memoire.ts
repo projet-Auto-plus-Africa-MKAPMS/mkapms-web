@@ -17,7 +17,7 @@
 import { and, desc, eq, ilike, inArray, or, sql } from "drizzle-orm";
 import { db } from "../db.js";
 import { inExperiences, inMemoire } from "./schema.js";
-import { indexerEnArrierePlan, rechercherParLeSens, texteSouvenir } from "./empreintes.js";
+import { indexerEnArrierePlan, rechercherParLeSens, retirerEmpreintes, texteSouvenir } from "./empreintes.js";
 
 /** Cycle de vie d'un souvenir. */
 export const CYCLES = ["actif", "historique", "archive"] as const;
@@ -207,6 +207,8 @@ export async function ecrire(
         updatedAt: new Date(),
       })
       .where(eq(inMemoire.id, existant.id));
+    // La version déclassée ne doit plus remonter par le sens.
+    await retirerEmpreintes("memoire", existant.id);
   }
 
   const [ligne] = await db
@@ -294,7 +296,7 @@ export async function rechercher(
     const dejaVus = new Set(propres.map((l) => l.id));
     const nouveaux = (proches ?? []).filter((p) => !dejaVus.has(p.id));
     if (nouveaux.length > 0) {
-      const lignes = await db.select().from(inMemoire).where(inArray(inMemoire.id, nouveaux.map((p) => p.id)));
+      const lignes = await db.select().from(inMemoire).where(and(eq(inMemoire.cycle, "actif"), inArray(inMemoire.id, nouveaux.map((p) => p.id))));
       for (const p of nouveaux) {
         const l = lignes.find((x) => x.id === p.id);
         if (!l) continue;

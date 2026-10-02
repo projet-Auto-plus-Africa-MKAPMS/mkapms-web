@@ -38,12 +38,14 @@ test("mémoire par le sens : éteinte par défaut, indexation, recherche, visibi
 
   const { pool } = await import("../../db.js");
   try {
-    await pool.query("DROP TABLE IF EXISTS in_empreintes, in_memoire, in_connaissance, in_fonctions");
+    await pool.query("DROP TABLE IF EXISTS in_empreintes, in_memoire, in_connaissance, in_fonctions, in_retrieval_audit");
     await pool.query(`CREATE TABLE in_memoire(id bigserial PRIMARY KEY,categorie varchar(32) NOT NULL,cycle varchar(16) NOT NULL DEFAULT 'actif',cle varchar(200) NOT NULL DEFAULT '',titre varchar(240) NOT NULL DEFAULT '',contenu text NOT NULL DEFAULT '',mots_cles jsonb NOT NULL DEFAULT '[]',liens jsonb NOT NULL DEFAULT '{}',source varchar(64) NOT NULL DEFAULT 'intelligences',country_code varchar(8),poids integer NOT NULL DEFAULT 1,rappels integer NOT NULL DEFAULT 0,actor_id integer,updated_at timestamp NOT NULL DEFAULT now(),created_at timestamp NOT NULL DEFAULT now())`);
     await pool.query(`CREATE TABLE in_connaissance(id serial PRIMARY KEY,categorie varchar(48) NOT NULL,titre varchar(220) NOT NULL,contenu text NOT NULL DEFAULT '',source text NOT NULL DEFAULT '',version varchar(24) NOT NULL DEFAULT '1',auteur varchar(120) NOT NULL DEFAULT '',statut varchar(24) NOT NULL DEFAULT 'propose',visibilite varchar(24) NOT NULL DEFAULT 'interne',validite varchar(24) NOT NULL DEFAULT 'permanente',actor_id integer,created_at timestamp NOT NULL DEFAULT now(),updated_at timestamp NOT NULL DEFAULT now())`);
     await pool.query(`CREATE TABLE in_fonctions(id serial PRIMARY KEY,fonction varchar(48) NOT NULL UNIQUE,active boolean NOT NULL DEFAULT false,motif text NOT NULL DEFAULT '',actor_id integer,updated_at timestamp NOT NULL DEFAULT now())`);
     await pool.query(`CREATE TABLE in_empreintes(id serial PRIMARY KEY,source_type varchar(24) NOT NULL,source_id bigint NOT NULL,modele varchar(60) NOT NULL,dimensions integer NOT NULL,hash varchar(64) NOT NULL,vecteur real[] NOT NULL,updated_at timestamptz NOT NULL DEFAULT now())`);
     await pool.query("CREATE UNIQUE INDEX in_empreintes_source_idx ON in_empreintes(source_type, source_id, modele)");
+    await pool.query("CREATE TABLE in_retrieval_audit(id bigserial PRIMARY KEY,user_id integer,projet_id integer,session_id integer,source varchar(24) NOT NULL,requete text NOT NULL DEFAULT '',result_ids jsonb NOT NULL DEFAULT '[]',scores jsonb NOT NULL DEFAULT '[]',permissions_appliquees text NOT NULL DEFAULT '',duree_ms integer NOT NULL DEFAULT 0,trace_id varchar(40) NOT NULL DEFAULT '',created_at timestamp NOT NULL DEFAULT now())");
+    await pool.query("DROP TABLE IF EXISTS in_sondes_openai");
     await pool.query("CREATE TABLE IF NOT EXISTS in_sondes_openai(id serial PRIMARY KEY,capacite varchar(48) NOT NULL UNIQUE,etat varchar(40) NOT NULL,modele varchar(80),endpoint varchar(120) NOT NULL DEFAULT '',http_status integer,erreur_type varchar(80) NOT NULL DEFAULT '',erreur_code varchar(80) NOT NULL DEFAULT '',details jsonb NOT NULL DEFAULT '{}',teste_le timestamptz NOT NULL DEFAULT now())");
 
     const memoire = await import("../memoire.js");
@@ -104,13 +106,52 @@ test("mémoire par le sens : éteinte par défaut, indexation, recherche, visibi
     assert.match(echec.echec ?? "", /^EMBEDDINGS_PROVIDER_404_text-embedding-3-large_model_not_found$/);
     assert.ok(!JSON.stringify(echec).includes("sk-test"), "jamais la clé");
 
+    // 6 bis. Un souvenir remplacé : l'ancienne version (historique) ne remonte plus par le sens.
+    panne = null;
+    await memoire.ecrire({ categorie: "entreprise", titre: "Citadine préférée", contenu: "Le PDG préfère maintenant une voiture électrique." });
+    await attendre();
+    const vues = (await memoire.rechercher("quelle auto veut-il")).trouvailles.filter((t) => t.titre === "Citadine préférée");
+    assert.equal(vues.length, 1, "une seule version remonte");
+    assert.ok(vues[0].extrait.includes("électrique"), "la version active, pas l'ancienne");
+    assert.equal((await pool.query("select count(*)::int n from in_empreintes e join in_memoire m on m.id=e.source_id where e.source_type='memoire' and m.cycle<>'actif'")).rows[0].n, 0, "aucune empreinte de version périmée");
+
+    // 6 ter. Les droits s'appliquent AVANT le classement : onze connaissances interdites mieux classées n'évincent pas la permise.
+    const permise = await connaissance.ecrire({ categorie: "procedures", titre: "Permise", contenu: "voiture accessible", statut: "confirme" });
+    await emp.indexer([{ type: "connaissance", id: permise.id, texte: "voiture accessible" }], { forcer: true });
+    await new Promise((r) => setTimeout(r, 30));
+    for (let i = 0; i < 11; i++) {
+      const k = await connaissance.ecrire({ categorie: "procedures", titre: `Interdite ${i}`, contenu: "voiture réservée", statut: "confirme" });
+      await pool.query("update in_connaissance set visibilite='pdg_uniquement' where id=$1", [k.id]);
+      await emp.indexer([{ type: "connaissance", id: k.id, texte: "voiture réservée" }], { forcer: true });
+    }
+    const vue3 = await connaissance.rechercher("quelle auto", ["interne"], 3);
+    assert.ok(vue3.some((x) => x.titre === "Permise"), "la connaissance permise n'est pas évincée");
+    assert.ok(!vue3.some((x) => x.titre.startsWith("Interdite")), "aucune connaissance interdite");
+
+    // 6 quater. La conversation passe par la recherche globale : le sens doit y arriver aussi.
+    const globale = await (await import("../recherche-globale.js")).rechercherGlobale("quelle auto veut-il", 1, { sources: ["memoire_entreprise"] });
+    assert.ok(globale.some((x) => x.titre.includes("Citadine préférée")), "le contexte de conversation reçoit le souvenir trouvé par le sens");
+
+    // 6 quinquies. Changement de modèle prouvé par la sonde : les anciennes empreintes ne sont plus « indexées », la reprise les recalcule.
+    await pool.query("INSERT INTO in_sondes_openai(capacite, etat, modele, endpoint) VALUES('empreintes_semantiques','FUNCTIONAL','text-embedding-3-small','/v1/embeddings')");
+    (await import("../sonde-store.js")).oublierCacheModelesValides();
+    const avantChangement = await emp.etatEmpreintes();
+    assert.equal(avantChangement.memoire.indexees, 0, "aucune empreinte du nouveau modèle encore");
+    const reprise = await emp.reindexerUnLot(96);
+    assert.equal(reprise.echec, null);
+    assert.equal(reprise.restantes, 0);
+    assert.equal(appels.at(-1)?.modele, "text-embedding-3-small");
+    assert.equal((await pool.query("select count(*)::int n from in_empreintes where modele <> 'text-embedding-3-small'")).rows[0].n, 0, "anciennes empreintes retirées");
+    const apresChangement = await memoire.rechercher("quelle auto veut-il");
+    assert.ok(apresChangement.trouvailles.some((t) => t.titre === "Citadine préférée" && t.methode === "semantique"), "recherche par le sens fonctionnelle avec le nouveau modèle");
+
     // 7. Etat.
     panne = null;
     const etat = await emp.etatEmpreintes();
     assert.equal(etat.active, true);
     assert.equal(etat.memoire.total, 3, "souvenirs actifs");
-    assert.equal(etat.connaissances.total, 1);
     assert.equal(etat.memoire.indexees, 3);
+    assert.equal(etat.connaissances.indexees, etat.connaissances.total);
     assert.ok(THEMES.length === 3);
   } finally {
     globalThis.fetch = fetchOrigine;
