@@ -1097,7 +1097,7 @@ export function normaliserSdp(texte: string): string {
 export async function creerAppelVocalTempsReel(
   sdp: string,
   mode: ModeSessionVocale,
-  options: { langue?: string; voix?: string; reductionBruit?: "near_field" | "far_field"; safetyId?: string } = {},
+  options: { langue?: string; voix?: string; reductionBruit?: "near_field" | "far_field"; safetyId?: string; modeleTranscription?: string } = {},
   fetchImpl: typeof fetch = fetch,
 ): Promise<string> {
   const nettoye = sdp.trim();
@@ -1111,9 +1111,14 @@ export async function creerAppelVocalTempsReel(
   const langue = options.langue?.split("-")[0]?.toLowerCase();
   const voixAutorisee = new Set<string>(VOIX_TEMPS_REEL);
   const voix = voixAutorisee.has(options.voix ?? "") ? options.voix! : "marin";
-  const modeleTranscription = /^[A-Za-z0-9._-]{1,60}$/.test(process.env.OPENAI_REALTIME_TRANSCRIPTION_MODEL?.trim() ?? "")
-    ? process.env.OPENAI_REALTIME_TRANSCRIPTION_MODEL!.trim()
-    : "gpt-4o-mini-transcribe";
+  // Modèle qui a déjà transcrit pour ce navigateur (mémorisé côté client) : la session démarre avec lui, au lieu de perdre les
+  // premières phrases sur un modèle que le projet n'autorise pas. Liste fermée : jamais un nom libre venu du navigateur.
+  const MODELES_TRANSCRIPTION = ["gpt-4o-mini-transcribe", "gpt-4o-transcribe", "whisper-1"];
+  const modeleTranscription = MODELES_TRANSCRIPTION.includes(options.modeleTranscription ?? "")
+    ? options.modeleTranscription!
+    : /^[A-Za-z0-9._-]{1,60}$/.test(process.env.OPENAI_REALTIME_TRANSCRIPTION_MODEL?.trim() ?? "")
+      ? process.env.OPENAI_REALTIME_TRANSCRIPTION_MODEL!.trim()
+      : "gpt-4o-mini-transcribe";
   const reductionBruit = options.reductionBruit === "far_field" ? "far_field" : "near_field";
   // `gpt-realtime` est l'alias GA le plus largement ouvert. Une installation
   // peut épingler une version plus récente, mais on revient automatiquement à
@@ -1143,7 +1148,7 @@ export async function creerAppelVocalTempsReel(
           },
           turn_detection: mode === "conversation"
             ? { type: "semantic_vad", eagerness: "low", create_response: true, interrupt_response: true }
-            : { type: "server_vad", threshold: 0.45, prefix_padding_ms: 500, silence_duration_ms: 1_200, create_response: false, interrupt_response: false },
+            : { type: "server_vad", threshold: 0.45, prefix_padding_ms: 500, silence_duration_ms: 800, create_response: false, interrupt_response: false },
         },
         output: { voice: voix },
       },

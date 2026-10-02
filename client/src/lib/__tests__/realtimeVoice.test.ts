@@ -4,7 +4,7 @@
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { DELAI_CANAL_MS, MESSAGE_TRANSCRIPTION_IMPOSSIBLE, codeErreurService, messageEvenementErreur, prochainModeleTranscription, startRealtimeVoice } from "../realtimeVoice.js";
+import { DELAI_CANAL_MS, MESSAGE_TRANSCRIPTION_IMPOSSIBLE, codeErreurService, messageEvenementErreur, memoriserModeleTranscription, modeleTranscriptionMemorise, prochainModeleTranscription, startRealtimeVoice } from "../realtimeVoice.js";
 
 test("code d'erreur : seulement un code public court, jamais un message libre", () => {
   assert.equal(codeErreurService({ code: "model_not_found", message: "secret details" }), "model_not_found");
@@ -77,5 +77,61 @@ test("session réelle simulée : un échec « model_not_found » bascule la tran
   } finally {
     g.RTCPeerConnection = sauvegarde.peer; g.document = sauvegarde.doc; g.window = sauvegarde.win;
     if (sauvegarde.nav) Object.defineProperty(g, "navigator", sauvegarde.nav);
+  }
+});
+
+test("modèle qui a transcrit : mémorisé après une vraie transcription, jamais un nom inconnu, et rejoué à la session suivante", async () => {
+  const g = globalThis as any;
+  const magasin = new Map<string, string>();
+  const ancien = Object.getOwnPropertyDescriptor(g, "localStorage");
+  Object.defineProperty(g, "localStorage", { value: { getItem: (k: string) => magasin.get(k) ?? null, setItem: (k: string, v: string) => void magasin.set(k, v) }, configurable: true });
+  try {
+    assert.equal(modeleTranscriptionMemorise(), undefined);
+    memoriserModeleTranscription("modele-inconnu");
+    assert.equal(modeleTranscriptionMemorise(), undefined, "liste fermée");
+    magasin.set("mkapms.voix.modeleTranscription", "n'importe quoi");
+    assert.equal(modeleTranscriptionMemorise(), undefined);
+    magasin.clear();
+
+    let canal: any;
+    const piste = { stop() {} };
+    const flux = { getAudioTracks: () => [piste], getTracks: () => [piste] };
+    class FauxPeer {
+      iceGatheringState = "complete"; connectionState = "new"; localDescription = { sdp: "v=0\r\n" + "a=x\r\n".repeat(20) };
+      ontrack: unknown; onconnectionstatechange: unknown;
+      createDataChannel() { canal = { readyState: "open", onopen: null, onmessage: null, send() {}, close() {} }; return canal; }
+      addTrack() {} async createOffer() { return { type: "offer", sdp: this.localDescription.sdp }; } async setLocalDescription() {}
+      async setRemoteDescription() {} addEventListener() {} removeEventListener() {} close() {}
+    }
+    const fauxAudio = { setAttribute() {}, hidden: false, autoplay: false, srcObject: null, play: async () => {}, pause() {}, remove() {} };
+    const sauvegarde = { peer: g.RTCPeerConnection, nav: Object.getOwnPropertyDescriptor(g, "navigator"), doc: g.document, win: g.window };
+    g.RTCPeerConnection = FauxPeer;
+    Object.defineProperty(g, "navigator", { value: { mediaDevices: { getUserMedia: async () => flux } }, configurable: true });
+    g.document = { createElement: () => fauxAudio, body: { appendChild() {} } };
+    g.window = { setTimeout, clearTimeout };
+    try {
+      const textes: string[] = [];
+      const control = await startRealtimeVoice({ mode: "dictee", exchangeSdp: async (sdp) => sdp, onUserTranscript: (t) => textes.push(t) });
+      canal.onopen();
+      canal.onmessage({ data: JSON.stringify({ type: "conversation.item.input_audio_transcription.failed", error: { code: "model_not_found" } }) });
+      assert.equal(modeleTranscriptionMemorise(), undefined, "un échec ne mémorise rien");
+      canal.onmessage({ data: JSON.stringify({ type: "conversation.item.input_audio_transcription.completed", item_id: "a", transcript: "bonjour" }) });
+      assert.deepEqual(textes, ["bonjour"]);
+      assert.equal(modeleTranscriptionMemorise(), "whisper-1", "le modèle de repli qui a écrit est retenu");
+      control.close();
+
+      // Session suivante : on part du modèle retenu, une transcription réussie le confirme.
+      const suivante = await startRealtimeVoice({ mode: "dictee", exchangeSdp: async (sdp) => sdp, modeleTranscriptionInitial: modeleTranscriptionMemorise(), onUserTranscript: (t) => textes.push(t) });
+      canal.onopen();
+      canal.onmessage({ data: JSON.stringify({ type: "conversation.item.input_audio_transcription.completed", item_id: "b", transcript: "deuxième phrase" }) });
+      assert.deepEqual(textes, ["bonjour", "deuxième phrase"]);
+      assert.equal(modeleTranscriptionMemorise(), "whisper-1");
+      suivante.close();
+    } finally {
+      g.RTCPeerConnection = sauvegarde.peer; g.document = sauvegarde.doc; g.window = sauvegarde.win;
+      if (sauvegarde.nav) Object.defineProperty(g, "navigator", sauvegarde.nav);
+    }
+  } finally {
+    if (ancien) Object.defineProperty(g, "localStorage", ancien); else delete g.localStorage;
   }
 });

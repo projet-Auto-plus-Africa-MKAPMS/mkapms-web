@@ -8,8 +8,8 @@ import { CONNAISSANCES_TRAVAUX } from "../connaissances-travaux.js";
 import { CONNAISSANCES_BOUTIQUE } from "../connaissances-boutique.js";
 import { CONSIGNE_DIRECTION } from "../regles.js";
 
-test("six entrées : titres uniques (aussi face aux connaissances boutique), courts, sources datées, aucun secret", () => {
-  assert.equal(CONNAISSANCES_TRAVAUX.length, 6);
+test("sept entrées : titres uniques (aussi face aux connaissances boutique), courts, sources datées, aucun secret", () => {
+  assert.equal(CONNAISSANCES_TRAVAUX.length, 7);
   const tous = [...CONNAISSANCES_TRAVAUX, ...CONNAISSANCES_BOUTIQUE].map((c) => `${c.categorie}|${c.titre}`);
   assert.equal(new Set(tous).size, tous.length);
   for (const c of CONNAISSANCES_TRAVAUX) {

@@ -386,6 +386,18 @@ export function listerActifs(options: { inclureTests?: boolean } = {}): OutilSpe
   return OUTILS.filter((o) => o.enabled && (options.inclureTests === true || o.testOnly !== true));
 }
 
+/**
+ * Outils proposés selon l'environnement. Décision du PDG (2 octobre 2026) : même mémoire et même fonction des deux côtés ;
+ * le mode Chat donne des renseignements, des plans et des indications (aucun outil qui agit), le mode Travail exécute.
+ * Un outil « agit » dès qu'il exige une permission au-delà de lire, analyser et proposer.
+ */
+export function listerActifsPourMode(mode: "chat" | "travail"): OutilSpec[] {
+  const actifs = listerActifs();
+  if (mode === "travail") return actifs;
+  const lecture: readonly string[] = ["READ", "ANALYZE", "PROPOSE"];
+  return actifs.filter((o) => o.requiredPermissions.every((p) => lecture.includes(p)));
+}
+
 export function listerParCategorie(categorie: Categorie): OutilSpec[] {
   return OUTILS.filter((o) => o.category === categorie);
 }

@@ -67,6 +67,10 @@ const SUPPLEMENT_MOTEUR: Record<string, Permission[]> = {
   monitoring_os: ["INFRASTRUCTURE"],
   backup_os: ["INFRASTRUCTURE"],
   intelligences: [...PERMISSIONS],
+  // Mode Travail (Agent développeur) : ses étapes d'analyse et de correctif passent par le routeur de capacités
+  // (ANALYZE, PROPOSE). Sans ces deux lignes il n'avait que READ et s'arrêtait dès la première analyse.
+  // Écriture, test et déploiement restent gouvernés par le curseur d'autonomie et les moteurs qui les possèdent.
+  intelligences_orchestrateur: ["ANALYZE", "PROPOSE"],
 };
 
 export function defautMoteur(moteur: string): Permission[] {
