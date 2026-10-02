@@ -10,12 +10,14 @@
  * ces tables ne portent que les échanges Intelligence et leur consommation.
  */
 import {
+  bigint,
   bigserial,
   boolean,
   index,
   integer,
   jsonb,
   pgTable,
+  real,
   serial,
   text,
   timestamp,
@@ -582,6 +584,25 @@ export const inFonctions = pgTable("in_fonctions", {
   actorId: integer("actor_id"),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
+
+/**
+ * Empreintes sémantiques (embeddings) de la mémoire et des connaissances : une ligne par
+ * source et par modèle. Le hash du texte évite de recalculer ce qui n'a pas changé.
+ */
+export const inEmpreintes = pgTable(
+  "in_empreintes",
+  {
+    id: serial("id").primaryKey(),
+    sourceType: varchar("source_type", { length: 24 }).notNull(),
+    sourceId: bigint("source_id", { mode: "number" }).notNull(),
+    modele: varchar("modele", { length: 60 }).notNull(),
+    dimensions: integer("dimensions").notNull(),
+    hash: varchar("hash", { length: 64 }).notNull(),
+    vecteur: real("vecteur").array().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => ({ parSource: uniqueIndex("in_empreintes_source_idx").on(t.sourceType, t.sourceId, t.modele) }),
+);
 
 /**
  * Preuves des tests réels des capacités du fournisseur de modèles : une ligne par

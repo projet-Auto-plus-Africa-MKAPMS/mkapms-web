@@ -11,9 +11,10 @@
  * visibilité par défaut est `pdg_uniquement` tant qu'aucune revue de contenu
  * n'a eu lieu.
  */
-import { and, desc, eq, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { db } from "../db.js";
 import { inConnaissance } from "./schema.js";
+import { indexerEnArrierePlan, rechercherParLeSens, texteSouvenir } from "./empreintes.js";
 import { versTsQuery } from "./recherche-texte.js";
 
 export const CATEGORIES_CONNAISSANCE = [
@@ -89,6 +90,7 @@ export async function ecrire(input: {
       actorId: input.actorId ?? null,
     })
     .returning();
+  if (ligne.statut === "confirme") indexerEnArrierePlan({ type: "connaissance", id: ligne.id, texte: texteSouvenir(ligne.titre, ligne.contenu) });
   return versEntree(ligne);
 }
 
@@ -111,11 +113,13 @@ export interface ResultatRechercheConnaissance {
   categorie: string;
   extrait: string;
   score: number;
+  /** « semantique » : trouvé par le sens (empreintes), pas par les mots. Absent = recherche textuelle. */
+  methode?: "semantique";
 }
 
 export async function rechercher(query: string, visibiliteAutorisee: string[], limit = 10): Promise<ResultatRechercheConnaissance[]> {
   const tsq = versTsQuery(query);
-  if (!tsq) return [];
+  if (!tsq) return completerParLeSens(query, visibiliteAutorisee, limit, []);
   const lignes = await db
     .select({
       id: inConnaissance.id,
@@ -135,8 +139,35 @@ export async function rechercher(query: string, visibiliteAutorisee: string[], l
     .orderBy(sql`ts_rank(to_tsvector('french', ${inConnaissance.contenu} || ' ' || ${inConnaissance.titre}), to_tsquery('french', ${tsq})) desc`)
     .limit(limit * 2);
 
-  return lignes
+  const textuels: ResultatRechercheConnaissance[] = lignes
     .filter((l) => visibiliteAutorisee.includes(l.visibilite))
     .slice(0, limit)
     .map((l) => ({ id: l.id, titre: l.titre, categorie: l.categorie, extrait: l.contenu.slice(0, 400), score: Number(l.score) }));
+  return completerParLeSens(query, visibiliteAutorisee, limit, textuels);
+}
+
+/**
+ * Ajoute, après les résultats textuels, les connaissances proches par le sens (si le PDG a activé la fonctionnalité).
+ * La visibilité et le statut sont revérifiés ici : une empreinte n'ouvre jamais une source interdite.
+ */
+async function completerParLeSens(query: string, visibiliteAutorisee: string[], limit: number, textuels: ResultatRechercheConnaissance[]): Promise<ResultatRechercheConnaissance[]> {
+  try {
+    const proches = await rechercherParLeSens("connaissance", query, limit);
+    const dejaVus = new Set(textuels.map((t) => t.id));
+    const nouveaux = (proches ?? []).filter((p) => !dejaVus.has(p.id));
+    if (nouveaux.length === 0) return textuels;
+    const lignes = await db
+      .select()
+      .from(inConnaissance)
+      .where(and(eq(inConnaissance.statut, "confirme"), inArray(inConnaissance.id, nouveaux.map((p) => p.id))));
+    const ajouts: ResultatRechercheConnaissance[] = [];
+    for (const p of nouveaux) {
+      const l = lignes.find((x) => x.id === p.id);
+      if (!l || !visibiliteAutorisee.includes(l.visibilite)) continue;
+      ajouts.push({ id: l.id, titre: l.titre, categorie: l.categorie, extrait: l.contenu.slice(0, 400), score: p.score, methode: "semantique" });
+    }
+    return [...textuels, ...ajouts].slice(0, limit);
+  } catch {
+    return textuels;
+  }
 }

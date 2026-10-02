@@ -1065,6 +1065,13 @@
       "when": 1788404843000,
       "tag": "0153_sondes_openai",
       "breakpoints": true
+    },
+    {
+      "idx": 152,
+      "version": "7",
+      "when": 1788404844000,
+      "tag": "0154_empreintes_semantiques",
+      "breakpoints": true
     }
   ]
 }

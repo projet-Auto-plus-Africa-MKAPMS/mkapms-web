@@ -50,6 +50,7 @@ import {
 } from "./permissions.js";
 import { lancerSonde } from "./provider-sonde.js";
 import { lirePreuves } from "./sonde-store.js";
+import { etatEmpreintes, reindexerUnLot } from "./empreintes.js";
 import {
   FONCTIONS,
   etat as etatFonctions,
@@ -911,6 +912,17 @@ export const intelligencesRouter = router({
       }
       return { ok: r.ok, httpListe: r.httpListe, nombreModeles: r.modelesDuProjet.length, capacites: r.capacites };
     }),
+
+  /** Mémoire par le sens : fonctionnalité allumée ou non, et combien de souvenirs/connaissances ont une empreinte. */
+  empreintesEtat: pdgProcedure.query(() => etatEmpreintes()),
+
+  /** Reprise de l'existant : indexe un lot de souvenirs et de connaissances encore sans empreinte. */
+  empreintesReindexer: pdgProcedure.mutation(async () => {
+    if (!(await etatEmpreintes()).active) {
+      throw new TRPCError({ code: "PRECONDITION_FAILED", message: "Activez d'abord la fonctionnalité « Recherche par le sens » : rien n'est calculé tant qu'elle est éteinte." });
+    }
+    return reindexerUnLot(96);
+  }),
 
   reglerFonction: pdgProcedure
     .input(

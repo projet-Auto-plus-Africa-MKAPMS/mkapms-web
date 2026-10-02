@@ -3056,6 +3056,28 @@ export const LIVRAISONS: Livraison[] = [
       "Un état « activé » n'est pas une preuve : on sépare chaque étape (disponible, activé, branché, testé, fonctionnel) et on ne monte d'un cran que sur un vrai appel. Une erreur du fournisseur se conserve par son statut et ses codes publics, jamais par son message brut (il peut citer un fragment de clé) ni par un message générique qui cache la cause.",
     domaine: "confiance",
   },
+  {
+    cle: "branche-memoire-par-le-sens-empreintes",
+    titre: "Mémoire par le sens : empreintes (embeddings) branchées sur la mémoire et les connaissances de l'IA",
+    moteurs: ["intelligences_orchestrateur", "knowledge_engine"],
+    quoi:
+      "La mémoire de l'IA ne cherchait que par les mots (recherche textuelle). Une passerelle d'embeddings réelle (provider.ts::creerEmpreintes : modèle déjà prouvé par la sonde, sinon text-embedding-3-large, 1024 dimensions, repli sur refus 400/403/404, erreur sans clé ni message brut) alimente une table d'empreintes (in_empreintes, migration 0154). Éteinte tant que le PDG n'active pas « Recherche par le sens » : rien n'est calculé et la recherche reste textuelle. Activée : chaque souvenir et chaque connaissance confirmée est indexé à l'écriture (hash du texte : jamais recalculé s'il n'a pas changé), « Reprendre l'existant » indexe l'ancien par lots (Paramètres IA → Mémoire par le sens), et les recherches ajoutent après les résultats textuels les sources proches par le sens (similarité cosinus, résultats marqués « semantique »). La visibilité d'une connaissance est revérifiée : une empreinte n'ouvre jamais une source pdg_uniquement. Un échec du fournisseur retire seulement la recherche par le sens : la recherche textuelle continue. La sonde des capacités teste désormais les embeddings par cet adaptateur.",
+    pourquoi:
+      "Le PDG a demandé d'augmenter la capacité de la mémoire en fonction des API OpenAI activées. Retrouver « la citadine qu'il préfère » quand la question dit « quelle auto veut-il » est une capacité que la recherche par les mots n'avait pas. Limites dites : les vecteurs sont comparés en mémoire du serveur (8000 sources les plus récentes par type) et le seuil de similarité (0,30) est une valeur de départ non étalonnée ; rien n'a été testé contre le fournisseur réel depuis l'environnement de développement (pas de clé) — les tests utilisent un fournisseur simulé, et c'est la sonde qui fera la preuve en production.",
+    ou: [
+      "server/intelligences/provider.ts",
+      "server/intelligences/empreintes.ts",
+      "server/intelligences/memoire.ts",
+      "server/intelligences/connaissance.ts",
+      "server/intelligences/rag.ts",
+      "client/src/pages/intelligence/modules/MemoireSemantique.tsx",
+      "server/intelligences/__tests__/empreintes.integration.test.ts",
+      "drizzle/0154_empreintes_semantiques.sql",
+    ],
+    lecon:
+      "Une capacité qui coûte à chaque usage reste éteinte jusqu'à décision du PDG, se replie sur l'existant quand elle échoue, et revérifie les droits d'accès à la sortie : une empreinte ne donne aucun droit de lecture. On ne la dit « fonctionnelle » qu'après un vrai appel.",
+    domaine: "confiance",
+  },
 ];
 
 /**

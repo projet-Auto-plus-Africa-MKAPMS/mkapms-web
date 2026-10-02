@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { trpc } from "../../../lib/trpc";
 import { SondeCapacites } from "./SondeCapacites";
+import { MemoireSemantique } from "./MemoireSemantique";
 
 export function FonctionsControle() {
   const utils = trpc.useUtils();
@@ -87,6 +88,7 @@ export function FonctionsControle() {
       <p role="status" className="text-sm">
         {message}
       </p>
+      <MemoireSemantique />
       <SondeCapacites />
     </section>
   );

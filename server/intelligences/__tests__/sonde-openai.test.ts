@@ -37,6 +37,7 @@ const deps = (surcharge: Partial<DependancesSonde> = {}): DependancesSonde => ({
   modererTexte: async () => ({ disponible: true, signale: false, categories: [], motif: "" }),
   rechercherWebNatif: async () => ({ disponible: true, reponse: "Paris", sources: [{ titre: "x", url: "https://x.test" }], motif: "" }),
   creerApercuVoix: async () => ({ mime: "audio/mpeg", base64: Buffer.alloc(300, 1).toString("base64"), modele: "tts-1" }),
+  creerEmpreintes: async () => ({ ok: true, modele: "text-embedding-3-large", dimensions: 1024, vecteurs: [new Array(1024).fill(0.1)] }),
   transcrireAudioNatif: async () => ({ mime: "text/plain", base64: Buffer.from("Bonjour").toString("base64") }),
   ...surcharge,
 });
@@ -50,7 +51,7 @@ test("états séparés : FUNCTIONAL seulement via l'adaptateur, TESTED quand auc
   assert.equal(par(r, "texte").etat, "FUNCTIONAL");
   assert.equal(par(r, "appel_outils").etat, "FUNCTIONAL");
   assert.equal(par(r, "moderation").etat, "FUNCTIONAL");
-  assert.equal(par(r, "empreintes_semantiques").etat, "TESTED", "pas d'adaptateur d'embeddings : jamais FUNCTIONAL");
+  assert.equal(par(r, "empreintes_semantiques").etat, "FUNCTIONAL", "les empreintes traversent désormais l'adaptateur de la mémoire par le sens");
   assert.equal(par(r, "conversation_temps_reel").etat, "TESTED", "l'appel WebRTC réel reste à valider depuis le micro");
   assert.equal(par(r, "generation_image").etat, "CONNECTED_TO_MKA_PMS_IA", "essai coûteux non lancé sans demande");
   assert.equal(par(r, "video").etat, "ENABLED_FOR_PROJECT");
@@ -109,6 +110,16 @@ test("un adaptateur qui échoue n'est jamais marqué FUNCTIONAL", async () => {
   const m = par(r, "moderation");
   assert.equal(m.etat, "WAITING_EXTERNAL_ACCESS");
   assert.equal(m.httpStatus, 403);
+});
+
+test("embeddings refusés malgré l'activation : WAITING_EXTERNAL_ACCESS avec statut, modèle et code", async () => {
+  const { f } = fetchSimule();
+  const r = await lancerSonde({ cle: CLE, fetchImpl: f, deps: deps({ creerEmpreintes: async () => ({ ok: false, motif: "EMBEDDINGS_PROVIDER_404_text-embedding-3-large_model_not_found" }) }), persister: false });
+  const e = par(r, "empreintes_semantiques");
+  assert.equal(e.etat, "WAITING_EXTERNAL_ACCESS");
+  assert.equal(e.httpStatus, 404);
+  assert.equal(e.erreurCode, "model_not_found");
+  assert.equal(e.modele, "text-embedding-3-large");
 });
 
 test("l'essai coûteux (image) ne part que sur demande explicite", async () => {

@@ -10707,7 +10707,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "routeurs": [
       "intelligences"
     ],
-    "fichiersServeur": 108,
+    "fichiersServeur": 109,
     "dependancesDeclarees": [
       "ai_fabric",
       "code_graph",
@@ -11002,6 +11002,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "developpeur",
       "domaines",
       "domainesPublics",
+      "empreintesEtat",
+      "empreintesReindexer",
       "enregistrerEchangeVocal",
       "etat",
       "evaluation",
@@ -11097,6 +11099,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "in_dev_appels",
       "in_dev_cles",
       "in_domaines",
+      "in_empreintes",
       "in_experiences",
       "in_fichier_morceaux",
       "in_fichiers",
