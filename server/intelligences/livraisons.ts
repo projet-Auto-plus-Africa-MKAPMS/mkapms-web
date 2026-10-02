@@ -2963,6 +2963,24 @@ export const LIVRAISONS: Livraison[] = [
       "Annoncer « prêt » avant que le système le soit fait perdre les premiers mots et passe pour un défaut de reconnaissance. Un élément animé doit être borné par la taille de l'écran et protégé contre l'écrasement par son contenu ; on le prouve en figeant l'animation à son sommet et en mesurant.",
     domaine: "confiance",
   },
+  {
+    cle: "branche-securite-global-country-engine-pdg",
+    titre: "URGENT sécurité : le Global Country Engine était ouvert au public — désormais réservé au PDG",
+    moteurs: ["country_os", "identity"],
+    quoi:
+      "L'écran interne « Global Country Engine » (/mk-global-engine) s'affichait pour n'importe quel visiteur, sans connexion, avec ses boutons Activer / Désactiver / Ajouter un pays. Désormais : la route est enveloppée par le verrou du Permission Engine (module centre_pdg : seul le rôle PDG, super_admin, y accède) ; côté serveur, ouvrir ou fermer un pays (country.upsert, country.disable) passe de « administrateur » à « PDG seulement », la santé du moteur et le flux du centre de contrôle (country.healthStatus, country.controlCenterFeed) ne sont plus lisibles du public, et la liste des pays n'expose plus les pays désactivés à un visiteur ; la page d'accueil du portail mondial ne renvoie plus vers cet écran (les cartes de pays sans site dédié ne sont plus cliquables, « Choisir mon pays » fait défiler vers la grille).",
+    pourquoi:
+      "Le PDG a envoyé une capture : l'écran était visible sans être connecté à son compte et il avait pu y « activer et désactiver » des pays. Vérification faite dans le code : l'écran ne contient que des données et un état local (aucun appel au serveur : les bascules ne changeaient rien de réel et l'écran est rempli de chiffres fixes), et les procédures serveur d'écriture exigeaient déjà un compte administrateur ; l'exposition était donc l'affichage public d'un module interne et de ses données de démonstration, plus la lecture publique de l'état du moteur. Corrigé sans attendre.",
+    ou: [
+      "client/src/App.tsx",
+      "client/src/pages/HomeSite.tsx",
+      "server/country-os/index.ts",
+      "server/country-os/__tests__/acces-pdg.test.ts",
+    ],
+    lecon:
+      "Un écran interne ne se protège pas en espérant que personne ne tape l'adresse : verrou de route côté interface ET garde de chaque procédure côté serveur, et aucun lien public ne doit y mener. On vérifie ensuite par un test que le visiteur et chaque rôle ordinaire sont refusés.",
+    domaine: "confiance",
+  },
 ];
 
 /**

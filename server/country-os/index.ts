@@ -9,6 +9,7 @@ import { boolean, bigserial, integer, jsonb, numeric, pgTable, text, timestamp, 
 import { and, desc, eq, sql } from "drizzle-orm";
 import { db } from "../db.js";
 import { publicProcedure, protectedProcedure, adminProcedure, pdgProcedure, router } from "../trpc.js";
+import { isAdmin } from "@shared/roles.js";
 import { z } from "zod";
 import type { ControlCenterFeed, EngineDashboard, MaturityLevel } from "../identity-os/contract.js";
 
@@ -301,13 +302,18 @@ export async function dashboard(): Promise<EngineDashboard> {
 // ── Router tRPC ─────────────────────────────────────────────────────────
 export const countryOsRouter = router({
   meta: publicProcedure.query(() => COUNTRY_OS_META),
-  healthStatus: publicProcedure.query(() => healthStatus()),
-  controlCenterFeed: publicProcedure.query(() => controlCenterFeed()),
+  // État interne du moteur : réservé à l'administration (n'a rien à faire en lecture publique).
+  healthStatus: adminProcedure.query(() => healthStatus()),
+  controlCenterFeed: adminProcedure.query(() => controlCenterFeed()),
   dashboard: adminProcedure.query(() => dashboard()),
 
   list: publicProcedure
     .input(z.object({ activeOnly: z.boolean().default(true) }).optional())
-    .query(({ input }) => listCountries({ activeOnly: input?.activeOnly ?? true })),
+    .query(({ input, ctx }) => {
+      // Les pays désactivés (configuration interne) ne sont visibles que de l'administration ; le public ne voit que les actifs.
+      const adminRole = !!ctx.user && isAdmin(ctx.user.role);
+      return listCountries({ activeOnly: adminRole ? (input?.activeOnly ?? true) : true });
+    }),
 
   get: publicProcedure
     .input(z.object({ code: z.string().length(2) }))
@@ -315,8 +321,8 @@ export const countryOsRouter = router({
 
   currencies: publicProcedure.query(() => listCurrencies()),
 
-  // Ajouter un pays = pure configuration (aucune modification de code métier).
-  upsert: adminProcedure
+  // Ajouter un pays = pure configuration (aucune modification de code métier). Décision d'ouverture d'un pays : PDG seulement.
+  upsert: pdgProcedure
     .input(z.object({
       code: z.string().length(2),
       code3: z.string().length(3).optional(),
@@ -336,7 +342,7 @@ export const countryOsRouter = router({
     }))
     .mutation(({ input }) => upsertCountry(input)),
 
-  disable: adminProcedure
+  disable: pdgProcedure
     .input(z.object({ code: z.string().length(2) }))
     .mutation(async ({ input }) => {
       const [row] = await db
