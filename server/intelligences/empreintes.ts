@@ -15,7 +15,7 @@ import { createHash } from "node:crypto";
 import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { db } from "../db.js";
 import { MODELE_EMPREINTES_DEFAUT, creerEmpreintes } from "./provider.js";
-import { modeleValide } from "./sonde-store.js";
+import { memoriserModeleEmpreintesEffectif, modeleEmpreintesEffectif, modeleValide } from "./sonde-store.js";
 import { inConnaissance, inEmpreintes, inFonctions, inMemoire } from "./schema.js";
 
 export type TypeSource = "memoire" | "connaissance";
@@ -36,7 +36,7 @@ export async function empreintesActives(): Promise<boolean> {
 
 /** Modèle d'empreintes en vigueur : celui que la sonde a prouvé, sinon le défaut. Une empreinte d'un autre modèle n'est pas comparable. */
 export async function modeleCourant(): Promise<string> {
-  return (await modeleValide("empreintes_semantiques")) ?? MODELE_EMPREINTES_DEFAUT;
+  return modeleEmpreintesEffectif() ?? (await modeleValide("empreintes_semantiques")) ?? MODELE_EMPREINTES_DEFAUT;
 }
 
 /** Retire les empreintes d'une source (souvenir déclassé en historique, par exemple) : elles ne doivent plus faire remonter une version périmée. */
@@ -90,13 +90,23 @@ export async function indexer(sources: SourceAIndexer[], options: { forcer?: boo
       if (aCalculer.length === 0) continue;
       const r = await creerEmpreintes(aCalculer.map((s) => s.texte), options.fetchImpl);
       if (!r.ok) return { ...resultat, echec: r.motif };
+      memoriserModeleEmpreintesEffectif(r.modele);
       for (let k = 0; k < aCalculer.length; k++) {
         const s = aCalculer[k];
-        const valeurs = { dimensions: r.dimensions, hash: hashTexte(s.texte), vecteur: r.vecteurs[k], updatedAt: new Date() };
-        await db
-          .insert(inEmpreintes)
-          .values({ sourceType: s.type, sourceId: s.id, modele: r.modele, ...valeurs })
-          .onConflictDoUpdate({ target: [inEmpreintes.sourceType, inEmpreintes.sourceId, inEmpreintes.modele], set: valeurs });
+        // Insertion conditionnelle, en une seule instruction : si le souvenir a été remplacé (ou la connaissance retirée) pendant
+        // le calcul, aucune empreinte périmée n'est écrite.
+        const vecteur = `{${r.vecteurs[k].join(",")}}`;
+        const existe = s.type === "memoire"
+          ? sql`exists (select 1 from in_memoire m where m.id = ${s.id} and m.cycle = 'actif')`
+          : sql`exists (select 1 from in_connaissance c where c.id = ${s.id} and c.statut = 'confirme')`;
+        const ecrit = await db.execute(sql`
+          insert into in_empreintes (source_type, source_id, modele, dimensions, hash, vecteur, updated_at)
+          select ${s.type}, ${s.id}, ${r.modele}, ${r.dimensions}, ${hashTexte(s.texte)}, ${vecteur}::real[], now()
+          where ${existe}
+          on conflict (source_type, source_id, modele)
+          do update set dimensions = excluded.dimensions, hash = excluded.hash, vecteur = excluded.vecteur, updated_at = excluded.updated_at
+          returning 1`);
+        if (ecrit.rows.length === 0) continue;
         // Une empreinte d'un autre modèle n'est plus comparable : elle est retirée pour que la source ne soit jamais « indexée » à tort.
         await db.delete(inEmpreintes).where(and(eq(inEmpreintes.sourceType, s.type), eq(inEmpreintes.sourceId, s.id), sql`${inEmpreintes.modele} <> ${r.modele}`));
         resultat.indexees++;
@@ -132,6 +142,7 @@ export async function rechercherParLeSens(
   if (q.length < 3 || !(await empreintesActives())) return null;
   const r = await creerEmpreintes([q], fetchImpl);
   if (!r.ok) return null;
+  memoriserModeleEmpreintesEffectif(r.modele);
   const vecQ = r.vecteurs[0];
   let lignes: { id: number; vecteur: number[] }[];
   if (type === "memoire") {
@@ -159,6 +170,18 @@ export async function rechercherParLeSens(
     .filter((p) => p.score >= SEUIL_SIMILARITE)
     .sort((a, b) => b.score - a.score)
     .slice(0, limit);
+}
+
+/** Retire les empreintes dont la source n'est plus active (souvenir remplacé, connaissance retirée) : filet de sécurité contre un calcul en retard. */
+export async function purgerEmpreintesPerimees(): Promise<void> {
+  try {
+    await db.execute(sql`
+      delete from in_empreintes e
+      where (e.source_type = 'memoire' and not exists (select 1 from in_memoire m where m.id = e.source_id and m.cycle = 'actif'))
+         or (e.source_type = 'connaissance' and not exists (select 1 from in_connaissance c where c.id = e.source_id and c.statut = 'confirme'))`);
+  } catch {
+    // Jamais bloquant.
+  }
 }
 
 /** Texte indexé pour un souvenir ou une connaissance. */
@@ -191,6 +214,7 @@ export async function etatEmpreintes(): Promise<EtatEmpreintes> {
 /** Indexe un lot de sources encore sans empreinte (reprise de l'existant). Renvoie ce qu'il reste. */
 export async function reindexerUnLot(taille = 96, fetchImpl?: typeof fetch): Promise<{ indexees: number; restantes: number; echec: string | null }> {
   const lot = Math.max(1, Math.min(taille, 192));
+  await purgerEmpreintesPerimees();
   const courant = await modeleCourant();
   const sources: SourceAIndexer[] = [];
   const memoires = await db

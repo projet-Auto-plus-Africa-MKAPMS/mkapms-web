@@ -77,4 +77,18 @@ export async function modeleValide(capacite: string): Promise<string | null> {
 
 export function oublierCacheModelesValides(): void {
   cache.clear();
+  effectifEmpreintes = null;
+}
+
+/**
+ * Modèle d'empreintes réellement servi par le fournisseur lors du dernier appel réussi. Quand le modèle prouvé est refusé
+ * et que le repli répond, c'est lui qui fait foi : sinon la reprise de l'existant et les compteurs chercheraient sans fin
+ * des empreintes d'un modèle que le fournisseur ne sert plus. Mémoire du processus, dix minutes.
+ */
+let effectifEmpreintes: { modele: string; expire: number } | null = null;
+export function memoriserModeleEmpreintesEffectif(modele: string): void {
+  effectifEmpreintes = { modele, expire: Date.now() + 10 * 60_000 };
+}
+export function modeleEmpreintesEffectif(): string | null {
+  return effectifEmpreintes && effectifEmpreintes.expire > Date.now() ? effectifEmpreintes.modele : null;
 }
