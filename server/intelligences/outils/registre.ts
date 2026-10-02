@@ -30,6 +30,7 @@ import { OUTILS_API_EXTERNES } from "./familles/api-externes.js";
 import { OUTILS_RECHERCHE } from "./familles/recherche.js";
 import { OUTILS_COFFRE } from "./familles/coffre.js";
 import { OUTILS_GITHUB } from "./familles/github.js";
+import { OUTILS_BOUTIQUE } from "./familles/boutique.js";
 import { OUTILS_A_ACTIVER } from "./familles/capacites-a-activer.js";
 
 export const NIVEAUX_RISQUE = ["READ_ONLY", "LOW", "MEDIUM", "HIGH", "CRITICAL"] as const;
@@ -94,6 +95,7 @@ export const CATEGORIES = [
   "futurs_moteurs",
   "test", // outils de test du socle (server/intelligences/outils/outils-test.ts)
   "projets", // Chantier de développement — Project Engine + File System Tools (server/intelligences/chantier/)
+  "boutique", // Boutique (SHOP) — accès de service de l'IA principale (server/intelligences/boutique.ts), décision du PDG du 2 octobre 2026
   "developpement", // Chantier de développement — code/shell/build/test/preview (server/intelligences/chantier/)
   "estimations", // LOT IA02E — Estimate Gateway (server/estimate-gateway/) : porte d'entrée unique vers les moteurs de prix
   "memoire", // LOT IA02F — mémoire utilisateur et mémoire projet (server/intelligences/memoire-utilisateur.ts, memoire-projet.ts)
@@ -336,6 +338,7 @@ export const OUTILS: OutilSpec[] = [
   ...OUTILS_RECHERCHE,
   ...OUTILS_COFFRE,
   ...OUTILS_GITHUB,
+  ...OUTILS_BOUTIQUE,
   ...OUTILS_A_ACTIVER,
 ];
 
