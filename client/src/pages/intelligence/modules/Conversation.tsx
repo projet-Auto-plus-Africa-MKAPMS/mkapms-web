@@ -32,12 +32,15 @@
  *    dans ce même fil de conversation.
  */
 import { useEffect, useRef, useState, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 import "../workspace.css";
 import {
   AlertTriangle,
   ArrowDown,
   ArrowUp,
   Check,
+  ChevronDown,
+  ChevronRight,
   Copy,
   Gauge,
   Menu,
@@ -68,7 +71,7 @@ import { REALTIME_VOICES, REALTIME_VOICE_GROUPS, VOICE_LANGUAGES, addDictationHi
 import { modeleTranscriptionMemorise, startRealtimeVoice, type RealtimeVoiceControl, type RealtimeVoiceState } from "../../../lib/realtimeVoice";
 import { prefersRecordedDictation, speechRecognitionConstructor, startDictation } from "../../../lib/speech";
 
-import { ProgressiveReply, WaitingReply } from "./ReplyPresentation";
+import { MissionSteps, ProgressiveReply, WaitingReply, type EtapeTravail } from "./ReplyPresentation";
 
 interface Bulle {
   id: string;
@@ -78,6 +81,7 @@ interface Bulle {
   motif: string;
   outils: string[];
   progressive?: boolean;
+  etapes?: EtapeTravail[];
 }
 
 type PieceConversation =
@@ -129,8 +133,12 @@ function causeVocale(erreur: unknown): CauseVocale {
   return { type: "autre", texte: "La session vocale n’a pas pu démarrer." };
 }
 
-export function Conversation({ navigation, active = true, mode = "chat", onActivate, onChooseModule, children, searchQuery = "" }: {
+export function Conversation({ navigation, active = true, mode = "chat", onActivate, onChooseModule, children, searchQuery = "", historySlot = null, onHistoryAction }: {
   navigation?: ReactNode; active?: boolean; mode?: "chat" | "travail"; onActivate?: () => void; onChooseModule?: (key: string) => void; children?: ReactNode; searchQuery?: string;
+  /** Emplacement du menu principal où la liste des conversations est rendue (mobile et ordinateur). */
+  historySlot?: HTMLElement | null;
+  /** Appelé après une action sur la liste rendue dans le menu principal (le menu se referme). */
+  onHistoryAction?: () => void;
 } = {}) {
   const [sessionId, setSessionId] = useState<number | null>(null);
   const [fil, setFil] = useState<Bulle[]>([]);
@@ -196,6 +204,7 @@ export function Conversation({ navigation, active = true, mode = "chat", onActiv
   const [etatDictee, setEtatDictee] = useState<"connexion" | "ecoute" | "parole" | "ecriture" | "direct">("connexion");
   const [diagVocal, setDiagVocal] = useState("");
   const [desktop, setDesktop] = useState(() => typeof window !== "undefined" && window.matchMedia("(min-width: 768px)").matches);
+  const [recentsOuverts, setRecentsOuverts] = useState(desktop);
   useEffect(() => {
     mounted.current = true;
     return () => {
@@ -349,13 +358,14 @@ export function Conversation({ navigation, active = true, mode = "chat", onActiv
 
   /** Dernière mission inachevée de cette conversation : « continue » la reprend au lieu de repartir de zéro. */
   const missionActiveRef = useRef<number | null>(null);
+  const [suiviMission, setSuiviMission] = useState<string | null>(null);
   const mission = trpc.intelligences.lancerMission.useMutation({
     onSuccess: (r) => {
       setNotice("");
       drafts.current.delete(missionDraftKeyRef.current);
       if (r.id > 0) missionActiveRef.current = r.statut === "accomplie" ? null : r.id;
       // L'état court d'abord (mission, travail réalisé, blocage précis, prochaine action) ; le détail par étape suit.
-      setFil((f) => [...f, { id: idBulle(), role: "moteur", texte: r.rapport || r.resume, ok: r.statut !== "echouee", motif: r.statut === "a_clarifier" ? "" : r.motif || "Mission interrompue.", outils: r.etapes.filter((e) => e.statut === "fait").map((e) => e.libelle), progressive: true }]);
+      setFil((f) => [...f, { id: idBulle(), role: "moteur", texte: r.rapport || r.resume, ok: r.statut !== "echouee", motif: r.statut === "a_clarifier" ? "" : r.motif || "Mission interrompue.", outils: r.etapes.filter((e) => e.statut === "fait").map((e) => e.libelle), etapes: r.etapes.map((e) => ({ etape: e.etape, libelle: e.libelle, statut: e.statut, observe: e.observe })), progressive: true }]);
     },
     onError: (_error, variables) => {
       setQuestion((current) => current || variables.objectif);
@@ -364,6 +374,10 @@ export function Conversation({ navigation, active = true, mode = "chat", onActiv
     },
     onSettled: () => { missionVocaleRef.current = false; },
   });
+  const progression = trpc.intelligences.progressionMission.useQuery(
+    { suiviId: suiviMission ?? "" },
+    { enabled: !!suiviMission && mission.isPending, refetchInterval: 700, refetchOnWindowFocus: false },
+  );
 
   const creerSessionVocale = trpc.intelligences.creerSessionVocale.useMutation();
   const enregistrerVocal = trpc.intelligences.enregistrerEchangeVocal.useMutation();
@@ -703,7 +717,10 @@ export function Conversation({ navigation, active = true, mode = "chat", onActiv
     if (mode === "travail") {
       missionVocaleRef.current = vocal;
       missionDraftKeyRef.current = key;
+      const suiviId = `m${Date.now().toString(36)}${Math.random().toString(36).slice(2, 10)}`;
+      setSuiviMission(suiviId);
       mission.mutate({
+        suiviId,
         objectif: q,
         pieces: images.map((source, index) => ({ type: "image" as const, nom: pieces.filter((p) => p.type === "image")[index]?.nom, source })),
         fichierIds: fichierIds.length ? fichierIds : undefined,
@@ -829,13 +846,27 @@ export function Conversation({ navigation, active = true, mode = "chat", onActiv
     supprimer.mutate({ sessionId: id });
   }
 
-  const sidebarContent = <>
+  const historique = (dansLeMenu: boolean) => <div className="alhud-history-block" onClick={e => {
+          if (dansLeMenu && (e.target as HTMLElement).closest("[data-history-close]")) onHistoryAction?.();
+        }}>
         <button
           type="button"
+          data-history-close
           onClick={nouvelleConversation} disabled={busy}
-          className="mb-2 flex shrink-0 items-center gap-2 rounded-lg bg-[#111] px-3 py-2 text-sm font-bold text-white"
+          className="mb-2 flex w-full shrink-0 items-center gap-2 rounded-lg bg-[#111] px-3 py-2 text-sm font-bold text-white"
         >
           <Plus className="h-4 w-4" /> Nouvelle conversation
+        </button>
+        <button
+          type="button"
+          className="alhud-recents-toggle"
+          aria-expanded={recentsOuverts}
+          aria-controls={dansLeMenu ? "alhud-recents-menu" : "alhud-recents-rail"}
+          onClick={() => setRecentsOuverts(v => !v)}
+        >
+          {recentsOuverts ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+          <span>Récents</span>
+          {conversations.data?.length ? <small>{conversations.data.length}</small> : null}
         </button>
         {/*
           * Signalé par le PDG : « nouvelle conversation » semblait ne rien faire et
@@ -844,8 +875,7 @@ export function Conversation({ navigation, active = true, mode = "chat", onActiv
           * débordait alors SOUS le menu des outils, invisible et non cliquable.
           * Hauteur propre (jusqu'à 40 % de l'écran, défilement interne), jamais écrasée.
           */}
-        <div className="max-h-[40dvh] min-h-[7rem] shrink-0 space-y-1 overflow-y-auto" aria-label="Récents">
-          <h2 className="px-2 pb-1 pt-2 text-xs font-black uppercase tracking-wide text-black/45">Récents</h2>
+        <div id={dansLeMenu ? "alhud-recents-menu" : "alhud-recents-rail"} hidden={!recentsOuverts} className="max-h-[40dvh] min-h-[7rem] shrink-0 space-y-1 overflow-y-auto" aria-label="Récents">
           {conversations.isLoading ? <p role="status">Chargement de l’historique…</p> : null}
           {conversations.isError ? <div role="alert">Historique indisponible. <button type="button" onClick={() => void conversations.refetch()}>Réessayer</button></div> : null}
           {renommer.isError || supprimer.isError ? <p role="alert">L’action n’a pas abouti. L’historique n’a pas été modifié ici.</p> : null}
@@ -876,6 +906,7 @@ export function Conversation({ navigation, active = true, mode = "chat", onActiv
                 <>
                   <button
                     type="button"
+                    data-history-close
                     onClick={() => ouvrirConversation(c.id)}
                     disabled={busy}
                     className={`min-w-0 flex-1 truncate rounded px-1 py-1 text-left text-xs font-semibold ${
@@ -912,7 +943,10 @@ export function Conversation({ navigation, active = true, mode = "chat", onActiv
             <p className="px-2 py-4 text-center text-[11px] text-black/40">Aucune conversation encore.</p>
           )}
         </div>
-        <div className="mt-2 border-t border-black/5 pt-2" onClick={e => { if ((e.target as HTMLElement).closest("button")) setPanneauOuvert(false); }}>{navigation}</div>
+        </div>;
+  const sidebarContent = <>
+        {historique(false)}
+        <div className="mt-2 border-t border-black/5 pt-2">{navigation}</div>
 </>;
   return (
     <div className="alhud-conversation-workspace flex h-full min-h-[420px] flex-col gap-3">
@@ -948,29 +982,11 @@ export function Conversation({ navigation, active = true, mode = "chat", onActiv
       <EtatServiceIntelligence />
 
       <div className="flex min-h-0 flex-1 flex-col gap-3 md:flex-row">
-      {desktop ? <aside className="alhud-conversation-rail" aria-label="Conversations et outils">{sidebarContent}</aside> :
-        <dialog ref={drawer} className="alhud-drawer" aria-label="Conversations et outils" onCancel={e => { e.preventDefault(); setPanneauOuvert(false); }} onClose={() => { setPanneauOuvert(false); menu.current?.focus(); }} onClick={e => {
-          if (e.target === e.currentTarget) { const bounds = e.currentTarget.getBoundingClientRect();
-            if (e.clientX < bounds.left || e.clientX > bounds.right || e.clientY < bounds.top || e.clientY > bounds.bottom) setPanneauOuvert(false);
-          }
-        }}><button type="button" className="alhud-icon-control" onClick={() => setPanneauOuvert(false)}>Fermer le panneau</button>{sidebarContent}</dialog>}
+      {desktop ? <aside className="alhud-conversation-rail" aria-label="Conversations et outils">{sidebarContent}</aside> : null}
+      {historySlot ? createPortal(historique(true), historySlot) : null}
 
 
       <div className="flex min-h-0 min-w-0 flex-1 flex-col rounded-xl border border-black/10">
-        <div className="flex items-center justify-between border-b border-black/5 px-3 py-2 md:hidden">
-          <button
-            type="button"
-            ref={menu} aria-haspopup="dialog" aria-expanded={panneauOuvert} aria-label="Conversations et outils"
-            onClick={() => setPanneauOuvert((v) => !v)}
-            className="flex items-center gap-1.5 text-xs font-bold text-black/60"
-          >
-            {panneauOuvert ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />} {mode === "travail" ? "Agent développeur" : "Récents"}
-          </button>
-          <button type="button" onClick={nouvelleConversation} disabled={busy} className="flex items-center gap-1 text-xs font-bold text-[#8B7500]">
-            <Plus className="h-3.5 w-3.5" /> Nouvelle
-          </button>
-        </div>
-
         {!active ? <section className="alhud-active-tool flex-1 overflow-auto p-4" aria-label="Outil sélectionné">{children}</section> : null}
         <div hidden={!active} className="alhud-live-conversation flex min-h-0 flex-1 flex-col">
         {sessionId && filServeur.isFetching ? <p role="status" className="p-3 text-sm">Chargement de la conversation…</p> : null}
@@ -1008,7 +1024,8 @@ export function Conversation({ navigation, active = true, mode = "chat", onActiv
                   </p>
                 )}
 
-                {b.outils.length > 0 && (
+                {b.etapes?.length ? <MissionSteps etapes={b.etapes} enCours={false} /> : null}
+                {!b.etapes?.length && b.outils.length > 0 && (
                   <div className="mt-2 flex flex-wrap gap-1.5">
                     {b.outils.map((o, i) => (
                       <span
@@ -1080,6 +1097,12 @@ export function Conversation({ navigation, active = true, mode = "chat", onActiv
           )}
           {demander.isPending && (
             <WaitingReply />
+          )}
+          {mission.isPending && (
+            <div className="alhud-mission-live" role="status" aria-label="Travail en cours">
+              <MissionSteps etapes={progression.data?.etapes ?? []} enCours />
+              <WaitingReply />
+            </div>
           )}
           <div ref={finDuFil} />
         </div>

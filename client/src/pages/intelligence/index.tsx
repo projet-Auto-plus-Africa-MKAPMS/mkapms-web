@@ -140,6 +140,7 @@ export default function MKAPMSIntelligence() {
   const [workMode, setWorkMode] = useState(false);
   const [moduleSearch, setModuleSearch] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
+  const [historySlot, setHistorySlot] = useState<HTMLDivElement | null>(null);
   const niveau = useMemo(() => niveauDepuis({ role: user?.role ?? null }), [user?.role]);
   const acces = trpc.intelligences.indicateursAccueil.useQuery(undefined, { enabled: niveau === "pdg", refetchOnWindowFocus: false, staleTime: 60_000 });
   const boutique: BoutiqueAcces = { url: acces.data?.boutique ?? null, chargement: acces.isLoading };
@@ -172,10 +173,11 @@ export default function MKAPMSIntelligence() {
     ["Audit", ClipboardCheck, "historique"], ["Coffre secret", KeyRound, "coffre"], ["Paramètres", Settings, "parametres"],
   ] as const;
 
-  const nav = <div className="alhud-approved-menu">
+  const renderNav = (withHistory: boolean) => <div className="alhud-approved-menu">
     <div className="alhud-menu-brand"><strong>AL-HUDHUD·M</strong><Search/></div>
     <label className="alhud-search"><input type="search" value={moduleSearch} onChange={e=>setModuleSearch(e.target.value)} placeholder="Rechercher…" aria-label="Rechercher"/></label>
     <nav>{topItems.filter(([label])=>normalise(label).includes(normalise(moduleSearch))).map(([label,Icon,key])=><button key={label} type="button" onClick={()=>choose(key)}><Icon/><span>{label}</span><ChevronRight/></button>)}</nav>
+    {withHistory ? <div ref={setHistorySlot} className="alhud-menu-history" aria-label="Conversations"/> : null}
     <h3>Espaces IA</h3>
     <button type="button" className="selected" onClick={()=>choose("accueil")}><Database/><span>Plateforme principale</span><ChevronRight/></button>
     {boutique.url
@@ -185,6 +187,7 @@ export default function MKAPMSIntelligence() {
     <nav>{workItems.map(([label,Icon,key])=><button key={label} type="button" onClick={()=>choose(key)}><Icon/><span>{label}</span><ChevronRight/></button>)}</nav>
     <button type="button" className="alhud-chat-cta" onClick={()=>choose("conversation")}><MessageCircle/> Chat</button>
   </div>;
+  const nav = renderNav(false);
 
   return <div className="alhud-approved-shell">
     <header className="alhud-approved-header">
@@ -198,7 +201,7 @@ export default function MKAPMSIntelligence() {
         <button type="button" className="alhud-round-button" onClick={()=>choose("conversation")} aria-label="Conversation"><MessageCircle/></button>
       </div>
     </header>
-    {menuOpen ? <div className="alhud-menu-backdrop" onClick={()=>setMenuOpen(false)}><aside onClick={e=>e.stopPropagation()}><button type="button" className="alhud-menu-close" onClick={()=>setMenuOpen(false)}><X/> Fermer</button>{nav}</aside></div> : null}
+    {menuOpen ? <div className="alhud-menu-backdrop" onClick={()=>setMenuOpen(false)}><aside onClick={e=>e.stopPropagation()}><button type="button" className="alhud-menu-close" onClick={()=>setMenuOpen(false)}><X/> Fermer</button>{renderNav(true)}</aside></div> : null}
     <main className="alhud-approved-main">
       {module === "accueil" ? <Dashboard onOpen={choose} boutique={boutique}/> : null}
       <div hidden={module === "accueil"} className="alhud-conversation-slot">
@@ -210,6 +213,8 @@ export default function MKAPMSIntelligence() {
           onActivate={()=>setModule("conversation")}
           onChooseModule={(key)=>choose(key as CleModule)}
           searchQuery={moduleSearch}
+          historySlot={menuOpen ? historySlot : null}
+          onHistoryAction={()=>setMenuOpen(false)}
         >{module === "parametres"
           ? <Parametres onChooseModule={(key) => choose(key as CleModule)} />
           : module !== "conversation" && module !== "accueil" && module !== "developpeur"

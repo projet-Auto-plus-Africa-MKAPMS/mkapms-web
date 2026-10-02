@@ -58,3 +58,38 @@ export function WaitingReply() {
     <span role="timer" aria-live="off" aria-label="Temps d’attente" className="alhud-waiting-time">{time}</span>
   </div>;
 }
+
+export interface EtapeTravail {
+  etape: string;
+  libelle: string;
+  statut: string;
+  observe: string;
+}
+
+const LIBELLES_STATUT: Record<string, string> = {
+  en_cours: "en cours",
+  fait: "fait",
+  partielle: "partielle",
+  refuse: "bloquée",
+  en_attente_autorisation: "autorisation requise",
+  echec: "échec",
+  non_execute: "non exécutée",
+  non_applicable: "non applicable",
+};
+
+/** Steps published by the mission engine while it runs (Travail mode), and kept under the final report. */
+export function MissionSteps({ etapes, enCours }: { etapes: EtapeTravail[]; enCours: boolean }) {
+  if (!etapes.length) return enCours ? <p className="alhud-mission-steps-empty">Préparation de la mission…</p> : null;
+  const faites = etapes.filter((e) => e.statut === "fait").length;
+  return <div className="alhud-mission-steps" aria-label="Étapes de la mission">
+    <p className="alhud-mission-steps-count">{faites}/{etapes.length} étape{etapes.length > 1 ? "s" : ""} faite{faites > 1 ? "s" : ""}</p>
+    <ol>
+      {etapes.map((e) => <li key={e.etape} data-statut={e.statut}>
+        <span className={e.statut === "en_cours" ? "alhud-active-line" : undefined}>
+          <strong>{e.libelle}</strong> · {LIBELLES_STATUT[e.statut] ?? e.statut}
+        </span>
+        {e.observe ? <small>{e.observe}</small> : null}
+      </li>)}
+    </ol>
+  </div>;
+}

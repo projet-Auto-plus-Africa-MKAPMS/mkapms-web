@@ -122,6 +122,8 @@ export interface OrchestrerInput {
   missionActiveId?: number | null;
   /** Derniers ordres de la conversation (les plus anciens d'abord) : contexte pour reconnaître la mission d'une demande courte. */
   contexte?: string[];
+  /** Reçoit chaque étape au moment où elle démarre puis quand elle se termine (affichage en direct). */
+  onEtape?: (evt: { etape: string; libelle: string; statut: StatutEtape | "en_cours"; observe?: string }) => void;
 }
 
 export interface Mission {
@@ -502,10 +504,18 @@ export async function orchestrer(input: OrchestrerInput, deps: DepsOrchestrateur
       dureeMs: 0,
       niveauRequis: 1,
     };
+    const signaler = (statut: StatutEtape | "en_cours") => {
+      try {
+        input.onEtape?.({ etape: def.etape, libelle: def.libelle, statut, observe: base.observe });
+      } catch {
+        // L'affichage en direct ne doit jamais interrompre la mission.
+      }
+    };
     const fin = (statut: StatutEtape) => {
       base.statut = statut;
       statutDe.set(def.etape, statut);
       etapes.push(base);
+      signaler(statut);
     };
 
     /* 2. Dépendances : seule une étape dont dépend celle-ci peut l'arrêter. */
@@ -547,6 +557,8 @@ export async function orchestrer(input: OrchestrerInput, deps: DepsOrchestrateur
       fin("en_attente_autorisation");
       continue;
     }
+
+    signaler("en_cours");
 
     /* 5. Résultat déjà établi par une mission précédente (reprise) : rendu seulement si les droits ACTUELS le permettent. */
     const repris = acquis.get(def.etape);

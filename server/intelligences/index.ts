@@ -49,6 +49,7 @@ import {
   tableau as tableauPermissions,
 } from "./permissions.js";
 import { lancerSonde } from "./provider-sonde.js";
+import { lireSuivi, ouvrirSuivi, publierEtape, terminerSuivi } from "./mission-progression.js";
 import { lirePreuves } from "./sonde-store.js";
 import { etatEmpreintes, reindexerUnLot } from "./empreintes.js";
 import {
@@ -593,24 +594,38 @@ export const intelligencesRouter = router({
         missionActiveId: z.number().int().positive().nullable().optional(),
         /** Derniers ordres de la conversation (les plus anciens d'abord), pour reconnaître la mission d'une demande courte. */
         contexte: z.array(z.string().max(2000)).max(12).optional(),
+        /** Identifiant choisi par l'écran pour relire les étapes pendant l'exécution (progressionMission). */
+        suiviId: z.string().regex(/^[A-Za-z0-9_-]{8,64}$/).optional(),
       }),
     )
     .mutation(async ({ input, ctx }) => {
-      const pieces = [...(input.pieces ?? [])];
-      for (const id of [...new Set(input.fichierIds ?? [])]) {
-        const fichier = await fichiers.lireFichier(id, ctx.user.uid);
-        pieces.push({ type: "texte", nom: fichier.resume.nom, texte: fichier.contenuTexte ?? "Document sans texte extractible." });
+      const suiviId = input.suiviId;
+      if (suiviId) ouvrirSuivi(suiviId, ctx.user.uid);
+      try {
+        const pieces = [...(input.pieces ?? [])];
+        for (const id of [...new Set(input.fichierIds ?? [])]) {
+          const fichier = await fichiers.lireFichier(id, ctx.user.uid);
+          pieces.push({ type: "texte", nom: fichier.resume.nom, texte: fichier.contenuTexte ?? "Document sans texte extractible." });
+        }
+        return orchestrer({
+          objectif: input.objectif,
+          role: ctx.user?.role ?? null,
+          actorId: ctx.user?.uid,
+          pieces,
+          countryCode: input.countryCode ?? null,
+          missionActiveId: input.missionActiveId ?? null,
+          contexte: input.contexte ?? [],
+          onEtape: suiviId ? (evt) => publierEtape(suiviId, evt) : undefined,
+        });
+      } finally {
+        if (suiviId) terminerSuivi(suiviId);
       }
-      return orchestrer({
-        objectif: input.objectif,
-        role: ctx.user?.role ?? null,
-        actorId: ctx.user?.uid,
-        pieces,
-        countryCode: input.countryCode ?? null,
-        missionActiveId: input.missionActiveId ?? null,
-        contexte: input.contexte ?? [],
-      });
     }),
+
+  /** Étapes de la mission en cours, telles que l'orchestrateur les publie (lisibles uniquement par celui qui l'a lancée). */
+  progressionMission: pdgProcedure
+    .input(z.object({ suiviId: z.string().regex(/^[A-Za-z0-9_-]{8,64}$/) }))
+    .query(({ input, ctx }) => lireSuivi(input.suiviId, ctx.user.uid)),
 
   missions: pdgProcedure.query(() => listerMissions(60)),
 
