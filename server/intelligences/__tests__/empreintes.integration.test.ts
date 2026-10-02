@@ -24,12 +24,14 @@ test("mémoire par le sens : éteinte par défaut, indexation, recherche, visibi
   process.env.OPENAI_API_KEY = "sk-test-cle-secrete-embeddings";
   const appels: { modele: string; n: number }[] = [];
   let panne: number | null = null;
+  let refus: string[] = [];
   const fetchSimule = (async (u: string | URL | Request, init?: RequestInit) => {
     assert.ok(String(u).endsWith("/v1/embeddings"));
     assert.equal((init?.headers as Record<string, string>).Authorization, "Bearer sk-test-cle-secrete-embeddings");
     const corps = JSON.parse(String(init?.body)) as { model: string; input: string[]; dimensions: number };
     appels.push({ modele: corps.model, n: corps.input.length });
     assert.equal(corps.dimensions, 1024);
+    if (refus.includes(corps.model)) return new Response(JSON.stringify({ error: { type: "invalid_request_error", code: "model_not_found", message: "x" } }), { status: 404 });
     if (panne) return new Response(JSON.stringify({ error: { type: "invalid_request_error", code: "model_not_found", message: "sk-test-cle-secrete-embeddings" } }), { status: panne });
     return new Response(JSON.stringify({ data: corps.input.map((t, index) => ({ index, embedding: vecteur(t) })) }));
   }) as typeof fetch;
@@ -145,12 +147,57 @@ test("mémoire par le sens : éteinte par défaut, indexation, recherche, visibi
     const apresChangement = await memoire.rechercher("quelle auto veut-il");
     assert.ok(apresChangement.trouvailles.some((t) => t.titre === "Citadine préférée" && t.methode === "semantique"), "recherche par le sens fonctionnelle avec le nouveau modèle");
 
+    // 6 sexies. Le modèle prouvé est refusé, le défaut répond : la reprise ne recalcule pas sans fin.
+    await pool.query("UPDATE in_sondes_openai SET modele='text-embedding-3-mini-refuse', teste_le = now() WHERE capacite='empreintes_semantiques'");
+    (await import("../sonde-store.js")).oublierCacheModelesValides();
+    refus = ["text-embedding-3-mini-refuse"];
+    const r1 = await emp.reindexerUnLot(96);
+    assert.equal(r1.echec, null);
+    assert.ok(r1.indexees > 0, "première reprise : recalcul sous le modèle de repli");
+    assert.equal(appels.at(-1)?.modele, "text-embedding-3-large", "le repli a répondu");
+    const avantR2 = appels.length;
+    const r2 = await emp.reindexerUnLot(96);
+    assert.equal(r2.restantes, 0, "la deuxième reprise ne trouve plus rien à refaire");
+    assert.equal(r2.indexees, 0);
+    assert.equal(appels.length, avantR2, "aucun appel facturé de plus");
+    // Le choix du modèle de repli est durable : il survit à un redémarrage (cache vidé) et à l'expiration de toute mémoire du processus.
+    assert.equal((await pool.query("select modele from in_sondes_openai where capacite='empreintes_effectif'")).rows[0].modele, "text-embedding-3-large");
+    (await import("../sonde-store.js")).oublierCacheModelesValides();
+    const r3 = await emp.reindexerUnLot(96);
+    assert.equal(r3.restantes, 0, "après redémarrage, toujours rien à refaire");
+    assert.equal(appels.length, avantR2, "aucun appel facturé après redémarrage");
+    refus = [];
+
+    // 6 septies. Calcul en retard : un souvenir remplacé pendant l'indexation ne récupère pas d'empreinte périmée.
+    const perime = await memoire.ecrire({ categorie: "entreprise", titre: "Rendez-vous lundi", contenu: "Livraison de la voiture lundi." });
+    await attendre();
+    await memoire.ecrire({ categorie: "entreprise", titre: "Rendez-vous lundi", contenu: "Livraison de la voiture vendredi." });
+    const tardif = await emp.indexer([{ type: "memoire", id: Number(perime.id), texte: "Livraison de la voiture lundi." }], { forcer: true });
+    assert.equal(tardif.indexees, 0, "source devenue historique : rien n'est écrit");
+    assert.equal((await pool.query("select count(*)::int n from in_empreintes e join in_memoire m on m.id=e.source_id where e.source_type='memoire' and m.cycle<>'actif'")).rows[0].n, 0);
+    // Course réelle : le remplacement est en cours (ligne verrouillée) pendant que le calcul en retard tente d'écrire.
+    const course = await memoire.ecrire({ categorie: "entreprise", titre: "Course", contenu: "Voiture course v1." });
+    await attendre();
+    await pool.query("DELETE FROM in_empreintes WHERE source_type='memoire' AND source_id=$1", [course.id]);
+    const client = await pool.connect();
+    await client.query("BEGIN");
+    await client.query("UPDATE in_memoire SET cycle='historique' WHERE id=$1", [course.id]);
+    const enRetard = emp.indexer([{ type: "memoire", id: Number(course.id), texte: "Voiture course v1." }], { forcer: true });
+    await attendre();
+    await client.query("COMMIT");
+    client.release();
+    assert.equal((await enRetard).indexees, 0, "le calcul en retard attend le remplacement, voit la source périmée et n'écrit rien");
+    assert.equal((await pool.query("select count(*)::int n from in_empreintes where source_type='memoire' and source_id=$1", [course.id])).rows[0].n, 0);
+    // Filet : une empreinte périmée qui aurait quand même été écrite est purgée à la reprise.
+    await pool.query("INSERT INTO in_empreintes(source_type, source_id, modele, dimensions, hash, vecteur) VALUES('memoire', $1, 'text-embedding-3-large', 1024, 'x', ARRAY[]::real[])", [perime.id]);
+    await emp.reindexerUnLot(96);
+    assert.equal((await pool.query("select count(*)::int n from in_empreintes where source_type='memoire' and source_id=$1", [perime.id])).rows[0].n, 0, "empreinte périmée purgée");
+
     // 7. Etat.
     panne = null;
     const etat = await emp.etatEmpreintes();
     assert.equal(etat.active, true);
-    assert.equal(etat.memoire.total, 3, "souvenirs actifs");
-    assert.equal(etat.memoire.indexees, 3);
+    assert.equal(etat.memoire.indexees, etat.memoire.total, "tous les souvenirs actifs ont une empreinte");
     assert.equal(etat.connaissances.indexees, etat.connaissances.total);
     assert.ok(THEMES.length === 3);
   } finally {

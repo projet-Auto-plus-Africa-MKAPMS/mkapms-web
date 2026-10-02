@@ -77,4 +77,39 @@ export async function modeleValide(capacite: string): Promise<string | null> {
 
 export function oublierCacheModelesValides(): void {
   cache.clear();
+  dernierEffectifEcrit = null;
+}
+
+/**
+ * Modèle d'empreintes réellement servi par le fournisseur lors du dernier appel réussi. Quand le modèle prouvé est refusé
+ * et que le repli répond, c'est lui qui fait foi : sinon la reprise de l'existant et les compteurs chercheraient sans fin
+ * des empreintes d'un modèle que le fournisseur ne sert plus. Conservé en base (ligne « empreintes_effectif » de la table
+ * des preuves), donc durable : il n'expire pas et survit aux redémarrages. Il cesse de faire foi dès que la sonde
+ * enregistre une preuve plus récente pour les empreintes (nouveau modèle prouvé).
+ */
+const CAPACITE_EFFECTIF = "empreintes_effectif";
+let dernierEffectifEcrit: string | null = null;
+
+export async function memoriserModeleEmpreintesEffectif(modele: string): Promise<void> {
+  if (dernierEffectifEcrit === modele) return;
+  try {
+    await enregistrerPreuve({ capacite: CAPACITE_EFFECTIF, etat: "TESTED", modele, endpoint: "/v1/embeddings", httpStatus: 200, erreurType: "", erreurCode: "", details: { note: "Modèle réellement servi lors du dernier appel réussi." } });
+    dernierEffectifEcrit = modele;
+  } catch {
+    // Base indisponible : le choix reste celui de la preuve de la sonde.
+  }
+}
+
+export async function modeleEmpreintesEffectif(): Promise<string | null> {
+  try {
+    const lignes = await lirePreuves();
+    const effectif = lignes.find((l) => l.capacite === CAPACITE_EFFECTIF);
+    if (!effectif?.modele || !/^[A-Za-z0-9._-]{1,80}$/.test(effectif.modele)) return null;
+    const preuve = lignes.find((l) => l.capacite === "empreintes_semantiques");
+    // Une preuve de la sonde plus récente que le modèle effectif l'emporte : le modèle prouvé est alors à nouveau le bon.
+    if (preuve && preuve.testeLe > effectif.testeLe) return null;
+    return effectif.modele;
+  } catch {
+    return null;
+  }
 }
