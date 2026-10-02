@@ -19,6 +19,7 @@ import { emitSafe } from "../event-bus/service.js";
 import { seedLivraisons } from "../intelligences/livraisons.js";
 import { seedFondations, seedPipelines } from "../intelligences/fondations.js";
 import { seedConnaissancesPublication } from "../intelligences/connaissances-publication.js";
+import { seedConnaissancesBoutique } from "../intelligences/connaissances-boutique.js";
 import { initialiserBaremes } from "../vehicle-delivery/service.js";
 import { retenir } from "../intelligences/memoire.js";
 import { notifyDirection } from "../notification-os/triggers.js";
@@ -513,6 +514,19 @@ export async function bootstrapEngines(): Promise<void> {
   } catch (err) {
     console.error(
       "[MKA.P-MS] pose des connaissances de publication échouée:",
+      (err as Error).message,
+    );
+  }
+
+  // Mémoire de la boutique (SHOP) copiée dans la mémoire de l'IA principale + règles de la connexion (décision du PDG du 2 octobre 2026).
+  try {
+    const r = await seedConnaissancesBoutique();
+    if (r.nouvelles > 0) {
+      console.log(`[MKA.P-MS] Intelligences : ${r.nouvelles} connaissance(s) de la boutique posée(s).`);
+    }
+  } catch (err) {
+    console.error(
+      "[MKA.P-MS] pose des connaissances de la boutique échouée:",
       (err as Error).message,
     );
   }

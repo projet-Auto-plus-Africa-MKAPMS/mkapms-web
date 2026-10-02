@@ -2845,6 +2845,26 @@ export const LIVRAISONS: Livraison[] = [
       "Un modèle nommé en dur peut être absent de l'allocation d'un projet fournisseur : prévoir un repli ordonné et un message qui dit quoi autoriser. Une mémoire qui n'apprend que de ce qu'on lui injecte à la main reste vide : l'apprentissage doit partir du travail réel, avec garde-fous (pas de secret, pas d'échange trivial, jamais bloquant pour la réponse).",
     domaine: "confiance",
   },
+  {
+    cle: "branche-boutique-acces-service-memoire",
+    titre: "L'IA principale peut travailler dans la boutique (jeton de service) et connaît la mémoire de la boutique",
+    moteurs: ["intelligences"],
+    quoi:
+      "Cinq outils « boutique » : dire les portées du jeton, lister les fiches produit, lire une fiche, lancer la préparation des photos, proposer le brouillon d'une fiche. Ils utilisent l'adresse et le jeton déposés dans le Coffre secret (« Boutique — adresse », « Boutique — jeton de service », entrée « Boutique MKA.P-MS (SHOP) » du catalogue Connecter les outils). Les 23 entrées de la mémoire de la boutique (migrations 0024, 0034 à 0037) sont copiées mot pour mot dans la base de connaissances de l'IA principale, avec 3 entrées propres à la connexion (méthode de travail, jeton et interdits, copie datée).",
+    pourquoi:
+      "Le PDG veut que l'IA principale fasse le travail de la boutique (photos, détails des produits) tant que l'IA de la boutique n'est pas prête, et que tout ce qui entre dans la mémoire de la boutique enrichisse aussi la sienne. Côté boutique (mkapms-shop, PR #75), le jeton est créé par le Fondateur seulement, expire, se révoque et ne porte que des portées explicites ; il ne peut jamais lire un prix, une TVA, un stock ou une livraison, ni approuver ou publier une fiche. Les outils d'écriture produisent un brouillon « à relire » (jamais publié). La boutique n'appelle jamais la plateforme principale : sens unique. La mémoire copiée est une copie datée du 2 octobre 2026, la boutique fait foi.",
+    ou: [
+      "server/intelligences/boutique.ts",
+      "server/intelligences/outils/familles/boutique.ts",
+      "server/intelligences/outils/familles/outils-boutique.ts",
+      "server/intelligences/connaissances-boutique.ts",
+      "client/src/lib/connecteurs.ts",
+      "server/intelligences/__tests__/boutique.test.ts",
+    ],
+    lecon:
+      "Quand deux systèmes doivent coopérer sans se confondre, on fixe le sens de l'appel, on donne à l'appelant un jeton limité par des portées que le propriétaire crée et révoque, et on décide ce qui est INTERDIT avant ce qui est permis. Une mémoire copiée porte sa date et dit qui fait foi : sans cela, la copie vieillit en silence.",
+    domaine: "confiance",
+  },
 ];
 
 /**

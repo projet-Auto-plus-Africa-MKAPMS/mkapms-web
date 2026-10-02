@@ -55,6 +55,7 @@ const CATEGORIE_OUTIL_VERS_UNIVERS: Record<Categorie, string> = {
   administration: "plateforme_infrastructure",
   donnees: "identite_comptes",
   marketplace: "marketplace_professionnel",
+  boutique: "marketplace_particulier", // la Boutique (SHOP) vend au grand public
   railway_deploiement: "plateforme_infrastructure",
   observabilite: "plateforme_infrastructure",
   api_externes: "plateforme_infrastructure",

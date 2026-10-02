@@ -17,6 +17,7 @@ import { IMPLEMENTATIONS as IMPL_API_EXTERNES } from "./familles/outils-api-exte
 import { IMPLEMENTATIONS as IMPL_RECHERCHE } from "./familles/outils-recherche.js";
 import { IMPLEMENTATIONS as IMPL_COFFRE } from "./familles/outils-coffre.js";
 import { IMPLEMENTATIONS as IMPL_GITHUB } from "./familles/outils-github.js";
+import { IMPLEMENTATIONS as IMPL_BOUTIQUE } from "./familles/outils-boutique.js";
 import { IMPLEMENTATIONS as IMPL_RAILWAY } from "./familles/outils-railway.js";
 
 export const IMPLEMENTATIONS: Record<string, ImplementationOutil> = {
@@ -31,5 +32,6 @@ export const IMPLEMENTATIONS: Record<string, ImplementationOutil> = {
   ...IMPL_RECHERCHE,
   ...IMPL_COFFRE,
   ...IMPL_GITHUB,
+  ...IMPL_BOUTIQUE,
   ...IMPL_RAILWAY,
 };

@@ -21,7 +21,7 @@ test("catalogue : noms d'éléments uniques, types valides, usage franc, aucun s
       assert.ok(!/(?:\bsk-|-----BEGIN|ghp_|github_pat_)/.test(e.aide), `secret apparent dans « ${e.nom} »`);
     }
   }
-  for (const id of ["google-play", "apple", "github", "railway", "boite-mail"]) {
+  for (const id of ["google-play", "apple", "github", "railway", "boutique-shop", "boite-mail"]) {
     assert.ok(CONNECTEURS.some((c) => c.id === id), `connecteur ${id}`);
   }
 });

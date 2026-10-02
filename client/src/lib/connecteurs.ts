@@ -32,7 +32,7 @@ export interface Connecteur {
   /** Texte du service visé, pré-rempli dans le formulaire. */
   service: string;
   initiale: string;
-  groupe: "Applications mobiles" | "Code et déploiement" | "Comptes";
+  groupe: "Applications mobiles" | "Code et déploiement" | "Boutiques" | "Comptes";
   elements: ElementConnecteur[];
   /** Ce que le moteur fait réellement de ces secrets aujourd'hui. */
   usage: string;
@@ -99,6 +99,20 @@ export const CONNECTEURS: Connecteur[] = [
     ],
     usage:
       "L'outil de lecture d'état des déploiements lit aujourd'hui les variables du serveur Railway (RAILWAY_TOKEN, RAILWAY_PROJECT_ID, RAILWAY_SERVICE_ID, RAILWAY_ENVIRONMENT_ID), pas le coffre. Le moteur ne déclenche jamais de déploiement : vous déployez à la main.",
+  },
+  {
+    id: "boutique-shop",
+    libelle: "Boutique MKA.P-MS (SHOP)",
+    service: "Boutique MKA.P-MS (SHOP)",
+    initiale: "B",
+    groupe: "Boutiques",
+    elements: [
+      { nom: "Boutique — adresse", type: "cle_api", aide: "Adresse du site de la boutique, sans chemin (exemple : https://boutique.exemple.com). Nom de domaine public en https seulement." },
+      { nom: "Boutique — jeton de service", type: "cle_api", aide: "Jeton créé dans la boutique : réglages de l'assistant SHOP → « Accès de l'IA de la plateforme principale » (mot de passe Fondateur + code de sécurité). Il n'est affiché qu'une fois, expire (90 jours maximum) et se révoque à tout moment." },
+    ],
+    usage:
+      "Cinq outils : lire la liste et la fiche des produits, lancer la préparation des photos, proposer le brouillon d'une fiche, dire les portées du jeton. Les fiches restent « à relire » : seul le PDG approuve et publie, dans la boutique. Jamais de prix, de TVA, de stock ni de livraison avec ce jeton. Les droits d'image du fournisseur doivent être enregistrés dans la boutique avant tout travail sur les photos.",
+    avertissement: "Ne collez jamais ce jeton dans une conversation : déposez-le ici seulement. Si vous le croyez exposé, révoquez-le dans la boutique.",
   },
   {
     id: "boite-mail",
