@@ -3,18 +3,20 @@ import { Link } from "react-router-dom";
 import { trpc } from "../../lib/trpc";
 import { useAuth } from "../../lib/auth";
 import { BoutonMoteur } from "../../lib/boutonMoteur";
-import { isDirection, ROLE_LABELS, STAFF_LABELS, type UserRole, type StaffPosition } from "@shared/roles";
+import { isDirection, isPositionExterne, POSITIONS_ATTRIBUABLES, ROLE_LABELS, STAFF_LABELS, type PositionAttribuable, type UserRole } from "@shared/roles";
 
 export default function GestionEmployesMKAPMS() {
   const { user } = useAuth();
   const equipe = trpc.admin.staffList.useQuery();
   const creer = trpc.admin.createStaff.useMutation();
+  const attribuer = trpc.admin.assignStaffPosition.useMutation({ onSuccess: () => { void equipe.refetch(); } });
+  const estPdg = user?.role === "super_admin";
   const [ouvert, setOuvert] = useState(false);
   const [succes, setSucces] = useState("");
-  const [form, setForm] = useState({ name: "", email: "", password: "", role: "employee" as "employee" | "admin", staffPosition: "agent" as Exclude<StaffPosition, "pdg"> });
+  const [form, setForm] = useState({ name: "", email: "", password: "", role: "employee" as "employee" | "admin", staffPosition: "agent" as PositionAttribuable });
   const champ = "w-full rounded-lg border border-slate-300 p-3";
   async function enregistrer() {
-    const compte = await creer.mutateAsync(form);
+    const compte = await creer.mutateAsync({ ...form, role: isPositionExterne(form.staffPosition) ? "user" : form.role });
     setSucces(`Compte créé : ${compte.email}`);
     setForm({ name: "", email: "", password: "", role: "employee", staffPosition: "agent" });
     setOuvert(false);
@@ -32,8 +34,10 @@ export default function GestionEmployesMKAPMS() {
         <label className="block">Nom<input className={champ} value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} autoComplete="name" /></label>
         <label className="block">Adresse e-mail<input className={champ} type="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} autoComplete="email" /></label>
         <label className="block">Mot de passe initial (8 caractères minimum)<input className={champ} type="password" value={form.password} onChange={e => setForm({ ...form, password: e.target.value })} autoComplete="new-password" /></label>
-        <label className="block">Rôle<select className={champ} value={form.role} onChange={e => setForm({ ...form, role: e.target.value as "employee" | "admin" })}><option value="employee">Employé</option><option value="admin">Administration</option></select></label>
-        <label className="block">Poste<select className={champ} value={form.staffPosition} onChange={e => setForm({ ...form, staffPosition: e.target.value as typeof form.staffPosition })}>{Object.entries(STAFF_LABELS).filter(([key]) => key !== "pdg").map(([key, label]) => <option key={key} value={key}>{label}</option>)}</select></label>
+        <label className="block">Poste<select className={champ} value={form.staffPosition} onChange={e => setForm({ ...form, staffPosition: e.target.value as PositionAttribuable })}>{POSITIONS_ATTRIBUABLES.map(key => <option key={key} value={key}>{STAFF_LABELS[key]}</option>)}</select></label>
+        {isPositionExterne(form.staffPosition)
+          ? <p className="text-sm text-slate-600">Investisseur et partenaire sont des comptes externes : aucun accès au back-office. L’espace investisseur/partenaire reste soumis à ses propres vérifications.</p>
+          : <label className="block">Rôle<select className={champ} value={form.role} onChange={e => setForm({ ...form, role: e.target.value as "employee" | "admin" })}><option value="employee">Employé</option>{estPdg && <option value="admin">Administration</option>}</select></label>}
         <p className="text-sm text-slate-600">Le rôle détermine les droits du compte. Le poste est un intitulé d’organisation.</p>
         <BoutonMoteur code="admin_employe_enregistrer" onExecuter={enregistrer} desactive={creer.isPending ? "Création en cours" : undefined} className="rounded-xl bg-[#111] px-5 py-3 font-bold text-white">Créer le compte</BoutonMoteur>
         <button type="button" disabled={creer.isPending} className="ml-3 underline" onClick={() => { setOuvert(false); setForm({ ...form, password: "" }); }}>Annuler</button>
@@ -41,7 +45,14 @@ export default function GestionEmployesMKAPMS() {
       {equipe.isLoading && <p role="status">Chargement de l’équipe…</p>}
       {equipe.error && <p role="alert" className="text-red-700">{equipe.error.message}</p>}
       {equipe.data?.length === 0 && <p>Aucun compte interne enregistré.</p>}
-      {equipe.data?.map(e => <article key={e.id} className="rounded-xl border bg-white p-4"><h2 className="font-bold">{e.name || e.email}</h2><p>{e.email}</p><p>{ROLE_LABELS[e.role as UserRole] ?? e.role} · {e.staffPosition ? STAFF_LABELS[e.staffPosition] : "Poste non renseigné"}</p></article>)}
+      {equipe.data?.map(e => <article key={e.id} className="rounded-xl border bg-white p-4"><h2 className="font-bold">{e.name || e.email}</h2><p>{e.email}</p><p>{ROLE_LABELS[e.role as UserRole] ?? e.role} · {e.staffPosition ? STAFF_LABELS[e.staffPosition] : "Poste non renseigné"}</p>
+        {estPdg && e.role !== "super_admin" && e.id !== user?.id && <label className="mt-2 block text-sm">Attribuer un poste
+          <select aria-label={`Poste de ${e.name || e.email}`} className={champ} disabled={attribuer.isPending} value={e.staffPosition ?? ""} onChange={ev => attribuer.mutate({ userId: e.id, staffPosition: (ev.target.value || null) as PositionAttribuable | null })}>
+            <option value="">Poste non renseigné</option>
+            {POSITIONS_ATTRIBUABLES.map(key => <option key={key} value={key}>{STAFF_LABELS[key]}</option>)}
+          </select></label>}
+      </article>)}
+      {attribuer.error && <p role="alert" className="text-red-700">{attribuer.error.message}</p>}
     </div>
   </main>;
 }
