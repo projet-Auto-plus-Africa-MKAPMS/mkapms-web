@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {creerAppelVocalTempsReel,produireMediaNatif,transcrireAudioNatif} from '../provider.js';
+import {readFileSync} from 'node:fs';
+import {normaliserSdp,creerAppelVocalTempsReel,produireMediaNatif,transcrireAudioNatif} from '../provider.js';
 import {texteMediaAutorise,demandeMedia} from '../media-productions.js';
 const config={cle:'unit-test-only',modele:'configured-model'};
 const png='iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/l9sAAAAASUVORK5CYII=';
@@ -70,7 +71,7 @@ test('realtime WebRTC keeps the provider key server-side and configures each mic
     assert.ok(String(url).endsWith('/v1/realtime/calls'));assert.equal(init?.method,'POST');assert.equal(init?.redirect,'error');
     assert.equal(new Headers(init?.headers).get('authorization'),'Bearer sk-realtime-server-only');
     assert.equal(new Headers(init?.headers).get('openai-safety-identifier'),'hashed-user');
-    const form=init?.body as FormData;assert.equal(form.get('sdp'),offer.trim());
+    const form=init?.body as FormData;assert.equal(form.get('sdp'),offer,'SDP transmis complet : CRLF final conservé');assert.ok(String(form.get('sdp')).endsWith('\r\n'));
     const session=JSON.parse(String(form.get('session')));
     assert.equal(session.type,'realtime');assert.equal(session.model,'gpt-realtime');assert.equal(session.audio.input.transcription.language,'fr');assert.equal(session.audio.output.voice,'coral');
     assert.equal(session.audio.output.speed,undefined);assert.equal(session.audio.input.turn_detection.eagerness,mode==='conversation'?'low':undefined);
@@ -78,7 +79,7 @@ test('realtime WebRTC keeps the provider key server-side and configures each mic
     assert.equal(JSON.stringify(session).includes('sk-realtime-server-only'),false);
     return new Response(answer,{status:200,headers:{'Content-Type':'application/sdp'}});
    });
-   assert.equal(result,answer.trim());assert.equal(result.includes('sk-realtime-server-only'),false);
+   assert.equal(result,answer);assert.ok(result.endsWith('\r\n'));assert.equal(result.includes('sk-realtime-server-only'),false);
   }
   process.env[modelEnv]='gpt-realtime-2.1';let tentatives=0;
   const fallback=await creerAppelVocalTempsReel(offer,'conversation',{},async(_url,init)=>{
@@ -86,10 +87,30 @@ test('realtime WebRTC keeps the provider key server-side and configures each mic
    if(tentatives===1){assert.equal(session.model,'gpt-realtime-2.1');return Response.json({error:{code:'model_not_found'}},{status:404});}
    assert.equal(session.model,'gpt-realtime');return new Response(answer,{status:200});
   });
-  assert.equal(fallback,answer.trim());assert.equal(tentatives,2);
+  assert.equal(fallback,answer);assert.equal(tentatives,2);
   await assert.rejects(creerAppelVocalTempsReel('not-sdp','dictee',{},async()=>{throw Error('must not call');}),/REALTIME_SDP_INVALID/);
  } finally {
   if(previous===undefined)delete process.env[envName];else process.env[envName]=previous;
   if(previousModel===undefined)delete process.env[modelEnv];else process.env[modelEnv]=previousModel;
+ }
+});
+
+test('offre WebRTC : le SDP part complet (CRLF final) même si le navigateur ou le réseau l\'a réduit — cause du 400 invalid_offer', async () => {
+ // Vraie offre générée par Chromium (audio + canal « oai-events »), terminée par CRLF comme l'exige la RFC 4566.
+ const reelle=readFileSync(new URL('./fixtures/offre-webrtc-chrome.sdp',import.meta.url),'utf8');
+ assert.ok(reelle.endsWith('\r\n'));
+ // Le saut de ligne final avait disparu (trim) : l'analyseur SDP strict du service refusait l'offre.
+ assert.equal(normaliserSdp(reelle.trim()),reelle);
+ assert.equal(normaliserSdp(reelle.replace(/\r\n/g,'\n')),reelle);
+ assert.equal(normaliserSdp(reelle),reelle);
+ assert.equal(normaliserSdp(`${reelle}\r\n\r\n`),reelle);
+ const envName=['OPENAI','API','KEY'].join('_');const previous=process.env[envName];process.env[envName]='sk-realtime-server-only';
+ try {
+  let envoye='';
+  const reponse=await creerAppelVocalTempsReel(reelle.trim(),'conversation',{},async(_url,init)=>{envoye=String((init?.body as FormData).get('sdp'));return new Response(reelle.trim(),{status:200});});
+  assert.equal(envoye,reelle);
+  assert.equal(reponse,reelle,'la réponse rendue au navigateur est complète aussi');
+ } finally {
+  if(previous===undefined)delete process.env[envName];else process.env[envName]=previous;
  }
 });

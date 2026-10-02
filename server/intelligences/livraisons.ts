@@ -2804,6 +2804,23 @@ export const LIVRAISONS: Livraison[] = [
       "Vérifié dans Chromium (ordinateur et téléphone) avec un faux service vocal qui envoie de vraies transcriptions : texte écrit, stop et « Terminer » au clic souris réel ferment tout et les pistes micro passent à « ended » ; connexion lente + stop → micro coupé en 0,5 s ; échec de transcription → message avec code (sans le détail brut du service) ; canal d'événements refusé → au bout de 15 s message + relais navigateur, texte écrit, stop OK ; test de recouvrement sur chaque bouton (micro, vocal, annuler, stop, envoyer, couper, terminer) : tous atteignables. Tests realtimeVoice.test.ts 3/3. Non vérifié : le vrai service vocal de production et l'iPhone du PDG — la ligne d'état affichera ce qu'il reçoit réellement.\n\nLeçon générale : un bouton « qui ne répond pas » se teste par le clic souris réel au centre du bouton et par ce que le navigateur trouve À CET ENDROIT (elementFromPoint) — un clic programmatique le contourne et cache exactement le défaut qui frappe l'utilisateur. Ma vérification précédente (connexion stable, texte reçu) avait validé la logique sans jamais cliquer comme le PDG.",
     domaine: "confiance",
   },
+  {
+    cle: "branche-voix-offre-sdp-crlf-final",
+    titre: "Micro vocal : l'offre WebRTC partait sans son saut de ligne final (400 invalid_offer)",
+    moteurs: ["intelligences"],
+    quoi:
+      "Le serveur transmet maintenant l'offre WebRTC du téléphone à OpenAI Realtime avec ses fins de ligne complètes (CRLF sur chaque ligne, la dernière comprise), et rend de même la réponse du service au navigateur. Fonction normaliserSdp(), testée avec une vraie offre générée par Chromium (audio + canal oai-events). Le test existant qui exigeait l'offre « trimée » attendait le défaut : il attend désormais l'offre complète.",
+    pourquoi:
+      "Le PDG a envoyé la ligne d'état du micro vocal : « REALTIME_PROVIDER_400_gpt-realtime_invalid_offer ». Le code faisait sdp.trim() avant l'envoi, ce qui supprime le CRLF final exigé par la RFC 4566. Vérifié avec l'analyseur SDP Pion (Go) sur une vraie offre Chromium : offre brute acceptée, offre après trim() refusée (EOF), offre après trim() + CRLF acceptée. Ce n'est ni la clé API, ni la facturation : le service a répondu après authentification, avec un refus de format.",
+    ou: [
+      "server/intelligences/provider.ts",
+      "server/intelligences/__tests__/media-productions.test.ts",
+      "server/intelligences/__tests__/fixtures/offre-webrtc-chrome.sdp",
+    ],
+    lecon:
+      "Une donnée de protocole (SDP, en-têtes, JSON signé) se transmet octet pour octet : nettoyer par trim() « par précaution » peut la rendre invalide. On valide sur une copie nettoyée, on transmet l'original (ou sa forme canonique complète). Et un test qui compare au résultat de trim() verrouille le défaut au lieu de le détecter : comparer à la forme que le protocole exige. Preuve par un analyseur indépendant (Pion) plutôt que par déduction. Non vérifié : le service OpenAI de production lui-même et l'iPhone du PDG — la ligne d'état dira ce qu'ils renvoient après redéploiement ; si l'erreur change (clé, quota, modèle), elle s'affichera avec son code.",
+    domaine: "confiance",
+  },
 ];
 
 /**

@@ -1030,6 +1030,16 @@ export async function transcrireAudioNatif(resolu:{cle:string}, input:FichierAud
 export type ModeSessionVocale = "dictee" | "conversation";
 
 /**
+ * Un SDP (RFC 4566) est une suite de lignes qui se terminent TOUTES par CRLF, la dernière comprise.
+ * `trim()` supprimait ce dernier saut de ligne : un analyseur SDP strict (Pion, utilisé par les
+ * serveurs WebRTC) refuse alors l'offre en bloc (« EOF »), ce qui se voyait côté OpenAI comme
+ * `400 invalid_offer`. On valide sur le texte nettoyé mais on transmet toujours un SDP complet.
+ */
+export function normaliserSdp(texte: string): string {
+  return `${texte.trim().split(/\r\n|\r|\n/).join("\r\n")}\r\n`;
+}
+
+/**
  * Ouvre une session OpenAI Realtime WebRTC sans jamais transmettre la clé au
  * navigateur. L'offre SDP vient du téléphone, la réponse SDP seulement lui
  * est rendue. L'audio circule ensuite directement dans la connexion chiffrée
@@ -1041,10 +1051,11 @@ export async function creerAppelVocalTempsReel(
   options: { langue?: string; voix?: string; reductionBruit?: "near_field" | "far_field"; safetyId?: string } = {},
   fetchImpl: typeof fetch = fetch,
 ): Promise<string> {
-  const offre = sdp.trim();
-  if (offre.length < 64 || offre.length > 100_000 || !offre.startsWith("v=0")) {
+  const nettoye = sdp.trim();
+  if (nettoye.length < 64 || nettoye.length > 100_000 || !nettoye.startsWith("v=0")) {
     throw new Error("REALTIME_SDP_INVALID");
   }
+  const offre = normaliserSdp(nettoye);
   const cle = process.env.OPENAI_API_KEY?.trim();
   if (!cle) throw new Error("REALTIME_CREDENTIAL_REQUIRED");
 
@@ -1104,7 +1115,8 @@ export async function creerAppelVocalTempsReel(
       if (corps.length < 64 || corps.length > 100_000 || !corps.startsWith("v=0")) {
         throw new Error("REALTIME_ANSWER_INVALID");
       }
-      return corps;
+      // Réponse rendue au navigateur avec ses fins de ligne complètes (CRLF final compris).
+      return normaliserSdp(corps);
     }
 
     // Aucun secret n'est journalisé : seulement le statut, le modèle demandé
