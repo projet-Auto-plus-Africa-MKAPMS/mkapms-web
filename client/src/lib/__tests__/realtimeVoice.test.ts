@@ -188,3 +188,10 @@ test("« Je vous écoute » seulement quand liaison, canal et session sont prêt
     if (sauvegarde.nav) Object.defineProperty(g, "navigator", sauvegarde.nav);
   }
 });
+
+test("enregistrement de démarrage : MP4 d'abord (iPhone), WebM sinon, rien si aucun format n'est pris", async () => {
+  const { formatEnregistrement } = await import("../realtimeVoice.js");
+  assert.deepEqual(formatEnregistrement((m) => m === "audio/mp4" || m === "audio/webm"), { mimeType: "audio/mp4", format: "mp4" });
+  assert.deepEqual(formatEnregistrement((m) => m.startsWith("audio/webm")), { mimeType: "audio/webm;codecs=opus", format: "webm" });
+  assert.equal(formatEnregistrement(() => false), null);
+});

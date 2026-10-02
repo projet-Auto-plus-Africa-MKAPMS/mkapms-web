@@ -126,3 +126,26 @@ export async function contexteInjectable(userId: number, limit = 8): Promise<str
   const lignes = await lister(userId);
   return lignes.slice(0, limit).map((l) => `[${l.categorie}] ${l.cle} : ${l.contenu.slice(0, 200)}`);
 }
+
+/** Longueur maximale d'un terme de vocabulaire tiré de la mémoire. */
+const TERME_MAX = 60;
+
+/**
+ * Vocabulaire de dictée tiré de la mémoire de l'utilisateur : chaque contenu court (un nom, une expression, une
+ * formule) est repris tel quel ; les contenus longs sont des consignes, pas des mots à reconnaître.
+ */
+export function extraireVocabulaire(entrees: readonly Pick<EntreeMemoireUtilisateur, "contenu">[]): string[] {
+  const termes: string[] = [];
+  for (const e of entrees) {
+    for (const morceau of e.contenu.split(/[\n;]+/)) {
+      const terme = morceau.replace(/\s+/g, " ").trim();
+      if (terme.length >= 2 && terme.length <= TERME_MAX && !termes.includes(terme)) termes.push(terme);
+    }
+  }
+  return termes;
+}
+
+/** Vocabulaire de dictée d'UN utilisateur — celui de la session authentifiée. */
+export async function vocabulaireDictee(userId: number): Promise<string[]> {
+  return extraireVocabulaire(await lister(userId));
+}

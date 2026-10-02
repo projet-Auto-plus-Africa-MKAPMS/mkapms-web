@@ -21,7 +21,7 @@ import {
   type CodeCapacite,
 } from "./capacites.js";
 import { router as routerCapacite } from "./routeur.js";
-import { VOIX_TEMPS_REEL, creerApercuVoix, creerAppelVocalTempsReel, etatConfiguration, etatServicePublic } from "./provider.js";
+import { VOIX_TEMPS_REEL, consigneTranscription, creerApercuVoix, creerAppelVocalTempsReel, etatConfiguration, etatServicePublic } from "./provider.js";
 import {
   NIVEAUX_AUTONOMIE,
   PORTEE_NIVEAU,
@@ -293,7 +293,8 @@ export const intelligencesRouter = router({
   }).strict()).mutation(async ({ input, ctx }) => {
     try {
       const safetyId = createHash("sha256").update(`mkapms:${ctx.user.uid}`).digest("hex");
-      const sdp = await creerAppelVocalTempsReel(input.sdp, input.mode, { langue: input.langue, voix: input.voix, reductionBruit: input.reductionBruit, safetyId, modeleTranscription: input.modeleTranscription });
+      const vocabulaire = await memoireUtilisateur.vocabulaireDictee(ctx.user.uid).catch(() => []);
+      const sdp = await creerAppelVocalTempsReel(input.sdp, input.mode, { langue: input.langue, voix: input.voix, reductionBruit: input.reductionBruit, safetyId, modeleTranscription: input.modeleTranscription, vocabulaire });
       return { sdp };
     } catch (error) {
       const code = error instanceof Error ? error.message : "REALTIME_UNKNOWN";
@@ -323,9 +324,11 @@ export const intelligencesRouter = router({
    * Dictée mobile éphémère : l'audio n'est ni stocké en base ni ajouté à la
    * mémoire. Ce chemin sert de repli fiable à SpeechRecognition sur iPhone.
    */
-  transcrireDictee: pdgProcedure.input(z.object({ audio: fichierAudio }).strict())
+  transcrireDictee: pdgProcedure.input(z.object({ audio: fichierAudio, langue: z.string().max(16).optional() }).strict())
     .mutation(async ({ input, ctx }) => {
+      const vocabulaire = await memoireUtilisateur.vocabulaireDictee(ctx.user.uid).catch(() => []);
       const resultat = await routerCapacite({
+        promptTranscription: consigneTranscription(input.langue?.split("-")[0]?.toLowerCase(), vocabulaire),
         productionMedia: true,
         capacite: "transcription",
         moteur: "command_center",

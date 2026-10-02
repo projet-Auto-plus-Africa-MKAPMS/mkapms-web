@@ -56,6 +56,8 @@ export interface DemandeCapacite {
   /** Réservé au service privé de productions : quota et idempotence déjà contrôlés. */
   productionMedia?: boolean;
   audio?: import("./audio-input.js").FichierAudio;
+  /** Vocabulaire attendu par la transcription (voir `consigneTranscription`). */
+  promptTranscription?: string;
   /** Server-only service boundary; never accepted from public capability inputs. */
   isolation?: "SHOP";
   capacite: CodeCapacite;
@@ -213,6 +215,7 @@ export async function router(demande: DemandeCapacite): Promise<ResultatCapacite
     isolation: demande.isolation,
     media,
     audio: demande.audio,
+    promptTranscription: demande.promptTranscription,
     capacite: s.capaciteFabrique,
     tache: demande.capacite,
     capaciteMka: demande.capacite,
