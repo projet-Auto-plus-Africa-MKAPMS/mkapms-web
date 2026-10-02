@@ -40,7 +40,7 @@ export interface AnomalieCliquable {
   readonly motif: MotifAnomalie;
 }
 
-export const CLIQUABLES_TOTAL = 2701;
+export const CLIQUABLES_TOTAL = 2702;
 
 export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/components/AccessDenied.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
@@ -353,6 +353,7 @@ export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/pages/intelligence/modules/Parametres.tsx", total: 1, moteur: 0, liens: 0, boutonsLocaux: 1, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/intelligence/modules/ProductionMedia.tsx", total: 3, moteur: 0, liens: 0, boutonsLocaux: 3, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/intelligence/modules/Recherche.tsx", total: 2, moteur: 0, liens: 0, boutonsLocaux: 2, sansAction: 0, zones: 0 },
+  { fichier: "client/src/pages/intelligence/modules/SondeCapacites.tsx", total: 1, moteur: 0, liens: 0, boutonsLocaux: 1, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/intelligence/modules/TranscriptionAudio.tsx", total: 3, moteur: 0, liens: 0, boutonsLocaux: 3, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/intelligence/WorkspaceRail.tsx", total: 7, moteur: 0, liens: 0, boutonsLocaux: 7, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/investissement/DevenirInvestisseur.tsx", total: 2, moteur: 0, liens: 2, boutonsLocaux: 0, sansAction: 0, zones: 0 },

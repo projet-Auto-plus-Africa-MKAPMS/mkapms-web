@@ -1,6 +1,7 @@
 /** Additive controls for the canonical provider-capability registry. */
 import { useState } from "react";
 import { trpc } from "../../../lib/trpc";
+import { SondeCapacites } from "./SondeCapacites";
 
 export function FonctionsControle() {
   const utils = trpc.useUtils();
@@ -86,6 +87,7 @@ export function FonctionsControle() {
       <p role="status" className="text-sm">
         {message}
       </p>
+      <SondeCapacites />
     </section>
   );
 }
