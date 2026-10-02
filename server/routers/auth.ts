@@ -3,6 +3,7 @@ import { eq } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 import { router, publicProcedure, protectedProcedure } from "../trpc.js";
 import { db } from "../db.js";
+import { env } from "../env.js";
 import { users } from "../schema.js";
 import { getProfile } from "@shared/profiles.js";
 import { makeReference } from "../reference.js";
@@ -143,9 +144,18 @@ export const authRouter = router({
     return { ok: true };
   }),
 
+  /**
+   * Identifiant client Google (public par nature : il figure dans la page de connexion de n'importe quel site). Lu à
+   * l'exécution côté serveur pour que le bouton Google ne dépende pas d'une variable de construction du site.
+   */
+  googleConfig: publicProcedure.query(() => ({ clientId: env.GOOGLE_CLIENT_ID || null })),
+
   googleLogin: publicProcedure
     .input(z.object({ idToken: z.string() }))
     .mutation(async ({ input }) => {
+      if (!env.GOOGLE_CLIENT_ID) {
+        throw new TRPCError({ code: "PRECONDITION_FAILED", message: "La connexion Google n'est pas configurée sur ce site. Utilisez votre adresse email." });
+      }
       const profile = await verifyGoogleIdToken(input.idToken);
       if (!profile) {
         throw new TRPCError({ code: "UNAUTHORIZED", message: "Google non vérifié" });

@@ -52,6 +52,8 @@ export async function verifyGoogleIdToken(
     });
     const p = ticket.getPayload();
     if (!p || !p.email) return null;
+    // Un compte existant est rattaché par son adresse : on n'accepte qu'une adresse que Google dit vérifiée.
+    if (p.email_verified !== true) return null;
     return {
       googleId: p.sub,
       email: p.email,
