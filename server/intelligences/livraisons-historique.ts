@@ -6,7 +6,7 @@
  * manière dont ils ont été résolus, y compris les retours en arrière, soit consultable dans sa mémoire.
  *
  * Sources et fidélité : les entrées « pr-<numéro> » et « commit-<hash> » reprennent les messages de commit de l'historique
- * de la branche main (état aa96e35, dernier commit du 3 octobre 2026), cités tels quels ; un texte coupé porte la marque
+ * de la branche main (état 24ff441, dernier commit du 3 octobre 2026), cités tels quels ; un texte coupé porte la marque
  * « […] » et le commit d'origine est nommé dans l'entrée. Seuls ont été remplacés : les noms de variables de clés et les
  * adresses de fournisseurs de modèles, les adresses e-mail et l'identité du PDG, que les garde-fous du dépôt interdisent
  * d'écrire dans le code. Les entrées « recit-* » sont des synthèses rédigées à partir de ces mêmes messages.
@@ -26,7 +26,7 @@ export const LIVRAISONS_HISTORIQUE: Livraison[] = [
   "moteurs": [
     "plateforme"
   ],
-  "quoi": "CHIFFRES VÉRIFIÉS (historique de la branche main) : 699 commits, 293 fusions dont 283 portent un numéro de PR ; du 10 août au 3 octobre 2026. Familles de branches des PR numérotées : claude 152, devin 70, codex 17, fix 13, feat 7, ai 5, manus 4, autres 15. La famille de branche est le seul marqueur d'origine fiable de l'historique : « claude » désigne le travail de Claude ; devin, codex, manus, ai sont d'autres agents. Aucune attribution n'est inventée au-delà de ce marqueur.\n\nPHASE 1 — 10 au 22 août (surtout branches devin) : fondations des moteurs et de leur contrôle.\nRegistre central des moteurs avec 5 états calculés et journal des modifications d'agents (points 41-42, PR 206) ; dépendances en cascade, validation avant action sensible, retour arrière (43-44, PR 207) ; assurance et bornes de recharge (45, PR 208) ; Reviews & Reputation Engine, faux avis traçables, droit de réponse (46-50, PR 209-210) ; paiement : le bouton ouvre l'écran carte (PR 225), la réponse brute du prestataire n'atteint plus le client et la clé Stripe est vérifiée au démarrage (PR 226) ; audit d'activation général existe/connecté/activé/testé/utilisé (91, PR 227) ; indexation Google URL par URL (92-101, PR 228) ; pipelines Véhicules/Produits et Google Product Engine (94-97, PR 229) ; audit des 16 capacités sur preuve d'usage (102-103, PR 230) ; Event Bus central (104-107) ; contrôle continu avec preuve datée (108-113, PR 233-234) ; Code Knowledge Graph (114-118, PR 235) ; règle TERMINÉ calculée et Completion Center (119-122, PR 236) ; MKA.P-MS Intelligences : appels réels au fournisseur (PR 237), registre des capacités, API /v1 et fournisseur direct interdit (124-129, PR 240), orchestrateur de missions et 7 niveaux d'autonomie (130-133, PR 241), mémoire fédérée et apprentissage après action (134-139, PR 242), observabilité 24/7 (140-144, PR 243), actions de direction et mode shadow (145-149, PR 244), fonctionnalités fournisseur éteintes par défaut (150-151, PR 245). Le 22 août la PR 246 annule la fusion de la PR 232 (marque, rendu du logo).\n\nPHASE 2 — 23 août au 11 septembre : brancher les écrans aux moteurs.\nMoteur de livraison de véhicules (PR 249), diagnostic de risque à l'importation (PR 248), Estimation Hub (PR 250), moteur de redirection branché partout (PR 252-253), assistant mondial joignable sur les pages publiques (PR 255), diagnostic des clés du fournisseur de modèles avec bandeau visible (PR 262) et fournisseurs manquants nommés (PR 256), diagnostic actionnable des moteurs dégradés (PR 258), vérification de propriété Google/Bing/Yandex/Facebook/Pinterest (PR 260), suppression de compte réellement exécutée (PR 257), vrais documents imprimables au lieu d'une notification verte (PR 266), contrôle d'authenticité sur chaque pièce KYC (PR 271), cloisonnement VO officiel/pro/particulier décidé par le serveur (PR 268), montant du devis calculé par le serveur (PR 267), filtres de recherche réellement appliqués (PR 272), boutons morts du garage reliés (PR 273), Moteur de boutons (PR 274), Moteur d'Atelier (PR 275) et réapprovisionnement gouverné (PR 281), pages d'accueil des 15 sections et 247 écrans vides recensés (PR 280), correctifs de registre et migrations 0106/0107 du journal Drizzle (PR 276, 278).\n\nPHASE 3 — 11 au 25 septembre (surtout branches claude) : fournisseurs, sécurité des routes, fin des écrans fabriqués.\nLe 11 septembre une entrée de mémoire fait échouer le build de production (PR 294, voir le récit des problèmes). Lots IA02B et IA02F (noyau conversationnel, mémoire/fichiers/RAG). Le 15 septembre : plan maître fournisseurs retranscrit intégralement (PR 331) puis LOT 1 Supplier Engine (PR 332), LOT 2 Vehicle Engine (PR 333), LOT 3 Parts Engine (PR 334), LOT 4 Logistics Engine (PR 336), LOT 5 Payout Engine (PR 337), LOT 6 Document Engine (PR 339), LOT 7 partiel : tableau de bord Direction, Ledger, commissions réelles (PR 340) ; la PR 335 corrige le mot interdit qui bloquait tout déploiement depuis le LOT 2. Sécurité : 64 routes Pro/internes verrouillées par le Permission Engine (PR 313). Cinq applications Android : chaîne de build des .aab (PR 371), version 1.7.6 (PR 364), écran « Connexion indisponible » hors réseau (PR 365). Puis une longue série de PR « reconnecte l'écran X au vrai moteur » : fiche historique, dossier client, comptabilité dirigeant, démarches, notifications, Mon espace, location (candidature, contrats, catalogue camions/minibus/utilitaires), publicité, journal d'activité, essai routier, garage, avis (PR 313-411 environ), avec le compteur de boutons sans action qui baisse de 163 à 131 sur les seules PR 383, 384, 387.\n\nPHASE 4 — 26 septembre au 3 octobre : l'espace AL-HUDHUD·M, la voix, la mémoire, la boutique, les pièces.\nEspace de conversation unifié et identité publique AL-HUDHUD·M (PR 475-477, 482, 498, 501-502), pièces automobiles : catalogue, boutique, fiche produit, panier persistant (PR 505-511, branches codex), urgence du 1er octobre : « restaurer Railway et la voix multi-appareils » (PR 508). Le 2 octobre (détaillé dans le récit de cette journée) : micros et voix, coffre secret, boutique SHOP, mémoire automobile, Global Country Engine réservé au PDG, postes d'équipe, pays cliquables à l'accueil, sonde des capacités du fournisseur de modèles, mémoire par le sens, agent développeur. Derniers commits de l'historique (2 et 3 octobre) : travail affiché étape par étape et menu repliable (PR 549), mémoires activables (PR 550), dictée (PR 551), menu du trombone (PR 552), connexion Google dans les cinq applications (PR 553), branches devin.",
+  "quoi": "RÉSUMÉ — 293 fusions et 699 commits du 10 août au 3 octobre 2026, en 4 phases : fondations des moteurs (août), écrans reliés aux moteurs (fin août à 11 septembre), fournisseurs, sécurité et fin des écrans fabriqués (11 au 25 septembre), espace AL-HUDHUD·M, voix, mémoire et boutique (26 septembre au 3 octobre).\n\nCHIFFRES VÉRIFIÉS (historique de la branche main) : 699 commits, 293 fusions dont 283 portent un numéro de PR ; du 10 août au 3 octobre 2026. Familles de branches des PR numérotées : claude 152, devin 70, codex 17, fix 13, feat 7, ai 5, manus 4, autres 15. La famille de branche est le seul marqueur d'origine fiable de l'historique : « claude » désigne le travail de Claude ; devin, codex, manus, ai sont d'autres agents. Aucune attribution n'est inventée au-delà de ce marqueur.\n\nPhases détaillées (une entrée de mémoire chacune) :\n- Chronologie du chantier — Phase 1 — 10 au 22 août (surtout branches devin)\n- Chronologie du chantier — Phase 2 — 23 août au 11 septembre\n- Chronologie du chantier — Phase 3 — 11 au 25 septembre (surtout branches claude)\n- Chronologie du chantier — Phase 4 — 26 septembre au 3 octobre",
   "pourquoi": "Le PDG a demandé un récit complet et honnête de tout ce qui a été fait sur la plateforme, enrichi dans la mémoire de l'IA : ce qui existe déjà est laissé tel quel, ce qui manque est ajouté. Cette entrée fixe le fil chronologique ; les entrées pr-<numéro> et commit-<hash> donnent le détail de chaque livraison qui manquait.",
   "ou": [
     "server/intelligences/livraisons.ts",
@@ -44,7 +44,7 @@ export const LIVRAISONS_HISTORIQUE: Livraison[] = [
   "moteurs": [
     "plateforme"
   ],
-  "quoi": "Pratiques constantes relevées dans les messages de commit (les numéros de PR sont ceux où la pratique est écrite noir sur blanc) :\n\n1. AUDIT PRÉALABLE AVANT TOUTE CONSTRUCTION. Les lots 2, 3 et 4 du plan fournisseurs commencent par « Audit préalable complet … avant tout développement » (PR 333, 334, 336) ; la tâche location flotte est « auditée avant toute construction pour éviter une duplication » : rentalApplications existait au schéma sans aucun routeur (grep exhaustif, zéro usage).\n2. ÉTENDRE, JAMAIS DUPLIQUER. Règle d'architecture « un moteur pour chaque domaine » ; un profil fournisseur s'ajoute au-dessus d'un partner existant (PR 332) ; VehiculesCertifies est reconnecté à selectionMka déjà utilisé sur l'accueil plutôt qu'un second moteur ; la publicité est reliée au moteur pub_requests déjà réel.\n3. NE JAMAIS FABRIQUER. Un écran qui affichait des données inventées est soit relié à un moteur réel qui existe déjà, soit vidé avec un état honnête qui dit pourquoi (par exemple « Scanner OBD-II non connecté » au lieu de codes défaut inventés). Un bouton qui annonce une action sans la faire est le pire cas : il est relié ou retiré. Le compteur de boutons sans action sert d'instrument de mesure (163→147 PR 383, 147→138 PR 384, 138→131 PR 387).\n4. DÉCOUVERTES ANNEXES TRACÉES, PAS BÂCLÉES. Quand un défaut voisin demande un vrai chantier (ListeAttente, suspension de compte, paiements de location), il devient une tâche numérotée au lieu d'une correction superficielle.\n5. ÉTATS HONNÊTES. Un moteur sans preuve reste « staging » ou « not_connected » (Connector Engine du LOT 1, vo_espaces en staging « pas d'état actif sans preuve ») ; une capacité n'est jamais « fonctionnelle » avant un vrai appel par l'adaptateur de la plateforme.\n6. VÉRIFICATION EN CONDITIONS RÉELLES. Tests contre une vraie base PostgreSQL, parcours HTTP complets, navigateur réel (Playwright) avec clics réels, données de test nettoyées après coup. Un test de non-régression est validé en le faisant échouer volontairement avant de restaurer la correction (PR 381) ; les mutations volontaires des règles sont détectées par les tests (travaux du 2 octobre).\n7. BUILD COMPLET AVANT TOUTE PUBLICATION. Le déploiement Railway exécute npm run build : check:routers, check:naming, check:identite, check:providers, check:public-provider-leaks, check:intelligence-chat, check:routes, check:boutons, check:cliquables, check:sections, check:moteurs, check:migrations, puis build:graph, build:client, build:server. La séquence est reproduite exactement en local avant de pousser (PR 294), et l'artefact node dist/server.js est démarré et interrogé (PR 335, 336, 339).\n8. INVENTAIRES GÉNÉRÉS À RÉGÉNÉRER. Boutons, cliquables, routes, sections, moteurs et graphe de code sont générés ; un inventaire périmé fait échouer le build (PR 269, 446, 508).\n9. MIGRATIONS ADDITIVES ET JOURNAL TENU. Chaque migration est additive ; le journal Drizzle est tenu à la main car drizzle-kit generate est cassé (tâche 61) ; check:migrations valide la chaîne ; une migration absente du journal n'est jamais appliquée (PR 278).\n10. MÉMOIRE DES LIVRAISONS. Chaque livraison est inscrite au registre server/intelligences/livraisons.ts : ce qui a été fait, pourquoi, où, la leçon. Une entrée n'est jamais modifiée après fusion ; une correction est une nouvelle entrée.\n11. UNE PR PAR SUJET. Les PR sont fusionnées dès que la CI est verte sur le dernier commit ; un correctif qui arrive après la fusion est une nouvelle PR, jamais un empilement sur une PR fusionnée.",
+  "quoi": "RÉSUMÉ — Onze pratiques constantes : auditer avant de construire, étendre au lieu de dupliquer, ne jamais fabriquer, états honnêtes, preuves réelles, build complet de la CI en local avant de pousser, inventaires et migrations tenus, une entrée de livraison par PR.\n\nPratiques constantes relevées dans les messages de commit (les numéros de PR sont ceux où la pratique est écrite noir sur blanc) :\n\nSections détaillées (une entrée de mémoire chacune) :\n- Méthode de travail — Audit préalable avant toute construction\n- Méthode de travail — Étendre, jamais dupliquer\n- Méthode de travail — Ne jamais fabriquer\n- Méthode de travail — Découvertes annexes tracées, pas bâclées\n- Méthode de travail — États honnêtes\n- Méthode de travail — Vérification en conditions réelles\n- Méthode de travail — Build complet avant toute publication\n- Méthode de travail — Inventaires générés à régénérer\n- Méthode de travail — Migrations additives et journal tenu\n- Méthode de travail — Mémoire des livraisons\n- Méthode de travail — Une PR par sujet",
   "pourquoi": "Le PDG demande que l'IA connaisse non seulement ce qui a été fait mais la manière dont les problèmes ont été trouvés et corrigés, pour qu'elle travaille de la même façon : analyser avant de travailler, ne rien inventer, prouver avant d'affirmer.",
   "ou": [
     "scripts/check-naming.mjs",
@@ -65,7 +65,7 @@ export const LIVRAISONS_HISTORIQUE: Livraison[] = [
   "moteurs": [
     "plateforme"
   ],
-  "quoi": "Chaque problème ci-dessous est tiré d'un message de commit ou d'une livraison ; le numéro de PR permet de relire le détail.\n\n1. BUILD DE PRODUCTION BLOQUÉ PAR UN MOT INTERDIT (PR 335, 15 septembre). Symptôme : aucune publication des lots Vehicle Engine et Parts Engine n'avait pu être déployée. Cause : check:naming échoue le build dès qu'une chaîne visible contient le mot isolé « IA » ou « AI » ; 18 occurrences (noms de section, commentaires, messages) avaient été introduites depuis le LOT 2, et seuls les tests et le mode développement avaient été vérifiés. Correction : libellés renommés, aucun code métier changé. Leçon : lancer npm run build complet (12 contrôles + build) et démarrer dist/server.js avant de déclarer un lot livré.\n2. BUILD CASSÉ PAR UNE ENTRÉE DE MÉMOIRE (PR 294, 11 septembre). Symptôme : le déploiement Railway échoue après la PR 293. Cause : check:providers scanne le texte brut de tous les fichiers, y compris les commentaires ; l'entrée de livraison citait des noms de variables de clés de fournisseurs, et une seconde occurrence de « IA » faisait échouer check:naming. Correction : même information reformulée sans citer ces noms. Méthode : les journaux de compilation de l'échec Railway ont été lus et la séquence EXACTE des 13 étapes a été rejouée en local. Leçon : le registre des livraisons est lui aussi du code scanné par les garde-fous.\n3. INVENTAIRES GÉNÉRÉS PÉRIMÉS (PR 269 le 30 août, 446 le 25 septembre, 508 le 1er octobre). Symptôme : déploiement Railway bloqué. Cause : une PR ajoute un écran, un bouton ou un moteur sans régénérer les inventaires (routes, boutons, cliquables, moteurs) que check:* compare au code. Correction : regénérer puis recommitter. Le 1er octobre l'urgence « restaurer Railway et la voix multi-appareils » répare les inventaires qui bloquaient les publications 505 à 507. Leçon : npm run gen:* dès que check:* signale une dérive.\n4. MIGRATIONS JAMAIS APPLIQUÉES (PR 278, 1er septembre). Symptôme : tables des avis et de Google Business absentes, moteurs en alerte. Cause : les fichiers SQL 0106 et 0107 existaient mais n'étaient pas inscrits dans le journal Drizzle, donc jamais exécutés au démarrage. Correction : entrées ajoutées au journal. Le diagnostic des moteurs (PR 258) indique désormais les tables manquantes et recommande « Appliquer les migrations ».\n5. ACCOLADE MANQUANTE APRÈS UNE FUSION (PR 422, 25 septembre) : conflit de fusion mal résolu dans catalogue.ts, corrigé et inventaires régénérés. Leçon : après chaque fusion de main, relancer le build.\n6. ÉCRANS ENTIÈREMENT FABRIQUÉS (dizaines de PR en septembre : historique véhicule avec faux paiement Stripe, dossier client, comptabilité dirigeant, journal d'activité, publicité, location camions/minibus/utilitaires, pénalités, état du véhicule, diagnostic OBD…). Cause : écrans écrits avec des tableaux en dur et des setTimeout qui simulent un succès, alors qu'un moteur réel existait souvent déjà côté serveur sans jamais être appelé. Correction : relier l'écran au moteur existant ; sinon vider avec un état honnête. Un risque réel était caché : des identifiants fabriqués menaient à ProduitLocation qui interrogeait une vraie annonce sans rapport. Leçon : un écran fabriqué est un défaut de sécurité autant que d'affichage.\n7. « RÉSOLU » QUI MENT (PR 386). Symptôme : cliquer Résolu sur une alerte bouton puis rafraîchir fait revenir le même problème. Cause racine : resolveAlertWithLearning marquait le contrôle de santé « ok » sans qu'aucun code n'ait changé ; le scan suivant constatait que le bouton était toujours dans l'inventaire et rouvrait l'alerte. Correction : isKnownGhostButton vérifie que le bouton a réellement disparu avant de promettre ; sinon l'alerte reste « prise en compte » avec un motif exact. Leçon : un état ne se déclare pas, il se constate.\n8. FAUX POSITIFS DES AUDITS. (a) Huit moteurs signalés « Existe mais non connectée » alors qu'ils filtrent le catalogue annonces partagé : ROUTEURS_PARTAGES ajouté à l'auditeur, controle_technique volontairement laissé en défaut réel. (b) Contrôle continu : la destination /pays/france était jugée inconnue parce que comparée à la liste littérale des routes ; isRoutablePath est utilisé (PR 330), 28 liens morts réels corrigés au passage. (c) Bandeau « dépendance circulaire : aucun ordre de démarrage possible » contredisait la doc du détecteur (PR 325).\n9. PAIEMENTS CASSÉS DEPUIS LEUR ÉCRITURE (PR 381). Cause : trois parcours (devis garage, abonnement carte grise, pack de dossiers) passaient un type de paiement absent de l'énumération PostgreSQL ; confirmé par un INSERT direct. Autres : webhook sans gestionnaire pour carte_grise_service (le client payait, le dossier n'avançait jamais), absence d'idempotence sur les redélivrances Stripe, vocabulaire « Caution » pour un encaissement immédiat (corrigé en « Acompte »), montant du devis fait confiance au client (désormais calculé par le serveur, PR 267), réponse brute du prestataire renvoyée au client (PR 226).\n10. DÉRIVE ENTRE SCHÉMA ET BASE (PR 334 et LOT 5). Cause : deux fichiers déclaraient les mêmes tables pièces avec des colonnes différentes, seule une version étant migrée ; l'estimation budget pièces joignait une table orpheline toujours vide ; quatre tables du Ledger avaient des colonnes déclarées jamais migrées. Correction : une seule définition, code mort supprimé, migrations additives.\n11. SÉCURITÉ. 64 routes Pro/internes se rendaient pour n'importe quelle adresse tapée (PR 313) : verrouillées par le Permission Engine. annonces.get exposait les brouillons à qui devinait un identifiant (corrigé : visibles du propriétaire et des administrateurs). Un professionnel sans abonnement atteignait les écrans VO (cloisonnement décidé par le serveur, PR 268). Le 2 octobre, le Global Country Engine était joignable par le public : réservé au PDG, avec les lectures publiques réduites à nom, langues et devise.\n12. PANNE DU CHAT PRINCIPAL (PR 262). Symptôme : le PDG ne pouvait pas envoyer de commande à l'assistant. Cause : aucun fournisseur de modèles configuré en production, l'envoi échouait silencieusement avec « aucun fournisseur habilité ». Correction : procédure de diagnostic (présence seulement, aucune valeur) et bandeau rouge qui nomme la variable manquante. Suites : sonde des capacités par vrais appels (2 octobre).\n13. VOIX TEMPS RÉEL. L'offre WebRTC partait sans saut de ligne final (400 invalid_offer) parce que le serveur la nettoyait : analyseur SDP strict vérifié sur une vraie offre Chromium (brute acceptée, nettoyée refusée, nettoyée avec CRLF acceptée). Bannière d'installation qui recouvrait le bouton stop (z-index 10000). Modèles de transcription refusés par le projet (model_not_found) : repli sur une liste fermée et modèle retenu par le navigateur. Micro bleu : démarrage annoncé avant que la session soit prête. Défaut d'affichage reproduit à 320×568 avant d'être corrigé.\n14. MODE TRAVAIL ARRÊTÉ DÈS L'ANALYSE (2 octobre). Cause : le moteur de l'orchestrateur n'avait pas la permission ANALYZE ; toute mission s'arrêtait. Correction : ANALYZE et PROPOSE accordés (jamais WRITE, TEST, DEPLOY), Chat et Travail alignés sur une même mémoire.\n15. DÉPENDANCES DE REGISTRE ET ÉTATS BLOQUÉS (PR 276, 344). Le registre déclarait des dépendances trop courtes (Smart, Permission, Redirection) et un cercle staging → non configurée interdisait toute promotion sur preuve : dépendances alignées, circularité corrigée.\n16. PR FUSIONNÉES AVANT LEURS CORRECTIFS (2 octobre). Constat : une PR était fusionnée dès que la CI était verte sur son premier commit, avant les correctifs de relecture. Pratique : tout mettre dans la PR avant la fin de la CI ou ouvrir une PR de suite (PR 543 → 544 → 545 pour la mémoire par le sens).\n17. INCIDENT DE SECRET. Un identifiant de base de production est apparu une fois dans la sortie d'un outil ; le PDG a été invité à le renouveler. Règle depuis : toute commande de test locale s'exécute avec un environnement vidé (env -i) contre une base locale jetable ; aucune clé n'est collée en conversation ni dans le code.",
+  "quoi": "RÉSUMÉ — Dix-sept problèmes rencontrés, chacun avec symptôme, cause réelle, correction et leçon : builds bloqués (mot interdit, inventaires, migrations), écrans fabriqués, « Résolu » menteur, paiements cassés, sécurité, voix, mode Travail, PR fusionnées trop tôt, incident de secret.\n\nChaque problème ci-dessous est tiré d'un message de commit ou d'une livraison ; le numéro de PR permet de relire le détail.\n\nSections détaillées (une entrée de mémoire chacune) :\n- Problème n°1 du chantier — Build de production bloqué par un mot interdit (PR 335)\n- Problème n°2 du chantier — Build cassé par une entrée de mémoire (PR 294)\n- Problème n°3 du chantier — Inventaires générés périmés qui bloquent Railway (PR 269, 446, 508)\n- Problème n°4 du chantier — Migrations jamais appliquées : absentes du journal Drizzle (PR 278)\n- Problème n°5 du chantier — Accolade manquante après une fusion (PR 422)\n- Problème n°6 du chantier — Écrans entièrement fabriqués, reliés ensuite aux vrais moteurs\n- Problème n°7 du chantier — « Résolu » qui ment : l'alerte revient au scan suivant (PR 386)\n- Problème n°8 du chantier — Faux positifs des audits (routeurs partagés, destinations, dépendance circulaire)\n- Problème n°9 du chantier — Paiements cassés ou non idempotents (PR 381, 267, 226)\n- Problème n°10 du chantier — Dérive entre schéma et base de données (PR 334, lot 5)\n- Problème n°11 du chantier — Sécurité : routes internes, brouillons exposés, cloisonnement, Global Country Engine\n- Problème n°12 du chantier — Panne du chat principal faute de fournisseur de modèles configuré (PR 262)\n- Problème n°13 du chantier — Voix temps réel : offre WebRTC, bannière, modèles de transcription\n- Problème n°14 du chantier — Mode Travail arrêté dès l'analyse (permission ANALYZE)\n- Problème n°15 du chantier — Dépendances de registre et états bloqués (PR 276, 344)\n- Problème n°16 du chantier — PR fusionnées avant leurs correctifs (PR 543, 544, 545)\n- Problème n°17 du chantier — Incident de secret : règle de l'environnement vidé",
   "pourquoi": "Le PDG veut que l'IA retienne comment les problèmes ont été trouvés et résolus, y compris ceux qui ont persisté, afin de ne pas les revivre et de chercher la cause racine plutôt que le symptôme.",
   "ou": [
     "scripts/check-naming.mjs",
@@ -87,7 +87,7 @@ export const LIVRAISONS_HISTORIQUE: Livraison[] = [
   "moteurs": [
     "plateforme"
   ],
-  "quoi": "CE QUI S'EST RÉELLEMENT PASSÉ DANS L'HISTORIQUE\n- 22 août : la PR 246 annule (revert) la fusion de la PR 232 (logo : lettre S entièrement visible et ligne lumineuse). Le message du revert ne donne pas la raison ; la cause n'est donc pas affirmée ici.\n- Réparations « en avant » plutôt que retours : le 30 septembre « restaurer les fichiers complets du changement vocal » ; le 1er octobre « Urgence : restaurer Railway et la voix multi-appareils » (PR 508) répare les inventaires générés qui bloquaient les publications 505 à 507 ; le 15 septembre la PR 335 lève le mot interdit qui bloquait tout déploiement ; le 11 septembre la PR 294 reformule l'entrée de mémoire qui cassait le build.\n- 2 octobre : trois PR de suite pour une même livraison (mémoire par le sens : 543, 544, 545) parce que la fusion automatique survient dès que la CI est verte sur le premier commit.\n\nCOMMENT LA CAUSE A ÉTÉ CHERCHÉE À CHAQUE FOIS\nLire le journal de compilation de l'échec ; reproduire localement la séquence exacte ; isoler le contrôle qui échoue ; corriger ; rejouer toute la séquence ; seulement ensuite pousser. Pour la voix : analyseur SDP réel sur une offre générée par Chromium. Pour un test de non-régression : le faire échouer volontairement avant de rétablir la correction.\n\nCE QUI EXISTE DANS LA PLATEFORME AUTOUR DU RETOUR ARRIÈRE (vérifié dans le code)\n- Journal des modifications d'agents (agent_change_log) avec rollback_plan ; l'analyse d'impact signale « Aucune procédure de retour arrière documentée : en cas d'incident, la remise en état sera improvisée ».\n- Passages de pipeline avec rollbackPlan ; le Completion Center calcule « retour arrière disponible » dans le rapport de fin de travail.\n- Action de direction « retour arrière d'un passage de pipeline » : elle DÉCLARE le retour arrière et rouvre la surveillance ; elle n'exécute aucun redéploiement.\n- Sauvegarde et restauration (backup-os) : la demande de restauration NE restaure PAS ; elle attend la validation humaine du PDG.\n- Approbateurs de déploiement nominatifs et lecture réelle de l'état Railway en lecture seule. Les fonctions de déclenchement et de retour arrière d'un déploiement Railway sont volontairement NON implémentées : l'application ne déploie ni ne restaure elle-même.\n\nCE QUI MANQUE (demande du PDG, formulée après la PR 553, qu'il ajoutera lui-même) : quand l'IA déploie un code et qu'un problème apparaît, pouvoir revenir en arrière pour remettre la plateforme, ou la partie touchée, comme avant. État de la branche main à son dernier commit (3 octobre 2026) : cette capacité n'existe pas. Rien n'est promis comme disponible.\nPistes à valider avant toute construction (non construites) : jeton Railway autorisé à redéployer le déploiement précédent ; demande d'approbation nominative comme pour un déploiement ; déclenchement seulement après constat réel de l'échec (statut du déploiement et santé de la plateforme), jamais sur supposition ; trace dans le journal des modifications d'agents ; distinction explicite entre retour arrière du CODE et retour arrière des DONNÉES (une migration additive ne se défait pas en redéployant l'ancien code, une migration destructive n'est jamais lancée automatiquement).",
+  "quoi": "RÉSUMÉ — Le retour arrière automatique d'un déploiement n'existe PAS encore dans l'application (le PDG l'ajoutera). Un seul vrai revert dans l'historique (PR 246 annulant 232) ; le reste a été réparé en avant. Existe déjà : journal de modifications avec plan de retour arrière, restauration validée par le PDG, état Railway en lecture seule.\n\nCE QUI S'EST RÉELLEMENT PASSÉ DANS L'HISTORIQUE\n- 22 août : la PR 246 annule (revert) la fusion de la PR 232 (logo : lettre S entièrement visible et ligne lumineuse). Le message du revert ne donne pas la raison ; la cause n'est donc pas affirmée ici.\n- Réparations « en avant » plutôt que retours : le 30 septembre « restaurer les fichiers complets du changement vocal » ; le 1er octobre « Urgence : restaurer Railway et la voix multi-appareils » (PR 508) répare les inventaires générés qui bloquaient les publications 505 à 507 ; le 15 septembre la PR 335 lève le mot interdit qui bloquait tout déploiement ; le 11 septembre la PR 294 reformule l'entrée de mémoire qui cassait le build.\n- 2 octobre : trois PR de suite pour une même livraison (mémoire par le sens : 543, 544, 545) parce que la fusion automatique survient dès que la CI est verte sur le premier commit.\n\nCOMMENT LA CAUSE A ÉTÉ CHERCHÉE À CHAQUE FOIS\nLire le journal de compilation de l'échec ; reproduire localement la séquence exacte ; isoler le contrôle qui échoue ; corriger ; rejouer toute la séquence ; seulement ensuite pousser. Pour la voix : analyseur SDP réel sur une offre générée par Chromium. Pour un test de non-régression : le faire échouer volontairement avant de rétablir la correction.\n\nCE QUI EXISTE DANS LA PLATEFORME AUTOUR DU RETOUR ARRIÈRE (vérifié dans le code)\n- Journal des modifications d'agents (agent_change_log) avec rollback_plan ; l'analyse d'impact signale « Aucune procédure de retour arrière documentée : en cas d'incident, la remise en état sera improvisée ».\n- Passages de pipeline avec rollbackPlan ; le Completion Center calcule « retour arrière disponible » dans le rapport de fin de travail.\n- Action de direction « retour arrière d'un passage de pipeline » : elle DÉCLARE le retour arrière et rouvre la surveillance ; elle n'exécute aucun redéploiement.\n- Sauvegarde et restauration (backup-os) : la demande de restauration NE restaure PAS ; elle attend la validation humaine du PDG.\n- Approbateurs de déploiement nominatifs et lecture réelle de l'état Railway en lecture seule. Les fonctions de déclenchement et de retour arrière d'un déploiement Railway sont volontairement NON implémentées : l'application ne déploie ni ne restaure elle-même.\n\nCE QUI MANQUE (demande du PDG, formulée après la PR 553, qu'il ajoutera lui-même) : quand l'IA déploie un code et qu'un problème apparaît, pouvoir revenir en arrière pour remettre la plateforme, ou la partie touchée, comme avant. État de la branche main à son dernier commit (3 octobre 2026) : cette capacité n'existe pas. Rien n'est promis comme disponible.\nPistes à valider avant toute construction (non construites) : jeton Railway autorisé à redéployer le déploiement précédent ; demande d'approbation nominative comme pour un déploiement ; déclenchement seulement après constat réel de l'échec (statut du déploiement et santé de la plateforme), jamais sur supposition ; trace dans le journal des modifications d'agents ; distinction explicite entre retour arrière du CODE et retour arrière des DONNÉES (une migration additive ne se défait pas en redéployant l'ancien code, une migration destructive n'est jamais lancée automatiquement).",
   "pourquoi": "Le PDG veut savoir comment les problèmes ont été défaits, et que la plateforme sache un jour se remettre d'un mauvais déploiement. Il faut donc distinguer le fait (ce qui a été annulé ou réparé), l'existant (ce que le code permet déjà) et le manque (ce qui reste à construire sur sa demande).",
   "ou": [
     "server/engine-registry/agent-changes.ts",
@@ -108,7 +108,7 @@ export const LIVRAISONS_HISTORIQUE: Livraison[] = [
   "moteurs": [
     "intelligences"
   ],
-  "quoi": "Chaque ligne est tirée d'un commit ou d'une PR de ces deux jours ; le détail technique est dans les entrées pr-/livraison correspondantes.\n1er octobre — Micros : la bannière d'installation (z-index 10000) recouvrait le bouton stop et interceptait le clic ; connexion vocale annulable, canal d'événements surveillé, codes d'échec de transcription visibles, dictée du navigateur en relais si la liaison ne s'établit jamais.\n2 octobre —\n• Voix : l'offre WebRTC partait sans CRLF final (400 invalid_offer), corrigé et vérifié sur une vraie offre Chromium ; modèle de transcription de repli ; toutes les voix du mode direct avec aperçu « Écouter cette voix » ; micro bleu qui annonce « Je vous écoute » seulement quand liaison, canal et session sont prêts, salutations arabes en lettres latines, micro borné dans le cadre du téléphone (défaut reproduit à 320×568).\n• Coffre secret : « Ajouter un secret » illimité ; plus aucun bouton mort ; clé maître absente = consigne et défilement vers la carte d'activation ; jamais de nouvelle clé quand des secrets existent déjà (il faut restaurer la clé d'origine) ; états chargement/erreur/clé absente distingués.\n• Boutique SHOP : cinq outils d'accès de service (capacités, liste, lecture, lancer les photos, brouillon de fiche jamais publié), adresse et jeton lus dans le Coffre, 23 entrées de la mémoire de la boutique reprises mot pour mot ; l'IA ne réclame plus jamais le jeton de la boutique pour du développement ou un déploiement.\n• Autonomie : section « Autonomie de travail » dans la consigne de la direction (exécuter, enchaîner les outils, chercher une autre solution, rendre compte) avec limites inchangées ; boucle d'outils portée de 5 à 12 tours ; les outils HIGH/CRITICAL restent refusés par la politique.\n• Mode Travail réparé (permission ANALYZE manquante au moteur de l'orchestrateur) et Chat/Travail alignés sur une même mémoire.\n• Mémoire automobile : référentiel de départ avec provenance (436 marques notables, catégories, 24 systèmes, 212 familles de pièces, statut « propose »), synchronisation mensuelle des marques depuis la source publique NHTSA, outil automobile.rechercherMemoire ; 23 souvenirs des travaux des 1er et 2 octobre.\n• Connexion Google : le bouton ne fait plus semblant ; identifiant lu à l'exécution côté serveur ; adresse vérifiée exigée pour rattacher un compte existant.\n• Sécurité urgente : Global Country Engine réservé au PDG (route verrouillée par le Permission Engine, écritures et santé réservées, liste publique réduite).\n• Équipe : postes sous-directeur, comptable, chef d'équipe, investisseur, partenaire ; création de compte interne avec poste ; seul le PDG crée un compte Administration et attribue un poste.\n• Accueil : cartes de pays cliquables pour choisir son pays, sans réglages visibles du public.\n• Sonde des capacités du fournisseur de modèles : liste des modèles du projet puis un vrai appel par capacité, états séparés, FUNCTIONAL seulement via l'adaptateur de la plateforme, preuves en base sans clé ni message brut.\n• Mémoire par le sens (embeddings) : passerelle, table in_empreintes, indexation à l'écriture, reprise de l'existant par lots, recherche par le sens après la recherche textuelle, éteinte par défaut ; corrections de revue : droits appliqués avant le classement, versions périmées purgées, repli de modèle durable, verrou de ligne contre le remplacement concurrent.\n• Agent développeur : demande courte = reprise de la mission active ou une seule question ; « inconnu » n'est jamais un composant ; étapes « faites » seulement avec preuve ; autorisation par opération réelle ; reprise avec résultats conservés ; mémoire sans doublons (migration 0155 conserve l'ancien compteur) ; huit défauts de revue corrigés avant fusion de la PR 547.\n\nPOINTS ENCORE OUVERTS À CETTE DATE : « tout mettre en marche » (autonomie maximale) attend l'accord du PDG, avec la proposition de garder paiements et infrastructure fermés ; clé maître du Coffre à poser dans Railway ; rôle comptable ; résultats de la sonde après redéploiement ; activation de « Recherche par le sens » et de « Reprendre l'existant » ; instructions page par page pour optimiser la plateforme principale.",
+  "quoi": "RÉSUMÉ — Travaux de Claude des 1er et 2 octobre 2026 : micros et voix, coffre secret, boutique SHOP, autonomie de travail, mémoire automobile, connexion Google, sécurité du Global Country Engine, postes d'équipe, pays cliquables, sonde du fournisseur, mémoire par le sens, agent développeur.\n\nChaque ligne est tirée d'un commit ou d'une PR de ces deux jours ; le détail technique est dans les entrées pr-/livraison correspondantes.\n1er octobre — Micros : la bannière d'installation (z-index 10000) recouvrait le bouton stop et interceptait le clic ; connexion vocale annulable, canal d'événements surveillé, codes d'échec de transcription visibles, dictée du navigateur en relais si la liaison ne s'établit jamais.\n2 octobre —\n\nDétails (une entrée de mémoire chacun) :\n- Travaux des 1er et 2 octobre 2026 — Voix\n- Travaux des 1er et 2 octobre 2026 — Coffre secret\n- Travaux des 1er et 2 octobre 2026 — Boutique SHOP\n- Travaux des 1er et 2 octobre 2026 — Autonomie\n- Travaux des 1er et 2 octobre 2026 — Mode Travail réparé (permission ANALYZE manquante au moteur de l'orchestrateur)\n- Travaux des 1er et 2 octobre 2026 — Mémoire automobile\n- Travaux des 1er et 2 octobre 2026 — Connexion Google\n- Travaux des 1er et 2 octobre 2026 — Sécurité urgente\n- Travaux des 1er et 2 octobre 2026 — Équipe\n- Travaux des 1er et 2 octobre 2026 — Accueil\n- Travaux des 1er et 2 octobre 2026 — Sonde des capacités du fournisseur de modèles\n- Travaux des 1er et 2 octobre 2026 — Mémoire par le sens (embeddings)\n- Travaux des 1er et 2 octobre 2026 — Agent développeur\n\nPOINTS ENCORE OUVERTS À CETTE DATE : « tout mettre en marche » (autonomie maximale) attend l'accord du PDG, avec la proposition de garder paiements et infrastructure fermés ; clé maître du Coffre à poser dans Railway ; rôle comptable ; résultats de la sonde après redéploiement ; activation de « Recherche par le sens » et de « Reprendre l'existant » ; instructions page par page pour optimiser la plateforme principale.",
   "pourquoi": "Garder dans la mémoire de l'IA le récit détaillé et exact des deux journées les plus denses, avec ce qui a été trouvé, corrigé et ce qui reste ouvert.",
   "ou": [
     "server/intelligences/provider.ts",
@@ -129,7 +129,7 @@ export const LIVRAISONS_HISTORIQUE: Livraison[] = [
   "moteurs": [
     "plateforme"
   ],
-  "quoi": "RÈGLES PERMANENTES MKA.P-MS (telles que transmises dans les consignes de travail) :\n- Ne jamais fabriquer : une donnée, un état, un résultat ou un bouton qui n'a pas de preuve réelle.\n- Compléter le travail des autres ; ne jamais le dupliquer ni le remplacer.\n- Ajouter une entrée au registre des livraisons pour chaque livraison.\n- Exécuter la commande de build exacte de la CI avant chaque publication, et régénérer les inventaires quand ils dérivent.\n- Une PR par tâche ; elle est fusionnée quand la CI (build et shop-knowledge) est verte sur le dernier commit et qu'aucun fil de relecture n'est ouvert ; répondre aux fils traités et les résoudre.\n- Retour d'expérience du PDG : « Dès que je te dis qu'il y a des problèmes, il ne faut pas insister. Direct, cherche le problème. »\n- Ne jamais toucher aux données ni à la base de production ; aucun secret dans le code ni en conversation ; tests locaux avec un environnement vidé et une base locale.\n- Ne rien désactiver, ne rien diminuer : les capacités et les API existantes se conservent ; on développe en plus (consigne la plus récente du PDG).\n- Le nom officiel de l'assistant et les noms visibles sont ceux fixés par le PDG ; le mot isolé « IA »/« AI » ne s'écrit pas dans les libellés visibles (garde-fou check:naming).\n- Plan maître fournisseurs : retranscrit sans simplification ni suppression ; toute capacité listée reste prévue dans l'architecture même si elle n'est pas utilisée tout de suite ; l'activation se fait par permissions, abonnement, pays, contrat, fournisseur, risque ou validation humaine ; les clés d'API ne sont jamais exposées (frontend, mobile, journaux publics, dépôt).\n- Décisions de direction jamais automatiques : validation du fournisseur, signature de contrat, publication, déploiement, paiement.",
+  "quoi": "RÉSUMÉ — Règles permanentes du PDG : ne jamais fabriquer, compléter sans dupliquer, une entrée de livraison par livraison, build de la CI avant publication, une PR par tâche, ne rien désactiver, aucun secret ni donnée de production, décisions de direction jamais automatiques.\n\nRÈGLES PERMANENTES MKA.P-MS (telles que transmises dans les consignes de travail) :\n- Ne jamais fabriquer : une donnée, un état, un résultat ou un bouton qui n'a pas de preuve réelle.\n- Compléter le travail des autres ; ne jamais le dupliquer ni le remplacer.\n- Ajouter une entrée au registre des livraisons pour chaque livraison.\n- Exécuter la commande de build exacte de la CI avant chaque publication, et régénérer les inventaires quand ils dérivent.\n- Une PR par tâche ; elle est fusionnée quand la CI (build et shop-knowledge) est verte sur le dernier commit et qu'aucun fil de relecture n'est ouvert ; répondre aux fils traités et les résoudre.\n- Retour d'expérience du PDG : « Dès que je te dis qu'il y a des problèmes, il ne faut pas insister. Direct, cherche le problème. »\n- Ne jamais toucher aux données ni à la base de production ; aucun secret dans le code ni en conversation ; tests locaux avec un environnement vidé et une base locale.\n- Ne rien désactiver, ne rien diminuer : les capacités et les API existantes se conservent ; on développe en plus (consigne la plus récente du PDG).\n- Le nom officiel de l'assistant et les noms visibles sont ceux fixés par le PDG ; le mot isolé « IA »/« AI » ne s'écrit pas dans les libellés visibles (garde-fou check:naming).\n- Plan maître fournisseurs : retranscrit sans simplification ni suppression ; toute capacité listée reste prévue dans l'architecture même si elle n'est pas utilisée tout de suite ; l'activation se fait par permissions, abonnement, pays, contrat, fournisseur, risque ou validation humaine ; les clés d'API ne sont jamais exposées (frontend, mobile, journaux publics, dépôt).\n- Décisions de direction jamais automatiques : validation du fournisseur, signature de contrat, publication, déploiement, paiement.",
   "pourquoi": "Les règles du PDG doivent rester disponibles pour toute mission future de l'IA, sans qu'il faille les répéter.",
   "ou": [
     "server/intelligences/regles.ts",
@@ -147,12 +147,962 @@ export const LIVRAISONS_HISTORIQUE: Livraison[] = [
   "moteurs": [
     "plateforme"
   ],
-  "quoi": "CHANTIERS NOMMÉS DANS LE SUIVI DES TÂCHES ET NON TERMINÉS\n- Completion Center : combler la couverture (liste des domaines incomplète) ; connecter les 9 domaines d'intelligence sans implémentation réelle.\n- Détecteur de cartes de tableau de bord non cliquables ; audit des boutons sans action (77 écrans sur 89 sans aucun backend) ; flux garage, vente/Centre* et location flotte/réservation sans backend ; écrans vente/véhicule et démarches/dépôt d'annonce restants.\n- Identité légale réelle de MKA.P-MS Guinée à saisir dans le registre (RCCM, NIF, adresse, représentant).\n- Couverture premium multi-pages et filigrane verrouillé VO v7 ; rattachement recordEdition() sur les écrans restants ; immutabilité réelle d'un document signé et rendu PDF en images pour contrôle visuel.\n- Paiements manquants : location, facture autonome, photos supplémentaires/options premium, gagnant d'une enchère, règles de paiement international (table jamais alimentée), émission active de remboursement/annulation ; audit de la couverture des cas de paiement.\n- Catégorisation du chiffre d'affaires par univers ; CentrePilotage de comptabilité encore fabriqué ; DocumentPDF qui fabrique une adresse et un e-mail client.\n- Clé de calcul de distance routière à fournir (sans elle le devis reste « Non mesuré »).\n- drizzle-kit generate à réparer (chaîne de snapshots divergente depuis 0010) ; vérifier en production la migration des tables cpe_rules et cpe_evaluations.\n- Moteurs Google distincts par type d'objet, découvrabilité de tous les univers publics, SEO par intention de recherche, moteurs de campagnes principale et boutique, prospection B2B, remplacement du libellé « bloqué par validation externe » par une attente d'activation avec reprise automatique, écran Global Country Engine à reconnecter sur le moteur réel.\n\nDÉCISIONS ET ACTIONS EN ATTENTE DU PDG\n- « Tout mettre en marche » (autonomie et automatisation au maximum) : proposition de tout activer en gardant paiements et infrastructure fermés au niveau 7 tant que le PDG ne le demande pas.\n- Poser la clé maître du Coffre dans Railway (et restaurer la clé d'origine si des secrets existent déjà) puis déposer les jetons des outils.\n- Rôle du comptable ; outillage d'écriture et de déploiement de l'IA ; retour arrière automatique d'un déploiement problématique (voir l'entrée dédiée).\n- Rotation de l'identifiant de base de production apparu une fois en sortie d'outil.\n- Instructions page par page pour optimiser la plateforme principale.",
+  "quoi": "RÉSUMÉ — Chantiers ouverts au dernier commit (3 octobre 2026) : couverture du Completion Center, écrans sans backend, paiements manquants (location, facture, enchère, remboursement), identité légale Guinée, drizzle-kit à réparer ; décisions du PDG attendues : « tout en marche », clé du Coffre, rôle comptable, retour arrière de déploiement.\n\nCHANTIERS NOMMÉS DANS LE SUIVI DES TÂCHES ET NON TERMINÉS\n- Completion Center : combler la couverture (liste des domaines incomplète) ; connecter les 9 domaines d'intelligence sans implémentation réelle.\n- Détecteur de cartes de tableau de bord non cliquables ; audit des boutons sans action (77 écrans sur 89 sans aucun backend) ; flux garage, vente/Centre* et location flotte/réservation sans backend ; écrans vente/véhicule et démarches/dépôt d'annonce restants.\n- Identité légale réelle de MKA.P-MS Guinée à saisir dans le registre (RCCM, NIF, adresse, représentant).\n- Couverture premium multi-pages et filigrane verrouillé VO v7 ; rattachement recordEdition() sur les écrans restants ; immutabilité réelle d'un document signé et rendu PDF en images pour contrôle visuel.\n- Paiements manquants : location, facture autonome, photos supplémentaires/options premium, gagnant d'une enchère, règles de paiement international (table jamais alimentée), émission active de remboursement/annulation ; audit de la couverture des cas de paiement.\n- Catégorisation du chiffre d'affaires par univers ; CentrePilotage de comptabilité encore fabriqué ; DocumentPDF qui fabrique une adresse et un e-mail client.\n- Clé de calcul de distance routière à fournir (sans elle le devis reste « Non mesuré »).\n- drizzle-kit generate à réparer (chaîne de snapshots divergente depuis 0010) ; vérifier en production la migration des tables cpe_rules et cpe_evaluations.\n- Moteurs Google distincts par type d'objet, découvrabilité de tous les univers publics, SEO par intention de recherche, moteurs de campagnes principale et boutique, prospection B2B, remplacement du libellé « bloqué par validation externe » par une attente d'activation avec reprise automatique, écran Global Country Engine à reconnecter sur le moteur réel.\n\nDÉCISIONS ET ACTIONS EN ATTENTE DU PDG\n- « Tout mettre en marche » (autonomie et automatisation au maximum) : proposition de tout activer en gardant paiements et infrastructure fermés au niveau 7 tant que le PDG ne le demande pas.\n- Poser la clé maître du Coffre dans Railway (et restaurer la clé d'origine si des secrets existent déjà) puis déposer les jetons des outils.\n- Rôle du comptable ; outillage d'écriture et de déploiement de l'IA ; retour arrière automatique d'un déploiement problématique (voir l'entrée dédiée).\n- Rotation de l'identifiant de base de production apparu une fois en sortie d'outil.\n- Instructions page par page pour optimiser la plateforme principale.",
   "pourquoi": "Pour que l'IA sache exactement ce qui reste à faire et ce qui dépend d'une décision humaine, sans présenter un chantier ouvert comme terminé.",
   "ou": [
     "docs/JOURNAL_DE_BORD_CHANTIER.md"
   ],
   "lecon": "Un chantier ouvert se nomme ; il n'est jamais compté comme livré. Cette liste est celle du suivi des tâches au 3 octobre 2026 et doit être relue contre le suivi courant avant d'être citée.",
+  "historique": true
+},
+{
+  "cle": "recit-chantier-chronologie-phase-1",
+  "titre": "Chronologie du chantier — Phase 1 — 10 au 22 août (surtout branches devin)",
+  "categorie": "projets",
+  "domaine": "decisions",
+  "moteurs": [
+    "plateforme"
+  ],
+  "quoi": "RÉSUMÉ — Registre central des moteurs avec 5 états calculés et journal des modifications d'agents (points 41-42, PR 206) ; dépendances en cascade, validation avant action sensible, retour arrière (43-44, PR 207) ; assurance et bornes de recharge (45, PR 208) ; Reviews & […]\n\nPHASE 1 — 10 au 22 août (surtout branches devin) : fondations des moteurs et de leur contrôle.\nRegistre central des moteurs avec 5 états calculés et journal des modifications d'agents (points 41-42, PR 206) ; dépendances en cascade, validation avant action sensible, retour arrière (43-44, PR 207) ; assurance et bornes de recharge (45, PR 208) ; Reviews & Reputation Engine, faux avis traçables, droit de réponse (46-50, PR 209-210) ; paiement : le bouton ouvre l'écran carte (PR 225), la réponse brute du prestataire n'atteint plus le client et la clé Stripe est vérifiée au démarrage (PR 226) ; audit d'activation général existe/connecté/activé/testé/utilisé (91, PR 227) ; indexation Google URL par URL (92-101, PR 228) ; pipelines Véhicules/Produits et Google Product Engine (94-97, PR 229) ; audit des 16 capacités sur preuve d'usage (102-103, PR 230) ; Event Bus central (104-107) ; contrôle continu avec preuve datée (108-113, PR 233-234) ; Code Knowledge Graph (114-118, PR 235) ; règle TERMINÉ calculée et Completion Center (119-122, PR 236) ; MKA.P-MS Intelligences : appels réels au fournisseur (PR 237), registre des capacités, API /v1 et fournisseur direct interdit (124-129, PR 240), orchestrateur de missions et 7 niveaux d'autonomie (130-133, PR 241), mémoire fédérée et apprentissage après action (134-139, PR 242), observabilité 24/7 (140-144, PR 243), actions de direction et mode shadow (145-149, PR 244), fonctionnalités fournisseur éteintes par défaut (150-151, PR 245). Le 22 août la PR 246 annule la fusion de la PR 232 (marque, rendu du logo).",
+  "pourquoi": "Phase 1 du récit « Récit complet du chantier MKA.P-MS : chronologie du 10 août au 3 octobre 2026 ».",
+  "ou": [
+    "server/intelligences/livraisons.ts",
+    "server/intelligences/livraisons-historique.ts",
+    "docs/JOURNAL_DE_BORD_CHANTIER.md"
+  ],
+  "lecon": "Une chronologie n'est fiable que si chaque chiffre et chaque numéro de PR se retrouvent dans l'historique du dépôt. Les chiffres de cette entrée ont été comptés dans l'historique de main le 3 octobre 2026 ; en cas de doute, c'est l'historique git qui fait foi, pas ce récit.",
+  "historique": true
+},
+{
+  "cle": "recit-chantier-chronologie-phase-2",
+  "titre": "Chronologie du chantier — Phase 2 — 23 août au 11 septembre",
+  "categorie": "projets",
+  "domaine": "decisions",
+  "moteurs": [
+    "plateforme"
+  ],
+  "quoi": "RÉSUMÉ — Moteur de livraison de véhicules (PR 249), diagnostic de risque à l'importation (PR 248), Estimation Hub (PR 250), moteur de redirection branché partout (PR 252-253), assistant mondial joignable sur les pages publiques (PR 255), diagnostic des clés du fournisseur de […]\n\nPHASE 2 — 23 août au 11 septembre : brancher les écrans aux moteurs.\nMoteur de livraison de véhicules (PR 249), diagnostic de risque à l'importation (PR 248), Estimation Hub (PR 250), moteur de redirection branché partout (PR 252-253), assistant mondial joignable sur les pages publiques (PR 255), diagnostic des clés du fournisseur de modèles avec bandeau visible (PR 262) et fournisseurs manquants nommés (PR 256), diagnostic actionnable des moteurs dégradés (PR 258), vérification de propriété Google/Bing/Yandex/Facebook/Pinterest (PR 260), suppression de compte réellement exécutée (PR 257), vrais documents imprimables au lieu d'une notification verte (PR 266), contrôle d'authenticité sur chaque pièce KYC (PR 271), cloisonnement VO officiel/pro/particulier décidé par le serveur (PR 268), montant du devis calculé par le serveur (PR 267), filtres de recherche réellement appliqués (PR 272), boutons morts du garage reliés (PR 273), Moteur de boutons (PR 274), Moteur d'Atelier (PR 275) et réapprovisionnement gouverné (PR 281), pages d'accueil des 15 sections et 247 écrans vides recensés (PR 280), correctifs de registre et migrations 0106/0107 du journal Drizzle (PR 276, 278).",
+  "pourquoi": "Phase 2 du récit « Récit complet du chantier MKA.P-MS : chronologie du 10 août au 3 octobre 2026 ».",
+  "ou": [
+    "server/intelligences/livraisons.ts",
+    "server/intelligences/livraisons-historique.ts",
+    "docs/JOURNAL_DE_BORD_CHANTIER.md"
+  ],
+  "lecon": "Une chronologie n'est fiable que si chaque chiffre et chaque numéro de PR se retrouvent dans l'historique du dépôt. Les chiffres de cette entrée ont été comptés dans l'historique de main le 3 octobre 2026 ; en cas de doute, c'est l'historique git qui fait foi, pas ce récit.",
+  "historique": true
+},
+{
+  "cle": "recit-chantier-chronologie-phase-3",
+  "titre": "Chronologie du chantier — Phase 3 — 11 au 25 septembre (surtout branches claude)",
+  "categorie": "projets",
+  "domaine": "decisions",
+  "moteurs": [
+    "plateforme"
+  ],
+  "quoi": "RÉSUMÉ — Le 11 septembre une entrée de mémoire fait échouer le build de production (PR 294, voir le récit des problèmes). Lots IA02B et IA02F (noyau conversationnel, mémoire/fichiers/RAG). Le 15 septembre : plan maître fournisseurs retranscrit intégralement (PR 331) puis LOT 1 […]\n\nPHASE 3 — 11 au 25 septembre (surtout branches claude) : fournisseurs, sécurité des routes, fin des écrans fabriqués.\nLe 11 septembre une entrée de mémoire fait échouer le build de production (PR 294, voir le récit des problèmes). Lots IA02B et IA02F (noyau conversationnel, mémoire/fichiers/RAG). Le 15 septembre : plan maître fournisseurs retranscrit intégralement (PR 331) puis LOT 1 Supplier Engine (PR 332), LOT 2 Vehicle Engine (PR 333), LOT 3 Parts Engine (PR 334), LOT 4 Logistics Engine (PR 336), LOT 5 Payout Engine (PR 337), LOT 6 Document Engine (PR 339), LOT 7 partiel : tableau de bord Direction, Ledger, commissions réelles (PR 340) ; la PR 335 corrige le mot interdit qui bloquait tout déploiement depuis le LOT 2. Sécurité : 64 routes Pro/internes verrouillées par le Permission Engine (PR 313). Cinq applications Android : chaîne de build des .aab (PR 371), version 1.7.6 (PR 364), écran « Connexion indisponible » hors réseau (PR 365). Puis une longue série de PR « reconnecte l'écran X au vrai moteur » : fiche historique, dossier client, comptabilité dirigeant, démarches, notifications, Mon espace, location (candidature, contrats, catalogue camions/minibus/utilitaires), publicité, journal d'activité, essai routier, garage, avis (PR 313-411 environ), avec le compteur de boutons sans action qui baisse de 163 à 131 sur les seules PR 383, 384, 387.",
+  "pourquoi": "Phase 3 du récit « Récit complet du chantier MKA.P-MS : chronologie du 10 août au 3 octobre 2026 ».",
+  "ou": [
+    "server/intelligences/livraisons.ts",
+    "server/intelligences/livraisons-historique.ts",
+    "docs/JOURNAL_DE_BORD_CHANTIER.md"
+  ],
+  "lecon": "Une chronologie n'est fiable que si chaque chiffre et chaque numéro de PR se retrouvent dans l'historique du dépôt. Les chiffres de cette entrée ont été comptés dans l'historique de main le 3 octobre 2026 ; en cas de doute, c'est l'historique git qui fait foi, pas ce récit.",
+  "historique": true
+},
+{
+  "cle": "recit-chantier-chronologie-phase-4",
+  "titre": "Chronologie du chantier — Phase 4 — 26 septembre au 3 octobre",
+  "categorie": "projets",
+  "domaine": "decisions",
+  "moteurs": [
+    "plateforme"
+  ],
+  "quoi": "RÉSUMÉ — Espace de conversation unifié et identité publique AL-HUDHUD·M (PR 475-477, 482, 498, 501-502), pièces automobiles : catalogue, boutique, fiche produit, panier persistant (PR 505-511, branches codex), urgence du 1er octobre : « restaurer Railway et la voix […]\n\nPHASE 4 — 26 septembre au 3 octobre : l'espace AL-HUDHUD·M, la voix, la mémoire, la boutique, les pièces.\nEspace de conversation unifié et identité publique AL-HUDHUD·M (PR 475-477, 482, 498, 501-502), pièces automobiles : catalogue, boutique, fiche produit, panier persistant (PR 505-511, branches codex), urgence du 1er octobre : « restaurer Railway et la voix multi-appareils » (PR 508). Le 2 octobre (détaillé dans le récit de cette journée) : micros et voix, coffre secret, boutique SHOP, mémoire automobile, Global Country Engine réservé au PDG, postes d'équipe, pays cliquables à l'accueil, sonde des capacités du fournisseur de modèles, mémoire par le sens, agent développeur. Derniers commits de l'historique (2 et 3 octobre) : travail affiché étape par étape et menu repliable (PR 549), mémoires activables (PR 550), dictée (PR 551), menu du trombone (PR 552), connexion Google dans les cinq applications (PR 553), branches devin.",
+  "pourquoi": "Phase 4 du récit « Récit complet du chantier MKA.P-MS : chronologie du 10 août au 3 octobre 2026 ».",
+  "ou": [
+    "server/intelligences/livraisons.ts",
+    "server/intelligences/livraisons-historique.ts",
+    "docs/JOURNAL_DE_BORD_CHANTIER.md"
+  ],
+  "lecon": "Une chronologie n'est fiable que si chaque chiffre et chaque numéro de PR se retrouvent dans l'historique du dépôt. Les chiffres de cette entrée ont été comptés dans l'historique de main le 3 octobre 2026 ; en cas de doute, c'est l'historique git qui fait foi, pas ce récit.",
+  "historique": true
+},
+{
+  "cle": "recit-methode-de-travail-01",
+  "titre": "Méthode de travail — Audit préalable avant toute construction",
+  "categorie": "apprentissage",
+  "domaine": "confiance",
+  "moteurs": [
+    "plateforme"
+  ],
+  "quoi": "RÉSUMÉ — AUDIT PRÉALABLE AVANT TOUTE CONSTRUCTION. Les lots 2, 3 et 4 du plan fournisseurs commencent par « Audit préalable complet … avant tout développement » (PR 333, 334, 336) ; la tâche location flotte est « auditée avant toute construction pour éviter une duplication » : […]\n\nAUDIT PRÉALABLE AVANT TOUTE CONSTRUCTION. Les lots 2, 3 et 4 du plan fournisseurs commencent par « Audit préalable complet … avant tout développement » (PR 333, 334, 336) ; la tâche location flotte est « auditée avant toute construction pour éviter une duplication » : rentalApplications existait au schéma sans aucun routeur (grep exhaustif, zéro usage).",
+  "pourquoi": "Section 1 du récit « Comment le travail est mené : audit avant construction, jamais de fabrication, preuves réelles, build complet avant publication ».",
+  "ou": [
+    "scripts/check-naming.mjs",
+    "scripts/check-providers.mjs",
+    "scripts/check-identite.mjs",
+    "scripts/check-migrations.mjs",
+    "server/intelligences/livraisons.ts",
+    ".github/workflows/build-check.yml"
+  ],
+  "lecon": "Analyser avant d'agir, réutiliser avant de construire, dire ce qui manque au lieu de l'inventer, prouver par un vrai test, et reproduire en local exactement ce que la production exécutera : ce sont les cinq réflexes qui ont évité le plus de retours en arrière.",
+  "historique": true
+},
+{
+  "cle": "recit-methode-de-travail-02",
+  "titre": "Méthode de travail — Étendre, jamais dupliquer",
+  "categorie": "apprentissage",
+  "domaine": "confiance",
+  "moteurs": [
+    "plateforme"
+  ],
+  "quoi": "RÉSUMÉ — ÉTENDRE, JAMAIS DUPLIQUER. Règle d'architecture « un moteur pour chaque domaine » ; un profil fournisseur s'ajoute au-dessus d'un partner existant (PR 332) ; VehiculesCertifies est reconnecté à selectionMka déjà utilisé sur l'accueil plutôt qu'un second moteur ; la […]\n\nÉTENDRE, JAMAIS DUPLIQUER. Règle d'architecture « un moteur pour chaque domaine » ; un profil fournisseur s'ajoute au-dessus d'un partner existant (PR 332) ; VehiculesCertifies est reconnecté à selectionMka déjà utilisé sur l'accueil plutôt qu'un second moteur ; la publicité est reliée au moteur pub_requests déjà réel.",
+  "pourquoi": "Section 2 du récit « Comment le travail est mené : audit avant construction, jamais de fabrication, preuves réelles, build complet avant publication ».",
+  "ou": [
+    "scripts/check-naming.mjs",
+    "scripts/check-providers.mjs",
+    "scripts/check-identite.mjs",
+    "scripts/check-migrations.mjs",
+    "server/intelligences/livraisons.ts",
+    ".github/workflows/build-check.yml"
+  ],
+  "lecon": "Analyser avant d'agir, réutiliser avant de construire, dire ce qui manque au lieu de l'inventer, prouver par un vrai test, et reproduire en local exactement ce que la production exécutera : ce sont les cinq réflexes qui ont évité le plus de retours en arrière.",
+  "historique": true
+},
+{
+  "cle": "recit-methode-de-travail-03",
+  "titre": "Méthode de travail — Ne jamais fabriquer",
+  "categorie": "apprentissage",
+  "domaine": "confiance",
+  "moteurs": [
+    "plateforme"
+  ],
+  "quoi": "RÉSUMÉ — NE JAMAIS FABRIQUER. Un écran qui affichait des données inventées est soit relié à un moteur réel qui existe déjà, soit vidé avec un état honnête qui dit pourquoi (par exemple « Scanner OBD-II non connecté » au lieu de codes défaut inventés). Un bouton qui annonce une […]\n\nNE JAMAIS FABRIQUER. Un écran qui affichait des données inventées est soit relié à un moteur réel qui existe déjà, soit vidé avec un état honnête qui dit pourquoi (par exemple « Scanner OBD-II non connecté » au lieu de codes défaut inventés). Un bouton qui annonce une action sans la faire est le pire cas : il est relié ou retiré. Le compteur de boutons sans action sert d'instrument de mesure (163→147 PR 383, 147→138 PR 384, 138→131 PR 387).",
+  "pourquoi": "Section 3 du récit « Comment le travail est mené : audit avant construction, jamais de fabrication, preuves réelles, build complet avant publication ».",
+  "ou": [
+    "scripts/check-naming.mjs",
+    "scripts/check-providers.mjs",
+    "scripts/check-identite.mjs",
+    "scripts/check-migrations.mjs",
+    "server/intelligences/livraisons.ts",
+    ".github/workflows/build-check.yml"
+  ],
+  "lecon": "Analyser avant d'agir, réutiliser avant de construire, dire ce qui manque au lieu de l'inventer, prouver par un vrai test, et reproduire en local exactement ce que la production exécutera : ce sont les cinq réflexes qui ont évité le plus de retours en arrière.",
+  "historique": true
+},
+{
+  "cle": "recit-methode-de-travail-04",
+  "titre": "Méthode de travail — Découvertes annexes tracées, pas bâclées",
+  "categorie": "apprentissage",
+  "domaine": "confiance",
+  "moteurs": [
+    "plateforme"
+  ],
+  "quoi": "RÉSUMÉ — DÉCOUVERTES ANNEXES TRACÉES, PAS BÂCLÉES. Quand un défaut voisin demande un vrai chantier (ListeAttente, suspension de compte, paiements de location), il devient une tâche numérotée au lieu d'une correction superficielle.\n\nDÉCOUVERTES ANNEXES TRACÉES, PAS BÂCLÉES. Quand un défaut voisin demande un vrai chantier (ListeAttente, suspension de compte, paiements de location), il devient une tâche numérotée au lieu d'une correction superficielle.",
+  "pourquoi": "Section 4 du récit « Comment le travail est mené : audit avant construction, jamais de fabrication, preuves réelles, build complet avant publication ».",
+  "ou": [
+    "scripts/check-naming.mjs",
+    "scripts/check-providers.mjs",
+    "scripts/check-identite.mjs",
+    "scripts/check-migrations.mjs",
+    "server/intelligences/livraisons.ts",
+    ".github/workflows/build-check.yml"
+  ],
+  "lecon": "Analyser avant d'agir, réutiliser avant de construire, dire ce qui manque au lieu de l'inventer, prouver par un vrai test, et reproduire en local exactement ce que la production exécutera : ce sont les cinq réflexes qui ont évité le plus de retours en arrière.",
+  "historique": true
+},
+{
+  "cle": "recit-methode-de-travail-05",
+  "titre": "Méthode de travail — États honnêtes",
+  "categorie": "apprentissage",
+  "domaine": "confiance",
+  "moteurs": [
+    "plateforme"
+  ],
+  "quoi": "RÉSUMÉ — ÉTATS HONNÊTES. Un moteur sans preuve reste « staging » ou « not_connected » (Connector Engine du LOT 1, vo_espaces en staging « pas d'état actif sans preuve ») ; une capacité n'est jamais « fonctionnelle » avant un vrai appel par l'adaptateur de la plateforme.\n\nÉTATS HONNÊTES. Un moteur sans preuve reste « staging » ou « not_connected » (Connector Engine du LOT 1, vo_espaces en staging « pas d'état actif sans preuve ») ; une capacité n'est jamais « fonctionnelle » avant un vrai appel par l'adaptateur de la plateforme.",
+  "pourquoi": "Section 5 du récit « Comment le travail est mené : audit avant construction, jamais de fabrication, preuves réelles, build complet avant publication ».",
+  "ou": [
+    "scripts/check-naming.mjs",
+    "scripts/check-providers.mjs",
+    "scripts/check-identite.mjs",
+    "scripts/check-migrations.mjs",
+    "server/intelligences/livraisons.ts",
+    ".github/workflows/build-check.yml"
+  ],
+  "lecon": "Analyser avant d'agir, réutiliser avant de construire, dire ce qui manque au lieu de l'inventer, prouver par un vrai test, et reproduire en local exactement ce que la production exécutera : ce sont les cinq réflexes qui ont évité le plus de retours en arrière.",
+  "historique": true
+},
+{
+  "cle": "recit-methode-de-travail-06",
+  "titre": "Méthode de travail — Vérification en conditions réelles",
+  "categorie": "apprentissage",
+  "domaine": "confiance",
+  "moteurs": [
+    "plateforme"
+  ],
+  "quoi": "RÉSUMÉ — VÉRIFICATION EN CONDITIONS RÉELLES. Tests contre une vraie base PostgreSQL, parcours HTTP complets, navigateur réel (Playwright) avec clics réels, données de test nettoyées après coup. Un test de non-régression est validé en le faisant échouer volontairement avant de […]\n\nVÉRIFICATION EN CONDITIONS RÉELLES. Tests contre une vraie base PostgreSQL, parcours HTTP complets, navigateur réel (Playwright) avec clics réels, données de test nettoyées après coup. Un test de non-régression est validé en le faisant échouer volontairement avant de restaurer la correction (PR 381) ; les mutations volontaires des règles sont détectées par les tests (travaux du 2 octobre).",
+  "pourquoi": "Section 6 du récit « Comment le travail est mené : audit avant construction, jamais de fabrication, preuves réelles, build complet avant publication ».",
+  "ou": [
+    "scripts/check-naming.mjs",
+    "scripts/check-providers.mjs",
+    "scripts/check-identite.mjs",
+    "scripts/check-migrations.mjs",
+    "server/intelligences/livraisons.ts",
+    ".github/workflows/build-check.yml"
+  ],
+  "lecon": "Analyser avant d'agir, réutiliser avant de construire, dire ce qui manque au lieu de l'inventer, prouver par un vrai test, et reproduire en local exactement ce que la production exécutera : ce sont les cinq réflexes qui ont évité le plus de retours en arrière.",
+  "historique": true
+},
+{
+  "cle": "recit-methode-de-travail-07",
+  "titre": "Méthode de travail — Build complet avant toute publication",
+  "categorie": "apprentissage",
+  "domaine": "confiance",
+  "moteurs": [
+    "plateforme"
+  ],
+  "quoi": "RÉSUMÉ — BUILD COMPLET AVANT TOUTE PUBLICATION. Le déploiement Railway exécute npm run build : check:routers, check:naming, check:identite, check:providers, check:public-provider-leaks, check:intelligence-chat, check:routes, check:boutons, check:cliquables, check:sections, […]\n\nBUILD COMPLET AVANT TOUTE PUBLICATION. Le déploiement Railway exécute npm run build : check:routers, check:naming, check:identite, check:providers, check:public-provider-leaks, check:intelligence-chat, check:routes, check:boutons, check:cliquables, check:sections, check:moteurs, check:migrations, puis build:graph, build:client, build:server. La séquence est reproduite exactement en local avant de pousser (PR 294), et l'artefact node dist/server.js est démarré et interrogé (PR 335, 336, 339).",
+  "pourquoi": "Section 7 du récit « Comment le travail est mené : audit avant construction, jamais de fabrication, preuves réelles, build complet avant publication ».",
+  "ou": [
+    "scripts/check-naming.mjs",
+    "scripts/check-providers.mjs",
+    "scripts/check-identite.mjs",
+    "scripts/check-migrations.mjs",
+    "server/intelligences/livraisons.ts",
+    ".github/workflows/build-check.yml"
+  ],
+  "lecon": "Analyser avant d'agir, réutiliser avant de construire, dire ce qui manque au lieu de l'inventer, prouver par un vrai test, et reproduire en local exactement ce que la production exécutera : ce sont les cinq réflexes qui ont évité le plus de retours en arrière.",
+  "historique": true
+},
+{
+  "cle": "recit-methode-de-travail-08",
+  "titre": "Méthode de travail — Inventaires générés à régénérer",
+  "categorie": "apprentissage",
+  "domaine": "confiance",
+  "moteurs": [
+    "plateforme"
+  ],
+  "quoi": "RÉSUMÉ — INVENTAIRES GÉNÉRÉS À RÉGÉNÉRER. Boutons, cliquables, routes, sections, moteurs et graphe de code sont générés ; un inventaire périmé fait échouer le build (PR 269, 446, 508).\n\nINVENTAIRES GÉNÉRÉS À RÉGÉNÉRER. Boutons, cliquables, routes, sections, moteurs et graphe de code sont générés ; un inventaire périmé fait échouer le build (PR 269, 446, 508).",
+  "pourquoi": "Section 8 du récit « Comment le travail est mené : audit avant construction, jamais de fabrication, preuves réelles, build complet avant publication ».",
+  "ou": [
+    "scripts/check-naming.mjs",
+    "scripts/check-providers.mjs",
+    "scripts/check-identite.mjs",
+    "scripts/check-migrations.mjs",
+    "server/intelligences/livraisons.ts",
+    ".github/workflows/build-check.yml"
+  ],
+  "lecon": "Analyser avant d'agir, réutiliser avant de construire, dire ce qui manque au lieu de l'inventer, prouver par un vrai test, et reproduire en local exactement ce que la production exécutera : ce sont les cinq réflexes qui ont évité le plus de retours en arrière.",
+  "historique": true
+},
+{
+  "cle": "recit-methode-de-travail-09",
+  "titre": "Méthode de travail — Migrations additives et journal tenu",
+  "categorie": "apprentissage",
+  "domaine": "confiance",
+  "moteurs": [
+    "plateforme"
+  ],
+  "quoi": "RÉSUMÉ — MIGRATIONS ADDITIVES ET JOURNAL TENU. Chaque migration est additive ; le journal Drizzle est tenu à la main car drizzle-kit generate est cassé (tâche 61) ; check:migrations valide la chaîne ; une migration absente du journal n'est jamais appliquée (PR 278).\n\nMIGRATIONS ADDITIVES ET JOURNAL TENU. Chaque migration est additive ; le journal Drizzle est tenu à la main car drizzle-kit generate est cassé (tâche 61) ; check:migrations valide la chaîne ; une migration absente du journal n'est jamais appliquée (PR 278).",
+  "pourquoi": "Section 9 du récit « Comment le travail est mené : audit avant construction, jamais de fabrication, preuves réelles, build complet avant publication ».",
+  "ou": [
+    "scripts/check-naming.mjs",
+    "scripts/check-providers.mjs",
+    "scripts/check-identite.mjs",
+    "scripts/check-migrations.mjs",
+    "server/intelligences/livraisons.ts",
+    ".github/workflows/build-check.yml"
+  ],
+  "lecon": "Analyser avant d'agir, réutiliser avant de construire, dire ce qui manque au lieu de l'inventer, prouver par un vrai test, et reproduire en local exactement ce que la production exécutera : ce sont les cinq réflexes qui ont évité le plus de retours en arrière.",
+  "historique": true
+},
+{
+  "cle": "recit-methode-de-travail-10",
+  "titre": "Méthode de travail — Mémoire des livraisons",
+  "categorie": "apprentissage",
+  "domaine": "confiance",
+  "moteurs": [
+    "plateforme"
+  ],
+  "quoi": "RÉSUMÉ — MÉMOIRE DES LIVRAISONS. Chaque livraison est inscrite au registre server/intelligences/livraisons.ts : ce qui a été fait, pourquoi, où, la leçon. Une entrée n'est jamais modifiée après fusion ; une correction est une nouvelle entrée.\n\nMÉMOIRE DES LIVRAISONS. Chaque livraison est inscrite au registre server/intelligences/livraisons.ts : ce qui a été fait, pourquoi, où, la leçon. Une entrée n'est jamais modifiée après fusion ; une correction est une nouvelle entrée.",
+  "pourquoi": "Section 10 du récit « Comment le travail est mené : audit avant construction, jamais de fabrication, preuves réelles, build complet avant publication ».",
+  "ou": [
+    "scripts/check-naming.mjs",
+    "scripts/check-providers.mjs",
+    "scripts/check-identite.mjs",
+    "scripts/check-migrations.mjs",
+    "server/intelligences/livraisons.ts",
+    ".github/workflows/build-check.yml"
+  ],
+  "lecon": "Analyser avant d'agir, réutiliser avant de construire, dire ce qui manque au lieu de l'inventer, prouver par un vrai test, et reproduire en local exactement ce que la production exécutera : ce sont les cinq réflexes qui ont évité le plus de retours en arrière.",
+  "historique": true
+},
+{
+  "cle": "recit-methode-de-travail-11",
+  "titre": "Méthode de travail — Une PR par sujet",
+  "categorie": "apprentissage",
+  "domaine": "confiance",
+  "moteurs": [
+    "plateforme"
+  ],
+  "quoi": "RÉSUMÉ — UNE PR PAR SUJET. Les PR sont fusionnées dès que la CI est verte sur le dernier commit ; un correctif qui arrive après la fusion est une nouvelle PR, jamais un empilement sur une PR fusionnée.\n\nUNE PR PAR SUJET. Les PR sont fusionnées dès que la CI est verte sur le dernier commit ; un correctif qui arrive après la fusion est une nouvelle PR, jamais un empilement sur une PR fusionnée.",
+  "pourquoi": "Section 11 du récit « Comment le travail est mené : audit avant construction, jamais de fabrication, preuves réelles, build complet avant publication ».",
+  "ou": [
+    "scripts/check-naming.mjs",
+    "scripts/check-providers.mjs",
+    "scripts/check-identite.mjs",
+    "scripts/check-migrations.mjs",
+    "server/intelligences/livraisons.ts",
+    ".github/workflows/build-check.yml"
+  ],
+  "lecon": "Analyser avant d'agir, réutiliser avant de construire, dire ce qui manque au lieu de l'inventer, prouver par un vrai test, et reproduire en local exactement ce que la production exécutera : ce sont les cinq réflexes qui ont évité le plus de retours en arrière.",
+  "historique": true
+},
+{
+  "cle": "recit-problemes-causes-et-solutions-01",
+  "titre": "Problème n°1 du chantier — Build de production bloqué par un mot interdit (PR 335)",
+  "categorie": "apprentissage",
+  "domaine": "confiance",
+  "moteurs": [
+    "plateforme"
+  ],
+  "quoi": "RÉSUMÉ — aucune publication des lots Vehicle Engine et Parts Engine n'avait pu être déployée. Cause : check:naming échoue le build dès qu'une chaîne visible contient le mot isolé « IA » ou « AI » ; 18 occurrences (noms de section, commentaires, messages) avaient été introduites […]\n\nBUILD DE PRODUCTION BLOQUÉ PAR UN MOT INTERDIT (PR 335, 15 septembre). Symptôme : aucune publication des lots Vehicle Engine et Parts Engine n'avait pu être déployée. Cause : check:naming échoue le build dès qu'une chaîne visible contient le mot isolé « IA » ou « AI » ; 18 occurrences (noms de section, commentaires, messages) avaient été introduites depuis le LOT 2, et seuls les tests et le mode développement avaient été vérifiés. Correction : libellés renommés, aucun code métier changé. Leçon : lancer npm run build complet (12 contrôles + build) et démarrer dist/server.js avant de déclarer un lot livré.",
+  "pourquoi": "Section 1 du récit « Catalogue des problèmes rencontrés : symptôme, cause réelle trouvée, correction, leçon ».",
+  "ou": [
+    "scripts/check-naming.mjs",
+    "scripts/check-providers.mjs",
+    "server/engine-registry/diagnose.ts",
+    "server/smart-engine/health-monitor.ts",
+    "server/routers/stripeWebhook.ts",
+    "server/schema.ts",
+    "server/intelligences/orchestrateur.ts"
+  ],
+  "lecon": "lancer npm run build complet (12 contrôles + build) et démarrer dist/server.js avant de déclarer un lot livré.",
+  "historique": true
+},
+{
+  "cle": "recit-problemes-causes-et-solutions-02",
+  "titre": "Problème n°2 du chantier — Build cassé par une entrée de mémoire (PR 294)",
+  "categorie": "apprentissage",
+  "domaine": "confiance",
+  "moteurs": [
+    "plateforme"
+  ],
+  "quoi": "RÉSUMÉ — le déploiement Railway échoue après la PR 293. Cause : check:providers scanne le texte brut de tous les fichiers, y compris les commentaires ; l'entrée de livraison citait des noms de variables de clés de fournisseurs, et une seconde occurrence de « IA » faisait […]\n\nBUILD CASSÉ PAR UNE ENTRÉE DE MÉMOIRE (PR 294, 11 septembre). Symptôme : le déploiement Railway échoue après la PR 293. Cause : check:providers scanne le texte brut de tous les fichiers, y compris les commentaires ; l'entrée de livraison citait des noms de variables de clés de fournisseurs, et une seconde occurrence de « IA » faisait échouer check:naming. Correction : même information reformulée sans citer ces noms. Méthode : les journaux de compilation de l'échec Railway ont été lus et la séquence EXACTE des 13 étapes a été rejouée en local. Leçon : le registre des livraisons est lui aussi du code scanné par les garde-fous.",
+  "pourquoi": "Section 2 du récit « Catalogue des problèmes rencontrés : symptôme, cause réelle trouvée, correction, leçon ».",
+  "ou": [
+    "scripts/check-naming.mjs",
+    "scripts/check-providers.mjs",
+    "server/engine-registry/diagnose.ts",
+    "server/smart-engine/health-monitor.ts",
+    "server/routers/stripeWebhook.ts",
+    "server/schema.ts",
+    "server/intelligences/orchestrateur.ts"
+  ],
+  "lecon": "le registre des livraisons est lui aussi du code scanné par les garde-fous.",
+  "historique": true
+},
+{
+  "cle": "recit-problemes-causes-et-solutions-03",
+  "titre": "Problème n°3 du chantier — Inventaires générés périmés qui bloquent Railway (PR 269, 446, 508)",
+  "categorie": "apprentissage",
+  "domaine": "confiance",
+  "moteurs": [
+    "plateforme"
+  ],
+  "quoi": "RÉSUMÉ — déploiement Railway bloqué. Cause : une PR ajoute un écran, un bouton ou un moteur sans régénérer les inventaires (routes, boutons, cliquables, moteurs) que check:* compare au code. Correction : regénérer puis recommitter. Le 1er octobre l'urgence « restaurer Railway […]\n\nINVENTAIRES GÉNÉRÉS PÉRIMÉS (PR 269 le 30 août, 446 le 25 septembre, 508 le 1er octobre). Symptôme : déploiement Railway bloqué. Cause : une PR ajoute un écran, un bouton ou un moteur sans régénérer les inventaires (routes, boutons, cliquables, moteurs) que check:* compare au code. Correction : regénérer puis recommitter. Le 1er octobre l'urgence « restaurer Railway et la voix multi-appareils » répare les inventaires qui bloquaient les publications 505 à 507. Leçon : npm run gen:* dès que check:* signale une dérive.",
+  "pourquoi": "Section 3 du récit « Catalogue des problèmes rencontrés : symptôme, cause réelle trouvée, correction, leçon ».",
+  "ou": [
+    "scripts/check-naming.mjs",
+    "scripts/check-providers.mjs",
+    "server/engine-registry/diagnose.ts",
+    "server/smart-engine/health-monitor.ts",
+    "server/routers/stripeWebhook.ts",
+    "server/schema.ts",
+    "server/intelligences/orchestrateur.ts"
+  ],
+  "lecon": "npm run gen:* dès que check:* signale une dérive.",
+  "historique": true
+},
+{
+  "cle": "recit-problemes-causes-et-solutions-04",
+  "titre": "Problème n°4 du chantier — Migrations jamais appliquées : absentes du journal Drizzle (PR 278)",
+  "categorie": "apprentissage",
+  "domaine": "confiance",
+  "moteurs": [
+    "plateforme"
+  ],
+  "quoi": "RÉSUMÉ — tables des avis et de Google Business absentes, moteurs en alerte. Cause : les fichiers SQL 0106 et 0107 existaient mais n'étaient pas inscrits dans le journal Drizzle, donc jamais exécutés au démarrage. Correction : entrées ajoutées au journal. Le diagnostic des […]\n\nMIGRATIONS JAMAIS APPLIQUÉES (PR 278, 1er septembre). Symptôme : tables des avis et de Google Business absentes, moteurs en alerte. Cause : les fichiers SQL 0106 et 0107 existaient mais n'étaient pas inscrits dans le journal Drizzle, donc jamais exécutés au démarrage. Correction : entrées ajoutées au journal. Le diagnostic des moteurs (PR 258) indique désormais les tables manquantes et recommande « Appliquer les migrations ».",
+  "pourquoi": "Section 4 du récit « Catalogue des problèmes rencontrés : symptôme, cause réelle trouvée, correction, leçon ».",
+  "ou": [
+    "scripts/check-naming.mjs",
+    "scripts/check-providers.mjs",
+    "server/engine-registry/diagnose.ts",
+    "server/smart-engine/health-monitor.ts",
+    "server/routers/stripeWebhook.ts",
+    "server/schema.ts",
+    "server/intelligences/orchestrateur.ts"
+  ],
+  "lecon": "La cause racine se trouve presque toujours en reproduisant le défaut exactement comme la production le subit (journaux de compilation, INSERT direct, offre SDP réelle, écran à 320×568), puis en montrant le même contrôle qui passe. Un symptôme corrigé sans cause reproduite revient.",
+  "historique": true
+},
+{
+  "cle": "recit-problemes-causes-et-solutions-05",
+  "titre": "Problème n°5 du chantier — Accolade manquante après une fusion (PR 422)",
+  "categorie": "apprentissage",
+  "domaine": "confiance",
+  "moteurs": [
+    "plateforme"
+  ],
+  "quoi": "RÉSUMÉ — ACCOLADE MANQUANTE APRÈS UNE FUSION (PR 422, 25 septembre) : conflit de fusion mal résolu dans catalogue.ts, corrigé et inventaires régénérés. Leçon : après chaque fusion de main, relancer le build.\n\nACCOLADE MANQUANTE APRÈS UNE FUSION (PR 422, 25 septembre) : conflit de fusion mal résolu dans catalogue.ts, corrigé et inventaires régénérés. Leçon : après chaque fusion de main, relancer le build.",
+  "pourquoi": "Section 5 du récit « Catalogue des problèmes rencontrés : symptôme, cause réelle trouvée, correction, leçon ».",
+  "ou": [
+    "scripts/check-naming.mjs",
+    "scripts/check-providers.mjs",
+    "server/engine-registry/diagnose.ts",
+    "server/smart-engine/health-monitor.ts",
+    "server/routers/stripeWebhook.ts",
+    "server/schema.ts",
+    "server/intelligences/orchestrateur.ts"
+  ],
+  "lecon": "après chaque fusion de main, relancer le build.",
+  "historique": true
+},
+{
+  "cle": "recit-problemes-causes-et-solutions-06",
+  "titre": "Problème n°6 du chantier — Écrans entièrement fabriqués, reliés ensuite aux vrais moteurs",
+  "categorie": "apprentissage",
+  "domaine": "confiance",
+  "moteurs": [
+    "plateforme"
+  ],
+  "quoi": "RÉSUMÉ — ÉCRANS ENTIÈREMENT FABRIQUÉS (dizaines de PR en septembre : historique véhicule avec faux paiement Stripe, dossier client, comptabilité dirigeant, journal d'activité, publicité, location camions/minibus/utilitaires, pénalités, état du véhicule, diagnostic OBD…). Cause […]\n\nÉCRANS ENTIÈREMENT FABRIQUÉS (dizaines de PR en septembre : historique véhicule avec faux paiement Stripe, dossier client, comptabilité dirigeant, journal d'activité, publicité, location camions/minibus/utilitaires, pénalités, état du véhicule, diagnostic OBD…). Cause : écrans écrits avec des tableaux en dur et des setTimeout qui simulent un succès, alors qu'un moteur réel existait souvent déjà côté serveur sans jamais être appelé. Correction : relier l'écran au moteur existant ; sinon vider avec un état honnête. Un risque réel était caché : des identifiants fabriqués menaient à ProduitLocation qui interrogeait une vraie annonce sans rapport. Leçon : un écran fabriqué est un défaut de sécurité autant que d'affichage.",
+  "pourquoi": "Section 6 du récit « Catalogue des problèmes rencontrés : symptôme, cause réelle trouvée, correction, leçon ».",
+  "ou": [
+    "scripts/check-naming.mjs",
+    "scripts/check-providers.mjs",
+    "server/engine-registry/diagnose.ts",
+    "server/smart-engine/health-monitor.ts",
+    "server/routers/stripeWebhook.ts",
+    "server/schema.ts",
+    "server/intelligences/orchestrateur.ts"
+  ],
+  "lecon": "un écran fabriqué est un défaut de sécurité autant que d'affichage.",
+  "historique": true
+},
+{
+  "cle": "recit-problemes-causes-et-solutions-07",
+  "titre": "Problème n°7 du chantier — « Résolu » qui ment : l'alerte revient au scan suivant (PR 386)",
+  "categorie": "apprentissage",
+  "domaine": "confiance",
+  "moteurs": [
+    "plateforme"
+  ],
+  "quoi": "RÉSUMÉ — cliquer Résolu sur une alerte bouton puis rafraîchir fait revenir le même problème. Cause racine : resolveAlertWithLearning marquait le contrôle de santé « ok » sans qu'aucun code n'ait changé ; le scan suivant constatait que le bouton était toujours dans l'inventaire […]\n\n« RÉSOLU » QUI MENT (PR 386). Symptôme : cliquer Résolu sur une alerte bouton puis rafraîchir fait revenir le même problème. Cause racine : resolveAlertWithLearning marquait le contrôle de santé « ok » sans qu'aucun code n'ait changé ; le scan suivant constatait que le bouton était toujours dans l'inventaire et rouvrait l'alerte. Correction : isKnownGhostButton vérifie que le bouton a réellement disparu avant de promettre ; sinon l'alerte reste « prise en compte » avec un motif exact. Leçon : un état ne se déclare pas, il se constate.",
+  "pourquoi": "Section 7 du récit « Catalogue des problèmes rencontrés : symptôme, cause réelle trouvée, correction, leçon ».",
+  "ou": [
+    "scripts/check-naming.mjs",
+    "scripts/check-providers.mjs",
+    "server/engine-registry/diagnose.ts",
+    "server/smart-engine/health-monitor.ts",
+    "server/routers/stripeWebhook.ts",
+    "server/schema.ts",
+    "server/intelligences/orchestrateur.ts"
+  ],
+  "lecon": "un état ne se déclare pas, il se constate.",
+  "historique": true
+},
+{
+  "cle": "recit-problemes-causes-et-solutions-08",
+  "titre": "Problème n°8 du chantier — Faux positifs des audits (routeurs partagés, destinations, dépendance circulaire)",
+  "categorie": "apprentissage",
+  "domaine": "confiance",
+  "moteurs": [
+    "plateforme"
+  ],
+  "quoi": "RÉSUMÉ — FAUX POSITIFS DES AUDITS. (a) Huit moteurs signalés « Existe mais non connectée » alors qu'ils filtrent le catalogue annonces partagé : ROUTEURS_PARTAGES ajouté à l'auditeur, controle_technique volontairement laissé en défaut réel. (b) Contrôle continu : la destination […]\n\nFAUX POSITIFS DES AUDITS. (a) Huit moteurs signalés « Existe mais non connectée » alors qu'ils filtrent le catalogue annonces partagé : ROUTEURS_PARTAGES ajouté à l'auditeur, controle_technique volontairement laissé en défaut réel. (b) Contrôle continu : la destination /pays/france était jugée inconnue parce que comparée à la liste littérale des routes ; isRoutablePath est utilisé (PR 330), 28 liens morts réels corrigés au passage. (c) Bandeau « dépendance circulaire : aucun ordre de démarrage possible » contredisait la doc du détecteur (PR 325).",
+  "pourquoi": "Section 8 du récit « Catalogue des problèmes rencontrés : symptôme, cause réelle trouvée, correction, leçon ».",
+  "ou": [
+    "scripts/check-naming.mjs",
+    "scripts/check-providers.mjs",
+    "server/engine-registry/diagnose.ts",
+    "server/smart-engine/health-monitor.ts",
+    "server/routers/stripeWebhook.ts",
+    "server/schema.ts",
+    "server/intelligences/orchestrateur.ts"
+  ],
+  "lecon": "La cause racine se trouve presque toujours en reproduisant le défaut exactement comme la production le subit (journaux de compilation, INSERT direct, offre SDP réelle, écran à 320×568), puis en montrant le même contrôle qui passe. Un symptôme corrigé sans cause reproduite revient.",
+  "historique": true
+},
+{
+  "cle": "recit-problemes-causes-et-solutions-09",
+  "titre": "Problème n°9 du chantier — Paiements cassés ou non idempotents (PR 381, 267, 226)",
+  "categorie": "apprentissage",
+  "domaine": "confiance",
+  "moteurs": [
+    "plateforme"
+  ],
+  "quoi": "RÉSUMÉ — PAIEMENTS CASSÉS DEPUIS LEUR ÉCRITURE (PR 381). Cause : trois parcours (devis garage, abonnement carte grise, pack de dossiers) passaient un type de paiement absent de l'énumération PostgreSQL ; confirmé par un INSERT direct. Autres : webhook sans gestionnaire pour […]\n\nPAIEMENTS CASSÉS DEPUIS LEUR ÉCRITURE (PR 381). Cause : trois parcours (devis garage, abonnement carte grise, pack de dossiers) passaient un type de paiement absent de l'énumération PostgreSQL ; confirmé par un INSERT direct. Autres : webhook sans gestionnaire pour carte_grise_service (le client payait, le dossier n'avançait jamais), absence d'idempotence sur les redélivrances Stripe, vocabulaire « Caution » pour un encaissement immédiat (corrigé en « Acompte »), montant du devis fait confiance au client (désormais calculé par le serveur, PR 267), réponse brute du prestataire renvoyée au client (PR 226).",
+  "pourquoi": "Section 9 du récit « Catalogue des problèmes rencontrés : symptôme, cause réelle trouvée, correction, leçon ».",
+  "ou": [
+    "scripts/check-naming.mjs",
+    "scripts/check-providers.mjs",
+    "server/engine-registry/diagnose.ts",
+    "server/smart-engine/health-monitor.ts",
+    "server/routers/stripeWebhook.ts",
+    "server/schema.ts",
+    "server/intelligences/orchestrateur.ts"
+  ],
+  "lecon": "La cause racine se trouve presque toujours en reproduisant le défaut exactement comme la production le subit (journaux de compilation, INSERT direct, offre SDP réelle, écran à 320×568), puis en montrant le même contrôle qui passe. Un symptôme corrigé sans cause reproduite revient.",
+  "historique": true
+},
+{
+  "cle": "recit-problemes-causes-et-solutions-10",
+  "titre": "Problème n°10 du chantier — Dérive entre schéma et base de données (PR 334, lot 5)",
+  "categorie": "apprentissage",
+  "domaine": "confiance",
+  "moteurs": [
+    "plateforme"
+  ],
+  "quoi": "RÉSUMÉ — DÉRIVE ENTRE SCHÉMA ET BASE (PR 334 et LOT 5). Cause : deux fichiers déclaraient les mêmes tables pièces avec des colonnes différentes, seule une version étant migrée ; l'estimation budget pièces joignait une table orpheline toujours vide ; quatre tables du Ledger […]\n\nDÉRIVE ENTRE SCHÉMA ET BASE (PR 334 et LOT 5). Cause : deux fichiers déclaraient les mêmes tables pièces avec des colonnes différentes, seule une version étant migrée ; l'estimation budget pièces joignait une table orpheline toujours vide ; quatre tables du Ledger avaient des colonnes déclarées jamais migrées. Correction : une seule définition, code mort supprimé, migrations additives.",
+  "pourquoi": "Section 10 du récit « Catalogue des problèmes rencontrés : symptôme, cause réelle trouvée, correction, leçon ».",
+  "ou": [
+    "scripts/check-naming.mjs",
+    "scripts/check-providers.mjs",
+    "server/engine-registry/diagnose.ts",
+    "server/smart-engine/health-monitor.ts",
+    "server/routers/stripeWebhook.ts",
+    "server/schema.ts",
+    "server/intelligences/orchestrateur.ts"
+  ],
+  "lecon": "La cause racine se trouve presque toujours en reproduisant le défaut exactement comme la production le subit (journaux de compilation, INSERT direct, offre SDP réelle, écran à 320×568), puis en montrant le même contrôle qui passe. Un symptôme corrigé sans cause reproduite revient.",
+  "historique": true
+},
+{
+  "cle": "recit-problemes-causes-et-solutions-11",
+  "titre": "Problème n°11 du chantier — Sécurité : routes internes, brouillons exposés, cloisonnement, Global Country Engine",
+  "categorie": "apprentissage",
+  "domaine": "confiance",
+  "moteurs": [
+    "plateforme"
+  ],
+  "quoi": "RÉSUMÉ — SÉCURITÉ. 64 routes Pro/internes se rendaient pour n'importe quelle adresse tapée (PR 313) : verrouillées par le Permission Engine. annonces.get exposait les brouillons à qui devinait un identifiant (corrigé : visibles du propriétaire et des administrateurs). Un […]\n\nSÉCURITÉ. 64 routes Pro/internes se rendaient pour n'importe quelle adresse tapée (PR 313) : verrouillées par le Permission Engine. annonces.get exposait les brouillons à qui devinait un identifiant (corrigé : visibles du propriétaire et des administrateurs). Un professionnel sans abonnement atteignait les écrans VO (cloisonnement décidé par le serveur, PR 268). Le 2 octobre, le Global Country Engine était joignable par le public : réservé au PDG, avec les lectures publiques réduites à nom, langues et devise.",
+  "pourquoi": "Section 11 du récit « Catalogue des problèmes rencontrés : symptôme, cause réelle trouvée, correction, leçon ».",
+  "ou": [
+    "scripts/check-naming.mjs",
+    "scripts/check-providers.mjs",
+    "server/engine-registry/diagnose.ts",
+    "server/smart-engine/health-monitor.ts",
+    "server/routers/stripeWebhook.ts",
+    "server/schema.ts",
+    "server/intelligences/orchestrateur.ts"
+  ],
+  "lecon": "La cause racine se trouve presque toujours en reproduisant le défaut exactement comme la production le subit (journaux de compilation, INSERT direct, offre SDP réelle, écran à 320×568), puis en montrant le même contrôle qui passe. Un symptôme corrigé sans cause reproduite revient.",
+  "historique": true
+},
+{
+  "cle": "recit-problemes-causes-et-solutions-12",
+  "titre": "Problème n°12 du chantier — Panne du chat principal faute de fournisseur de modèles configuré (PR 262)",
+  "categorie": "apprentissage",
+  "domaine": "confiance",
+  "moteurs": [
+    "plateforme"
+  ],
+  "quoi": "RÉSUMÉ — le PDG ne pouvait pas envoyer de commande à l'assistant. Cause : aucun fournisseur de modèles configuré en production, l'envoi échouait silencieusement avec « aucun fournisseur habilité ». Correction : procédure de diagnostic (présence seulement, aucune valeur) et […]\n\nPANNE DU CHAT PRINCIPAL (PR 262). Symptôme : le PDG ne pouvait pas envoyer de commande à l'assistant. Cause : aucun fournisseur de modèles configuré en production, l'envoi échouait silencieusement avec « aucun fournisseur habilité ». Correction : procédure de diagnostic (présence seulement, aucune valeur) et bandeau rouge qui nomme la variable manquante. Suites : sonde des capacités par vrais appels (2 octobre).",
+  "pourquoi": "Section 12 du récit « Catalogue des problèmes rencontrés : symptôme, cause réelle trouvée, correction, leçon ».",
+  "ou": [
+    "scripts/check-naming.mjs",
+    "scripts/check-providers.mjs",
+    "server/engine-registry/diagnose.ts",
+    "server/smart-engine/health-monitor.ts",
+    "server/routers/stripeWebhook.ts",
+    "server/schema.ts",
+    "server/intelligences/orchestrateur.ts"
+  ],
+  "lecon": "La cause racine se trouve presque toujours en reproduisant le défaut exactement comme la production le subit (journaux de compilation, INSERT direct, offre SDP réelle, écran à 320×568), puis en montrant le même contrôle qui passe. Un symptôme corrigé sans cause reproduite revient.",
+  "historique": true
+},
+{
+  "cle": "recit-problemes-causes-et-solutions-13",
+  "titre": "Problème n°13 du chantier — Voix temps réel : offre WebRTC, bannière, modèles de transcription",
+  "categorie": "apprentissage",
+  "domaine": "confiance",
+  "moteurs": [
+    "plateforme"
+  ],
+  "quoi": "RÉSUMÉ — VOIX TEMPS RÉEL. L'offre WebRTC partait sans saut de ligne final (400 invalid_offer) parce que le serveur la nettoyait : analyseur SDP strict vérifié sur une vraie offre Chromium (brute acceptée, nettoyée refusée, nettoyée avec CRLF acceptée). Bannière d'installation […]\n\nVOIX TEMPS RÉEL. L'offre WebRTC partait sans saut de ligne final (400 invalid_offer) parce que le serveur la nettoyait : analyseur SDP strict vérifié sur une vraie offre Chromium (brute acceptée, nettoyée refusée, nettoyée avec CRLF acceptée). Bannière d'installation qui recouvrait le bouton stop (z-index 10000). Modèles de transcription refusés par le projet (model_not_found) : repli sur une liste fermée et modèle retenu par le navigateur. Micro bleu : démarrage annoncé avant que la session soit prête. Défaut d'affichage reproduit à 320×568 avant d'être corrigé.",
+  "pourquoi": "Section 13 du récit « Catalogue des problèmes rencontrés : symptôme, cause réelle trouvée, correction, leçon ».",
+  "ou": [
+    "scripts/check-naming.mjs",
+    "scripts/check-providers.mjs",
+    "server/engine-registry/diagnose.ts",
+    "server/smart-engine/health-monitor.ts",
+    "server/routers/stripeWebhook.ts",
+    "server/schema.ts",
+    "server/intelligences/orchestrateur.ts"
+  ],
+  "lecon": "La cause racine se trouve presque toujours en reproduisant le défaut exactement comme la production le subit (journaux de compilation, INSERT direct, offre SDP réelle, écran à 320×568), puis en montrant le même contrôle qui passe. Un symptôme corrigé sans cause reproduite revient.",
+  "historique": true
+},
+{
+  "cle": "recit-problemes-causes-et-solutions-14",
+  "titre": "Problème n°14 du chantier — Mode Travail arrêté dès l'analyse (permission ANALYZE)",
+  "categorie": "apprentissage",
+  "domaine": "confiance",
+  "moteurs": [
+    "plateforme"
+  ],
+  "quoi": "RÉSUMÉ — MODE TRAVAIL ARRÊTÉ DÈS L'ANALYSE (2 octobre). Cause : le moteur de l'orchestrateur n'avait pas la permission ANALYZE ; toute mission s'arrêtait. Correction : ANALYZE et PROPOSE accordés (jamais WRITE, TEST, DEPLOY), Chat et Travail alignés sur une même mémoire.\n\nMODE TRAVAIL ARRÊTÉ DÈS L'ANALYSE (2 octobre). Cause : le moteur de l'orchestrateur n'avait pas la permission ANALYZE ; toute mission s'arrêtait. Correction : ANALYZE et PROPOSE accordés (jamais WRITE, TEST, DEPLOY), Chat et Travail alignés sur une même mémoire.",
+  "pourquoi": "Section 14 du récit « Catalogue des problèmes rencontrés : symptôme, cause réelle trouvée, correction, leçon ».",
+  "ou": [
+    "scripts/check-naming.mjs",
+    "scripts/check-providers.mjs",
+    "server/engine-registry/diagnose.ts",
+    "server/smart-engine/health-monitor.ts",
+    "server/routers/stripeWebhook.ts",
+    "server/schema.ts",
+    "server/intelligences/orchestrateur.ts"
+  ],
+  "lecon": "La cause racine se trouve presque toujours en reproduisant le défaut exactement comme la production le subit (journaux de compilation, INSERT direct, offre SDP réelle, écran à 320×568), puis en montrant le même contrôle qui passe. Un symptôme corrigé sans cause reproduite revient.",
+  "historique": true
+},
+{
+  "cle": "recit-problemes-causes-et-solutions-15",
+  "titre": "Problème n°15 du chantier — Dépendances de registre et états bloqués (PR 276, 344)",
+  "categorie": "apprentissage",
+  "domaine": "confiance",
+  "moteurs": [
+    "plateforme"
+  ],
+  "quoi": "RÉSUMÉ — DÉPENDANCES DE REGISTRE ET ÉTATS BLOQUÉS (PR 276, 344). Le registre déclarait des dépendances trop courtes (Smart, Permission, Redirection) et un cercle staging → non configurée interdisait toute promotion sur preuve : dépendances alignées, circularité corrigée.\n\nDÉPENDANCES DE REGISTRE ET ÉTATS BLOQUÉS (PR 276, 344). Le registre déclarait des dépendances trop courtes (Smart, Permission, Redirection) et un cercle staging → non configurée interdisait toute promotion sur preuve : dépendances alignées, circularité corrigée.",
+  "pourquoi": "Section 15 du récit « Catalogue des problèmes rencontrés : symptôme, cause réelle trouvée, correction, leçon ».",
+  "ou": [
+    "scripts/check-naming.mjs",
+    "scripts/check-providers.mjs",
+    "server/engine-registry/diagnose.ts",
+    "server/smart-engine/health-monitor.ts",
+    "server/routers/stripeWebhook.ts",
+    "server/schema.ts",
+    "server/intelligences/orchestrateur.ts"
+  ],
+  "lecon": "La cause racine se trouve presque toujours en reproduisant le défaut exactement comme la production le subit (journaux de compilation, INSERT direct, offre SDP réelle, écran à 320×568), puis en montrant le même contrôle qui passe. Un symptôme corrigé sans cause reproduite revient.",
+  "historique": true
+},
+{
+  "cle": "recit-problemes-causes-et-solutions-16",
+  "titre": "Problème n°16 du chantier — PR fusionnées avant leurs correctifs (PR 543, 544, 545)",
+  "categorie": "apprentissage",
+  "domaine": "confiance",
+  "moteurs": [
+    "plateforme"
+  ],
+  "quoi": "RÉSUMÉ — PR FUSIONNÉES AVANT LEURS CORRECTIFS (2 octobre). Constat : une PR était fusionnée dès que la CI était verte sur son premier commit, avant les correctifs de relecture. Pratique : tout mettre dans la PR avant la fin de la CI ou ouvrir une PR de suite (PR 543 → 544 → 545 […]\n\nPR FUSIONNÉES AVANT LEURS CORRECTIFS (2 octobre). Constat : une PR était fusionnée dès que la CI était verte sur son premier commit, avant les correctifs de relecture. Pratique : tout mettre dans la PR avant la fin de la CI ou ouvrir une PR de suite (PR 543 → 544 → 545 pour la mémoire par le sens).",
+  "pourquoi": "Section 16 du récit « Catalogue des problèmes rencontrés : symptôme, cause réelle trouvée, correction, leçon ».",
+  "ou": [
+    "scripts/check-naming.mjs",
+    "scripts/check-providers.mjs",
+    "server/engine-registry/diagnose.ts",
+    "server/smart-engine/health-monitor.ts",
+    "server/routers/stripeWebhook.ts",
+    "server/schema.ts",
+    "server/intelligences/orchestrateur.ts"
+  ],
+  "lecon": "La cause racine se trouve presque toujours en reproduisant le défaut exactement comme la production le subit (journaux de compilation, INSERT direct, offre SDP réelle, écran à 320×568), puis en montrant le même contrôle qui passe. Un symptôme corrigé sans cause reproduite revient.",
+  "historique": true
+},
+{
+  "cle": "recit-problemes-causes-et-solutions-17",
+  "titre": "Problème n°17 du chantier — Incident de secret : règle de l'environnement vidé",
+  "categorie": "apprentissage",
+  "domaine": "confiance",
+  "moteurs": [
+    "plateforme"
+  ],
+  "quoi": "RÉSUMÉ — INCIDENT DE SECRET. Un identifiant de base de production est apparu une fois dans la sortie d'un outil ; le PDG a été invité à le renouveler. Règle depuis : toute commande de test locale s'exécute avec un environnement vidé (env -i) contre une base locale jetable ; […]\n\nINCIDENT DE SECRET. Un identifiant de base de production est apparu une fois dans la sortie d'un outil ; le PDG a été invité à le renouveler. Règle depuis : toute commande de test locale s'exécute avec un environnement vidé (env -i) contre une base locale jetable ; aucune clé n'est collée en conversation ni dans le code.",
+  "pourquoi": "Section 17 du récit « Catalogue des problèmes rencontrés : symptôme, cause réelle trouvée, correction, leçon ».",
+  "ou": [
+    "scripts/check-naming.mjs",
+    "scripts/check-providers.mjs",
+    "server/engine-registry/diagnose.ts",
+    "server/smart-engine/health-monitor.ts",
+    "server/routers/stripeWebhook.ts",
+    "server/schema.ts",
+    "server/intelligences/orchestrateur.ts"
+  ],
+  "lecon": "La cause racine se trouve presque toujours en reproduisant le défaut exactement comme la production le subit (journaux de compilation, INSERT direct, offre SDP réelle, écran à 320×568), puis en montrant le même contrôle qui passe. Un symptôme corrigé sans cause reproduite revient.",
+  "historique": true
+},
+{
+  "cle": "recit-journee-1-2-octobre-2026-01",
+  "titre": "Travaux des 1er et 2 octobre 2026 — Voix",
+  "categorie": "projets",
+  "domaine": "intelligences",
+  "moteurs": [
+    "intelligences"
+  ],
+  "quoi": "RÉSUMÉ — Voix : l'offre WebRTC partait sans CRLF final (400 invalid_offer), corrigé et vérifié sur une vraie offre Chromium ; modèle de transcription de repli ; toutes les voix du mode direct avec aperçu « Écouter cette voix » ; micro bleu qui annonce « Je vous écoute » […]\n\nVoix : l'offre WebRTC partait sans CRLF final (400 invalid_offer), corrigé et vérifié sur une vraie offre Chromium ; modèle de transcription de repli ; toutes les voix du mode direct avec aperçu « Écouter cette voix » ; micro bleu qui annonce « Je vous écoute » seulement quand liaison, canal et session sont prêts, salutations arabes en lettres latines, micro borné dans le cadre du téléphone (défaut reproduit à 320×568).",
+  "pourquoi": "Détail n°1 du récit « Récit des travaux de Claude des 1er et 2 octobre 2026 : micros, coffre, boutique, mémoire, sécurité, agent développeur ».",
+  "ou": [
+    "server/intelligences/provider.ts",
+    "server/intelligences/empreintes.ts",
+    "server/intelligences/coffre.ts",
+    "server/intelligences/orchestrateur.ts",
+    "server/country-os/index.ts",
+    "client/src/pages/intelligence/modules/Conversation.tsx"
+  ],
+  "lecon": "Une journée très dense reste sûre si chaque livraison est vérifiée sur un vrai parcours, inscrite à la mémoire, et si ce qui reste ouvert est écrit au lieu d'être sous-entendu.",
+  "historique": true
+},
+{
+  "cle": "recit-journee-1-2-octobre-2026-02",
+  "titre": "Travaux des 1er et 2 octobre 2026 — Coffre secret",
+  "categorie": "projets",
+  "domaine": "intelligences",
+  "moteurs": [
+    "intelligences"
+  ],
+  "quoi": "RÉSUMÉ — Coffre secret : « Ajouter un secret » illimité ; plus aucun bouton mort ; clé maître absente = consigne et défilement vers la carte d'activation ; jamais de nouvelle clé quand des secrets existent déjà (il faut restaurer la clé d'origine) ; états chargement/erreur/clé […]\n\nCoffre secret : « Ajouter un secret » illimité ; plus aucun bouton mort ; clé maître absente = consigne et défilement vers la carte d'activation ; jamais de nouvelle clé quand des secrets existent déjà (il faut restaurer la clé d'origine) ; états chargement/erreur/clé absente distingués.",
+  "pourquoi": "Détail n°2 du récit « Récit des travaux de Claude des 1er et 2 octobre 2026 : micros, coffre, boutique, mémoire, sécurité, agent développeur ».",
+  "ou": [
+    "server/intelligences/provider.ts",
+    "server/intelligences/empreintes.ts",
+    "server/intelligences/coffre.ts",
+    "server/intelligences/orchestrateur.ts",
+    "server/country-os/index.ts",
+    "client/src/pages/intelligence/modules/Conversation.tsx"
+  ],
+  "lecon": "Une journée très dense reste sûre si chaque livraison est vérifiée sur un vrai parcours, inscrite à la mémoire, et si ce qui reste ouvert est écrit au lieu d'être sous-entendu.",
+  "historique": true
+},
+{
+  "cle": "recit-journee-1-2-octobre-2026-03",
+  "titre": "Travaux des 1er et 2 octobre 2026 — Boutique SHOP",
+  "categorie": "projets",
+  "domaine": "intelligences",
+  "moteurs": [
+    "intelligences"
+  ],
+  "quoi": "RÉSUMÉ — Boutique SHOP : cinq outils d'accès de service (capacités, liste, lecture, lancer les photos, brouillon de fiche jamais publié), adresse et jeton lus dans le Coffre, 23 entrées de la mémoire de la boutique reprises mot pour mot ; l'IA ne réclame plus jamais le jeton de […]\n\nBoutique SHOP : cinq outils d'accès de service (capacités, liste, lecture, lancer les photos, brouillon de fiche jamais publié), adresse et jeton lus dans le Coffre, 23 entrées de la mémoire de la boutique reprises mot pour mot ; l'IA ne réclame plus jamais le jeton de la boutique pour du développement ou un déploiement.",
+  "pourquoi": "Détail n°3 du récit « Récit des travaux de Claude des 1er et 2 octobre 2026 : micros, coffre, boutique, mémoire, sécurité, agent développeur ».",
+  "ou": [
+    "server/intelligences/provider.ts",
+    "server/intelligences/empreintes.ts",
+    "server/intelligences/coffre.ts",
+    "server/intelligences/orchestrateur.ts",
+    "server/country-os/index.ts",
+    "client/src/pages/intelligence/modules/Conversation.tsx"
+  ],
+  "lecon": "Une journée très dense reste sûre si chaque livraison est vérifiée sur un vrai parcours, inscrite à la mémoire, et si ce qui reste ouvert est écrit au lieu d'être sous-entendu.",
+  "historique": true
+},
+{
+  "cle": "recit-journee-1-2-octobre-2026-04",
+  "titre": "Travaux des 1er et 2 octobre 2026 — Autonomie",
+  "categorie": "projets",
+  "domaine": "intelligences",
+  "moteurs": [
+    "intelligences"
+  ],
+  "quoi": "RÉSUMÉ — Autonomie : section « Autonomie de travail » dans la consigne de la direction (exécuter, enchaîner les outils, chercher une autre solution, rendre compte) avec limites inchangées ; boucle d'outils portée de 5 à 12 tours ; les outils HIGH/CRITICAL restent refusés par la […]\n\nAutonomie : section « Autonomie de travail » dans la consigne de la direction (exécuter, enchaîner les outils, chercher une autre solution, rendre compte) avec limites inchangées ; boucle d'outils portée de 5 à 12 tours ; les outils HIGH/CRITICAL restent refusés par la politique.",
+  "pourquoi": "Détail n°4 du récit « Récit des travaux de Claude des 1er et 2 octobre 2026 : micros, coffre, boutique, mémoire, sécurité, agent développeur ».",
+  "ou": [
+    "server/intelligences/provider.ts",
+    "server/intelligences/empreintes.ts",
+    "server/intelligences/coffre.ts",
+    "server/intelligences/orchestrateur.ts",
+    "server/country-os/index.ts",
+    "client/src/pages/intelligence/modules/Conversation.tsx"
+  ],
+  "lecon": "Une journée très dense reste sûre si chaque livraison est vérifiée sur un vrai parcours, inscrite à la mémoire, et si ce qui reste ouvert est écrit au lieu d'être sous-entendu.",
+  "historique": true
+},
+{
+  "cle": "recit-journee-1-2-octobre-2026-05",
+  "titre": "Travaux des 1er et 2 octobre 2026 — Mode Travail réparé (permission ANALYZE manquante au moteur de l'orchestrateur)",
+  "categorie": "projets",
+  "domaine": "intelligences",
+  "moteurs": [
+    "intelligences"
+  ],
+  "quoi": "RÉSUMÉ — Mode Travail réparé (permission ANALYZE manquante au moteur de l'orchestrateur) et Chat/Travail alignés sur une même mémoire.\n\nMode Travail réparé (permission ANALYZE manquante au moteur de l'orchestrateur) et Chat/Travail alignés sur une même mémoire.",
+  "pourquoi": "Détail n°5 du récit « Récit des travaux de Claude des 1er et 2 octobre 2026 : micros, coffre, boutique, mémoire, sécurité, agent développeur ».",
+  "ou": [
+    "server/intelligences/provider.ts",
+    "server/intelligences/empreintes.ts",
+    "server/intelligences/coffre.ts",
+    "server/intelligences/orchestrateur.ts",
+    "server/country-os/index.ts",
+    "client/src/pages/intelligence/modules/Conversation.tsx"
+  ],
+  "lecon": "Une journée très dense reste sûre si chaque livraison est vérifiée sur un vrai parcours, inscrite à la mémoire, et si ce qui reste ouvert est écrit au lieu d'être sous-entendu.",
+  "historique": true
+},
+{
+  "cle": "recit-journee-1-2-octobre-2026-06",
+  "titre": "Travaux des 1er et 2 octobre 2026 — Mémoire automobile",
+  "categorie": "projets",
+  "domaine": "intelligences",
+  "moteurs": [
+    "intelligences"
+  ],
+  "quoi": "RÉSUMÉ — Mémoire automobile : référentiel de départ avec provenance (436 marques notables, catégories, 24 systèmes, 212 familles de pièces, statut « propose »), synchronisation mensuelle des marques depuis la source publique NHTSA, outil automobile.rechercherMemoire ; 23 […]\n\nMémoire automobile : référentiel de départ avec provenance (436 marques notables, catégories, 24 systèmes, 212 familles de pièces, statut « propose »), synchronisation mensuelle des marques depuis la source publique NHTSA, outil automobile.rechercherMemoire ; 23 souvenirs des travaux des 1er et 2 octobre.",
+  "pourquoi": "Détail n°6 du récit « Récit des travaux de Claude des 1er et 2 octobre 2026 : micros, coffre, boutique, mémoire, sécurité, agent développeur ».",
+  "ou": [
+    "server/intelligences/provider.ts",
+    "server/intelligences/empreintes.ts",
+    "server/intelligences/coffre.ts",
+    "server/intelligences/orchestrateur.ts",
+    "server/country-os/index.ts",
+    "client/src/pages/intelligence/modules/Conversation.tsx"
+  ],
+  "lecon": "Une journée très dense reste sûre si chaque livraison est vérifiée sur un vrai parcours, inscrite à la mémoire, et si ce qui reste ouvert est écrit au lieu d'être sous-entendu.",
+  "historique": true
+},
+{
+  "cle": "recit-journee-1-2-octobre-2026-07",
+  "titre": "Travaux des 1er et 2 octobre 2026 — Connexion Google",
+  "categorie": "projets",
+  "domaine": "intelligences",
+  "moteurs": [
+    "intelligences"
+  ],
+  "quoi": "RÉSUMÉ — Connexion Google : le bouton ne fait plus semblant ; identifiant lu à l'exécution côté serveur ; adresse vérifiée exigée pour rattacher un compte existant.\n\nConnexion Google : le bouton ne fait plus semblant ; identifiant lu à l'exécution côté serveur ; adresse vérifiée exigée pour rattacher un compte existant.",
+  "pourquoi": "Détail n°7 du récit « Récit des travaux de Claude des 1er et 2 octobre 2026 : micros, coffre, boutique, mémoire, sécurité, agent développeur ».",
+  "ou": [
+    "server/intelligences/provider.ts",
+    "server/intelligences/empreintes.ts",
+    "server/intelligences/coffre.ts",
+    "server/intelligences/orchestrateur.ts",
+    "server/country-os/index.ts",
+    "client/src/pages/intelligence/modules/Conversation.tsx"
+  ],
+  "lecon": "Une journée très dense reste sûre si chaque livraison est vérifiée sur un vrai parcours, inscrite à la mémoire, et si ce qui reste ouvert est écrit au lieu d'être sous-entendu.",
+  "historique": true
+},
+{
+  "cle": "recit-journee-1-2-octobre-2026-08",
+  "titre": "Travaux des 1er et 2 octobre 2026 — Sécurité urgente",
+  "categorie": "projets",
+  "domaine": "intelligences",
+  "moteurs": [
+    "intelligences"
+  ],
+  "quoi": "RÉSUMÉ — Sécurité urgente : Global Country Engine réservé au PDG (route verrouillée par le Permission Engine, écritures et santé réservées, liste publique réduite).\n\nSécurité urgente : Global Country Engine réservé au PDG (route verrouillée par le Permission Engine, écritures et santé réservées, liste publique réduite).",
+  "pourquoi": "Détail n°8 du récit « Récit des travaux de Claude des 1er et 2 octobre 2026 : micros, coffre, boutique, mémoire, sécurité, agent développeur ».",
+  "ou": [
+    "server/intelligences/provider.ts",
+    "server/intelligences/empreintes.ts",
+    "server/intelligences/coffre.ts",
+    "server/intelligences/orchestrateur.ts",
+    "server/country-os/index.ts",
+    "client/src/pages/intelligence/modules/Conversation.tsx"
+  ],
+  "lecon": "Une journée très dense reste sûre si chaque livraison est vérifiée sur un vrai parcours, inscrite à la mémoire, et si ce qui reste ouvert est écrit au lieu d'être sous-entendu.",
+  "historique": true
+},
+{
+  "cle": "recit-journee-1-2-octobre-2026-09",
+  "titre": "Travaux des 1er et 2 octobre 2026 — Équipe",
+  "categorie": "projets",
+  "domaine": "intelligences",
+  "moteurs": [
+    "intelligences"
+  ],
+  "quoi": "RÉSUMÉ — Équipe : postes sous-directeur, comptable, chef d'équipe, investisseur, partenaire ; création de compte interne avec poste ; seul le PDG crée un compte Administration et attribue un poste.\n\nÉquipe : postes sous-directeur, comptable, chef d'équipe, investisseur, partenaire ; création de compte interne avec poste ; seul le PDG crée un compte Administration et attribue un poste.",
+  "pourquoi": "Détail n°9 du récit « Récit des travaux de Claude des 1er et 2 octobre 2026 : micros, coffre, boutique, mémoire, sécurité, agent développeur ».",
+  "ou": [
+    "server/intelligences/provider.ts",
+    "server/intelligences/empreintes.ts",
+    "server/intelligences/coffre.ts",
+    "server/intelligences/orchestrateur.ts",
+    "server/country-os/index.ts",
+    "client/src/pages/intelligence/modules/Conversation.tsx"
+  ],
+  "lecon": "Une journée très dense reste sûre si chaque livraison est vérifiée sur un vrai parcours, inscrite à la mémoire, et si ce qui reste ouvert est écrit au lieu d'être sous-entendu.",
+  "historique": true
+},
+{
+  "cle": "recit-journee-1-2-octobre-2026-10",
+  "titre": "Travaux des 1er et 2 octobre 2026 — Accueil",
+  "categorie": "projets",
+  "domaine": "intelligences",
+  "moteurs": [
+    "intelligences"
+  ],
+  "quoi": "RÉSUMÉ — Accueil : cartes de pays cliquables pour choisir son pays, sans réglages visibles du public.\n\nAccueil : cartes de pays cliquables pour choisir son pays, sans réglages visibles du public.",
+  "pourquoi": "Détail n°10 du récit « Récit des travaux de Claude des 1er et 2 octobre 2026 : micros, coffre, boutique, mémoire, sécurité, agent développeur ».",
+  "ou": [
+    "server/intelligences/provider.ts",
+    "server/intelligences/empreintes.ts",
+    "server/intelligences/coffre.ts",
+    "server/intelligences/orchestrateur.ts",
+    "server/country-os/index.ts",
+    "client/src/pages/intelligence/modules/Conversation.tsx"
+  ],
+  "lecon": "Une journée très dense reste sûre si chaque livraison est vérifiée sur un vrai parcours, inscrite à la mémoire, et si ce qui reste ouvert est écrit au lieu d'être sous-entendu.",
+  "historique": true
+},
+{
+  "cle": "recit-journee-1-2-octobre-2026-11",
+  "titre": "Travaux des 1er et 2 octobre 2026 — Sonde des capacités du fournisseur de modèles",
+  "categorie": "projets",
+  "domaine": "intelligences",
+  "moteurs": [
+    "intelligences"
+  ],
+  "quoi": "RÉSUMÉ — Sonde des capacités du fournisseur de modèles : liste des modèles du projet puis un vrai appel par capacité, états séparés, FUNCTIONAL seulement via l'adaptateur de la plateforme, preuves en base sans clé ni message brut.\n\nSonde des capacités du fournisseur de modèles : liste des modèles du projet puis un vrai appel par capacité, états séparés, FUNCTIONAL seulement via l'adaptateur de la plateforme, preuves en base sans clé ni message brut.",
+  "pourquoi": "Détail n°11 du récit « Récit des travaux de Claude des 1er et 2 octobre 2026 : micros, coffre, boutique, mémoire, sécurité, agent développeur ».",
+  "ou": [
+    "server/intelligences/provider.ts",
+    "server/intelligences/empreintes.ts",
+    "server/intelligences/coffre.ts",
+    "server/intelligences/orchestrateur.ts",
+    "server/country-os/index.ts",
+    "client/src/pages/intelligence/modules/Conversation.tsx"
+  ],
+  "lecon": "Une journée très dense reste sûre si chaque livraison est vérifiée sur un vrai parcours, inscrite à la mémoire, et si ce qui reste ouvert est écrit au lieu d'être sous-entendu.",
+  "historique": true
+},
+{
+  "cle": "recit-journee-1-2-octobre-2026-12",
+  "titre": "Travaux des 1er et 2 octobre 2026 — Mémoire par le sens (embeddings)",
+  "categorie": "projets",
+  "domaine": "intelligences",
+  "moteurs": [
+    "intelligences"
+  ],
+  "quoi": "RÉSUMÉ — Mémoire par le sens (embeddings) : passerelle, table in_empreintes, indexation à l'écriture, reprise de l'existant par lots, recherche par le sens après la recherche textuelle, éteinte par défaut ; corrections de revue : droits appliqués avant le classement, versions […]\n\nMémoire par le sens (embeddings) : passerelle, table in_empreintes, indexation à l'écriture, reprise de l'existant par lots, recherche par le sens après la recherche textuelle, éteinte par défaut ; corrections de revue : droits appliqués avant le classement, versions périmées purgées, repli de modèle durable, verrou de ligne contre le remplacement concurrent.",
+  "pourquoi": "Détail n°12 du récit « Récit des travaux de Claude des 1er et 2 octobre 2026 : micros, coffre, boutique, mémoire, sécurité, agent développeur ».",
+  "ou": [
+    "server/intelligences/provider.ts",
+    "server/intelligences/empreintes.ts",
+    "server/intelligences/coffre.ts",
+    "server/intelligences/orchestrateur.ts",
+    "server/country-os/index.ts",
+    "client/src/pages/intelligence/modules/Conversation.tsx"
+  ],
+  "lecon": "Une journée très dense reste sûre si chaque livraison est vérifiée sur un vrai parcours, inscrite à la mémoire, et si ce qui reste ouvert est écrit au lieu d'être sous-entendu.",
+  "historique": true
+},
+{
+  "cle": "recit-journee-1-2-octobre-2026-13",
+  "titre": "Travaux des 1er et 2 octobre 2026 — Agent développeur",
+  "categorie": "projets",
+  "domaine": "intelligences",
+  "moteurs": [
+    "intelligences"
+  ],
+  "quoi": "RÉSUMÉ — Agent développeur : demande courte = reprise de la mission active ou une seule question ; « inconnu » n'est jamais un composant ; étapes « faites » seulement avec preuve ; autorisation par opération réelle ; reprise avec résultats conservés ; mémoire sans doublons […]\n\nAgent développeur : demande courte = reprise de la mission active ou une seule question ; « inconnu » n'est jamais un composant ; étapes « faites » seulement avec preuve ; autorisation par opération réelle ; reprise avec résultats conservés ; mémoire sans doublons (migration 0155 conserve l'ancien compteur) ; huit défauts de revue corrigés avant fusion de la PR 547.",
+  "pourquoi": "Détail n°13 du récit « Récit des travaux de Claude des 1er et 2 octobre 2026 : micros, coffre, boutique, mémoire, sécurité, agent développeur ».",
+  "ou": [
+    "server/intelligences/provider.ts",
+    "server/intelligences/empreintes.ts",
+    "server/intelligences/coffre.ts",
+    "server/intelligences/orchestrateur.ts",
+    "server/country-os/index.ts",
+    "client/src/pages/intelligence/modules/Conversation.tsx"
+  ],
+  "lecon": "Une journée très dense reste sûre si chaque livraison est vérifiée sur un vrai parcours, inscrite à la mémoire, et si ce qui reste ouvert est écrit au lieu d'être sous-entendu.",
   "historique": true
 },
 {
