@@ -30,9 +30,15 @@ interface ConnaissancePublication {
 
 export const CONNAISSANCES_PUBLICATION: ConnaissancePublication[] = [
   {
+    titre: "Connexion Google : site et applications Android",
+    contenu:
+      "Sur le site, la connexion et la création de compte Google passent par le bouton Google Identity Services (auth.googleConfig puis auth.googleLogin). Google refuse ce bouton dans la WebView d'une application : les cinq applications ouvrent donc le navigateur du téléphone sur /api/auth/google/app/demarrer?app=<applicationId>, Google renvoie sur /api/auth/google/app/retour, puis le serveur rend la main à l'application par son schéma (<applicationId>://auth/google) avec un ticket valable une seule fois pendant deux minutes, échangé par auth.googleTicket. Prérequis posés par le PDG sur Railway (service mkapms-app) : GOOGLE_CLIENT_ID et GOOGLE_CLIENT_SECRET d'un identifiant OAuth « Application Web » de Google Cloud, avec comme origines JavaScript autorisées https://www.mkapms.fr (et chaque domaine utilisé) et comme URI de redirection autorisée https://www.mkapms.fr/api/auth/google/app/retour. Sans ces deux variables, la page de connexion le dit au lieu d'afficher un bouton mort. Le schéma de retour exige une version Android contenant le filtre d'intention « auth » (à partir de 1.7.7).",
+    source: "server/auth-google.ts ; server/routers/auth.ts ; client/src/pages/Connexion.tsx ; android/app/src/main/AndroidManifest.xml",
+  },
+  {
     titre: "Applications Android MKA.P-MS : les cinq applications et leurs identifiants",
     contenu:
-      "Cinq applications, un seul cœur (enveloppe Capacitor qui charge la plateforme déployée) : grandpublic = com.mkapms.app (publique), pro = com.mkapms.pro (publique), command = com.mkapms.command (interne PDG/Direction, jamais publique), intelligence = com.mkapms.intelligence (AL-HUDHUD·M, publique), investor = com.mkapms.investor (restreinte, nouvelle fiche Google Play à créer). Seule l'application grand public capte les liens https://www.mkapms.fr. Version unique pour les cinq : celle de package.json (versionName = cette version ; versionCode = majeur×10000 + mineur×100 + correctif, ex. 1.7.6 → 10706) ; compileSdk et targetSdk = 36 (android/variables.gradle).",
+      "Cinq applications, un seul cœur (enveloppe Capacitor qui charge la plateforme déployée) : grandpublic = com.mkapms.app (publique), pro = com.mkapms.pro (publique), command = com.mkapms.command (interne PDG/Direction, jamais publique), intelligence = com.mkapms.intelligence (AL-HUDHUD·M, publique), investor = com.mkapms.investor (restreinte, nouvelle fiche Google Play à créer). Seule l'application grand public capte les liens https://www.mkapms.fr. Version unique pour les cinq : celle de package.json (versionName = cette version ; versionCode = majeur×10000 + mineur×100 + correctif, ex. 1.7.7 → 10707) ; compileSdk et targetSdk = 36 (android/variables.gradle).",
     source: "mobile/variants.json ; android/app/build.gradle ; android/variables.gradle",
   },
   {

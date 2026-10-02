@@ -22,6 +22,7 @@ import {
 import { appRouter } from "./router.js";
 import { createContext } from "./trpc.js";
 import { verifyToken } from "./auth.js";
+import { googleApplicationRouter } from "./auth-google.js";
 import { handleStripeWebhook } from "./stripeWebhook.js";
 import { getStripe } from "./lib/stripe.js";
 import {
@@ -281,6 +282,9 @@ app.get("/api/health/db", async (_req, res) => {
 // Point 127 — API interne versionnée des capacités MKA.P-MS AI.
 // Les moteurs et les applications demandent une capacité, jamais un fournisseur.
 app.use("/api/v1", publicWriteGate, apiV1);
+
+// Connexion Google des applications Android (navigateur du téléphone → retour par le schéma de l'application).
+app.use("/api/auth/google/app", googleApplicationRouter);
 
 // LOT 4 du Plan Maître Fournisseurs — API MKA.P-MS pour transporteurs (§74).
 // Authentification par clé API dédiée (x-mka-carrier-key), jamais la session plateforme.

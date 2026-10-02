@@ -17,6 +17,7 @@ import {
 } from "../auth.js";
 import { requestEmailVerification } from "../identity-os/complete.js";
 import { resolveIdentityForUser } from "../identity-os/index.js";
+import { compteDepuisGoogle, consommerTicketApplication, googleApplicationConfiguree } from "../auth-google.js";
 
 function publicUser(u: typeof users.$inferSelect) {
   // Utiliser try/catch sur les champs nouveaux pour éviter tout crash
@@ -148,7 +149,25 @@ export const authRouter = router({
    * Identifiant client Google (public par nature : il figure dans la page de connexion de n'importe quel site). Lu à
    * l'exécution côté serveur pour que le bouton Google ne dépende pas d'une variable de construction du site.
    */
-  googleConfig: publicProcedure.query(() => ({ clientId: env.GOOGLE_CLIENT_ID || null })),
+  googleConfig: publicProcedure.query(() => ({
+    clientId: env.GOOGLE_CLIENT_ID || null,
+    application: googleApplicationConfiguree(),
+  })),
+
+  /** Applications Android : échange le ticket à usage unique rendu par /api/auth/google/app/retour. */
+  googleTicket: publicProcedure
+    .input(z.object({ ticket: z.string().min(10).max(2000) }))
+    .mutation(async ({ input }) => {
+      const uid = consommerTicketApplication(input.ticket);
+      if (!uid) throw new TRPCError({ code: "UNAUTHORIZED", message: "Connexion Google expirée. Recommencez." });
+      const [u] = await db.select().from(users).where(eq(users.id, uid)).limit(1);
+      if (!u) throw new TRPCError({ code: "UNAUTHORIZED", message: "Compte introuvable." });
+      if (u.status !== "active") {
+        throw new TRPCError({ code: "FORBIDDEN", message: u.status === "suspended" ? "Ce compte a été suspendu." : "Ce compte n'est plus actif." });
+      }
+      const token = signToken({ uid: u.id, role: u.role, email: u.email });
+      return { token, user: publicUser(u) };
+    }),
 
   googleLogin: publicProcedure
     .input(z.object({ idToken: z.string() }))
@@ -160,32 +179,7 @@ export const authRouter = router({
       if (!profile) {
         throw new TRPCError({ code: "UNAUTHORIZED", message: "Google non vérifié" });
       }
-      let [u] = await db
-        .select()
-        .from(users)
-        .where(eq(users.email, profile.email.toLowerCase()))
-        .limit(1);
-      if (!u) {
-        [u] = await db
-          .insert(users)
-          .values({
-            email: profile.email.toLowerCase(),
-            name: profile.name,
-            googleId: profile.googleId,
-            avatarUrl: profile.picture,
-            emailVerified: true,
-            role: "user",
-          })
-          .returning();
-        const reference = makeReference("U", u.id);
-        await db.update(users).set({ reference }).where(eq(users.id, u.id));
-        u.reference = reference;
-      } else if (!u.googleId) {
-        await db
-          .update(users)
-          .set({ googleId: profile.googleId, emailVerified: true })
-          .where(eq(users.id, u.id));
-      }
+      const u = await compteDepuisGoogle(profile);
       if (u.status !== "active") {
         throw new TRPCError({ code: "FORBIDDEN", message: u.status === "suspended" ? "Ce compte a été suspendu." : "Ce compte n'est plus actif." });
       }

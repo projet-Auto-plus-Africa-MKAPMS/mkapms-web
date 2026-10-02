@@ -65,6 +65,7 @@ jobs:
         with:
           node-version: '20'
       - run: npm ci
+      - run: node --import tsx --test server/__tests__/auth-google.test.ts
       - run: node --import tsx --test server/intelligences/__tests__/shop-knowledge.test.ts server/intelligences/__tests__/shop-knowledge.integration.test.ts
         env:
           SHOP_KNOWLEDGE_TEST_DB: postgresql://core_ai_test:disposable_ci_fixture@localhost:5432/core_ai_test

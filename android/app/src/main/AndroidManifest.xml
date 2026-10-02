@@ -32,6 +32,15 @@
                 <data android:scheme="https" android:host="${appLinksHost}" />
                 <data android:scheme="https" android:host="${appLinksHostAlt}" />
             </intent-filter>
+
+            <!-- Retour de la connexion Google : le navigateur du téléphone rend la main
+                 à l'application par son propre schéma (son applicationId). -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="${applicationId}" android:host="auth" />
+            </intent-filter>
         </activity>
 
         <provider
