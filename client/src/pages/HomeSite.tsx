@@ -4,7 +4,7 @@
  * Même DB · Même Core Engine · Orientation mondiale
  */
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { getAnnonceUrl } from "../lib/annonceUrl";
 import {
   Globe, MapPin, Languages, CreditCard, ChevronRight,
@@ -17,18 +17,18 @@ import { useCurrency } from "../lib/currency";
 
 /* ── PAYS PHARES ── */
 const FEATURED_COUNTRIES = [
-  { code: "FR", name: "France", flag: "🇫🇷", lang: "Français", currency: "EUR", url: "https://mkapms.fr" },
-  { code: "MA", name: "Maroc", flag: "🇲🇦", lang: "Français / Arabe", currency: "MAD", url: "/mk-global-engine" },
-  { code: "DZ", name: "Algérie", flag: "🇩🇿", lang: "Français / Arabe", currency: "DZD", url: "/mk-global-engine" },
-  { code: "TN", name: "Tunisie", flag: "🇹🇳", lang: "Français / Arabe", currency: "TND", url: "/mk-global-engine" },
-  { code: "SN", name: "Sénégal", flag: "🇸🇳", lang: "Français", currency: "XOF", url: "/mk-global-engine" },
-  { code: "CI", name: "Côte d'Ivoire", flag: "🇨🇮", lang: "Français", currency: "XOF", url: "/mk-global-engine" },
-  { code: "CM", name: "Cameroun", flag: "🇨🇲", lang: "Français", currency: "XAF", url: "/mk-global-engine" },
-  { code: "GB", name: "United Kingdom", flag: "🇬🇧", lang: "English", currency: "GBP", url: "/mk-global-engine" },
-  { code: "DE", name: "Deutschland", flag: "🇩🇪", lang: "Deutsch", currency: "EUR", url: "/mk-global-engine" },
-  { code: "ES", name: "España", flag: "🇪🇸", lang: "Español", currency: "EUR", url: "/mk-global-engine" },
-  { code: "AE", name: "الإمارات", flag: "🇦🇪", lang: "العربية", currency: "AED", url: "/mk-global-engine" },
-  { code: "SA", name: "المملكة العربية", flag: "🇸🇦", lang: "العربية", currency: "SAR", url: "/mk-global-engine" },
+  { code: "FR", name: "France", flag: "🇫🇷", lang: "Français", currency: "EUR", url: "https://mkapms.fr" as string | null },
+  { code: "MA", name: "Maroc", flag: "🇲🇦", lang: "Français / Arabe", currency: "MAD", url: null as string | null },
+  { code: "DZ", name: "Algérie", flag: "🇩🇿", lang: "Français / Arabe", currency: "DZD", url: null as string | null },
+  { code: "TN", name: "Tunisie", flag: "🇹🇳", lang: "Français / Arabe", currency: "TND", url: null as string | null },
+  { code: "SN", name: "Sénégal", flag: "🇸🇳", lang: "Français", currency: "XOF", url: null as string | null },
+  { code: "CI", name: "Côte d'Ivoire", flag: "🇨🇮", lang: "Français", currency: "XOF", url: null as string | null },
+  { code: "CM", name: "Cameroun", flag: "🇨🇲", lang: "Français", currency: "XAF", url: null as string | null },
+  { code: "GB", name: "United Kingdom", flag: "🇬🇧", lang: "English", currency: "GBP", url: null as string | null },
+  { code: "DE", name: "Deutschland", flag: "🇩🇪", lang: "Deutsch", currency: "EUR", url: null as string | null },
+  { code: "ES", name: "España", flag: "🇪🇸", lang: "Español", currency: "EUR", url: null as string | null },
+  { code: "AE", name: "الإمارات", flag: "🇦🇪", lang: "العربية", currency: "AED", url: null as string | null },
+  { code: "SA", name: "المملكة العربية", flag: "🇸🇦", lang: "العربية", currency: "SAR", url: null as string | null },
 ];
 
 /* ── RÉGIONS ── */
@@ -60,7 +60,6 @@ const WORLD_STATS = [
 ];
 
 export default function HomeSite() {
-  const navigate = useNavigate();
   const { currency, country } = useCurrency();
   const [searchCountry, setSearchCountry] = useState("");
 
@@ -110,7 +109,7 @@ export default function HomeSite() {
             {/* CTA */}
             <div className="mt-8 flex flex-wrap gap-3">
               <button
-                onClick={() => navigate("/mk-global-engine")}
+                onClick={() => document.getElementById("pays")?.scrollIntoView({ behavior: "smooth", block: "start" })}
                 className="inline-flex items-center gap-2 rounded-xl bg-[#D4AF37] px-6 py-3 text-sm font-bold text-[#111] hover:bg-[#C9A227] transition"
               >
                 <Globe size={16} />
@@ -141,7 +140,7 @@ export default function HomeSite() {
       {/* ═══════════════════════════════════════════════════════════════
           SÉLECTEUR DE PAYS
           ═══════════════════════════════════════════════════════════════ */}
-      <section className="bg-white border-b border-[#E5E7EB] py-10">
+      <section id="pays" className="bg-white border-b border-[#E5E7EB] py-10">
         <div className="max-w-6xl mx-auto px-4">
           <div className="text-center mb-6">
             <p className="text-[10px] uppercase tracking-widest text-[#D4AF37] font-semibold">ACCÈS MONDIAL</p>
@@ -165,28 +164,25 @@ export default function HomeSite() {
 
           {/* Grille pays */}
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
-            {filteredCountries.map((country) => (
-              <a
-                key={country.code}
-                href={country.url}
-                className="group rounded-xl border border-[#E5E7EB] bg-white p-3 text-center hover:border-[#D4AF37] hover:shadow-md transition cursor-pointer"
-              >
-                <span className="text-2xl">{country.flag}</span>
-                <p className="text-xs font-bold text-[#111] mt-1.5 group-hover:text-[#D4AF37] transition">{country.name}</p>
-                <p className="text-[9px] text-[#9CA3AF] mt-0.5">{country.lang}</p>
-                <span className="mt-1 inline-block rounded-full bg-[#D4AF37]/10 px-2 py-0.5 text-[8px] font-bold text-[#D4AF37]">{country.currency}</span>
-              </a>
-            ))}
+            {filteredCountries.map((country) => {
+              const contenu = (
+                <>
+                  <span className="text-2xl">{country.flag}</span>
+                  <p className="text-xs font-bold text-[#111] mt-1.5 group-hover:text-[#D4AF37] transition">{country.name}</p>
+                  <p className="text-[9px] text-[#9CA3AF] mt-0.5">{country.lang}</p>
+                  <span className="mt-1 inline-block rounded-full bg-[#D4AF37]/10 px-2 py-0.5 text-[8px] font-bold text-[#D4AF37]">{country.currency}</span>
+                </>
+              );
+              const classes = "group rounded-xl border border-[#E5E7EB] bg-white p-3 text-center transition";
+              // Le moteur interne des pays n'est plus un lien public : une carte sans site dédié n'est pas cliquable.
+              return country.url ? (
+                <a key={country.code} href={country.url} className={`${classes} hover:border-[#D4AF37] hover:shadow-md cursor-pointer`}>{contenu}</a>
+              ) : (
+                <div key={country.code} className={classes}>{contenu}</div>
+              );
+            })}
           </div>
 
-          <div className="text-center mt-6">
-            <Link
-              to="/mk-global-engine"
-              className="inline-flex items-center gap-2 text-sm text-[#D4AF37] font-semibold hover:underline"
-            >
-              Voir tous les pays <ChevronRight size={14} />
-            </Link>
-          </div>
         </div>
       </section>
 

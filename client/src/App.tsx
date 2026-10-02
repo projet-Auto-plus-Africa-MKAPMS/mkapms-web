@@ -1066,7 +1066,8 @@ export default function App() {
             <Route path="/suivi-vehicule" element={<P module="suivi_vehicule" name="Suivi v\u00e9hicule"><SuiviVehicule /></P>} />
             <Route path="/journal-activite" element={<P module="journal_activite" name="Journal"><JournalActivite /></P>} />
             <Route path="/mk-direction" element={<AccesPDG />} />
-            <Route path="/mk-global-engine" element={<U name="Global Country Engine"><GlobalCountryEngine /></U>} />
+            {/* Module interne : réservé au PDG (rôle super_admin). Une adresse tapée à la main ne l'ouvre plus à un visiteur. */}
+            <Route path="/mk-global-engine" element={<P module="centre_pdg" name="Global Country Engine"><GlobalCountryEngine /></P>} />
             <Route path="/compte/validation" element={<U name="Validation"><Validation /></U>} />
             <Route path="/compte/avis" element={<U name="Mes avis"><MesAvis /></U>} />
             <Route path="/pro/avis" element={<U name="Avis reçus"><AvisPro /></U>} />
