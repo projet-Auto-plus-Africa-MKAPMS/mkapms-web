@@ -14,7 +14,8 @@
 import { createHash } from "node:crypto";
 import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { db } from "../db.js";
-import { creerEmpreintes } from "./provider.js";
+import { MODELE_EMPREINTES_DEFAUT, creerEmpreintes } from "./provider.js";
+import { modeleValide } from "./sonde-store.js";
 import { inConnaissance, inEmpreintes, inFonctions, inMemoire } from "./schema.js";
 
 export type TypeSource = "memoire" | "connaissance";
@@ -30,6 +31,20 @@ export async function empreintesActives(): Promise<boolean> {
     return l?.active === true;
   } catch {
     return false;
+  }
+}
+
+/** Modèle d'empreintes en vigueur : celui que la sonde a prouvé, sinon le défaut. Une empreinte d'un autre modèle n'est pas comparable. */
+export async function modeleCourant(): Promise<string> {
+  return (await modeleValide("empreintes_semantiques")) ?? MODELE_EMPREINTES_DEFAUT;
+}
+
+/** Retire les empreintes d'une source (souvenir déclassé en historique, par exemple) : elles ne doivent plus faire remonter une version périmée. */
+export async function retirerEmpreintes(type: TypeSource, id: number): Promise<void> {
+  try {
+    await db.delete(inEmpreintes).where(and(eq(inEmpreintes.sourceType, type), eq(inEmpreintes.sourceId, id)));
+  } catch {
+    // Jamais bloquant pour l'écriture qui l'a déclenché.
   }
 }
 
@@ -61,10 +76,11 @@ export async function indexer(sources: SourceAIndexer[], options: { forcer?: boo
     for (let i = 0; i < sources.length; i += 48) {
       const lot = sources.slice(i, i + 48).filter((s) => s.texte.trim().length > 0);
       if (lot.length === 0) continue;
+      const courant = await modeleCourant();
       const existantes = await db
         .select({ type: inEmpreintes.sourceType, id: inEmpreintes.sourceId, hash: inEmpreintes.hash })
         .from(inEmpreintes)
-        .where(inArray(inEmpreintes.sourceId, lot.map((s) => s.id)));
+        .where(and(inArray(inEmpreintes.sourceId, lot.map((s) => s.id)), eq(inEmpreintes.modele, courant)));
       const aCalculer = lot.filter((s) => {
         const h = hashTexte(s.texte);
         const dejaLa = existantes.some((e) => e.type === s.type && e.id === s.id && e.hash === h);
@@ -81,6 +97,8 @@ export async function indexer(sources: SourceAIndexer[], options: { forcer?: boo
           .insert(inEmpreintes)
           .values({ sourceType: s.type, sourceId: s.id, modele: r.modele, ...valeurs })
           .onConflictDoUpdate({ target: [inEmpreintes.sourceType, inEmpreintes.sourceId, inEmpreintes.modele], set: valeurs });
+        // Une empreinte d'un autre modèle n'est plus comparable : elle est retirée pour que la source ne soit jamais « indexée » à tort.
+        await db.delete(inEmpreintes).where(and(eq(inEmpreintes.sourceType, s.type), eq(inEmpreintes.sourceId, s.id), sql`${inEmpreintes.modele} <> ${r.modele}`));
         resultat.indexees++;
       }
     }
@@ -98,19 +116,43 @@ export interface Proche {
 /**
  * Sources les plus proches du sens de la question, ou null quand la recherche par le sens n'est pas disponible
  * (fonctionnalité éteinte, fournisseur en échec, aucune empreinte) : l'appelant garde alors sa recherche textuelle.
+ *
+ * Les droits sont appliqués AVANT le classement final : seuls les souvenirs actifs (jamais une version périmée) et les
+ * connaissances confirmées dont la visibilité est autorisée entrent dans la comparaison, de sorte qu'une source
+ * interdite ne puisse jamais évincer une source permise du haut du classement.
  */
-export async function rechercherParLeSens(type: TypeSource, requete: string, limit = 10, fetchImpl?: typeof fetch): Promise<Proche[] | null> {
+export async function rechercherParLeSens(
+  type: TypeSource,
+  requete: string,
+  limit = 10,
+  fetchImpl?: typeof fetch,
+  options: { visibilites?: string[] } = {},
+): Promise<Proche[] | null> {
   const q = requete.trim();
   if (q.length < 3 || !(await empreintesActives())) return null;
   const r = await creerEmpreintes([q], fetchImpl);
   if (!r.ok) return null;
   const vecQ = r.vecteurs[0];
-  const lignes = await db
-    .select({ id: inEmpreintes.sourceId, vecteur: inEmpreintes.vecteur })
-    .from(inEmpreintes)
-    .where(and(eq(inEmpreintes.sourceType, type), eq(inEmpreintes.modele, r.modele)))
-    .orderBy(desc(inEmpreintes.updatedAt))
-    .limit(LIMITE_COMPARAISON);
+  let lignes: { id: number; vecteur: number[] }[];
+  if (type === "memoire") {
+    lignes = await db
+      .select({ id: inEmpreintes.sourceId, vecteur: inEmpreintes.vecteur })
+      .from(inEmpreintes)
+      .innerJoin(inMemoire, eq(inMemoire.id, inEmpreintes.sourceId))
+      .where(and(eq(inEmpreintes.sourceType, "memoire"), eq(inEmpreintes.modele, r.modele), eq(inMemoire.cycle, "actif")))
+      .orderBy(desc(inEmpreintes.updatedAt))
+      .limit(LIMITE_COMPARAISON);
+  } else {
+    const visibilites = options.visibilites ?? [];
+    if (visibilites.length === 0) return [];
+    lignes = await db
+      .select({ id: inEmpreintes.sourceId, vecteur: inEmpreintes.vecteur })
+      .from(inEmpreintes)
+      .innerJoin(inConnaissance, eq(inConnaissance.id, inEmpreintes.sourceId))
+      .where(and(eq(inEmpreintes.sourceType, "connaissance"), eq(inEmpreintes.modele, r.modele), eq(inConnaissance.statut, "confirme"), inArray(inConnaissance.visibilite, visibilites)))
+      .orderBy(desc(inEmpreintes.updatedAt))
+      .limit(LIMITE_COMPARAISON);
+  }
   if (lignes.length === 0) return null;
   return lignes
     .map((l) => ({ id: l.id, score: similariteCosinus(vecQ, l.vecteur) }))
@@ -134,13 +176,14 @@ export interface EtatEmpreintes {
 }
 
 export async function etatEmpreintes(): Promise<EtatEmpreintes> {
+  const courant = await modeleCourant();
   const [m] = await db.select({
     total: sql<number>`count(*)::int`,
-    indexees: sql<number>`count(*) filter (where exists (select 1 from in_empreintes e where e.source_type = 'memoire' and e.source_id = ${inMemoire.id}))::int`,
+    indexees: sql<number>`count(*) filter (where exists (select 1 from in_empreintes e where e.source_type = 'memoire' and e.source_id = in_memoire.id and e.modele = ${courant}))::int`,
   }).from(inMemoire).where(eq(inMemoire.cycle, "actif"));
   const [c] = await db.select({
     total: sql<number>`count(*)::int`,
-    indexees: sql<number>`count(*) filter (where exists (select 1 from in_empreintes e where e.source_type = 'connaissance' and e.source_id = ${inConnaissance.id}))::int`,
+    indexees: sql<number>`count(*) filter (where exists (select 1 from in_empreintes e where e.source_type = 'connaissance' and e.source_id = in_connaissance.id and e.modele = ${courant}))::int`,
   }).from(inConnaissance).where(eq(inConnaissance.statut, "confirme"));
   return { active: await empreintesActives(), memoire: m, connaissances: c };
 }
@@ -148,23 +191,24 @@ export async function etatEmpreintes(): Promise<EtatEmpreintes> {
 /** Indexe un lot de sources encore sans empreinte (reprise de l'existant). Renvoie ce qu'il reste. */
 export async function reindexerUnLot(taille = 96, fetchImpl?: typeof fetch): Promise<{ indexees: number; restantes: number; echec: string | null }> {
   const lot = Math.max(1, Math.min(taille, 192));
+  const courant = await modeleCourant();
   const sources: SourceAIndexer[] = [];
   const memoires = await db
     .select({ id: inMemoire.id, titre: inMemoire.titre, contenu: inMemoire.contenu })
     .from(inMemoire)
-    .where(and(eq(inMemoire.cycle, "actif"), sql`not exists (select 1 from in_empreintes e where e.source_type = 'memoire' and e.source_id = ${inMemoire.id})`))
+    .where(and(eq(inMemoire.cycle, "actif"), sql`not exists (select 1 from in_empreintes e where e.source_type = 'memoire' and e.source_id = in_memoire.id and e.modele = ${courant})`))
     .limit(lot);
   for (const m of memoires) sources.push({ type: "memoire", id: m.id, texte: texteSouvenir(m.titre, m.contenu) });
   if (sources.length < lot) {
     const connaissances = await db
       .select({ id: inConnaissance.id, titre: inConnaissance.titre, contenu: inConnaissance.contenu })
       .from(inConnaissance)
-      .where(and(eq(inConnaissance.statut, "confirme"), sql`not exists (select 1 from in_empreintes e where e.source_type = 'connaissance' and e.source_id = ${inConnaissance.id})`))
+      .where(and(eq(inConnaissance.statut, "confirme"), sql`not exists (select 1 from in_empreintes e where e.source_type = 'connaissance' and e.source_id = in_connaissance.id and e.modele = ${courant})`))
       .limit(lot - sources.length);
     for (const c of connaissances) sources.push({ type: "connaissance", id: c.id, texte: texteSouvenir(c.titre, c.contenu) });
   }
   const r = await indexer(sources, { forcer: true, fetchImpl });
-  const [m] = await db.select({ n: sql<number>`count(*)::int` }).from(inMemoire).where(and(eq(inMemoire.cycle, "actif"), sql`not exists (select 1 from in_empreintes e where e.source_type = 'memoire' and e.source_id = ${inMemoire.id})`));
-  const [c] = await db.select({ n: sql<number>`count(*)::int` }).from(inConnaissance).where(and(eq(inConnaissance.statut, "confirme"), sql`not exists (select 1 from in_empreintes e where e.source_type = 'connaissance' and e.source_id = ${inConnaissance.id})`));
+  const [m] = await db.select({ n: sql<number>`count(*)::int` }).from(inMemoire).where(and(eq(inMemoire.cycle, "actif"), sql`not exists (select 1 from in_empreintes e where e.source_type = 'memoire' and e.source_id = in_memoire.id and e.modele = ${courant})`));
+  const [c] = await db.select({ n: sql<number>`count(*)::int` }).from(inConnaissance).where(and(eq(inConnaissance.statut, "confirme"), sql`not exists (select 1 from in_empreintes e where e.source_type = 'connaissance' and e.source_id = in_connaissance.id and e.modele = ${courant})`));
   return { indexees: r.indexees, restantes: m.n + c.n, echec: r.echec };
 }

@@ -10,7 +10,7 @@
  * Distinct de server/search-os/ (moteur marketplace : annonces, garages,
  * villes, services — un domaine entièrement différent, pas dupliqué ici).
  */
-import { and, desc, eq, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { db } from "../db.js";
 import { inMemoire, inMessages, inSessions } from "./schema.js";
 import { rechercherDansFichiers } from "./fichiers.js";
@@ -18,6 +18,7 @@ import { rechercher as rechercherConnaissance, type CategorieConnaissance } from
 import { lister as listerMemoireUtilisateur } from "./memoire-utilisateur.js";
 import { tracerRetrieval } from "./retrieval-audit.js";
 import { versTsQuery } from "./recherche-texte.js";
+import { rechercherParLeSens } from "./empreintes.js";
 import { randomUUID } from "node:crypto";
 
 export type SourceRecherche = "conversation" | "memoire" | "memoire_entreprise" | "fichier" | "connaissance";
@@ -97,7 +98,31 @@ async function chercherMemoireEntreprise(query: string, limit: number): Promise<
   // jamais rien pour une question en langage naturel — et un score constant
   // aurait de toute façon dépassé celui de toutes les autres sources.
   const tsq = versTsQuery(query);
-  if (!tsq) return [];
+  const textuels = tsq ? await chercherMemoireEntrepriseTexte(tsq, limit) : [];
+  return completerMemoireParLeSens(query, limit, textuels);
+}
+
+/** Souvenirs actifs proches par le sens, ajoutés après les résultats textuels (si la fonctionnalité est activée). */
+async function completerMemoireParLeSens(query: string, limit: number, textuels: ResultatRecherche[]): Promise<ResultatRecherche[]> {
+  try {
+    const proches = await rechercherParLeSens("memoire", query, limit);
+    const dejaVus = new Set(textuels.map((t) => t.id));
+    const nouveaux = (proches ?? []).filter((p) => !dejaVus.has(p.id));
+    if (nouveaux.length === 0) return textuels;
+    const lignes = await db.select().from(inMemoire).where(and(eq(inMemoire.cycle, "actif"), inArray(inMemoire.id, nouveaux.map((p) => p.id))));
+    const ajouts: ResultatRecherche[] = [];
+    for (const p of nouveaux) {
+      const l = lignes.find((x) => x.id === p.id);
+      if (!l) continue;
+      ajouts.push({ source: "memoire_entreprise" as const, id: l.id, titre: `[${l.categorie}] ${l.titre}`, extrait: l.contenu.slice(0, 300), score: p.score, date: l.updatedAt, projetId: null });
+    }
+    return [...textuels, ...ajouts];
+  } catch {
+    return textuels;
+  }
+}
+
+async function chercherMemoireEntrepriseTexte(tsq: string, limit: number): Promise<ResultatRecherche[]> {
   const vecteur = sql`to_tsvector('french', ${inMemoire.contenu} || ' ' || ${inMemoire.titre})`;
   const rang = sql<number>`ts_rank(${vecteur}, to_tsquery('french', ${tsq}))`;
   const lignes = await db
