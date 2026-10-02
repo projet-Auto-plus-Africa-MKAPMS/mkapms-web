@@ -36,7 +36,7 @@ export async function empreintesActives(): Promise<boolean> {
 
 /** Modèle d'empreintes en vigueur : celui que la sonde a prouvé, sinon le défaut. Une empreinte d'un autre modèle n'est pas comparable. */
 export async function modeleCourant(): Promise<string> {
-  return modeleEmpreintesEffectif() ?? (await modeleValide("empreintes_semantiques")) ?? MODELE_EMPREINTES_DEFAUT;
+  return (await modeleEmpreintesEffectif()) ?? (await modeleValide("empreintes_semantiques")) ?? MODELE_EMPREINTES_DEFAUT;
 }
 
 /** Retire les empreintes d'une source (souvenir déclassé en historique, par exemple) : elles ne doivent plus faire remonter une version périmée. */
@@ -90,22 +90,25 @@ export async function indexer(sources: SourceAIndexer[], options: { forcer?: boo
       if (aCalculer.length === 0) continue;
       const r = await creerEmpreintes(aCalculer.map((s) => s.texte), options.fetchImpl);
       if (!r.ok) return { ...resultat, echec: r.motif };
-      memoriserModeleEmpreintesEffectif(r.modele);
+      await memoriserModeleEmpreintesEffectif(r.modele);
       for (let k = 0; k < aCalculer.length; k++) {
         const s = aCalculer[k];
-        // Insertion conditionnelle, en une seule instruction : si le souvenir a été remplacé (ou la connaissance retirée) pendant
-        // le calcul, aucune empreinte périmée n'est écrite.
+        // Verrou partagé sur la source, puis insertion, dans une même transaction : un remplacement concurrent (qui modifie la
+        // ligne source) attend la fin de l'insertion, puis supprime l'empreinte ; s'il est passé avant, la source n'est plus
+        // active et rien n'est écrit. Aucune empreinte périmée ne peut survivre à cette course.
         const vecteur = `{${r.vecteurs[k].join(",")}}`;
-        const existe = s.type === "memoire"
-          ? sql`exists (select 1 from in_memoire m where m.id = ${s.id} and m.cycle = 'actif')`
-          : sql`exists (select 1 from in_connaissance c where c.id = ${s.id} and c.statut = 'confirme')`;
-        const ecrit = await db.execute(sql`
-          insert into in_empreintes (source_type, source_id, modele, dimensions, hash, vecteur, updated_at)
-          select ${s.type}, ${s.id}, ${r.modele}, ${r.dimensions}, ${hashTexte(s.texte)}, ${vecteur}::real[], now()
-          where ${existe}
-          on conflict (source_type, source_id, modele)
-          do update set dimensions = excluded.dimensions, hash = excluded.hash, vecteur = excluded.vecteur, updated_at = excluded.updated_at
-          returning 1`);
+        const ecrit = await db.transaction(async (tx) => {
+          const verrou = s.type === "memoire"
+            ? await tx.execute(sql`select 1 from in_memoire where id = ${s.id} and cycle = 'actif' for share`)
+            : await tx.execute(sql`select 1 from in_connaissance where id = ${s.id} and statut = 'confirme' for share`);
+          if (verrou.rows.length === 0) return { rows: [] as unknown[] };
+          return tx.execute(sql`
+            insert into in_empreintes (source_type, source_id, modele, dimensions, hash, vecteur, updated_at)
+            values (${s.type}, ${s.id}, ${r.modele}, ${r.dimensions}, ${hashTexte(s.texte)}, ${vecteur}::real[], now())
+            on conflict (source_type, source_id, modele)
+            do update set dimensions = excluded.dimensions, hash = excluded.hash, vecteur = excluded.vecteur, updated_at = excluded.updated_at
+            returning 1`);
+        });
         if (ecrit.rows.length === 0) continue;
         // Une empreinte d'un autre modèle n'est plus comparable : elle est retirée pour que la source ne soit jamais « indexée » à tort.
         await db.delete(inEmpreintes).where(and(eq(inEmpreintes.sourceType, s.type), eq(inEmpreintes.sourceId, s.id), sql`${inEmpreintes.modele} <> ${r.modele}`));
@@ -142,7 +145,7 @@ export async function rechercherParLeSens(
   if (q.length < 3 || !(await empreintesActives())) return null;
   const r = await creerEmpreintes([q], fetchImpl);
   if (!r.ok) return null;
-  memoriserModeleEmpreintesEffectif(r.modele);
+  await memoriserModeleEmpreintesEffectif(r.modele);
   const vecQ = r.vecteurs[0];
   let lignes: { id: number; vecteur: number[] }[];
   if (type === "memoire") {

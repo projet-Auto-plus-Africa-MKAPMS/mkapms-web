@@ -52,7 +52,7 @@ export function SondeCapacites() {
       {etat.isLoading && <p>Chargement…</p>}
       {!etat.isLoading && lignes.length === 0 && <p className="text-sm">Aucun test n'a encore été lancé.</p>}
       <div className="grid gap-3 md:grid-cols-2">
-        {lignes.filter((l) => l.capacite !== "catalogue_modeles").map((l) => {
+        {lignes.filter((l) => l.capacite !== "catalogue_modeles" && l.capacite !== "empreintes_effectif").map((l) => {
           const d = l.details as { libelle?: string; note?: string; saute?: string; essais?: { modele: string; http: number | null; erreurCode: string }[] };
           return (
             <article key={l.capacite} className="rounded-lg border p-3 space-y-1 text-sm">
