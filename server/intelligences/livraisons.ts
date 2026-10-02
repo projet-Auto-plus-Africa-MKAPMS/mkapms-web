@@ -2865,6 +2865,24 @@ export const LIVRAISONS: Livraison[] = [
       "Quand deux systèmes doivent coopérer sans se confondre, on fixe le sens de l'appel, on donne à l'appelant un jeton limité par des portées que le propriétaire crée et révoque, et on décide ce qui est INTERDIT avant ce qui est permis. Une mémoire copiée porte sa date et dit qui fait foi : sans cela, la copie vieillit en silence.",
     domaine: "confiance",
   },
+  {
+    cle: "branche-autonomie-travail-recit-consignes",
+    titre: "Autonomie de travail de l'IA (consigne directe, 12 tours d'outils) et mémoire des consignes et du récit des travaux",
+    moteurs: ["intelligences"],
+    quoi:
+      "CONSIGNE_DIRECTION reçoit une section « Autonomie de travail » : sur demande du PDG, l'IA exécute directement avec les outils actifs, enchaîne les outils, cherche une autre solution si un moyen échoue, vise un résultat premium et rend compte (fait / échoué / reste). La règle « explique d'abord ce que tu vas faire » devient « annonce en une phrase puis fais ». La boucle d'outils côté direction passe de 5 à 12 tours. Six connaissances sont posées : les deux consignes de finalisation Cars4Kids du PDG mot pour mot, les deux documents de livraison de la boutique (photos ; stock, colis, livraison, TVA, panier) copiés tels quels, le récit des travaux des 1er et 2 octobre (avec ce qui reste), et la décision d'autonomie avec ses limites.",
+    pourquoi:
+      "Le PDG veut une IA autonome : « une fois que je le dis, fais ça, elle le fait directement », qui trouve des solutions et vise le premium, et qui connaisse tout ce qui a été fait et demandé. Les limites ne bougent pas : aucune donnée inventée, jamais de publication, d'approbation, de paiement, de déploiement ni de modification de prix, TVA, stock ou livraison ; aucun secret dans la conversation ; les outils HIGH/CRITICAL restent refusés par la politique. Le curseur d'autonomie du Centre Intelligences reste le réglage du PDG et n'a pas été modifié (aucune donnée de production touchée).",
+    ou: [
+      "server/intelligences/regles.ts",
+      "server/intelligences/service.ts",
+      "server/intelligences/connaissances-travaux.ts",
+      "server/intelligences/__tests__/connaissances-travaux.test.ts",
+    ],
+    lecon:
+      "Rendre une IA autonome ne veut pas dire lever ses garde-fous : on supprime les frictions (confirmations inutiles, questions redondantes, boucle trop courte) et on écrit noir sur blanc ce qui reste interdit. Un récit utile à la mémoire dit aussi ce qui n'est pas fait.",
+    domaine: "confiance",
+  },
 ];
 
 /**
