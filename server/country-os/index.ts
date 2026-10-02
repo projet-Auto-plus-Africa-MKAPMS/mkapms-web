@@ -299,6 +299,22 @@ export async function dashboard(): Promise<EngineDashboard> {
   };
 }
 
+/**
+ * Ce que le public voit d'un pays ouvert : de quoi choisir son pays (nom, langue,
+ * devise). Jamais la configuration interne (TVA, réglementation, documents,
+ * moyens de paiement, univers activés) : réservée à l'administration.
+ */
+export function versPublic(row: typeof countryCountries.$inferSelect) {
+  return {
+    code: row.code,
+    nameFr: row.nameFr,
+    nameEn: row.nameEn,
+    defaultLanguage: row.defaultLanguage,
+    availableLanguages: row.availableLanguages,
+    defaultCurrency: row.defaultCurrency,
+  };
+}
+
 // ── Router tRPC ─────────────────────────────────────────────────────────
 export const countryOsRouter = router({
   meta: publicProcedure.query(() => COUNTRY_OS_META),
@@ -312,12 +328,18 @@ export const countryOsRouter = router({
     .query(({ input, ctx }) => {
       // Les pays désactivés (configuration interne) ne sont visibles que de l'administration ; le public ne voit que les actifs.
       const adminRole = !!ctx.user && isAdmin(ctx.user.role);
-      return listCountries({ activeOnly: adminRole ? (input?.activeOnly ?? true) : true });
+      return listCountries({ activeOnly: adminRole ? (input?.activeOnly ?? true) : true }).then((rows) =>
+        adminRole ? rows : rows.map(versPublic));
     }),
 
   get: publicProcedure
     .input(z.object({ code: z.string().length(2) }))
-    .query(({ input }) => getCountry(input.code)),
+    .query(async ({ input, ctx }) => {
+      const row = await getCountry(input.code);
+      if (!row) return null;
+      if (ctx.user && isAdmin(ctx.user.role)) return row;
+      return row.active ? versPublic(row) : null;
+    }),
 
   currencies: publicProcedure.query(() => listCurrencies()),
 

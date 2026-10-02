@@ -40,7 +40,7 @@ export interface AnomalieCliquable {
   readonly motif: MotifAnomalie;
 }
 
-export const CLIQUABLES_TOTAL = 2700;
+export const CLIQUABLES_TOTAL = 2701;
 
 export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/components/AccessDenied.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
@@ -333,7 +333,7 @@ export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/pages/HistoriqueVehiculeVente.tsx", total: 6, moteur: 0, liens: 2, boutonsLocaux: 4, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/Home.tsx", total: 15, moteur: 0, liens: 12, boutonsLocaux: 2, sansAction: 0, zones: 1 },
   { fichier: "client/src/pages/HomePro.tsx", total: 5, moteur: 0, liens: 5, boutonsLocaux: 0, sansAction: 0, zones: 0 },
-  { fichier: "client/src/pages/HomeSite.tsx", total: 3, moteur: 0, liens: 2, boutonsLocaux: 1, sansAction: 0, zones: 0 },
+  { fichier: "client/src/pages/HomeSite.tsx", total: 4, moteur: 0, liens: 2, boutonsLocaux: 2, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/InscriptionParticulier.tsx", total: 5, moteur: 0, liens: 3, boutonsLocaux: 2, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/InscriptionProVente.tsx", total: 8, moteur: 0, liens: 4, boutonsLocaux: 4, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/InscriptionProVO.tsx", total: 7, moteur: 0, liens: 3, boutonsLocaux: 4, sansAction: 0, zones: 0 },

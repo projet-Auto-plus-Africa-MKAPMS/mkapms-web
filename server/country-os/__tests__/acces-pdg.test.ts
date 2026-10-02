@@ -47,3 +47,20 @@ test("la route de l'écran est enveloppée par le verrou PDG (pas l'enveloppe pu
   assert.match(ligne!, /<P module="centre_pdg"/);
   assert.equal(/<U name="Global Country Engine">/.test(ligne!), false);
 });
+
+test("le public voit les pays pour choisir le sien, sans la configuration interne", async () => {
+  const { versPublic } = await import("../index.js");
+  const ligne = versPublic({
+    code: "MA", code3: "MAR", nameFr: "Maroc", nameEn: "Morocco", defaultLanguage: "fr", availableLanguages: ["fr", "ar"],
+    defaultCurrency: "MAD", tvaRate: "20.00", phonePrefix: "+212", timezone: "Africa/Casablanca", addressFormat: {},
+    paymentMethods: ["card"], requiredDocs: ["cni"], universesEnabled: ["auto"], regulations: { secret: 1 }, active: true,
+    createdAt: new Date(), updatedAt: new Date(),
+  });
+  assert.deepEqual(Object.keys(ligne).sort(), ["availableLanguages", "code", "defaultCurrency", "defaultLanguage", "nameEn", "nameFr"]);
+});
+
+test("l'accueil : un clic sur un pays le choisit, aucun lien vers les réglages internes", () => {
+  const home = readFileSync(new URL("../../../client/src/pages/HomeSite.tsx", import.meta.url), "utf8");
+  assert.ok(home.includes("setCountry(item.code)"));
+  assert.ok(!home.includes("/mk-global-engine"));
+});
