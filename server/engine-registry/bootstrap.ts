@@ -21,6 +21,9 @@ import { seedFondations, seedPipelines } from "../intelligences/fondations.js";
 import { seedConnaissancesPublication } from "../intelligences/connaissances-publication.js";
 import { seedConnaissancesBoutique } from "../intelligences/connaissances-boutique.js";
 import { seedConnaissancesTravaux } from "../intelligences/connaissances-travaux.js";
+import { seedSouvenirsTravaux } from "../intelligences/fondations-travaux.js";
+import { seedReferentielAutomobile } from "../knowledge-engine/referentiel-seed.js";
+import { synchroniserNhtsaSiNecessaire } from "../knowledge-engine/nhtsa.js";
 import { initialiserBaremes } from "../vehicle-delivery/service.js";
 import { retenir } from "../intelligences/memoire.js";
 import { notifyDirection } from "../notification-os/triggers.js";
@@ -541,6 +544,37 @@ export async function bootstrapEngines(): Promise<void> {
   } catch (err) {
     console.error(
       "[MKA.P-MS] pose des connaissances de récit des travaux échouée:",
+      (err as Error).message,
+    );
+  }
+
+  // Mémoires projets, recherche, décisions et apprentissage des 1er et 2 octobre 2026 : posées une fois.
+  try {
+    const r = await seedSouvenirsTravaux();
+    if (r.nouveaux > 0) {
+      console.log(`[MKA.P-MS] Intelligences : ${r.nouveaux} souvenir(s) des travaux posé(s) (projets, recherche, décisions, apprentissage).`);
+    }
+  } catch (err) {
+    console.error(
+      "[MKA.P-MS] pose des souvenirs des travaux échouée:",
+      (err as Error).message,
+    );
+  }
+
+  // Mémoire automobile : référentiel de départ (marques, types de véhicules, familles de pièces — connaissance générale NON
+  // vérifiée), puis synchronisation des marques enregistrées à la NHTSA, sans attendre (au plus une fois par mois).
+  try {
+    const r = await seedReferentielAutomobile();
+    if (r.refusee) console.error(`[MKA.P-MS] référentiel automobile refusé : ${r.refusee}`);
+    else if (r.nouvelles > 0) console.log(`[MKA.P-MS] Mémoire automobile : ${r.nouvelles} nœud(s) du référentiel posé(s), ${r.liens} lien(s).`);
+    void synchroniserNhtsaSiNecessaire()
+      .then((s) => {
+        if (s) console.log(`[MKA.P-MS] Mémoire automobile — NHTSA : ${s.ok ? s.detail : `échec — ${s.detail}`}`);
+      })
+      .catch((err) => console.error("[MKA.P-MS] synchronisation NHTSA échouée:", (err as Error).message));
+  } catch (err) {
+    console.error(
+      "[MKA.P-MS] pose du référentiel automobile échouée:",
       (err as Error).message,
     );
   }
