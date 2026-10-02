@@ -544,6 +544,8 @@ export async function retenir(input: RetenirInput): Promise<{ id: number; recurr
       id: inExperiences.id,
       occurrences: inExperiences.occurrences,
       tentatives: inExperiences.tentatives,
+      diagnostic: inExperiences.diagnostic,
+      solution: inExperiences.solution,
       resultat: inExperiences.resultat,
       blocage: inExperiences.blocage,
     })
@@ -557,7 +559,16 @@ export async function retenir(input: RetenirInput): Promise<{ id: number; recurr
     if (identique) {
       await db
         .update(inExperiences)
-        .set({ tentatives: existant.tentatives + 1, updatedAt: new Date() })
+        .set({
+          tentatives: existant.tentatives + 1,
+          // Même issue : le compteur d'épisodes ne bouge pas, mais une proposition plus complète n'est pas perdue.
+          diagnostic: input.diagnostic.trim() ? input.diagnostic.slice(0, 20000) : existant.diagnostic,
+          solution: input.solution.trim() ? input.solution.slice(0, 20000) : existant.solution,
+          missionId: input.missionId ?? null,
+          testRunId: input.testRunId ?? null,
+          devRequestId: input.devRequestId ?? null,
+          updatedAt: new Date(),
+        })
         .where(eq(inExperiences.id, existant.id));
       return { id: existant.id, recurrent: true, nouvelEpisode: false };
     }

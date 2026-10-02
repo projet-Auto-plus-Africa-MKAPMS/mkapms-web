@@ -205,7 +205,7 @@ export interface DepsOrchestrateur {
   memoire: { dejaVu: typeof dejaVu; retenir: typeof retenir };
   centre: {
     analyserPerimetre(besoin: string): Promise<string[]>;
-    trouverDossierOuvert(i: { need: string; id?: number | null }): Promise<{ id: number; status: string } | null>;
+    trouverDossierOuvert(i: { need: string; id?: number | null; requestedBy?: number }): Promise<{ id: number; status: string } | null>;
     ouvrirDossier(i: { need: string; countryCode?: string | null; requestedBy?: number }): Promise<{ id: number; status: string; blockedReason?: string | null } | null>;
   };
   tests: {
@@ -310,6 +310,20 @@ export async function resoudrePerimetre(objectif: string, domaine: string, deps:
     : { etat: "non_identifie" };
 }
 
+/**
+ * Curseur d'autonomie du périmètre résolu : celui du domaine reconnu dans son nom, sinon le curseur courant (« code » par
+ * défaut). On ne fait que CONSULTER un curseur existant : jamais le monter.
+ */
+export function curseurDuPerimetre(nomPerimetre: string, courant: string): string {
+  const c = classerObjectif(nomPerimetre);
+  return c.domaine === "inconnu" || c.domaine === "boutique" ? courant : c.autonomie;
+}
+
+/** Domaine de contrôle correspondant à une clé du relevé (« moteur:annonces » → « annonces »). */
+export function domaineDeControle(cle: string): string {
+  return cle.startsWith("moteur:") ? cle.slice("moteur:".length) : cle;
+}
+
 /* ------------------------------------------------------------------ */
 /* Preuve du correctif                                                  */
 /* ------------------------------------------------------------------ */
@@ -327,7 +341,7 @@ export function cheminsCites(texte: string): string[] {
 /* Exécution                                                            */
 /* ------------------------------------------------------------------ */
 
-const ETAPES_REPRISES = new Set<CleEtape>(["architecture", "analyse", "correctif", "dossier"]);
+const ETAPES_REPRISES = new Set<CleEtape>(["architecture", "analyse", "correctif", "dossier", "deploiement"]);
 const DEPENDANCE_STRICTE = new Set<CleEtape>(["deploiement"]);
 
 function tronque(t: string, n: number): string {
@@ -347,6 +361,32 @@ function etapeVers(e: Etape): EtapeMission {
     observe: e.observe,
     preuve: e.preuve,
     dureeMs: e.dureeMs,
+  };
+}
+
+export const REPRISE_DEJA_EN_COURS = "reprise_deja_en_cours";
+
+function repriseDejaEnCours(objectif: string, id: number): Mission {
+  const prochaineAction = "Attendre la fin de la reprise en cours, puis relancer « continue ».";
+  return {
+    id,
+    objectif,
+    domaine: "non_classe",
+    statut: "arretee",
+    arretSur: "",
+    motif: "Cette mission est déjà en cours de reprise par une autre requête.",
+    rapport: "",
+    resume: [`Mission #${id} : « ${tronque(objectif, 140)} » — déjà en cours de reprise.`, "Travail réalisé : aucun par cette requête (rien n'est répété).", `Prochaine action : ${prochaineAction}`].join("\n"),
+    compteur: compter([]),
+    repriseDe: id,
+    clarification: null,
+    candidats: [],
+    prochaineAction,
+    devRequestId: null,
+    pipelineRunId: null,
+    testRunId: null,
+    deploiementDemandeId: null,
+    etapes: [],
   };
 }
 
@@ -415,12 +455,22 @@ export async function orchestrer(input: OrchestrerInput, deps: DepsOrchestrateur
 
   const classe = classerObjectif(objectif);
   let { domaine } = classe;
-  const { autonomie } = classe;
-  if (reprise && domaineResolu(reprise.domaine) && !domaineResolu(domaine)) domaine = reprise.domaine!;
+  let { autonomie } = classe;
+  if (reprise && domaineResolu(reprise.domaine) && !domaineResolu(domaine)) {
+    domaine = reprise.domaine!;
+    autonomie = curseurDuPerimetre(domaine, autonomie);
+  }
   if (domaine === "boutique") return travailOutille(input, objectif, domaine, autonomie);
   const accordees = await deps.permissionsDuRole(input.role);
 
-  const missionId = await deps.store.creer({ objectif, domaine, actorId: input.actorId ?? null, repriseDe: reprise?.id ?? null });
+  let missionId: number;
+  try {
+    missionId = await deps.store.creer({ objectif, domaine, actorId: input.actorId ?? null, repriseDe: reprise?.id ?? null });
+  } catch (e) {
+    // Une mission ne se reprend qu'une fois : une autre requête l'a déjà reprise, rien n'est relancé ni répété.
+    if (reprise && e instanceof Error && e.message === REPRISE_DEJA_EN_COURS) return repriseDejaEnCours(objectif, reprise.id!);
+    throw e;
+  }
   const acquis = new Map<string, { observe: string }>();
   for (const e of reprise?.etapes ?? []) if (e.statut === "fait" && ETAPES_REPRISES.has(e.etape as CleEtape)) acquis.set(e.etape, { observe: e.observe.replace(/\nPreuve : [\s\S]*$/, "") });
 
@@ -472,27 +522,12 @@ export async function orchestrer(input: OrchestrerInput, deps: DepsOrchestrateur
       continue;
     }
 
-    /* 3. Résultat déjà établi par une mission précédente (reprise). */
-    const repris = acquis.get(def.etape);
-    if (repris) {
-      base.observe = repris.observe;
-      base.preuve = `résultat établi dans la mission #${reprise!.id}, conservé`;
-      if (def.etape === "architecture") contexteArchitecture = repris.observe;
-      if (def.etape === "analyse") contexteAnalyse = repris.observe;
-      if (def.etape === "architecture") {
-        perimetre = null;
-      }
-      if (def.etape === "dossier") devRequestId = reprise!.devRequestId ?? devRequestId;
-      fin("fait");
-      continue;
-    }
-
-    /* 4. Autorisation : celle de l'opération réellement effectuée. */
+    /* 3. Autorisation : celle de l'opération réellement effectuée (contrôlée avant toute reprise de résultat). */
     let permission = def.permission;
     let action = def.action;
     let dossierExistant: { id: number; status: string } | null = null;
     if (def.etape === "dossier") {
-      dossierExistant = await deps.centre.trouverDossierOuvert({ need: objectif, id: devRequestId });
+      dossierExistant = await deps.centre.trouverDossierOuvert({ need: objectif, id: devRequestId, requestedBy: input.actorId });
       if (dossierExistant) {
         permission = "READ";
         action = `consultation du dossier de développement #${dossierExistant.id} déjà ouvert (aucune écriture, aucun doublon créé)`;
@@ -510,6 +545,23 @@ export async function orchestrer(input: OrchestrerInput, deps: DepsOrchestrateur
     if (!verdict.autorise) {
       base.observe = `Action bloquée : ${action}. Autorisation manquante : niveau ${verdict.niveauRequis} requis sur « ${autonomie} », le curseur est au niveau ${verdict.niveauAccorde}. Rien n'a été modifié.`;
       fin("en_attente_autorisation");
+      continue;
+    }
+
+    /* 5. Résultat déjà établi par une mission précédente (reprise) : rendu seulement si les droits ACTUELS le permettent. */
+    const repris = acquis.get(def.etape);
+    if (repris) {
+      base.observe = repris.observe;
+      base.preuve = `résultat établi dans la mission #${reprise!.id}, conservé`;
+      if (def.etape === "architecture") contexteArchitecture = repris.observe;
+      if (def.etape === "analyse") contexteAnalyse = repris.observe;
+      if (def.etape === "architecture") {
+        perimetre = null;
+      }
+      if (def.etape === "dossier") devRequestId = reprise!.devRequestId ?? devRequestId;
+      // Une demande de déploiement déjà posée n'est jamais reposée : on garde son identifiant.
+      if (def.etape === "deploiement") deploiementDemandeId = Number(/Demande de déploiement #(\d+)/.exec(repris.observe)?.[1] ?? "") || null;
+      fin("fait");
       continue;
     }
 
@@ -537,7 +589,11 @@ export async function orchestrer(input: OrchestrerInput, deps: DepsOrchestrateur
           perimetre = await resoudrePerimetre(objectif, domaine, deps);
           if (perimetre.etat === "identifie") {
             const i = perimetre.impact;
-            if (domaine === "inconnu" || DOMAINES_GENERIQUES.has(domaine)) domaine = perimetre.libelle.slice(0, 48);
+            if (DOMAINES_GENERIQUES.has(domaine)) {
+              domaine = domaineDeControle(perimetre.cle).slice(0, 48);
+              // Le périmètre résolu peut avoir son propre curseur : les étapes suivantes sont contrôlées sur celui-ci.
+              autonomie = curseurDuPerimetre(`${domaine} ${perimetre.libelle}`, autonomie);
+            }
             const connus = await deps.graphe.fichiersConnus(i.fichiers);
             const lecture = `${i.fichiers.length} fichier(s), ${i.api.length} API, ${i.tables.length} table(s), ${i.tests.length} contrôle(s), ${i.dependants.length} module(s) dépendant(s).${
               i.avertissements.length > 0 ? ` Avertissements : ${i.avertissements.join(" ")}` : ""
@@ -670,7 +726,7 @@ export async function orchestrer(input: OrchestrerInput, deps: DepsOrchestrateur
         }
 
         case "tests": {
-          const run = await deps.tests.lancer({ portee: perimetre?.etat === "identifie" ? perimetre.cle : domaine, requestedBy: input.actorId });
+          const run = await deps.tests.lancer({ portee: perimetre?.etat === "identifie" ? domaineDeControle(perimetre.cle) : domaine, requestedBy: input.actorId });
           testRunId = run.runId;
           if (run.total === 0) {
             base.statut = "partielle";
@@ -759,7 +815,7 @@ export async function orchestrer(input: OrchestrerInput, deps: DepsOrchestrateur
   const rapport = [
     resume,
     "",
-    ...etapes.map((e) => `[${categorie(e.statut)}] ${e.libelle}${e.preuve ? ` — preuve : ${e.preuve}` : ""}`),
+    ...etapes.map((e) => `[${categorie(e.statut)}] ${e.libelle}${e.preuve ? ` — preuve : ${e.preuve}` : ""}${e.observe ? `\n${e.observe.length > 4000 ? `${e.observe.slice(0, 3999)}…` : e.observe}` : ""}`),
   ].join("\n");
 
   const niveauAccorde = (await deps.autorise(autonomie, "READ")).niveauAccorde;

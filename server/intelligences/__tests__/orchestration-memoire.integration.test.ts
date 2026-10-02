@@ -16,6 +16,7 @@ async function base() {
   await pool.query(`CREATE TABLE cg_lessons(id bigserial PRIMARY KEY, classe varchar(120) NOT NULL, source varchar(20) NOT NULL, source_ref varchar(200), probleme text NOT NULL, proposition text, correctif text, tests text, validation varchar(16) NOT NULL DEFAULT 'en_attente', resultat text, moteurs jsonb NOT NULL DEFAULT '[]', occurrences integer NOT NULL DEFAULT 1, releves integer NOT NULL DEFAULT 1, last_seen_at timestamp NOT NULL DEFAULT now(), created_at timestamp NOT NULL DEFAULT now(), CONSTRAINT cg_lessons_classe_unique UNIQUE(classe, source, source_ref))`);
   await pool.query(`CREATE TABLE agent_change_log(id serial PRIMARY KEY, agent text, kind text, title text, detail text, engine_name text, status text, rollback_plan text)`);
   await pool.query(`CREATE TABLE in_missions(id serial PRIMARY KEY, objectif text NOT NULL, domaine varchar(48) NOT NULL DEFAULT 'inconnu', cote varchar(16) NOT NULL DEFAULT 'direction', statut varchar(32) NOT NULL DEFAULT 'en_cours', arret_sur varchar(48) NOT NULL DEFAULT '', motif text NOT NULL DEFAULT '', rapport text NOT NULL DEFAULT '', niveau_requis integer NOT NULL DEFAULT 1, niveau_accorde integer NOT NULL DEFAULT 0, dev_request_id integer, pipeline_run_id integer, test_run_id integer, actor_id integer, duree_ms integer NOT NULL DEFAULT 0, reprise_de integer, created_at timestamp NOT NULL DEFAULT now())`);
+  await pool.query("CREATE UNIQUE INDEX in_missions_reprise_unique ON in_missions(reprise_de) WHERE reprise_de IS NOT NULL");
   await pool.query(`CREATE TABLE in_mission_etapes(id bigserial PRIMARY KEY, mission_id integer NOT NULL, rang integer NOT NULL, etape varchar(48) NOT NULL, libelle varchar(160) NOT NULL DEFAULT '', statut varchar(32) NOT NULL DEFAULT 'non_execute', capacite varchar(32), permission varchar(24), niveau_requis integer NOT NULL DEFAULT 1, observe text NOT NULL DEFAULT '', duree_ms integer NOT NULL DEFAULT 0, created_at timestamp NOT NULL DEFAULT now())`);
   return pool;
 }
@@ -45,13 +46,18 @@ test("expériences : un essai répété sans rien de nouveau n'ajoute ni ligne n
   assert.match(vu.verdict, /blocage d'autorisation \(1 épisode\(s\), 3 tentative\(s\)\)/);
   assert.doesNotMatch(vu.verdict, /corrig(é|ée) avec succès|déjà corrigé/i);
 
+  // Même issue mais proposition plus complète : le contenu est mis à jour, le compteur d'épisodes ne bouge pas.
+  await retenir({ ...essai, solution: "Modifier A et B" });
+  const maj = (await q(pool, "select occurrences, solution from in_experiences"))[0]!;
+  assert.deepEqual([maj.occurrences, maj.solution], [1, "Modifier A et B"]);
+
   // Un résultat DIFFÉRENT est un nouvel épisode (même ligne, occurrences + 1).
   const d = await retenir({ ...essai, resultat: "echec_technique", blocage: "analyse — Fournisseur indisponible." });
   assert.equal(d.nouvelEpisode, true);
   lignes = await q(pool, "select occurrences, tentatives, resultat from in_experiences");
   assert.equal(lignes.length, 1);
   assert.equal(lignes[0]!.occurrences, 2);
-  assert.equal(lignes[0]!.tentatives, 4);
+  assert.equal(lignes[0]!.tentatives, 5);
   assert.equal(lignes[0]!.resultat, "echec_technique");
 
   // Pertinence : une expérience sans rapport, même très répétée, ne remonte pas ; la correction vérifiée passe avant le reste.
@@ -110,6 +116,11 @@ test("leçons : relire les mêmes événements sources ne gonfle plus les occurr
   assert.equal(rn.connue, false);
   assert.match(rn.verdict, /aucune ne porte sur ce cas précis — rien n'est acquis pour lui/);
 
+  // Un seul terme de classement en commun (« bouton ») ne suffit pas : autre bouton, autre problème.
+  const autre = await reconnaitre("bouton connexion inactif");
+  assert.equal(autre.classe, "parcours_casse");
+  assert.equal(autre.connue, false);
+
   // Audit en lecture seule : ne modifie rien.
   const avant = await q(pool, "select count(*)::int n, sum(occurrences)::int o, sum(releves)::int r from cg_lessons");
   const audit = await auditerLecons();
@@ -151,6 +162,10 @@ test("missions : une mission déjà reprise n'est plus « inachevée » ; une mi
   const b = await STORE_REEL.creer({ objectif: "Répare le paiement", domaine: "paiement", actorId: 1, repriseDe: a });
   await STORE_REEL.maj(b, { statut: "arretee", arretSur: "tests" });
   assert.deepEqual((await STORE_REEL.inachevees(1, new Date(Date.now() - 86400000))).map((m) => m.id), [b], "seule la reprise porte la suite");
+  assert.equal((await STORE_REEL.reprisePar(a))!.id, b);
+  // Une mission ne se reprend qu'une fois, même par deux requêtes concurrentes.
+  await assert.rejects(() => STORE_REEL.creer({ objectif: "Répare le paiement", domaine: "paiement", actorId: 1, repriseDe: a }), /reprise_deja_en_cours/);
+  assert.equal((await q(pool, "select count(*)::int n from in_missions where reprise_de = " + a))[0]!.n, 1);
   await STORE_REEL.maj(b, { statut: "accomplie" });
   assert.deepEqual(await STORE_REEL.inachevees(1, new Date(Date.now() - 86400000)), []);
   // Une autre personne ne voit pas ces missions.

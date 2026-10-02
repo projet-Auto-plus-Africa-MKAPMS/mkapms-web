@@ -36,6 +36,8 @@ export interface StoreMissions {
   /** Missions de cet acteur restées inachevées (arrêtées ou en échec) depuis la date donnée, la plus récente d'abord. */
   inachevees(actorId: number, depuis: Date): Promise<LigneMission[]>;
   parId(id: number): Promise<LigneMission | null>;
+  /** La reprise (la plus récente) d'une mission, s'il en existe une. */
+  reprisePar(id: number): Promise<LigneMission | null>;
   etapesDe(missionId: number): Promise<LigneEtape[]>;
 }
 
@@ -53,11 +55,18 @@ const colonnes = {
 
 export const STORE_REEL: StoreMissions = {
   async creer(v) {
+    // Une mission d'origine n'a qu'UNE reprise (index unique) : une requête concurrente ne peut pas la reprendre aussi.
     const [m] = await db
       .insert(inMissions)
       .values({ objectif: v.objectif.slice(0, 4000), domaine: v.domaine, cote: "direction", actorId: v.actorId, repriseDe: v.repriseDe ?? null })
+      .onConflictDoNothing()
       .returning({ id: inMissions.id });
+    if (!m) throw new Error("reprise_deja_en_cours");
     return m.id;
+  },
+  async reprisePar(id) {
+    const [m] = await db.select(colonnes).from(inMissions).where(eq(inMissions.repriseDe, id)).orderBy(desc(inMissions.id)).limit(1);
+    return m ?? null;
   },
   async maj(id, patch) {
     await db.update(inMissions).set(patch).where(eq(inMissions.id, id));

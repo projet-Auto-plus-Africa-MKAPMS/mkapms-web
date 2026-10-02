@@ -534,15 +534,17 @@ export async function sendDevRequestToPipeline(input: {
  * Consultation (aucune écriture) : le dossier de développement encore ouvert qui correspond à ce besoin, s'il existe.
  * Permet de reprendre un dossier au lieu d'en créer un nouveau à chaque demande répétée.
  */
-export async function trouverDossierOuvert(input: { need: string; id?: number | null }): Promise<{ id: number; status: string } | null> {
+export async function trouverDossierOuvert(input: { need: string; id?: number | null; requestedBy?: number }): Promise<{ id: number; status: string } | null> {
+  // Un dossier n'est retrouvé que pour la personne qui l'a ouvert : jamais celui d'un autre utilisateur.
+  if (input.requestedBy === undefined) return null;
   if (input.id) {
-    const [par] = await db.select({ id: ccDevRequests.id, status: ccDevRequests.status }).from(ccDevRequests).where(eq(ccDevRequests.id, input.id)).limit(1);
+    const [par] = await db.select({ id: ccDevRequests.id, status: ccDevRequests.status }).from(ccDevRequests).where(and(eq(ccDevRequests.id, input.id), eq(ccDevRequests.requestedBy, input.requestedBy))).limit(1);
     if (par && !["abandonne", "livre"].includes(par.status)) return par;
   }
   const [meme] = await db
     .select({ id: ccDevRequests.id, status: ccDevRequests.status })
     .from(ccDevRequests)
-    .where(and(eq(ccDevRequests.need, input.need.slice(0, 4000)), sql`${ccDevRequests.status} not in ('abandonne','livre')`))
+    .where(and(eq(ccDevRequests.need, input.need.slice(0, 4000)), eq(ccDevRequests.requestedBy, input.requestedBy), sql`${ccDevRequests.status} not in ('abandonne','livre')`))
     .orderBy(desc(ccDevRequests.createdAt))
     .limit(1);
   return meme ?? null;

@@ -43,12 +43,13 @@ function monde(partiel: Partial<Monde> = {}) {
     testsTotal: 3,
     ...partiel,
   };
-  const appels = { router: 0, retenir: [] as { resultat: string; domaine: string; probleme: string }[], recherche: [] as string[], impact: [] as string[], ouvrirDossier: 0, tests: 0, deploiement: 0, creer: 0, normaliser: 0 };
+  const appels = { router: 0, retenir: [] as { resultat: string; domaine: string; probleme: string }[], recherche: [] as string[], impact: [] as string[], ouvrirDossier: 0, portees: [] as string[], tests: 0, deploiement: 0, creer: 0, normaliser: 0 };
   const dossiers: { id: number; need: string; status: string }[] = [];
   const lignes: (LigneMission & { etapes: LigneEtape[] })[] = [];
   let seq = 100;
   const store: StoreMissions = {
     async creer(v) {
+      if (v.repriseDe && lignes.some((l) => (l as never as { reprise: number | null }).reprise === v.repriseDe)) throw new Error("reprise_deja_en_cours");
       appels.creer++;
       const id = ++seq;
       lignes.push({ id, objectif: v.objectif, domaine: v.domaine, statut: "en_cours", arretSur: "", motif: "", actorId: v.actorId, devRequestId: null, createdAt: new Date(), etapes: [], reprise: v.repriseDe ?? null } as never);
@@ -66,6 +67,9 @@ function monde(partiel: Partial<Monde> = {}) {
     },
     async parId(id) {
       return lignes.find((l) => l.id === id) ?? null;
+    },
+    async reprisePar(id) {
+      return [...lignes].reverse().find((l) => (l as never as { reprise: number | null }).reprise === id) ?? null;
     },
     async etapesDe(id) {
       return lignes.find((l) => l.id === id)?.etapes ?? [];
@@ -119,8 +123,9 @@ function monde(partiel: Partial<Monde> = {}) {
       },
     },
     tests: {
-      lancer: async () => {
+      lancer: async ({ portee }) => {
         appels.tests++;
+        appels.portees.push(portee);
         return { runId: 9, total: m.testsTotal, reussis: m.testsTotal, echecs: 0, ignores: 0, regressions: 0 };
       },
       verrou: async () => ({ autorise: m.verrouOuvert, motif: m.verrouOuvert ? "Contrôles au vert." : "Verrou fermé.", bloquants: [] }),
@@ -220,7 +225,8 @@ test("3. « inconnu » n'est pas un composant : non identifié ≠ absent, puis 
   const w3 = monde({ composants: { "moteur:commission": ["server/commission/service.ts"] }, recherches: { commissions: "moteur:commission" }, texteCorrectif: "Modifier server/commission/service.ts." });
   const r3 = await orchestrer(entree("Améliore le calcul des commissions"), w3.deps);
   assert.equal(statuts(r3).architecture, "fait");
-  assert.equal(r3.domaine, "commissions");
+  assert.equal(r3.domaine, "commission", "domaine = nom du moteur au relevé, pas la clé préfixée");
+  assert.deepEqual(w3.appels.portees, ["commission"], "les contrôles reçoivent le domaine de contrôle, pas « moteur:commission »");
   assert.equal(statuts(r3).correctif, "fait");
   assert.equal(statuts(r3).dossier, "fait");
 });
@@ -405,4 +411,45 @@ test("9. état court : mission, travail réalisé, blocage précis, prochaine ac
 test("cheminsCites : n'extrait que de vrais chemins de fichiers", () => {
   const t = "Modifier `server/a/b.ts` et client/src/x.tsx, voir aussi la section 3.2 et l'url example.com/page.";
   assert.deepEqual(cheminsCites(t), ["server/a/b.ts", "client/src/x.tsx"]);
+});
+
+test("10. revue : rapport avec le détail, reprise sans doublon de déploiement, une seule reprise, droits actuels, curseur du périmètre", async () => {
+  // Le rapport garde le texte produit par chaque étape (analyse, correctif), pas seulement les statuts.
+  const w = monde();
+  const r = await orchestrer(entree("Répare le paiement de la page abonnement"), w.deps);
+  assert.match(r.rapport, /Modifier server\/payment-engine\/checkout\.ts : corriger le calcul/);
+
+  // Déploiement : une demande déjà posée n'est pas reposée par la reprise (rôle sans WRITE : dossier bloqué, déploiement posé).
+  const w2 = monde({ permissions: TOUTES.filter((p) => p !== "WRITE") });
+  const a = await orchestrer(entree("Répare le paiement de la page abonnement"), w2.deps);
+  assert.equal(statuts(a).deploiement, "fait");
+  assert.equal(w2.appels.deploiement, 1);
+  const b = await orchestrer(entree("continue", { missionActiveId: a.id }), w2.deps);
+  assert.equal(w2.appels.deploiement, 1, "aucune seconde demande de déploiement");
+  assert.equal(b.deploiementDemandeId, 5);
+
+  // Deux « continue » sur la même mission : une seule reprise, la seconde requête ne répète rien.
+  const w3 = monde({ niveau: 2 });
+  const o = await orchestrer(entree("Répare le paiement de la page abonnement"), w3.deps);
+  const premiere = await orchestrer(entree("continue", { missionActiveId: o.id }), w3.deps);
+  const testsAvant = w3.appels.tests;
+  const seconde = await orchestrer(entree("continue", { missionActiveId: o.id }), w3.deps);
+  assert.equal(seconde.repriseDe, premiere.id, "l'identifiant désigne la dernière reprise, pas l'origine");
+  assert.equal(w3.lignes.filter((l) => (l as never as { reprise: number | null }).reprise === o.id).length, 1);
+  assert.ok(w3.appels.tests >= testsAvant);
+
+  // Droits actuels : après révocation, les résultats conservés ne sont plus rendus.
+  const w4 = monde({ niveau: 2 });
+  const p = await orchestrer(entree("Répare le paiement de la page abonnement"), w4.deps);
+  assert.equal(statuts(p).analyse, "fait");
+  w4.m.permissions = TOUTES.filter((x) => x !== "ANALYZE");
+  const q = await orchestrer(entree("continue", { missionActiveId: p.id }), w4.deps);
+  assert.equal(statuts(q).analyse, "refuse");
+  assert.doesNotMatch(q.etapes.find((e) => e.etape === "analyse")!.observe, /Modifier server/);
+
+  // Curseur du périmètre résolu : consulté, jamais monté.
+  const { curseurDuPerimetre, domaineDeControle } = await import("../orchestrateur.js");
+  assert.equal(curseurDuPerimetre("paiement checkout", "code"), "paiement");
+  assert.equal(curseurDuPerimetre("commission", "code"), "code");
+  assert.equal(domaineDeControle("moteur:annonces"), "annonces");
 });

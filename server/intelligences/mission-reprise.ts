@@ -44,7 +44,13 @@ export async function trouverMissionActive(
 
   // 1. Désignation explicite par l'écran (la mission doit appartenir à l'acteur et ne pas être terminée).
   if (entree.missionActiveId) {
-    const m = await store.parId(entree.missionActiveId);
+    let m = await store.parId(entree.missionActiveId);
+    // La mission désignée peut avoir déjà été reprise : c'est sa dernière reprise qui porte la suite (jamais deux reprises).
+    for (let i = 0; m && i < 20; i++) {
+      const suite = await store.reprisePar(m.id);
+      if (!suite) break;
+      m = suite;
+    }
     if (m && m.actorId === acteur && ["arretee", "echouee"].includes(m.statut)) return { etat: "identifiee", mission: await enMission(store, m, "ecran") };
   }
 

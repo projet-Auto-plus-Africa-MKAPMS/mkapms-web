@@ -1,6 +1,9 @@
 -- Missions : une reprise garde le lien vers la mission qu'elle poursuit.
 ALTER TABLE "in_missions" ADD COLUMN IF NOT EXISTS "reprise_de" integer;
 --> statement-breakpoint
+-- Une mission n'a qu'une seule reprise : une requête concurrente ne peut pas la reprendre une seconde fois.
+CREATE UNIQUE INDEX IF NOT EXISTS "in_missions_reprise_unique" ON "in_missions" ("reprise_de") WHERE "reprise_de" IS NOT NULL;
+--> statement-breakpoint
 -- Expériences : « tentatives » compte chaque essai ; « occurrences » ne compte plus que les épisodes distincts
 -- (résultat ou blocage différents). L'historique n'est pas perdu : l'ancien compteur devient « tentatives ».
 ALTER TABLE "in_experiences" ADD COLUMN IF NOT EXISTS "tentatives" integer NOT NULL DEFAULT 1;

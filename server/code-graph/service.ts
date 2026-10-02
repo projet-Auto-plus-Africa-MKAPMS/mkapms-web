@@ -704,6 +704,13 @@ export async function apprendre(): Promise<{
 
 const MOTS_VIDES_LECON = new Set(["pour", "dans", "avec", "cette", "cela", "mais", "plus", "tout", "sont", "être", "etre", "faire", "comme"]);
 
+/** Termes qui servent à CLASSER une anomalie (voir `classer`) : ils ne distinguent pas deux problèmes d'une même classe. */
+const TERMES_DE_CLASSE = ["bouton", "route", "inconnue", "destination", "redirection", "stripe", "encaiss", "prestataire", "index", "sitemap", "robots", "canonical", "permission", "role", "rôle", "acces", "accès", "unauthorized", "migration", "heartbeat", "sonde", "dégrad", "degrad", "hors", "service", "orphelin", "abonn", "événement", "evenement", "devise", "pays", "langue", "photo", "upload", "image", "régression", "regression"];
+
+function termeDeClasse(m: string): boolean {
+  return TERMES_DE_CLASSE.some((t) => m.startsWith(t));
+}
+
 function motsDe(texte: string): string[] {
   return [...new Set(texte.toLowerCase().split(/[^a-zà-ÿ0-9_]+/).filter((m) => m.length >= 4 && !MOTS_VIDES_LECON.has(m)))];
 }
@@ -763,7 +770,14 @@ export async function reconnaitre(probleme: string): Promise<{
   const validees = candidates.filter((l) => l.validation === "validee");
   // Une correction validée n'est « acquise » pour ce cas que si elle porte sur lui (au moins un mot en commun) : une
   // correction validée pour un autre problème de la même classe n'est pas une réponse à celui-ci.
-  const pertinentes = validees.filter((l) => mots.length === 0 || note(l) >= 1);
+  // Pertinence : des termes DISCRIMINANTS en commun (hors termes de classement comme « bouton »), au moins deux quand le
+  // problème en offre deux ou plus — « Bouton connexion inactif » n'est pas « Bouton paiement inactif ».
+  const discriminants = mots.filter((m) => !termeDeClasse(m));
+  const exige = Math.min(2, discriminants.length);
+  const pertinentes = validees.filter((l) => {
+    const t = `${l.probleme} ${l.proposition ?? ""}`.toLowerCase();
+    return discriminants.length > 0 && discriminants.filter((m) => t.includes(m)).length >= exige;
+  });
   const verifiees = pertinentes.length;
   const nonValidees = candidates.length - validees.length;
   const occurrences = candidates.reduce((n, l) => n + l.occurrences, 0);
