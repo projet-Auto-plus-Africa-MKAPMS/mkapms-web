@@ -120,7 +120,9 @@ export const ROUTES_SANS_MOTEUR: readonly string[] = [];
 export const ROUTEURS_SANS_MOTEUR: readonly string[] = [];
 
 /** Fichiers serveur qu'aucun moteur ne possède (hors racine technique). */
-export const FICHIERS_SANS_MOTEUR: readonly string[] = [];
+export const FICHIERS_SANS_MOTEUR: readonly string[] = [
+  "auth-google.ts"
+];
 
 export const MOTEURS: readonly PerimetreMoteur[] = [
   {
@@ -10010,8 +10012,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "cliquables": 6,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 17,
-        "mots": 101
+        "textes": 21,
+        "mots": 132
       },
       {
         "fichier": "client/src/pages/DemandesSuppression.tsx",
@@ -10409,6 +10411,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "get",
       "googleConfig",
       "googleLogin",
+      "googleTicket",
       "healthStatus",
       "list",
       "login",
@@ -10455,8 +10458,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "direction",
       "public"
     ],
-    "textes": 440,
-    "mots": 2100,
+    "textes": 444,
+    "mots": 2131,
     "battement": "pont_os",
     "manques": [
       {

@@ -4,6 +4,7 @@ import { trpc } from "../lib/trpc";
 import { useAuth } from "../lib/auth";
 import { PROFILE_LIST, getProfile } from "@shared/profiles";
 import { homePathForSession } from "../lib/accountRoute";
+import { isNativeApp } from "../lib/native";
 
 declare global {
   interface Window {
@@ -42,6 +43,56 @@ export default function Connexion() {
       navigate(homePathForSession(r.user as any));
     },
   });
+  // Applications Android : Google refuse son bouton dans la WebView, la connexion passe par le navigateur du téléphone.
+  const enApplication = isNativeApp();
+  const [googleAppErreur, setGoogleAppErreur] = useState("");
+  const googleTicketM = trpc.auth.googleTicket.useMutation({
+    onSuccess: (r) => {
+      login(r.token, r.user as any);
+      navigate(homePathForSession(r.user as any));
+    },
+  });
+  const googleTicketCallback = useRef(googleTicketM.mutate);
+  googleTicketCallback.current = googleTicketM.mutate;
+  useEffect(() => {
+    if (!enApplication) return;
+    let retirer: (() => void) | undefined;
+    let annule = false;
+    void (async () => {
+      const { App } = await import("@capacitor/app");
+      const { Browser } = await import("@capacitor/browser");
+      const ecouteur = await App.addListener("appUrlOpen", ({ url }) => {
+        if (!url.includes("://auth/google")) return;
+        const params = new URL(url.replace(/^[^:]+:\/\//, "https://app/")).searchParams;
+        void Browser.close().catch(() => undefined);
+        const ticket = params.get("ticket");
+        if (ticket) {
+          setGoogleAppErreur("");
+          googleTicketCallback.current({ ticket });
+        } else {
+          setGoogleAppErreur(params.get("erreur") || "La connexion Google a échoué. Réessayez.");
+        }
+      });
+      if (annule) void ecouteur.remove();
+      else retirer = () => void ecouteur.remove();
+    })().catch((e) => console.warn("[connexion] google application", e));
+    return () => {
+      annule = true;
+      retirer?.();
+    };
+  }, [enApplication]);
+  async function ouvrirGoogleApplication() {
+    setGoogleAppErreur("");
+    try {
+      const { App } = await import("@capacitor/app");
+      const { Browser } = await import("@capacitor/browser");
+      const { id } = await App.getInfo();
+      await Browser.open({ url: `${window.location.origin}/api/auth/google/app/demarrer?app=${encodeURIComponent(id)}` });
+    } catch {
+      setGoogleAppErreur("Le navigateur du téléphone n'a pas pu s'ouvrir. Utilisez votre adresse email.");
+    }
+  }
+
   // Mot de passe oublié — appel réel au serveur (anti-énumération : toujours afficher succès)
   const forgotM = trpc.identity.password.forgot.useMutation({
     onSuccess: () => setForgotSent(true),
@@ -57,7 +108,7 @@ export default function Connexion() {
 
   useEffect(() => {
     // Pas de bouton Google dans « mot de passe oublié » ; il revient (et se redessine) quand on repasse en connexion ou inscription.
-    if (!googleClientId || mode === "forgot") return;
+    if (!googleClientId || mode === "forgot" || enApplication) return;
     setGoogleEtat("chargement");
     let annule = false;
     let essais = 0;
@@ -93,9 +144,9 @@ export default function Connexion() {
     return () => {
       annule = true;
     };
-  }, [googleClientId, mode]);
+  }, [googleClientId, mode, enApplication]);
 
-  const err = loginM.error || registerM.error || googleM.error;
+  const err = loginM.error || registerM.error || googleM.error || googleTicketM.error;
 
   return (
     <div className="flex min-h-[calc(100vh-64px)] items-center justify-center bg-[#FAFAFA] px-4 py-12">
@@ -134,7 +185,30 @@ export default function Connexion() {
           {/* Google */}
           {mode !== "forgot" && (
             <>
-              {googleClientId ? (
+              {enApplication ? (
+                googleConfig.data?.application ? (
+                  <div className="flex flex-col items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => void ouvrirGoogleApplication()}
+                      disabled={googleTicketM.isPending}
+                      className="flex min-h-[44px] w-full items-center justify-center gap-3 rounded-full border border-[#DADCE0] bg-white px-4 text-sm font-medium text-[#3C4043] disabled:opacity-60"
+                      data-testid="google-bouton-application"
+                    >
+                      <span className="text-base font-bold text-[#4285F4]">G</span>
+                      {mode === "register" ? "S'inscrire avec Google" : "Continuer avec Google"}
+                    </button>
+                    {googleTicketM.isPending && <p className="text-xs text-[#9CA3AF]">Connexion en cours…</p>}
+                    {googleAppErreur && <p className="text-center text-xs text-red-600">{googleAppErreur}</p>}
+                  </div>
+                ) : googleConfig.isLoading ? (
+                  <p className="text-center text-xs text-[#9CA3AF]">Chargement de la connexion Google…</p>
+                ) : (
+                  <div className="rounded-xl border border-dashed border-[#E5E7EB] px-4 py-3 text-center text-sm text-[#6B7280]" data-testid="google-non-configure">
+                    La connexion avec Google n'est pas encore activée dans l'application. Utilisez votre adresse email ci-dessous.
+                  </div>
+                )
+              ) : googleClientId ? (
                 <div className="flex flex-col items-center gap-2">
                   <div ref={googleDiv} className="flex min-h-[44px] w-full justify-center" data-testid="google-bouton" />
                   {googleEtat === "chargement" && <p className="text-xs text-[#9CA3AF]">Chargement de la connexion Google…</p>}
