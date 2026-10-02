@@ -15,6 +15,7 @@ import { and, eq } from "drizzle-orm";
 import { db } from "../db.js";
 import { ecrire, retenir } from "./memoire.js";
 import { inMemoire } from "./schema.js";
+import { LIVRAISONS_HISTORIQUE } from "./livraisons-historique.js";
 
 export interface Livraison {
   /** Identifiant stable : `pr-<numéro>` ou `branche-<nom>` avant fusion. */
@@ -32,6 +33,10 @@ export interface Livraison {
   lecon: string;
   /** Domaine d'expérience (paiement, moteurs, code, seo, …). */
   domaine: string;
+  /** Catégorie de mémoire où l'entrée est écrite (technique par défaut ; projets, decisions, apprentissage pour les récits). */
+  categorie?: string;
+  /** Entrée du journal historique : le « problème » mémorisé inclut le titre pour que deux livraisons voisines ne se confondent pas. */
+  historique?: boolean;
 }
 
 export const LIVRAISONS: Livraison[] = [
@@ -3122,28 +3127,52 @@ export const LIVRAISONS: Livraison[] = [
       "Une demande floue est une question, pas un parcours : lancer un plan complet sur une cible non résolue fabrique des étapes « faites » sans résultat. Une étape ne devient « faite » que sur une preuve vérifiable (fichiers confirmés au relevé, campagne de contrôles, dossier retrouvé en base). Compter les relectures d'un même événement comme des occurrences gonfle une mémoire sans rien apprendre : séparer « tentatives/relevés » de « épisodes distincts », et garder l'ancien compteur plutôt que l'effacer. Vérification : tests unitaires à dépendances injectées pour les huit scénarios demandés, intégration PostgreSQL pour la mémoire et la migration 0155 (ancien compteur conservé), et mutations volontaires de chaque règle détectées par les tests.",
     domaine: "confiance",
   },
+  {
+    cle: "branche-journal-historique-memoire-recit-complet",
+    titre: "Mémoire de l'assistant : récit complet du chantier (livraisons manquantes, problèmes et solutions, retours en arrière)",
+    moteurs: ["intelligences"],
+    quoi:
+      "Le PDG a demandé que tout ce qui a été fait sur la plateforme soit raconté et enrichi dans la mémoire de l'assistant, sans toucher à ce qui y est déjà. L'historique de la branche main (293 fusions, 699 commits, du 10 août au 3 octobre 2026) a été comparé aux 186 entrées existantes : 96 livraisons qui manquaient sont ajoutées (entrées pr-<numéro> et commit-<hash>, reprenant les messages de commit tels quels), plus 7 récits rédigés : chronologie complète, méthode de travail, catalogue des problèmes avec cause et correction, retours en arrière et ce qui manque, journée des 1er et 2 octobre, règles permanentes du PDG, chantiers ouverts. Les récits vont dans les mémoires projets, décisions et apprentissage ; les livraisons dans la mémoire technique. Un document lisible, docs/JOURNAL_DE_BORD_CHANTIER.md, reprend les récits et l'index des 283 PR numérotées.",
+    pourquoi:
+      "Une IA qui ignore comment les problèmes ont été trouvés et corrigés les revit. La capacité de remettre la plateforme en état après un mauvais déploiement n'existe pas encore dans l'application : le récit le dit tel quel, avec ce que le code permet déjà (journal des modifications avec procédure de retour arrière, sauvegarde avec restauration validée par le PDG, approbateurs de déploiement, état Railway en lecture seule) et ce qui manque.",
+    ou: [
+      "server/intelligences/livraisons-historique.ts",
+      "server/intelligences/livraisons.ts",
+      "scripts/check-naming.mjs",
+      "docs/JOURNAL_DE_BORD_CHANTIER.md",
+      "server/intelligences/__tests__/livraisons-historique.test.ts",
+      "server/intelligences/__tests__/livraisons-historique.integration.test.ts",
+    ],
+    lecon:
+      "Comparer avant d'ajouter : le recouvrement de vocabulaire a écarté 29 entrées déjà présentes. Citer les messages d'origine plutôt que les réécrire garde le récit fidèle ; seuls les noms de variables de clés, les adresses de fournisseurs, les adresses e-mail et l'identité du PDG sont remplacés, car les garde-fous du dépôt interdisent de les écrire dans le code. Ces garde-fous scannent aussi le registre des livraisons : lancer le build complet avant de pousser.",
+    domaine: "confiance",
+  },
 ];
 
+/** Registre courant + journal historique (livraisons-historique.ts) : ce qui manquait à la mémoire a été ajouté, l'existant n'a pas changé. */
+export const TOUTES_LES_LIVRAISONS: Livraison[] = [...LIVRAISONS, ...LIVRAISONS_HISTORIQUE];
+
 /**
- * Écrit dans la mémoire technique les livraisons encore inconnues et retient
+ * Écrit dans la mémoire (technique par défaut ; récits dans projets, décisions, apprentissage) les livraisons encore inconnues et retient
  * leur leçon. Idempotent : une clé déjà active n'est pas réécrite, pour ne pas
  * déclasser le souvenir en historique à chaque redémarrage.
  */
 export async function seedLivraisons(): Promise<{ nouvelles: number; total: number }> {
   let nouvelles = 0;
-  for (const l of LIVRAISONS) {
+  for (const l of TOUTES_LES_LIVRAISONS) {
     const cle = `livraison:${l.cle}`;
+    const categorie = l.categorie ?? "technique";
     const [existant] = await db
       .select({ id: inMemoire.id })
       .from(inMemoire)
-      .where(and(eq(inMemoire.categorie, "technique"), eq(inMemoire.cle, cle), eq(inMemoire.cycle, "actif")))
+      .where(and(eq(inMemoire.categorie, categorie), eq(inMemoire.cle, cle), eq(inMemoire.cycle, "actif")))
       .limit(1);
     if (existant) continue;
 
     await ecrire({
-      categorie: "technique",
+      categorie,
       cle,
-      titre: `Livraison — ${l.titre}`,
+      titre: l.cle.startsWith("recit-") ? l.titre : `Livraison — ${l.titre}`,
       contenu: [
         `Moteurs : ${l.moteurs.join(", ")}.`,
         `Quoi : ${l.quoi}`,
@@ -3156,12 +3185,12 @@ export async function seedLivraisons(): Promise<{ nouvelles: number; total: numb
     });
     await retenir({
       domaine: l.domaine,
-      probleme: l.pourquoi,
+      probleme: l.historique ? `${l.titre}. ${l.pourquoi}` : l.pourquoi,
       diagnostic: l.lecon,
       solution: l.quoi,
       resultat: "livre",
     });
     nouvelles++;
   }
-  return { nouvelles, total: LIVRAISONS.length };
+  return { nouvelles, total: TOUTES_LES_LIVRAISONS.length };
 }

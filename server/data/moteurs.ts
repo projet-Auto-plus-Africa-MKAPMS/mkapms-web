@@ -10711,7 +10711,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "routeurs": [
       "intelligences"
     ],
-    "fichiersServeur": 113,
+    "fichiersServeur": 114,
     "dependancesDeclarees": [
       "ai_fabric",
       "code_graph",
@@ -10840,6 +10840,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "estimate-gateway/gateway.ts importe vehicle-delivery/schema.ts"
       ],
       "payment": [
+        "intelligences/livraisons-historique.ts déclenche un paiement",
         "intelligences/livraisons.ts déclenche un paiement"
       ],
       "product_engine": [
@@ -11163,7 +11164,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       },
       {
         "genre": "dependance_non_declaree",
-        "detail": "payment — intelligences/livraisons.ts déclenche un paiement"
+        "detail": "payment — intelligences/livraisons-historique.ts déclenche un paiement"
       },
       {
         "genre": "dependance_non_declaree",

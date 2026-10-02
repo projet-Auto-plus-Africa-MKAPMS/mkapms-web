@@ -7,7 +7,8 @@
  * chaîne visible réintroduit l'ancienne appellation.
  *
  * Ce qui reste toléré :
- *  - le journal historique des livraisons (server/intelligences/livraisons.ts)
+ *  - le journal historique des livraisons (server/intelligences/livraisons.ts et
+ *    livraisons-historique.ts, qui cite l'appellation d'époque)
  *    et les fichiers générés à partir de sources déjà corrigées
  *    (server/data/moteurs.ts) : réécrire l'historique serait mentir sur ce
  *    qui a réellement été livré sous l'ancien nom ;
@@ -25,6 +26,7 @@ const MOTIFS = [/MKA\.P-MS Intelligences?\b/g];
 
 const FICHIERS_TOLERES = [
   "server/intelligences/livraisons.ts",
+  "server/intelligences/livraisons-historique.ts",
   "server/data/moteurs.ts",
 ];
 
