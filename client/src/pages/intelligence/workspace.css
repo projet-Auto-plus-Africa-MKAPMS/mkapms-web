@@ -153,3 +153,22 @@
 .alhud-recording-wave span { scale: 1 calc(1 + var(--niveau, 0) * 1.6); transition: scale 90ms linear; }
 .alhud-recording-wave.parole { box-shadow: 0 0 0 2px rgb(179 138 22 / .35); }
 @media (prefers-reduced-motion: reduce) { .alhud-voice-orb, .alhud-recording-wave span { transition: none; } }
+.alhud-mission-steps{margin:4px 0 8px;padding:10px 12px;border:1px solid rgb(15 23 42/.08);border-radius:12px;background:#fafafa;font-size:13px;line-height:1.5}
+.alhud-mission-steps-count{margin:0 0 6px;font-weight:700;color:#64748b}
+.alhud-mission-steps ol{margin:0;padding:0;list-style:none;display:grid;gap:6px}
+.alhud-mission-steps li{display:grid;gap:2px;padding-left:14px;position:relative}
+.alhud-mission-steps li::before{content:"";position:absolute;left:0;top:.55em;width:7px;height:7px;border-radius:50%;background:#cbd5e1}
+.alhud-mission-steps li[data-statut="en_cours"]::before{background:#3b82f6;animation:alhud-step-pulse 1s ease-in-out infinite}
+.alhud-mission-steps li[data-statut="fait"]::before{background:#16a34a}
+.alhud-mission-steps li[data-statut="partielle"]::before,.alhud-mission-steps li[data-statut="en_attente_autorisation"]::before{background:#d97706}
+.alhud-mission-steps li[data-statut="echec"]::before,.alhud-mission-steps li[data-statut="refuse"]::before{background:#dc2626}
+.alhud-mission-steps small{color:#64748b;white-space:pre-wrap;overflow-wrap:anywhere}
+.alhud-mission-steps-empty{margin:4px 0;font-size:13px;color:#64748b}
+@keyframes alhud-step-pulse{50%{opacity:.35}}
+@media (prefers-reduced-motion:reduce){.alhud-mission-steps li[data-statut="en_cours"]::before{animation:none}}
+.alhud-menu-backdrop>aside{padding-top:max(18px,calc(env(safe-area-inset-top) + 12px));padding-bottom:max(18px,calc(env(safe-area-inset-bottom) + 12px))}
+.alhud-menu-close{min-height:44px;padding:8px 4px}
+.alhud-menu-history{margin:6px 0 2px;padding:10px 6px 2px;border-top:1px solid #eef0f3}
+.alhud-recents-toggle{display:flex;align-items:center;gap:8px;width:100%;min-height:44px;padding:8px;border-radius:12px;font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.02em;color:rgb(0 0 0/.55);text-align:left}
+.alhud-recents-toggle:hover,.alhud-recents-toggle:focus-visible{background:rgb(0 0 0/.05)}
+.alhud-recents-toggle small{margin-left:auto;font-weight:700;color:rgb(0 0 0/.4)}

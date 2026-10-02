@@ -10708,7 +10708,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "routeurs": [
       "intelligences"
     ],
-    "fichiersServeur": 112,
+    "fichiersServeur": 113,
     "dependancesDeclarees": [
       "ai_fabric",
       "code_graph",
@@ -10916,8 +10916,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "cliquables": 21,
         "parMoteur": 0,
         "sansAction": 1,
-        "textes": 54,
-        "mots": 137
+        "textes": 55,
+        "mots": 162
       }
     ],
     "ecransHotes": [
@@ -11054,6 +11054,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "pilotage",
       "planAutonomie",
       "presentation",
+      "progressionMission",
       "proposer",
       "ragRepondre",
       "ragRetrieve",
@@ -11128,13 +11129,13 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "pdg",
       "public"
     ],
-    "textes": 63,
-    "mots": 226,
+    "textes": 64,
+    "mots": 251,
     "battement": "sonde",
     "manques": [
       {
         "genre": "bouton_sans_action",
-        "detail": "« Boutique » client/src/pages/intelligence/index.tsx:183"
+        "detail": "« Boutique » client/src/pages/intelligence/index.tsx:185"
       },
       {
         "genre": "dependance_non_declaree",
