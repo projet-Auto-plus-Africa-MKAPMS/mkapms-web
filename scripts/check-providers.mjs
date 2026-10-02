@@ -25,6 +25,9 @@ const AUTORISES = new Set([
   // Test de la sonde : retire temporairement la variable de clé pour vérifier « sans clé, rien n'est testé » ;
   // fetch et adaptateurs toujours injectés, jamais un appel réseau réel.
   join("server", "intelligences", "__tests__", "sonde-openai.test.ts"),
+  // Mémoire par le sens : pose une clé factice pour exercer l'indexation et la recherche ; fetch toujours
+  // simulé (globalThis.fetch remplacé puis restauré), jamais un appel réseau réel.
+  join("server", "intelligences", "__tests__", "empreintes.integration.test.ts"),
   // La Fabrique possède le catalogue : elle nomme les fournisseurs et leurs clés
   // pour constater leur état, sans jamais émettre l'appel du modèle.
   join("server", "ai-fabric", "service.ts"),

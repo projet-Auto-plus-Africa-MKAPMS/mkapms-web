@@ -1058,6 +1058,59 @@ export async function transcrireAudioNatif(resolu:{cle:string}, input:FichierAud
  throw Error(derniere);
 }
 
+/** Modèle d'empreintes par défaut et dimensions conservées (réduction native du fournisseur : moins de stockage, qualité très proche). */
+export const MODELE_EMPREINTES_DEFAUT = "text-embedding-3-large";
+export const DIMENSIONS_EMPREINTES = 1024;
+
+export type ResultatEmpreintes =
+  | { ok: true; modele: string; dimensions: number; vecteurs: number[][] }
+  | { ok: false; motif: string };
+
+/**
+ * Empreintes sémantiques (embeddings) de textes. Passerelle unique : aucun autre fichier ne parle au fournisseur
+ * pour cela. Le modèle déjà prouvé par la sonde passe en premier ; un refus (400/403/404) passe au suivant. Aucun
+ * texte, aucune clé et aucun message brut du fournisseur dans l'erreur : statut, modèle et code public seulement.
+ * Ne jette pas : l'échec est une donnée (la recherche retombe alors sur le texte).
+ */
+export async function creerEmpreintes(textes: string[], fetchImpl: typeof fetch = fetch): Promise<ResultatEmpreintes> {
+  const cle = process.env.OPENAI_API_KEY?.trim();
+  if (!cle) return { ok: false, motif: "Clé du fournisseur absente du serveur : empreintes réellement indisponibles." };
+  const entrees = textes.map((t) => t.replace(/\s+/g, " ").trim().slice(0, 8000));
+  if (entrees.length === 0 || entrees.length > 96 || entrees.some((t) => t.length === 0)) {
+    return { ok: false, motif: "Textes d'entrée invalides (1 à 96 textes non vides)." };
+  }
+  const modeles = [...new Set([await modeleValide("empreintes_semantiques"), MODELE_EMPREINTES_DEFAUT].filter((m): m is string => !!m && /^[A-Za-z0-9._-]{1,60}$/.test(m)))];
+  let dernier = "EMBEDDINGS_PROVIDER_UNAVAILABLE";
+  for (const modele of modeles) {
+    try {
+      const r = await fetchImpl("https://api.openai.com/v1/embeddings", {
+        method: "POST",
+        redirect: "error",
+        signal: AbortSignal.timeout(60_000),
+        headers: { Authorization: `Bearer ${cle}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ model: modele, input: entrees, dimensions: DIMENSIONS_EMPREINTES }),
+      });
+      const corps = await r.text();
+      if (!r.ok) {
+        const e = codePublicErreur(corps.slice(0, 4000));
+        dernier = `EMBEDDINGS_PROVIDER_${r.status}_${modele}_${e.code || e.type || "unknown"}`;
+        if ([400, 403, 404].includes(r.status)) continue;
+        break;
+      }
+      const donnees = (JSON.parse(corps) as { data?: { index?: number; embedding?: number[] }[] }).data ?? [];
+      const vecteurs = [...donnees].sort((a, b) => (a.index ?? 0) - (b.index ?? 0)).map((d) => d.embedding);
+      if (vecteurs.length !== entrees.length || vecteurs.some((v) => !Array.isArray(v) || v.length !== DIMENSIONS_EMPREINTES)) {
+        return { ok: false, motif: `EMBEDDINGS_INVALID_${modele}` };
+      }
+      return { ok: true, modele, dimensions: DIMENSIONS_EMPREINTES, vecteurs: vecteurs as number[][] };
+    } catch {
+      dernier = `EMBEDDINGS_NETWORK_${modele}`;
+      break;
+    }
+  }
+  return { ok: false, motif: dernier };
+}
+
 export type ModeSessionVocale = "dictee" | "conversation";
 
 /** Voix proposées par l'API temps réel (cedar et marin sont propres à cette API). */

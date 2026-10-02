@@ -191,9 +191,9 @@ export const FONCTIONS: SpecFonction[] = [
     capaciteFabrique: "ia_texte",
     permission: "READ",
     beneficiaires: ["search_os", "seo_os", "knowledge_engine"],
-    exigence: "Espace de stockage des empreintes, à prévoir avant l'ouverture au public.",
+    exigence: "Espace de stockage des empreintes (table in_empreintes, en place pour la mémoire et les connaissances de la direction) ; à prévoir avant toute ouverture au public. Après activation, « Reprendre l'existant » indexe ce qui a été écrit avant.",
     precaution:
-      "Les empreintes doivent être recalculées à chaque modification d'annonce, sinon la recherche mentira.",
+      "Les empreintes doivent être recalculées à chaque modification : c'est fait pour la mémoire et les connaissances (hash du texte), pas encore pour les annonces. Chaque indexation et chaque recherche coûtent un petit appel d'empreintes.",
     activeParDefaut: false,
     autonomie: "Internalisable rapidement : les empreintes peuvent être produites localement.",
   },

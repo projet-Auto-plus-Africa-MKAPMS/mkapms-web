@@ -87,3 +87,8 @@ jobs:
         run: node --import tsx --test server/intelligences/__tests__/memory-foundations.integration.test.ts
         env:
           SHOP_KNOWLEDGE_TEST_DB: postgresql://core_ai_test:disposable_ci_fixture@localhost:5432/core_ai_test
+
+      - name: Semantic memory (embeddings, simulated provider)
+        run: node --import tsx --test server/intelligences/__tests__/empreintes.integration.test.ts server/intelligences/__tests__/sonde-openai.test.ts
+        env:
+          SHOP_KNOWLEDGE_TEST_DB: postgresql://core_ai_test:disposable_ci_fixture@localhost:5432/core_ai_test

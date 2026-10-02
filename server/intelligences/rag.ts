@@ -18,7 +18,7 @@
 import { randomUUID } from "node:crypto";
 import { rechercherDansFichiers } from "./fichiers.js";
 import { rechercher as rechercherConnaissance } from "./connaissance.js";
-import { appeler } from "./provider.js";
+import { appeler, creerEmpreintes } from "./provider.js";
 import { tracerRetrieval } from "./retrieval-audit.js";
 
 /**
@@ -30,12 +30,11 @@ import { tracerRetrieval } from "./retrieval-audit.js";
  * change ici, jamais dans les appelants (rag.ts / recherche-globale.ts
  * resteraient inchangés, seul `qualite` deviendrait "semantique").
  */
-export async function embeddingGateway(_textes: string[]): Promise<{ ok: false; methode: "unavailable"; motif: string }> {
-  return {
-    ok: false,
-    methode: "unavailable",
-    motif: "Aucun fournisseur d'embeddings connecté (server/governance/settings-registry.ts::intelligence.embeddings = NOT_CONNECTED). Repli sur la recherche plein texte PostgreSQL.",
-  };
+export async function embeddingGateway(textes: string[]): Promise<{ ok: true; methode: "semantique"; modele: string; vecteurs: number[][] } | { ok: false; methode: "unavailable"; motif: string }> {
+  const r = await creerEmpreintes(textes);
+  return r.ok
+    ? { ok: true, methode: "semantique", modele: r.modele, vecteurs: r.vecteurs }
+    : { ok: false, methode: "unavailable", motif: `${r.motif} Repli sur la recherche plein texte PostgreSQL.` };
 }
 
 export interface Citation {

@@ -14,9 +14,10 @@
  * catégorie et par cycle (actif → historique → archive) : ajouter une catégorie
  * ne demande pas de reconstruire le système.
  */
-import { and, desc, eq, ilike, or, sql } from "drizzle-orm";
+import { and, desc, eq, ilike, inArray, or, sql } from "drizzle-orm";
 import { db } from "../db.js";
 import { inExperiences, inMemoire } from "./schema.js";
+import { indexerEnArrierePlan, rechercherParLeSens, texteSouvenir } from "./empreintes.js";
 
 /** Cycle de vie d'un souvenir. */
 export const CYCLES = ["actif", "historique", "archive"] as const;
@@ -225,6 +226,8 @@ export async function ecrire(
     })
     .returning({ id: inMemoire.id });
 
+  indexerEnArrierePlan({ type: "memoire", id: ligne.id, texte: texteSouvenir(input.titre, input.contenu) });
+
   return {
     ok: true,
     detail: existant
@@ -241,6 +244,8 @@ export interface Trouvaille {
   extrait: string;
   cycle: string;
   quand: Date | null;
+  /** « semantique » : trouvé par le sens (empreintes), pas par les mots. Absent = recherche textuelle. */
+  methode?: "semantique";
 }
 
 /**
@@ -280,6 +285,24 @@ export async function rechercher(
       cycle: l.cycle,
       quand: l.updatedAt,
     });
+  }
+
+  // Recherche par le sens (si le PDG l'a activée) : retrouve un souvenir sans que ses mots figurent dans la question.
+  // Un échec ou une fonctionnalité éteinte ne change rien : la recherche textuelle ci-dessus reste seule.
+  try {
+    const proches = await rechercherParLeSens("memoire", terme, 10);
+    const dejaVus = new Set(propres.map((l) => l.id));
+    const nouveaux = (proches ?? []).filter((p) => !dejaVus.has(p.id));
+    if (nouveaux.length > 0) {
+      const lignes = await db.select().from(inMemoire).where(inArray(inMemoire.id, nouveaux.map((p) => p.id)));
+      for (const p of nouveaux) {
+        const l = lignes.find((x) => x.id === p.id);
+        if (!l) continue;
+        trouvailles.push({ categorie: l.categorie, detenteur: "intelligences", titre: l.titre, extrait: l.contenu.slice(0, 400), cycle: l.cycle, quand: l.updatedAt, methode: "semantique" });
+      }
+    }
+  } catch {
+    // Recherche par le sens indisponible : jamais bloquante.
   }
 
   try {

@@ -27,6 +27,7 @@ import {
   appeler,
   codePublicErreur,
   creerApercuVoix,
+  creerEmpreintes,
   modererTexte,
   rechercherWebNatif,
   transcrireAudioNatif,
@@ -42,10 +43,11 @@ export interface DependancesSonde {
   modererTexte: typeof modererTexte;
   rechercherWebNatif: typeof rechercherWebNatif;
   creerApercuVoix: typeof creerApercuVoix;
+  creerEmpreintes: typeof creerEmpreintes;
   transcrireAudioNatif: typeof transcrireAudioNatif;
 }
 
-const DEPENDANCES_REELLES: DependancesSonde = { appeler, modererTexte, rechercherWebNatif, creerApercuVoix, transcrireAudioNatif };
+const DEPENDANCES_REELLES: DependancesSonde = { appeler, modererTexte, rechercherWebNatif, creerApercuVoix, creerEmpreintes, transcrireAudioNatif };
 
 export interface OptionsSonde {
   cle?: string;
@@ -268,13 +270,12 @@ async function testerTranscriptionTempsReel(c: Contexte, modeles: string[], mode
   return { ok: false, http: d?.http ?? null, modele: null, erreurType: d?.erreurType, erreurCode: d?.erreurCode, adaptateur: false, essais };
 }
 
-async function testerEmpreintes(c: Contexte, modeles: string[]): Promise<Verdict> {
-  const modele = modeles.find((m) => m === "text-embedding-3-large") ?? modeles[0];
-  const r = await directPost(c, "/v1/embeddings", { model: modele, input: "test de mémoire sémantique", dimensions: 256 });
-  const vecteur = (r.json as { data?: { embedding?: number[] }[] } | null)?.data?.[0]?.embedding;
-  return Array.isArray(vecteur) && vecteur.length === 256
-    ? { ok: true, http: r.http, modele, adaptateur: false, note: "Vecteur de 256 dimensions reçu." }
-    : ecart(modele, r.http, { erreurType: r.erreurType, erreurCode: r.erreurCode }, false, "Pas de vecteur exploitable.");
+async function testerEmpreintes(c: Contexte): Promise<Verdict> {
+  // Par l'adaptateur de la plateforme (celui qui alimente la mémoire par le sens), pas par un appel direct.
+  const r = await c.deps.creerEmpreintes(["test de mémoire sémantique"], c.fetchImpl);
+  if (r.ok) return { ok: true, http: 200, modele: r.modele, adaptateur: true, note: `Vecteur de ${r.dimensions} dimensions reçu.` };
+  const m = /^EMBEDDINGS_PROVIDER_(\d{3})_([A-Za-z0-9._-]+?)_(.+)$/.exec(r.motif);
+  return ecart(m?.[2] ?? null, m ? Number(m[1]) : null, { erreurCode: m?.[3] ?? "" }, true, "Embeddings refusés (voir le statut HTTP et le code).");
 }
 
 async function testerImage(c: Contexte): Promise<Verdict> {
@@ -298,7 +299,7 @@ export const DEFINITIONS: DefinitionCapacite[] = [
   { code: "transcription", libelle: "Transcription de fichiers audio", endpoint: "/v1/audio/transcriptions", modeles: motif(/transcribe|whisper|^gpt-transcription/), adaptateurPresent: true, tester: testerTranscription },
   { code: "conversation_temps_reel", libelle: "Conversation vocale temps réel", endpoint: "/v1/realtime/client_secrets", modeles: motif(/^gpt-realtime(?!.*(whisper|translate))/), adaptateurPresent: true, tester: testerTempsReel },
   { code: "transcription_temps_reel", libelle: "Transcription dans la session temps réel", endpoint: "/v1/realtime/client_secrets", modeles: motif(/transcribe|whisper|realtime-whisper/), adaptateurPresent: true },
-  { code: "empreintes_semantiques", libelle: "Embeddings (mémoire par le sens)", endpoint: "/v1/embeddings", modeles: motif(/embedding/), adaptateurPresent: false, tester: testerEmpreintes, note: "Aucun adaptateur MKA.P-MS AI : la passerelle d'embeddings est encore « non connectée »." },
+  { code: "empreintes_semantiques", libelle: "Embeddings (mémoire par le sens)", endpoint: "/v1/embeddings", modeles: motif(/embedding/), adaptateurPresent: true, tester: testerEmpreintes, note: "Alimente la mémoire par le sens (éteinte tant que le PDG ne l'active pas)." },
   { code: "generation_image", libelle: "Génération d'images", endpoint: "/v1/responses (outil image_generation)", modeles: motif(/^(gpt-image|chatgpt-image)/), adaptateurPresent: true, couteux: true, tester: testerImage },
   { code: "traduction_audio", libelle: "Traduction audio en direct", endpoint: "/v1/realtime", modeles: motif(/realtime-translate/), adaptateurPresent: false, note: "Disponibilité constatée seulement : aucun adaptateur MKA.P-MS AI." },
   { code: "video", libelle: "Génération de vidéo", endpoint: "/v1/videos", modeles: motif(/^sora/), adaptateurPresent: false, note: "Disponibilité constatée seulement : aucun adaptateur MKA.P-MS AI." },
@@ -364,7 +365,7 @@ export async function lancerSonde(options: OptionsSonde = {}): Promise<ResultatS
     let verdict: Verdict | null = null;
     try {
       if (code === "transcription_temps_reel") verdict = await testerTranscriptionTempsReel(contexte, modeles.length ? modeles : [...MODELES_TRANSCRIPTION_FICHIER], modeleSessionTempsReel);
-      else if (def.tester && !saute && (modeles.length > 0 || !["empreintes_semantiques", "conversation_temps_reel"].includes(code))) verdict = await def.tester(contexte, modeles);
+      else if (def.tester && !saute && (modeles.length > 0 || !["conversation_temps_reel"].includes(code))) verdict = await def.tester(contexte, modeles);
     } catch (e) {
       verdict = ecart(null, null, { erreurType: "sonde_exception" }, def.adaptateurPresent, e instanceof Error ? e.message.slice(0, 80).replace(/[^A-Za-z0-9 ._-]/g, "") : "erreur");
     }
