@@ -1172,6 +1172,19 @@ export function normaliserSdp(texte: string): string {
   return `${texte.trim().split(/\r\n|\r|\n/).join("\r\n")}\r\n`;
 }
 
+/** Langue de réponse imposée à la conversation vocale lorsque l'utilisateur l'a choisie dans ses réglages. */
+const LANGUES_REPONSE_VOCALE: Record<string, string> = {
+  fr: "en français de France, avec une prononciation native et naturelle",
+  en: "en anglais, avec une prononciation native et naturelle",
+  ar: "en arabe, avec une prononciation native et naturelle",
+  es: "en espagnol, avec une prononciation native et naturelle",
+  pt: "en portugais, avec une prononciation native et naturelle",
+  de: "en allemand, avec une prononciation native et naturelle",
+  it: "en italien, avec une prononciation native et naturelle",
+  nl: "en néerlandais, avec une prononciation native et naturelle",
+  tr: "en turc, avec une prononciation native et naturelle",
+};
+
 /**
  * Ouvre une session OpenAI Realtime WebRTC sans jamais transmettre la clé au
  * navigateur. L'offre SDP vient du téléphone, la réponse SDP seulement lui
@@ -1193,6 +1206,12 @@ export async function creerAppelVocalTempsReel(
   if (!cle) throw new Error("REALTIME_CREDENTIAL_REQUIRED");
 
   const langue = options.langue?.split("-")[0]?.toLowerCase();
+  const consigneLangue = langue && LANGUES_REPONSE_VOCALE[langue]
+    ? ` Langue choisie par l'utilisateur : réponds toujours ${LANGUES_REPONSE_VOCALE[langue]}, sauf s'il te demande explicitement d'en changer.`
+    : "";
+  const promptTranscription = !langue || langue === "fr"
+    ? "AL-HUDHUD·M, MKA.P-MS. Ponctuation naturelle et transcription fidèle. Le locuteur parle français et emploie parfois des formules arabes courantes, à écrire en lettres latines sans les traduire : salam alaikum, assalamou alaykoum, wa alaykoum salam, bismillah, inchallah, machallah, hamdoulilah, barakallahou fik, jazakallah khayran."
+    : "AL-HUDHUD·M, MKA.P-MS. Ponctuation naturelle et transcription fidèle, dans la langue parlée, sans traduire ni reformuler.";
   const voixAutorisee = new Set<string>(VOIX_TEMPS_REEL);
   const voix = voixAutorisee.has(options.voix ?? "") ? options.voix! : "marin";
   // Modèle qui a déjà transcrit pour ce navigateur (mémorisé côté client) : la session démarre avec lui, au lieu de perdre les
@@ -1220,7 +1239,7 @@ export async function creerAppelVocalTempsReel(
       model: modele,
       output_modalities: ["audio"],
       instructions: mode === "conversation"
-        ? "Tu es AL-HUDHUD·M, l'intelligence privée créée par MKA.P-MS. Réponds naturellement à l'oral, dans la langue de l'utilisateur, avec des tours courts et utiles. Si l'utilisateur te salue en arabe (« salam alaikum », « assalamou alaykoum »), réponds « wa alaykoum salam » puis continue ; comprends les expressions arabes courantes dites en conversation (inchallah, hamdoulilah, bismillah, barakallahou fik). N'affirme jamais avoir exécuté une action externe que cette session vocale n'a pas réellement exécutée. Respecte la confidentialité, la sécurité et la politique commerciale halal MKA.P-MS."
+        ? "Tu es AL-HUDHUD·M, l'intelligence privée créée par MKA.P-MS. Réponds naturellement à l'oral, dans la langue de l'utilisateur, avec des tours courts et utiles. Si l'utilisateur te salue en arabe (« salam alaikum », « assalamou alaykoum »), réponds « wa alaykoum salam » puis continue ; comprends les expressions arabes courantes dites en conversation (inchallah, hamdoulilah, bismillah, barakallahou fik). N'affirme jamais avoir exécuté une action externe que cette session vocale n'a pas réellement exécutée. Respecte la confidentialité, la sécurité et la politique commerciale halal MKA.P-MS." + consigneLangue
         : "Transcris fidèlement la parole de l'utilisateur. Ne réponds pas et ne reformule pas.",
       audio: {
         input: {
@@ -1228,7 +1247,7 @@ export async function creerAppelVocalTempsReel(
           transcription: {
             model: modeleTranscription,
             ...(langue && /^[a-z]{2,3}$/.test(langue) ? { language: langue } : {}),
-            prompt: "AL-HUDHUD·M, MKA.P-MS. Ponctuation naturelle et transcription fidèle. Le locuteur parle français et emploie parfois des formules arabes courantes, à écrire en lettres latines sans les traduire : salam alaikum, assalamou alaykoum, wa alaykoum salam, bismillah, inchallah, machallah, hamdoulilah, barakallahou fik, jazakallah khayran.",
+            prompt: promptTranscription,
           },
           turn_detection: mode === "conversation"
             ? { type: "semantic_vad", eagerness: "medium", create_response: true, interrupt_response: true }

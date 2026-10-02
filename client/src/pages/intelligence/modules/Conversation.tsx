@@ -64,9 +64,9 @@ import {
 import { trpc } from "../../../lib/trpc";
 import { EtatServiceIntelligence } from "../../../components/EtatServiceIntelligence";
 import { type Intensite, NIVEAUX_INTENSITE, intensiteValide, CLE_INTENSITE_STOCKAGE } from "../../../lib/intensite";
-import { addDictationHistory, noiseReductionFor, recognitionLanguage, useVoicePreferences } from "../../../lib/voicePreferences";
+import { REALTIME_VOICES, REALTIME_VOICE_GROUPS, VOICE_LANGUAGES, addDictationHistory, noiseReductionFor, recognitionLanguage, useVoicePreferences, type RealtimeVoiceName, type VoiceLanguage, type VoicePreferences } from "../../../lib/voicePreferences";
 import { modeleTranscriptionMemorise, startRealtimeVoice, type RealtimeVoiceControl, type RealtimeVoiceState } from "../../../lib/realtimeVoice";
-import { startDictation } from "../../../lib/speech";
+import { prefersRecordedDictation, speechRecognitionConstructor, startDictation } from "../../../lib/speech";
 
 import { ProgressiveReply, WaitingReply } from "./ReplyPresentation";
 
@@ -168,7 +168,10 @@ export function Conversation({ navigation, active = true, mode = "chat", onActiv
   const [conversationVocale, setConversationVocale] = useState(false);
   const [vocalMuet, setVocalMuet] = useState(false);
   const [transcriptionVocale, setTranscriptionVocale] = useState("");
-  const [voicePreferences] = useVoicePreferences();
+  const [voicePreferences, saveVoicePreferences] = useVoicePreferences();
+  const orbe = useRef<HTMLDivElement>(null);
+  const vagueDictee = useRef<HTMLDivElement>(null);
+  const niveauLisse = useRef(0);
   const conversationVocaleRef = useRef(false);
   const missionVocaleRef = useRef(false);
   const missionDraftKeyRef = useRef("new");
@@ -190,7 +193,7 @@ export function Conversation({ navigation, active = true, mode = "chat", onActiv
   /** Annule la connexion vocale en cours de mise en place : « stop » coupe le micro tout de suite, même avant qu'elle soit établie. */
   const dicteeAnnulation = useRef<AbortController | null>(null);
   const vocalAnnulation = useRef<AbortController | null>(null);
-  const [etatDictee, setEtatDictee] = useState<"connexion" | "ecoute">("connexion");
+  const [etatDictee, setEtatDictee] = useState<"connexion" | "ecoute" | "parole" | "ecriture" | "direct">("connexion");
   const [diagVocal, setDiagVocal] = useState("");
   const [desktop, setDesktop] = useState(() => typeof window !== "undefined" && window.matchMedia("(min-width: 768px)").matches);
   useEffect(() => {
@@ -420,7 +423,7 @@ export function Conversation({ navigation, active = true, mode = "chat", onActiv
     return { connexion: "Connexion sécurisée…", ecoute: "Je vous écoute…", reflexion: "AL-HUDHUD·M réfléchit…", reponse: "AL-HUDHUD·M vous répond…" }[etat];
   }
 
-  async function basculerConversationVocale() {
+  async function basculerConversationVocale(preferences: VoicePreferences = voicePreferences) {
     if (conversationVocaleRef.current) { arreterConversationVocale(); return; }
     void arreterDictee();
     conversationVocaleRef.current = true;
@@ -435,11 +438,18 @@ export function Conversation({ navigation, active = true, mode = "chat", onActiv
       const control = await startRealtimeVoice({
         mode: "conversation",
         signal: annulation.signal,
-        langueTranscription: recognitionLanguage(voicePreferences),
+        langueTranscription: recognitionLanguage(preferences),
         modeleTranscriptionInitial: modeleTranscriptionMemorise(),
         onDiagnostic: setDiagVocal,
-        exchangeSdp: async (sdp) => (await creerSessionVocale.mutateAsync({ sdp, mode: "conversation", langue: recognitionLanguage(voicePreferences), voix: voicePreferences.realtimeVoice, reductionBruit: noiseReductionFor(voicePreferences), modeleTranscription: modeleTranscriptionMemorise() })).sdp,
+        exchangeSdp: async (sdp) => (await creerSessionVocale.mutateAsync({ sdp, mode: "conversation", langue: recognitionLanguage(preferences), voix: preferences.realtimeVoice, reductionBruit: noiseReductionFor(preferences), modeleTranscription: modeleTranscriptionMemorise() })).sdp,
         onState: (etat) => setEtatVocal(libelleEtatVocal(etat)),
+        onLevel: ({ micro, voix }) => {
+          const element = orbe.current;
+          if (!element) return;
+          niveauLisse.current = niveauLisse.current * 0.7 + Math.max(micro, voix) * 0.3;
+          element.style.setProperty("--niveau", niveauLisse.current.toFixed(3));
+          element.classList.toggle("voix-active", voix > micro && voix > 0.04);
+        },
         onUserPartial: setTranscriptionVocale,
         onUserTranscript: (texte) => {
           setTranscriptionVocale(texte);
@@ -456,7 +466,7 @@ export function Conversation({ navigation, active = true, mode = "chat", onActiv
             question: questionVocale,
             reponse: texte,
             sessionId: sessionIdRef.current,
-            langue: recognitionLanguage(voicePreferences),
+            langue: recognitionLanguage(preferences),
           }).then((r) => {
             sessionIdRef.current = r.sessionId;
             setSessionId(r.sessionId);
@@ -481,6 +491,14 @@ export function Conversation({ navigation, active = true, mode = "chat", onActiv
       setNotice(`Impossible d’ouvrir la conversation vocale. ${causeVocale(erreur).texte}`);
       arreterConversationVocale();
     }
+  }
+
+  /** Langue ou voix changée pendant la conversation : réglage enregistré puis session rouverte avec ce réglage. */
+  function changerReglageVocal(prochaines: VoicePreferences) {
+    saveVoicePreferences(prochaines);
+    if (!conversationVocaleRef.current) return;
+    arreterConversationVocale();
+    void basculerConversationVocale(prochaines);
   }
 
   useEffect(() => {
@@ -535,12 +553,13 @@ export function Conversation({ navigation, active = true, mode = "chat", onActiv
       if (!relais) return false;
       dictation.current = relais;
       setEcoute(true); // la fermeture de la session temps réel avortée a éteint l'indicateur
-      setEtatDictee("ecoute");
+      setEtatDictee("direct");
       setDiagVocal("dictée du navigateur");
       setNotice(`${raison} La dictée du navigateur est utilisée à la place.`);
       return true;
     };
 
+    const demarrerTempsReel = async () => {
     try {
       const control = await startRealtimeVoice({
         mode: "dictee",
@@ -548,7 +567,14 @@ export function Conversation({ navigation, active = true, mode = "chat", onActiv
         langueTranscription: recognitionLanguage(voicePreferences),
         modeleTranscriptionInitial: modeleTranscriptionMemorise(),
         onDiagnostic: setDiagVocal,
-        onState: (etat) => { if (generation === dicteeGeneration.current) setEtatDictee(etat === "connexion" ? "connexion" : "ecoute"); },
+        onState: (etat) => { if (generation === dicteeGeneration.current) setEtatDictee(etat === "connexion" ? "connexion" : etat === "reflexion" ? "ecriture" : "ecoute"); },
+        onSpeech: (parle) => { if (parle && generation === dicteeGeneration.current) setEtatDictee("parole"); },
+        onLevel: ({ micro }) => {
+          const element = vagueDictee.current;
+          if (!element) return;
+          niveauLisse.current = niveauLisse.current * 0.7 + micro * 0.3;
+          element.style.setProperty("--niveau", niveauLisse.current.toFixed(3));
+        },
         exchangeSdp: async (sdp) => (await creerSessionVocale.mutateAsync({ sdp, mode: "dictee", langue: recognitionLanguage(voicePreferences), voix: voicePreferences.realtimeVoice, reductionBruit: noiseReductionFor(voicePreferences), modeleTranscription: modeleTranscriptionMemorise() })).sdp,
         onUserPartial: (partiel) => {
           if (generation !== dicteeGeneration.current) return;
@@ -562,6 +588,7 @@ export function Conversation({ navigation, active = true, mode = "chat", onActiv
           const prochain = [base.trim(), confirme].filter(Boolean).join(" ");
           questionRef.current = prochain;
           setQuestion(prochain);
+          setEtatDictee("ecoute");
           addDictationHistory(texte, "dictation");
         },
         onError: (message) => setNotice(message),
@@ -584,6 +611,42 @@ export function Conversation({ navigation, active = true, mode = "chat", onActiv
       setEcoute(false);
       setNotice(`La dictée n’a pas pu démarrer. ${cause.texte}`);
     }
+    };
+
+    // Hors iPhone/iPad, la reconnaissance du navigateur écrit chaque mot pendant qu'il est prononcé ;
+    // la dictée temps réel du service écrit à chaque courte pause et reste la voie de l'iPhone et le relais.
+    if (speechRecognitionConstructor() && !prefersRecordedDictation()) {
+      let texteRecu = false;
+      let arretManuel = false;
+      const directe = startDictation(recognitionLanguage(voicePreferences), {
+        onText: (texte) => {
+          if (generation !== dicteeGeneration.current) return;
+          texteRecu = true;
+          const prochain = [base.trim(), texte.trim()].filter(Boolean).join(" ");
+          questionRef.current = prochain;
+          setQuestion(prochain);
+        },
+        onError: (message) => { if (generation === dicteeGeneration.current) setNotice(message); },
+        onEnd: () => {
+          if (generation !== dicteeGeneration.current) return;
+          dictation.current = null;
+          if (!arretManuel && !texteRecu) {
+            setEtatDictee("connexion");
+            setNotice("La dictée du navigateur s’est arrêtée sans écrire : la dictée temps réel prend le relais.");
+            void demarrerTempsReel();
+            return;
+          }
+          setEcoute(false);
+        },
+      });
+      if (directe) {
+        dictation.current = { stop: () => { arretManuel = true; directe.stop(); } };
+        setEtatDictee("direct");
+        setDiagVocal("dictée en direct du navigateur");
+        return;
+      }
+    }
+    await demarrerTempsReel();
   }
 
   /** Annule : arrête la dictée et efface ce qu'elle a écrit, revient au texte d'avant. */
@@ -856,10 +919,20 @@ export function Conversation({ navigation, active = true, mode = "chat", onActiv
       {conversationVocale ? <section className="alhud-voice-screen" aria-label="Conversation vocale directe" role="dialog" aria-modal="true">
         <div className="alhud-voice-screen-top">
           <button type="button" onClick={arreterConversationVocale} aria-label="Fermer la conversation vocale"><X /></button>
+          <div className="alhud-voice-reglages">
+            <select aria-label="Langue de la conversation" value={voicePreferences.language} onChange={(e) => changerReglageVocal({ ...voicePreferences, language: e.target.value as VoiceLanguage })}>
+              {VOICE_LANGUAGES.map((langue) => <option key={langue.id} value={langue.id}>{langue.label}</option>)}
+            </select>
+            <select aria-label="Voix de la conversation" value={voicePreferences.realtimeVoice} onChange={(e) => changerReglageVocal({ ...voicePreferences, realtimeVoice: e.target.value as RealtimeVoiceName })}>
+              {REALTIME_VOICE_GROUPS.map((groupe) => <optgroup key={groupe.timbre} label={groupe.label}>
+                {REALTIME_VOICES.filter((voix) => voix.timbre === groupe.timbre).map((voix) => <option key={voix.id} value={voix.id}>{voix.label}</option>)}
+              </optgroup>)}
+            </select>
+          </div>
           <button type="button" onClick={() => { arreterConversationVocale(); onChooseModule?.("parametres"); }} aria-label="Réglages de la voix"><SlidersHorizontal /></button>
         </div>
         <div className="alhud-voice-stage">
-          <div className={`alhud-voice-orb ${etatVocal.includes("répond") ? "speaking" : etatVocal.includes("réfléchit") ? "thinking" : "listening"}`} aria-hidden="true"><span /><span /></div>
+          <div ref={orbe} className={`alhud-voice-orb ${etatVocal.includes("répond") ? "speaking" : etatVocal.includes("réfléchit") ? "thinking" : "listening"}`} aria-hidden="true"><span /><span /></div>
           <p className="alhud-voice-state" role="status">{etatVocal || "Je vous écoute…"}</p>
           <p className="alhud-voice-caption" aria-hidden="true">Conversation vocale directe{diagVocal ? ` · ${diagVocal}` : ""}</p>
         </div>
@@ -1021,7 +1094,13 @@ export function Conversation({ navigation, active = true, mode = "chat", onActiv
             </span>)}
           </div> : null}
           {ecoute ? <p className="px-2 pb-1 text-[11px] text-black/60" data-testid="etat-dictee">
-            {etatDictee === "connexion" ? "Connexion sécurisée… (le bouton stop coupe le micro tout de suite)" : "Micro actif — parlez"}
+            {{
+              connexion: "Connexion sécurisée… (le bouton stop coupe le micro tout de suite)",
+              ecoute: "Micro actif — parlez, le texte s’écrit ici à chaque courte pause",
+              parole: "Je vous entends… le texte s’écrit dès que vous marquez une courte pause",
+              ecriture: "Écriture du texte…",
+              direct: "Micro actif — le texte s’écrit en direct pendant que vous parlez",
+            }[etatDictee]}
             {diagVocal ? ` · ${diagVocal}` : ""}
           </p> : null}
           <div className="alhud-composer flex items-end gap-2">
@@ -1062,7 +1141,7 @@ export function Conversation({ navigation, active = true, mode = "chat", onActiv
                 <button type="button" className="alhud-composer-action" onClick={annulerDictee} aria-label="Annuler la dictée" title="Annuler">
                   <X className="h-5 w-5" />
                 </button>
-                <div className="alhud-recording-wave" role="status" aria-label="Dictée en cours"><span /><span /><span /><span /><span /></div>
+                <div ref={vagueDictee} className={`alhud-recording-wave ${etatDictee}`} role="status" aria-label="Dictée en cours"><span /><span /><span /><span /><span /></div>
                 <button type="button" className="alhud-composer-action" onClick={arreterDictee} aria-label="Arrêter la dictée (garder le texte)" title="Arrêter">
                   <Square className="h-4 w-4" />
                 </button>

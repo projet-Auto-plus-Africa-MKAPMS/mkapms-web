@@ -6,6 +6,9 @@ import {
   readDictationHistory,
   useVoicePreferences,
   REALTIME_VOICES,
+  REALTIME_VOICE_GROUPS,
+  VOICE_LANGUAGES,
+  recognitionLanguage,
   type VoiceLanguage,
   type VoiceMode,
   type RealtimeVoiceName,
@@ -61,6 +64,9 @@ export function VoiceSettingsPanel({ title = "Voix" }: { title?: string }) {
   }, []);
 
   const selectedVoice = voices.find((voice) => voice.name === preferences.voiceName);
+  const prefixeLangue = recognitionLanguage(preferences).split("-")[0].toLowerCase();
+  const voixLangue = voices.filter((voice) => voice.lang.toLowerCase().startsWith(prefixeLangue));
+  const autresVoix = voices.filter((voice) => !voice.lang.toLowerCase().startsWith(prefixeLangue));
   const update = <K extends keyof typeof preferences>(key: K, value: (typeof preferences)[K]) => save({ ...preferences, [key]: value });
 
   function previewVoice() {
@@ -97,13 +103,14 @@ export function VoiceSettingsPanel({ title = "Voix" }: { title?: string }) {
         <SectionHeader section="voice" icon={Volume2} title="Voix de lecture" description="Voix système utilisée pour les aperçus" />
         {openSection === "voice" ? <div className="border-t border-black/5 bg-black/[0.02] p-4">
           <label className="mb-2 block text-xs font-black uppercase tracking-wide text-black/40" htmlFor="alhud-voice-choice">Voix</label>
-          {ttsSupported && voices.length ? <select id="alhud-voice-choice" value={preferences.voiceName} onChange={(event) => update("voiceName", event.target.value)} className="w-full rounded-xl border border-black/10 bg-white px-3 py-3 text-sm font-semibold"><option value="">Voix système</option>{voices.map((voice) => <option key={`${voice.name}-${voice.lang}`} value={voice.name}>{voice.name} · {voice.lang}{voice.default ? " · par défaut" : ""}</option>)}</select> : <p className="rounded-xl bg-white px-3 py-3 text-sm text-black/55">{ttsSupported ? "Chargement des voix installées…" : "La lecture vocale n’est pas disponible sur ce navigateur."}</p>}
+          {ttsSupported && voices.length ? <select id="alhud-voice-choice" value={preferences.voiceName} onChange={(event) => update("voiceName", event.target.value)} className="w-full rounded-xl border border-black/10 bg-white px-3 py-3 text-sm font-semibold"><option value="">Voix système</option>{voixLangue.length ? <optgroup label={`Voix installées pour la langue choisie (${voixLangue.length})`}>{voixLangue.map((voice) => <option key={`${voice.name}-${voice.lang}`} value={voice.name}>{voice.name} · {voice.lang}{voice.default ? " · par défaut" : ""}</option>)}</optgroup> : null}{autresVoix.length ? <optgroup label="Autres langues">{autresVoix.map((voice) => <option key={`${voice.name}-${voice.lang}`} value={voice.name}>{voice.name} · {voice.lang}{voice.default ? " · par défaut" : ""}</option>)}</optgroup> : null}</select> : <p className="rounded-xl bg-white px-3 py-3 text-sm text-black/55">{ttsSupported ? "Chargement des voix installées…" : "La lecture vocale n’est pas disponible sur ce navigateur."}</p>}
+          {ttsSupported ? <small className="mt-2 block text-black/45">Cette liste montre les voix installées sur l’appareil. Pour en ajouter : iPhone/iPad › Réglages › Accessibilité › Contenu énoncé › Voix, choisissez la langue puis téléchargez une voix « améliorée » ou « premium » ; Android › Paramètres › Synthèse vocale › données vocales.</small> : null}
         </div> : null}
       </div>
       <div>
         <SectionHeader section="live" icon={AudioLines} title="Conversation directe" description="Voix, qualité et réduction du bruit" />
         {openSection === "live" ? <div className="space-y-4 border-t border-black/5 bg-black/[0.02] p-4">
-          <label className="block text-xs font-black uppercase tracking-wide text-black/40" htmlFor="alhud-realtime-voice-choice">Voix de la conversation directe<select id="alhud-realtime-voice-choice" value={preferences.realtimeVoice} onChange={(event) => update("realtimeVoice", event.target.value as RealtimeVoiceName)} className="mt-2 w-full rounded-xl border border-black/10 bg-white px-3 py-3 text-sm font-semibold">{REALTIME_VOICES.map((voice) => <option key={voice.id} value={voice.id}>{voice.label} · {voice.timbre}</option>)}</select></label>
+          <label className="block text-xs font-black uppercase tracking-wide text-black/40" htmlFor="alhud-realtime-voice-choice">Voix de la conversation directe<select id="alhud-realtime-voice-choice" value={preferences.realtimeVoice} onChange={(event) => update("realtimeVoice", event.target.value as RealtimeVoiceName)} className="mt-2 w-full rounded-xl border border-black/10 bg-white px-3 py-3 text-sm font-semibold">{REALTIME_VOICE_GROUPS.map((groupe) => <optgroup key={groupe.timbre} label={groupe.label}>{REALTIME_VOICES.filter((voice) => voice.timbre === groupe.timbre).map((voice) => <option key={voice.id} value={voice.id}>{voice.label}</option>)}</optgroup>)}</select></label>
           <div className="flex flex-wrap items-center gap-3">
             <button type="button" onClick={() => void ecouterVoix()} disabled={apercuVoix.isPending} className="inline-flex items-center gap-2 rounded-full bg-black px-4 py-2 text-xs font-black uppercase tracking-wide text-white disabled:opacity-50"><Play className="h-4 w-4" />Écouter cette voix</button>
             <small className="text-black/45">Le timbre indiqué est une impression d'écoute, pas une garantie : l'exemple sonore décide.</small>
@@ -116,7 +123,7 @@ export function VoiceSettingsPanel({ title = "Voix" }: { title?: string }) {
         <SectionHeader section="language" icon={Languages} title="Langue & comportement" description="Reconnaissance, réponse et arrière-plan" />
         {openSection === "language" ? <div className="space-y-4 border-t border-black/5 bg-black/[0.02] p-4">
           <label className="block text-xs font-black uppercase tracking-wide text-black/40">Mode vocal<select value={preferences.mode} onChange={(event) => update("mode", event.target.value as VoiceMode)} className="mt-2 w-full rounded-xl border border-black/10 bg-white px-3 py-3 text-sm font-semibold"><option value="live">Live — reste actif jusqu’à Stop</option><option value="one_turn">Tour unique</option></select></label>
-          <label className="block text-xs font-black uppercase tracking-wide text-black/40">Langue<select value={preferences.language} onChange={(event) => update("language", event.target.value as VoiceLanguage)} className="mt-2 w-full rounded-xl border border-black/10 bg-white px-3 py-3 text-sm font-semibold"><option value="auto">Automatique</option><option value="fr-FR">Français</option><option value="en-US">English</option><option value="ar-SA">العربية</option></select></label>
+          <label className="block text-xs font-black uppercase tracking-wide text-black/40">Langue<select value={preferences.language} onChange={(event) => update("language", event.target.value as VoiceLanguage)} className="mt-2 w-full rounded-xl border border-black/10 bg-white px-3 py-3 text-sm font-semibold">{VOICE_LANGUAGES.map((langue) => <option key={langue.id} value={langue.id}>{langue.label}</option>)}</select><small className="mt-1 block normal-case text-black/45">Utilisée par les deux micros : écriture de la dictée et langue de réponse de la conversation directe.</small></label>
           <div className="flex items-center gap-3 rounded-xl bg-white px-3 py-3"><ShieldCheck className="h-5 w-5 text-black/45" /><span className="min-w-0 flex-1"><b className="block text-sm">Conversation en arrière-plan</b><small className="text-black/45">Si le système et le navigateur l’autorisent</small></span><Toggle label="Conversation en arrière-plan" value={preferences.background} onChange={(value) => update("background", value)} /></div>
         </div> : null}
       </div>

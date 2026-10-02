@@ -1,7 +1,28 @@
 import { useEffect, useState } from "react";
 
 export type VoiceMode = "live" | "one_turn";
-export type VoiceLanguage = "auto" | "fr-FR" | "en-US" | "ar-SA";
+export type VoiceLanguage = "auto" | "fr-FR" | "en-US" | "ar-SA" | "es-ES" | "pt-PT" | "de-DE" | "it-IT" | "nl-NL" | "tr-TR";
+
+/** Langues proposées aux deux micros : reconnaissance du navigateur, transcription du service et langue de réponse. */
+export const VOICE_LANGUAGES: { id: VoiceLanguage; label: string }[] = [
+  { id: "auto", label: "Automatique" },
+  { id: "fr-FR", label: "Français" },
+  { id: "en-US", label: "English" },
+  { id: "ar-SA", label: "العربية" },
+  { id: "es-ES", label: "Español" },
+  { id: "pt-PT", label: "Português" },
+  { id: "de-DE", label: "Deutsch" },
+  { id: "it-IT", label: "Italiano" },
+  { id: "nl-NL", label: "Nederlands" },
+  { id: "tr-TR", label: "Türkçe" },
+];
+
+/** Groupes d'écoute des voix de la conversation directe (impression d'écoute, l'aperçu sonore décide). */
+export const REALTIME_VOICE_GROUPS: { timbre: "plutôt douce" | "plutôt grave" | "neutre"; label: string }[] = [
+  { timbre: "plutôt douce", label: "Timbre doux (souvent perçu féminin)" },
+  { timbre: "plutôt grave", label: "Timbre grave (souvent perçu masculin)" },
+  { timbre: "neutre", label: "Timbre neutre" },
+];
 export type VoiceNoiseReduction = "auto" | "near_field" | "far_field";
 export type RealtimeVoiceName = "marin" | "cedar" | "coral" | "sage" | "verse" | "alloy" | "ash" | "ballad" | "echo" | "shimmer";
 
@@ -71,7 +92,7 @@ export function readVoicePreferences(): VoicePreferences {
         ? parsed.realtimeVoice as RealtimeVoiceName
         : "marin",
       mode: parsed.mode === "one_turn" ? "one_turn" : "live",
-      language: ["auto", "fr-FR", "en-US", "ar-SA"].includes(String(parsed.language))
+      language: VOICE_LANGUAGES.some((langue) => langue.id === parsed.language)
         ? parsed.language as VoiceLanguage
         : "auto",
       autoStart: parsed.autoStart === true,
