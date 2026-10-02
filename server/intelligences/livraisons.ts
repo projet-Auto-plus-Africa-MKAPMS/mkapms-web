@@ -3078,6 +3078,21 @@ export const LIVRAISONS: Livraison[] = [
       "Une capacité qui coûte à chaque usage reste éteinte jusqu'à décision du PDG, se replie sur l'existant quand elle échoue, et revérifie les droits d'accès à la sortie : une empreinte ne donne aucun droit de lecture. On ne la dit « fonctionnelle » qu'après un vrai appel.",
     domaine: "confiance",
   },
+  {
+    cle: "branche-coffre-boutons-guident-activation",
+    titre: "Coffre secret : plus aucun bouton mort — un clic mène à l'activation quand la clé maître manque",
+    moteurs: ["intelligences_orchestrateur"],
+    quoi:
+      "Dans le Coffre secret, les boutons « Ajouter un secret », « Ajouter », « Déposer », « Remplacer… » et « Autre outil… » étaient désactivés (grisés) tant que la clé maître du serveur n'était pas configurée : le PDG croyait les boutons cassés. Ils sont désormais tous actifs. Si le coffre est activé, ils ouvrent le formulaire comme avant ; s'il ne l'est pas, un clic fabrique la clé maître dans le navigateur, affiche la consigne en haut de l'écran (« copiez la clé dans Railway, variable COFFRE_CLE_MAITRE, redéployez ») et fait défiler jusqu'à la carte d'activation. Aucun secret n'est enregistré sans clé maître : le contenu est chiffré côté serveur, jamais en clair.",
+    pourquoi:
+      "Le PDG a signalé que les boutons du Coffre étaient « morts » et a demandé de tous les activer. Cause réelle : la variable COFFRE_CLE_MAITRE n'existe pas sur le serveur de production ; sans elle, le serveur ne peut pas chiffrer. Cette variable ne peut être posée que dans les réglages Railway du propriétaire : ce lot rend le chemin visible et cliquable, il ne peut pas la poser à sa place. De même, les jetons GitHub et Railway ne peuvent être créés que depuis les consoles de ces services par leur propriétaire ; le Coffre les reçoit ensuite sous les noms prévus (« GitHub — jeton mkapms-web », « Railway — jeton de projet »).",
+    ou: [
+      "client/src/pages/intelligence/modules/Coffre.tsx",
+    ],
+    lecon:
+      "Un bouton grisé sans explication se lit comme une panne. Quand une condition manque (ici une clé du serveur), le bouton reste actif et conduit à ce qui débloque, au lieu de ne rien dire.",
+    domaine: "confiance",
+  },
 ];
 
 /**

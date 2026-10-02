@@ -164,6 +164,7 @@ export function Coffre() {
   /** Le formulaire d'ajout s'ouvre au clic sur « + Ajouter » et se referme une fois le secret déposé. */
   const [formulaireOuvert, setFormulaireOuvert] = useState(false);
   const formulaire = useRef<HTMLDivElement>(null);
+  const carteActivation = useRef<HTMLDivElement>(null);
 
   const rafraichir = async () => {
     await Promise.all([utils.intelligences.coffreEtat.invalidate(), utils.intelligences.coffreSecrets.invalidate(), utils.intelligences.coffreJournal.invalidate()]);
@@ -195,6 +196,18 @@ export function Coffre() {
   });
 
   const disponible = etat.data?.disponible === true;
+
+  /**
+   * Aucun bouton n'est « mort » : tant que la clé maître du serveur manque, un clic ne peut rien enregistrer (un secret ne
+   * se dépose jamais en clair), alors il mène droit à l'activation — clé fabriquée sur-le-champ, consigne et défilement
+   * jusqu'à la carte d'activation — au lieu de ne rien faire.
+   */
+  function guider(action: () => void) {
+    if (disponible) return action();
+    setCleGeneree((c) => c || genererCleMaitre());
+    setMessage("Le coffre n'est pas encore activé : la clé maître manque sur le serveur. Copiez la clé ci-dessous dans Railway (variable COFFRE_CLE_MAITRE), redéployez, puis revenez ici : tous les boutons déposeront alors vos secrets.");
+    window.setTimeout(() => carteActivation.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
+  }
 
   function deposer() {
     if (nom.trim().length < 2) { setMessage("Donnez un nom au secret (2 caractères minimum)."); return; }
@@ -236,8 +249,8 @@ export function Coffre() {
         <p className="text-xs text-black/60">
           La Boutique garde son propre coffre : rien n'est partagé automatiquement entre les deux plateformes.
         </p>
-        <button type="button" disabled={!disponible} onClick={() => preparer(null, "", "")}
-          className="inline-flex items-center gap-1 rounded-lg bg-[#111] px-3 py-2 text-sm font-bold text-white disabled:opacity-40">
+        <button type="button" onClick={() => guider(() => preparer(null, "", ""))}
+          className="inline-flex items-center gap-1 rounded-lg bg-[#111] px-3 py-2 text-sm font-bold text-white">
           <Plus className="h-4 w-4" /> Ajouter un secret
         </button>
         <p className="text-[11px] text-black/60">Autant que vous voulez, de n'importe quel type (clé API, jeton Railway ou d'une autre boutique, accès d'un fournisseur…), et vous pouvez en supprimer quand vous voulez.</p>
@@ -245,7 +258,7 @@ export function Coffre() {
 
       {etat.isLoading ? <p className="text-xs" role="status">Vérification du coffre…</p> : null}
       {etat.data && !disponible ? (
-        <div role="alert" className="rounded-xl border border-red-200 bg-red-50/40 p-4 space-y-2 text-sm">
+        <div ref={carteActivation} role="alert" className="rounded-xl border border-red-200 bg-red-50/40 p-4 space-y-2 text-sm">
           <p className="font-bold text-red-700">Coffre pas encore activé</p>
           <p>{etat.data.motif}</p>
           <p className="text-xs text-black/70">
@@ -266,6 +279,8 @@ export function Coffre() {
           {cleGeneree ? <p className="text-[11px] text-black/60">Cette clé est fabriquée dans votre navigateur : elle n'est envoyée à aucun serveur et ne s'affichera plus si vous quittez cet écran.</p> : null}
         </div>
       ) : null}
+
+      {message ? <p role="status" className="rounded-lg border border-black/10 bg-black/[0.03] p-3 text-sm">{message}</p> : null}
 
       <div className="rounded-xl border border-black/10 p-4 space-y-3" aria-label="Connecter les outils">
         <h3 className="flex items-center gap-2 text-sm font-black"><Plug className="h-4 w-4" /> Connecter les outils</h3>
@@ -288,8 +303,8 @@ export function Coffre() {
                 <span className={`shrink-0 rounded-full px-2 py-0.5 text-[11px] font-bold ${resume.complet ? "bg-green-100 text-green-800" : "bg-black/5 text-black/60"}`}>
                   {resume.complet ? "Éléments déposés" : `${resume.obligatoiresDeposes}/${resume.obligatoiresTotal} déposés`}
                 </span>
-                <button type="button" disabled={!disponible} onClick={() => preparer(null, c.service, `${c.service} — `)}
-                  className="inline-flex shrink-0 items-center gap-1 rounded border px-2 py-1 text-xs font-bold disabled:opacity-40" aria-label={`Ajouter un autre secret pour ${c.libelle}`}>
+                <button type="button" onClick={() => guider(() => preparer(null, c.service, `${c.service} — `))}
+                  className="inline-flex shrink-0 items-center gap-1 rounded border px-2 py-1 text-xs font-bold" aria-label={`Ajouter un autre secret pour ${c.libelle}`}>
                   <Plus className="h-3 w-3" /> Ajouter
                 </button>
               </div>
@@ -306,8 +321,8 @@ export function Coffre() {
                         <span className="block text-black/60">{e.aide}</span>
                       </span>
                       <span className="flex shrink-0 gap-1">
-                        <button type="button" disabled={!disponible} onClick={() => preparer(e, c.service)}
-                          className="whitespace-nowrap rounded border px-2 py-1 font-bold disabled:opacity-40">
+                        <button type="button" onClick={() => guider(() => preparer(e, c.service))}
+                          className="whitespace-nowrap rounded border px-2 py-1 font-bold">
                           {depose ? "Remplacer…" : "Déposer"}
                         </button>
                         {depose && parNom.get(e.nom.trim().toLowerCase()) ? (
@@ -341,7 +356,7 @@ export function Coffre() {
             </div>
           );
         })}
-        <button type="button" disabled={!disponible} onClick={() => preparer(null, "")} className="rounded border px-2 py-1 text-xs font-bold disabled:opacity-40">
+        <button type="button" onClick={() => guider(() => preparer(null, ""))} className="rounded border px-2 py-1 text-xs font-bold">
           Autre outil ou autre développeur…
         </button>
       </div>
@@ -375,7 +390,6 @@ export function Coffre() {
         </button>
       </div> : null}
 
-      {message ? <p role="status" className="text-sm">{message}</p> : null}
 
       <div className="rounded-xl border border-black/10 p-4 space-y-2">
         <h3 className="text-sm font-black">Secrets déposés</h3>
@@ -394,8 +408,8 @@ export function Coffre() {
                   </span>
                 </span>
                 <span className="flex shrink-0 gap-1">
-                  <button type="button" disabled={!disponible || remplacer.isPending}
-                    onClick={() => { setRemplacementId(remplacementId === s.id ? null : s.id); setValeurRemplacement(VALEUR_VIDE); }}
+                  <button type="button" disabled={remplacer.isPending}
+                    onClick={() => guider(() => { setRemplacementId(remplacementId === s.id ? null : s.id); setValeurRemplacement(VALEUR_VIDE); })}
                     className="whitespace-nowrap rounded border px-2 py-1 text-xs font-bold">Remplacer</button>
                   <button type="button" disabled={supprimer.isPending}
                     onClick={() => { if (window.confirm(`Supprimer définitivement « ${s.nom} » ?`)) supprimer.mutate({ id: s.id }); }}
