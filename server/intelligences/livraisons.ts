@@ -2926,6 +2926,24 @@ export const LIVRAISONS: Livraison[] = [
       "Remplir une mémoire ne veut pas dire la remplir de n'importe quoi : chaque fait garde sa source et son statut, une source qui n'est pas vérifiée le dit, et rejouer une écriture ne doit jamais fabriquer de confirmation. Vérifié sur une vraie base locale, dont une mutation volontaire de la règle d'idempotence qui fait bien échouer le test.",
     domaine: "confiance",
   },
+  {
+    cle: "branche-connexion-google-bouton-mort",
+    titre: "Connexion et création de compte : le bouton « Continuer avec Google » ne faisait rien sans variable de construction",
+    moteurs: ["identity"],
+    quoi:
+      "La page de connexion lisait l'identifiant client Google dans une variable de CONSTRUCTION du site (VITE_GOOGLE_CLIENT_ID). Quand elle manquait, elle affichait un faux bouton « Continuer avec Google » dont le clic ne faisait rien. Désormais : l'identifiant est lu à l'exécution côté serveur (auth.googleConfig, le même GOOGLE_CLIENT_ID que celui qui vérifie le jeton) ; le script de Google, chargé en différé, est attendu au lieu d'abandonner au premier rendu ; si Google n'est pas configuré ou ne peut pas se charger, la page le dit (aucun bouton mort) et le formulaire email reste utilisable ; le bouton se redessine en revenant de « mot de passe oublié ». Côté serveur : l'adresse Google doit être marquée vérifiée (email_verified) avant de rattacher un compte existant, et un serveur sans GOOGLE_CLIENT_ID répond clairement au lieu de « Google non vérifié ».",
+    pourquoi:
+      "Le PDG a envoyé une capture de la page de connexion (téléphone) et demande que la connexion et la création de compte fonctionnent, directement par Google. Le bouton visible sur la capture est le bouton de repli de notre code, pas celui de Google : aucun clic ne partait. Ce correctif rend le bouton fonctionnel dès que GOOGLE_CLIENT_ID est défini sur le serveur et que les adresses du site sont autorisées dans la console Google.",
+    ou: [
+      "client/src/pages/Connexion.tsx",
+      "server/routers/auth.ts",
+      "server/auth.ts",
+      "scripts/test-connexion-browser.mjs",
+    ],
+    lecon:
+      "Un bouton qui ne mène nulle part est pire qu'un bouton absent : si une capacité n'est pas configurée, la page doit le dire. Et une variable lue à la construction du site se perd silencieusement : une valeur publique mais nécessaire au serveur se lit à l'exécution, à un seul endroit.",
+    domaine: "confiance",
+  },
 ];
 
 /**
