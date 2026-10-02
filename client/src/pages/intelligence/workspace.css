@@ -172,3 +172,5 @@
 .alhud-recents-toggle{display:flex;align-items:center;gap:8px;width:100%;min-height:44px;padding:8px;border-radius:12px;font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.02em;color:rgb(0 0 0/.55);text-align:left}
 .alhud-recents-toggle:hover,.alhud-recents-toggle:focus-visible{background:rgb(0 0 0/.05)}
 .alhud-recents-toggle small{margin-left:auto;font-weight:700;color:rgb(0 0 0/.4)}
+.alhud-approved-menu .alhud-menu-history .alhud-history-title{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;flex:1 1 auto;width:auto;min-width:0;min-height:44px;padding:8px 6px;white-space:normal;overflow:hidden;overflow-wrap:anywhere;text-overflow:clip;font-size:14px;line-height:1.35}
+.alhud-approved-menu .alhud-menu-history .alhud-history-action{display:inline-flex;align-items:center;justify-content:center;flex:0 0 36px;width:36px;min-height:44px;padding:0;gap:0}
