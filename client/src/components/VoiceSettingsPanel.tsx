@@ -1,14 +1,16 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AudioLines, ChevronDown, Clock3, Languages, Play, ShieldCheck, Trash2, Volume2 } from "lucide-react";
 import {
   DICTATION_HISTORY_EVENT,
   clearDictationHistory,
   readDictationHistory,
   useVoicePreferences,
+  REALTIME_VOICES,
   type VoiceLanguage,
   type VoiceMode,
   type RealtimeVoiceName,
 } from "../lib/voicePreferences";
+import { trpc } from "../lib/trpc";
 
 function Toggle({ value, onChange, label }: { value: boolean; onChange: (value: boolean) => void; label: string }) {
   return <button type="button" role="switch" aria-checked={value} aria-label={label} onClick={() => onChange(!value)} className={`relative h-7 w-12 shrink-0 rounded-full transition ${value ? "bg-blue-600" : "bg-black/15"}`}>
@@ -23,6 +25,26 @@ export function VoiceSettingsPanel({ title = "Voix" }: { title?: string }) {
   const [openSection, setOpenSection] = useState<"voice" | "live" | "language" | "history" | null>(null);
   const [history, setHistory] = useState(readDictationHistory);
   const ttsSupported = typeof window !== "undefined" && "speechSynthesis" in window;
+  const apercuVoix = trpc.intelligences.apercuVoix.useMutation();
+  const [apercuEtat, setApercuEtat] = useState("");
+  const apercuAudio = useRef<HTMLAudioElement | null>(null);
+  /** Écoute un court exemple de la voix choisie. L'élément audio est créé pendant le geste (iPhone) puis rempli. */
+  const ecouterVoix = async () => {
+    apercuAudio.current?.pause();
+    const audio = new Audio();
+    apercuAudio.current = audio;
+    setApercuEtat("Préparation de l'exemple…");
+    try {
+      const { mime, base64 } = await apercuVoix.mutateAsync({ voix: preferences.realtimeVoice });
+      audio.src = `data:${mime};base64,${base64}`;
+      await audio.play();
+      setApercuEtat("");
+    } catch (error) {
+      setApercuEtat(error instanceof Error && /Impossible|bloqu|NotAllowed/i.test(error.name + error.message)
+        ? "Touchez « Écouter » une seconde fois pour autoriser le son."
+        : (error instanceof Error ? error.message : "Aperçu indisponible."));
+    }
+  };
 
   useEffect(() => {
     if (!ttsSupported) return;
@@ -81,7 +103,12 @@ export function VoiceSettingsPanel({ title = "Voix" }: { title?: string }) {
       <div>
         <SectionHeader section="live" icon={AudioLines} title="Conversation directe" description="Voix, qualité et réduction du bruit" />
         {openSection === "live" ? <div className="space-y-4 border-t border-black/5 bg-black/[0.02] p-4">
-          <label className="block text-xs font-black uppercase tracking-wide text-black/40" htmlFor="alhud-realtime-voice-choice">Voix de la conversation directe<select id="alhud-realtime-voice-choice" value={preferences.realtimeVoice} onChange={(event) => update("realtimeVoice", event.target.value as RealtimeVoiceName)} className="mt-2 w-full rounded-xl border border-black/10 bg-white px-3 py-3 text-sm font-semibold"><option value="marin">Marin</option><option value="coral">Coral</option><option value="sage">Sage</option><option value="verse">Verse</option><option value="alloy">Alloy</option><option value="ash">Ash</option><option value="ballad">Ballad</option><option value="echo">Echo</option><option value="shimmer">Shimmer</option></select></label>
+          <label className="block text-xs font-black uppercase tracking-wide text-black/40" htmlFor="alhud-realtime-voice-choice">Voix de la conversation directe<select id="alhud-realtime-voice-choice" value={preferences.realtimeVoice} onChange={(event) => update("realtimeVoice", event.target.value as RealtimeVoiceName)} className="mt-2 w-full rounded-xl border border-black/10 bg-white px-3 py-3 text-sm font-semibold">{REALTIME_VOICES.map((voice) => <option key={voice.id} value={voice.id}>{voice.label} · {voice.timbre}</option>)}</select></label>
+          <div className="flex flex-wrap items-center gap-3">
+            <button type="button" onClick={() => void ecouterVoix()} disabled={apercuVoix.isPending} className="inline-flex items-center gap-2 rounded-full bg-black px-4 py-2 text-xs font-black uppercase tracking-wide text-white disabled:opacity-50"><Play className="h-4 w-4" />Écouter cette voix</button>
+            <small className="text-black/45">Le timbre indiqué est une impression d'écoute, pas une garantie : l'exemple sonore décide.</small>
+          </div>
+          {apercuEtat ? <p role="status" className="text-sm text-black/60">{apercuEtat}</p> : null}
           <label className="block text-xs font-black uppercase tracking-wide text-black/40" htmlFor="alhud-noise-reduction">Environnement sonore<select id="alhud-noise-reduction" value={preferences.noiseReduction} onChange={(event) => update("noiseReduction", event.target.value as typeof preferences.noiseReduction)} className="mt-2 w-full rounded-xl border border-black/10 bg-white px-3 py-3 text-sm font-semibold"><option value="auto">Automatique (recommandé)</option><option value="near_field">Téléphone ou micro proche</option><option value="far_field">Ordinateur, tablette ou micro distant</option></select><small className="mt-1 block normal-case text-black/45">Ce réglage est utilisé par les deux micros pour mieux isoler votre voix.</small></label>
         </div> : null}
       </div>

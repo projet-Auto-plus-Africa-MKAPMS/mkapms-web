@@ -39,7 +39,8 @@ export type CodeFonction =
   | "recherche_web"
   | "traduction"
   | "distillation"
-  | "recherche_documentaire_vectorielle";
+  | "recherche_documentaire_vectorielle"
+  | "memoire_travail";
 
 export interface SpecFonction {
   code: CodeFonction;
@@ -337,6 +338,21 @@ export const FONCTIONS: SpecFonction[] = [
       "Les conditions d'utilisation du fournisseur encadrent l'entraînement d'un modèle concurrent : à vérifier avant de lancer.",
     activeParDefaut: false,
     autonomie: "C'est l'étape qui rend le détachement possible.",
+  },
+  {
+    code: "memoire_travail",
+    libelle: "Mémoire des travaux et conversations",
+    apport:
+      "Chaque décision, consigne ou tâche réalisée avec le PDG enrichit la mémoire d'entreprise, retrouvable dans les conversations suivantes.",
+    capacite: "raisonnement",
+    capaciteFabrique: "ia_texte",
+    permission: "ANALYZE",
+    beneficiaires: ["intelligences"],
+    exigence: "Clé du fournisseur de texte.",
+    precaution:
+      "Un petit appel de modèle de plus par échange substantiel, côté direction seulement ; jamais de mot de passe ni de clé ; le même sujet remplace le souvenir précédent (qui passe en historique).",
+    activeParDefaut: true,
+    autonomie: "Apprendre de chaque travail réalisé ensemble, sans geste du PDG, tant que le PDG est le seul utilisateur.",
   },
 ];
 

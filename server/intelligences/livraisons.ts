@@ -2821,6 +2821,30 @@ export const LIVRAISONS: Livraison[] = [
       "Une donnée de protocole (SDP, en-têtes, JSON signé) se transmet octet pour octet : nettoyer par trim() « par précaution » peut la rendre invalide. On valide sur une copie nettoyée, on transmet l'original (ou sa forme canonique complète). Et un test qui compare au résultat de trim() verrouille le défaut au lieu de le détecter : comparer à la forme que le protocole exige. Preuve par un analyseur indépendant (Pion) plutôt que par déduction. Non vérifié : le service OpenAI de production lui-même et l'iPhone du PDG — la ligne d'état dira ce qu'ils renvoient après redéploiement ; si l'erreur change (clé, quota, modèle), elle s'affichera avec son code.",
     domaine: "confiance",
   },
+  {
+    cle: "branche-voix-transcription-voix-memoire-travail-coffre",
+    titre: "Micro bleu (transcription de repli), voix masculines à écouter, mémoire des travaux, Coffre « + Ajouter »",
+    moteurs: ["intelligences"],
+    quoi:
+      "Quatre apports du même lot. 1) Le micro bleu : si OpenAI refuse le modèle de transcription du projet (« model_not_found »), le navigateur essaie automatiquement le modèle suivant (gpt-4o-mini-transcribe, puis whisper-1, puis gpt-4o-transcribe) et, si aucun n'est autorisé, affiche une consigne claire au lieu d'un code. 2) Les voix : le réglage propose maintenant toutes les voix du service temps réel (dont cedar et les voix plutôt graves) avec un bouton « Écouter cette voix » qui joue un court extrait réel. 3) La mémoire des travaux : chaque échange de travail avec le PDG est résumé en faits durables et inscrit dans la mémoire (catégories entreprise, technique, décisions, projets, apprentissage), sauf échange trivial ou contenant un secret ; fonction « Mémoire des travaux et conversations » activée par défaut, désactivable. 4) Le Coffre : bouton « Ajouter un secret » et « Ajouter » par connecteur, nombre illimité de secrets de tout type, suppression à volonté.",
+    pourquoi:
+      "Le PDG a vu « model_not_found » à la transcription alors que le micro bleu répondait, n'aime pas la voix actuelle, a constaté que l'IA répondait que les conversations de travail n'enrichissent pas sa mémoire, et veut déposer autant de jetons et clés que nécessaire (Railway, autres boutiques, fournisseurs) puis les retirer quand il veut. Le choix de la voix reste une écoute : les indications de timbre sont des impressions, pas une garantie.",
+    ou: [
+      "client/src/lib/realtimeVoice.ts",
+      "client/src/lib/voicePreferences.ts",
+      "client/src/components/VoiceSettingsPanel.tsx",
+      "server/intelligences/provider.ts",
+      "server/intelligences/index.ts",
+      "server/intelligences/apprentissage-travail.ts",
+      "server/intelligences/fonctions.ts",
+      "server/intelligences/service.ts",
+      "client/src/pages/intelligence/modules/Coffre.tsx",
+      "scripts/test-coffre-browser.mjs",
+    ],
+    lecon:
+      "Un modèle nommé en dur peut être absent de l'allocation d'un projet fournisseur : prévoir un repli ordonné et un message qui dit quoi autoriser. Une mémoire qui n'apprend que de ce qu'on lui injecte à la main reste vide : l'apprentissage doit partir du travail réel, avec garde-fous (pas de secret, pas d'échange trivial, jamais bloquant pour la réponse).",
+    domaine: "confiance",
+  },
 ];
 
 /**

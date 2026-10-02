@@ -21,6 +21,8 @@ interface RealtimeVoiceOptions {
   onDiagnostic?: (texte: string) => void;
   /** Annule la connexion à tout moment : le micro est coupé immédiatement, même avant que la liaison soit établie. */
   signal?: AbortSignal;
+  /** Langue de transcription (ex. « fr »), conservée quand le modèle de transcription doit être remplacé en cours de session. */
+  langueTranscription?: string;
 }
 
 type RealtimeEvent = {
@@ -52,6 +54,25 @@ export function messageEvenementErreur(type: string, erreur: RealtimeEvent["erro
   }
   return `Le service vocal a refusé cet échange${detail}.`;
 }
+
+/** Modèle de transcription demandé par le serveur à l'ouverture de la session. */
+export const MODELE_TRANSCRIPTION_INITIAL = "gpt-4o-mini-transcribe";
+/** Modèles essayés, dans l'ordre, quand le service répond que le modèle de transcription est introuvable pour ce projet. */
+export const MODELES_TRANSCRIPTION_REPLI = ["whisper-1", "gpt-4o-transcribe"] as const;
+const CODES_MODELE_INDISPONIBLE = new Set(["model_not_found", "invalid_model", "model_not_available", "model_unavailable"]);
+
+/**
+ * Prochain modèle de transcription à essayer après un échec dont le code dit « modèle introuvable ».
+ * `null` = rien à essayer (autre cause d'échec, ou tous les modèles ont déjà été refusés).
+ */
+export function prochainModeleTranscription(code: string, dejaEssayes: readonly string[]): string | null {
+  if (!CODES_MODELE_INDISPONIBLE.has(code)) return null;
+  return MODELES_TRANSCRIPTION_REPLI.find((modele) => !dejaEssayes.includes(modele)) ?? null;
+}
+
+/** Message quand plus aucun modèle de transcription n'est accessible : c'est un réglage du projet OpenAI, pas un défaut du micro. */
+export const MESSAGE_TRANSCRIPTION_IMPOSSIBLE =
+  "Aucun modèle de transcription n'est autorisé pour la clé OpenAI de la plateforme (model_not_found). Dans OpenAI, projet de la clé → Limits → Model usage : autorisez whisper-1 ou gpt-4o-mini-transcribe, puis réessayez. Le micro capte, mais rien ne peut être écrit tant que ce n'est pas fait.";
 
 /**
  * Ne transmet jamais une offre SDP incomplète. Sur iPhone, Android et certains
@@ -113,6 +134,7 @@ export async function startRealtimeVoice(options: RealtimeVoiceOptions): Promise
   let evenements = 0;
   const typesVus: string[] = [];
   const userPartial = new Map<string, string>();
+  const modelesTranscriptionEssayes: string[] = [MODELE_TRANSCRIPTION_INITIAL];
   let assistantPartial = "";
 
   const diagnostic = (etat: string) => {
@@ -194,7 +216,21 @@ export async function startRealtimeVoice(options: RealtimeVoiceOptions): Promise
     if (type === "output_audio_buffer.stopped") options.onState?.("ecoute");
     // Échec de transcription : le micro capte mais rien ne s'écrit — c'était ignoré en silence.
     if (type === "error" || type === "conversation.item.input_audio_transcription.failed") {
-      options.onError?.(messageEvenementErreur(type, event.error));
+      const suivant = type === "error" ? null : prochainModeleTranscription(codeErreurService(event.error), modelesTranscriptionEssayes);
+      if (suivant && channel.readyState === "open") {
+        // Le modèle de transcription n'est pas accessible à ce projet : on bascule la session en cours, sans la couper.
+        modelesTranscriptionEssayes.push(suivant);
+        const langue = options.langueTranscription?.split("-")[0]?.toLowerCase();
+        channel.send(JSON.stringify({
+          type: "session.update",
+          session: { type: "realtime", audio: { input: { transcription: { model: suivant, ...(langue && /^[a-z]{2,3}$/.test(langue) ? { language: langue } : {}) } } } },
+        }));
+        options.onError?.(`Le modèle de transcription n'est pas accessible : essai avec ${suivant}. Reparlez après ce message.`);
+      } else if (type !== "error" && CODES_MODELE_INDISPONIBLE.has(codeErreurService(event.error))) {
+        options.onError?.(MESSAGE_TRANSCRIPTION_IMPOSSIBLE);
+      } else {
+        options.onError?.(messageEvenementErreur(type, event.error));
+      }
     }
   };
 

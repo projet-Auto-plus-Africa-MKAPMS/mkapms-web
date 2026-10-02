@@ -8,7 +8,7 @@
  * dans le navigateur.
  */
 import { useRef, useState } from "react";
-import { KeyRound, RefreshCw, Trash2, Copy, Check, Plug } from "lucide-react";
+import { KeyRound, RefreshCw, Trash2, Copy, Check, Plug, Plus } from "lucide-react";
 import { trpc } from "../../../lib/trpc";
 import { CONNECTEURS, resumerConnecteur, type ElementConnecteur } from "../../../lib/connecteurs";
 
@@ -161,6 +161,8 @@ export function Coffre() {
   const [remplacementId, setRemplacementId] = useState<number | null>(null);
   const [valeurRemplacement, setValeurRemplacement] = useState<Valeur>(VALEUR_VIDE);
   const [cleGeneree, setCleGeneree] = useState("");
+  /** Le formulaire d'ajout s'ouvre au clic sur « + Ajouter » et se referme une fois le secret déposé. */
+  const [formulaireOuvert, setFormulaireOuvert] = useState(false);
   const formulaire = useRef<HTMLDivElement>(null);
 
   const rafraichir = async () => {
@@ -171,7 +173,7 @@ export function Coffre() {
     onSuccess: async (r) => {
       setMessage(r.detail);
       if (r.ok) {
-        setNom(""); setService(""); setValeur(VALEUR_VIDE);
+        setNom(""); setService(""); setValeur(VALEUR_VIDE); setFormulaireOuvert(false);
         await rafraichir();
       }
     },
@@ -210,15 +212,18 @@ export function Coffre() {
   }
 
   /** Pré-remplit le formulaire d'ajout pour un élément du catalogue, sans jamais rien envoyer. */
-  function preparer(element: ElementConnecteur | null, service: string) {
+  function preparer(element: ElementConnecteur | null, service: string, nomPropose?: string) {
     setMessage("");
-    setNom(element?.nom ?? "");
+    setFormulaireOuvert(true);
+    setNom(element?.nom ?? nomPropose ?? "");
     setService(service);
-    setType(element?.type ?? "identifiants");
+    setType(element?.type ?? (nomPropose ? "cle_api" : "identifiants"));
     setValeur(VALEUR_VIDE);
-    formulaire.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    window.setTimeout(() => formulaire.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
   }
   const nomsPresents = (secrets.data ?? []).map((s) => s.nom);
+  const parNom = new Map((secrets.data ?? []).map((s) => [s.nom.trim().toLowerCase(), s]));
+  const retirer = (id: number, nomSecret: string) => { if (window.confirm(`Supprimer définitivement « ${nomSecret} » ?`)) supprimer.mutate({ id }); };
 
   return (
     <section className="space-y-4" aria-label="Coffre secret">
@@ -231,6 +236,11 @@ export function Coffre() {
         <p className="text-xs text-black/60">
           La Boutique garde son propre coffre : rien n'est partagé automatiquement entre les deux plateformes.
         </p>
+        <button type="button" disabled={!disponible} onClick={() => preparer(null, "", "")}
+          className="inline-flex items-center gap-1 rounded-lg bg-[#111] px-3 py-2 text-sm font-bold text-white disabled:opacity-40">
+          <Plus className="h-4 w-4" /> Ajouter un secret
+        </button>
+        <p className="text-[11px] text-black/60">Autant que vous voulez, de n'importe quel type (clé API, jeton Railway ou d'une autre boutique, accès d'un fournisseur…), et vous pouvez en supprimer quand vous voulez.</p>
       </div>
 
       {etat.isLoading ? <p className="text-xs" role="status">Vérification du coffre…</p> : null}
@@ -278,6 +288,10 @@ export function Coffre() {
                 <span className={`shrink-0 rounded-full px-2 py-0.5 text-[11px] font-bold ${resume.complet ? "bg-green-100 text-green-800" : "bg-black/5 text-black/60"}`}>
                   {resume.complet ? "Éléments déposés" : `${resume.obligatoiresDeposes}/${resume.obligatoiresTotal} déposés`}
                 </span>
+                <button type="button" disabled={!disponible} onClick={() => preparer(null, c.service, `${c.service} — `)}
+                  className="inline-flex shrink-0 items-center gap-1 rounded border px-2 py-1 text-xs font-bold disabled:opacity-40" aria-label={`Ajouter un autre secret pour ${c.libelle}`}>
+                  <Plus className="h-3 w-3" /> Ajouter
+                </button>
               </div>
               <ul className="space-y-1">
                 {c.elements.map((e, i) => {
@@ -291,14 +305,37 @@ export function Coffre() {
                         </span>
                         <span className="block text-black/60">{e.aide}</span>
                       </span>
-                      <button type="button" disabled={!disponible} onClick={() => preparer(e, c.service)}
-                        className="shrink-0 whitespace-nowrap rounded border px-2 py-1 font-bold disabled:opacity-40">
-                        {depose ? "Remplacer…" : "Déposer"}
-                      </button>
+                      <span className="flex shrink-0 gap-1">
+                        <button type="button" disabled={!disponible} onClick={() => preparer(e, c.service)}
+                          className="whitespace-nowrap rounded border px-2 py-1 font-bold disabled:opacity-40">
+                          {depose ? "Remplacer…" : "Déposer"}
+                        </button>
+                        {depose && parNom.get(e.nom.trim().toLowerCase()) ? (
+                          <button type="button" disabled={supprimer.isPending} onClick={() => retirer(parNom.get(e.nom.trim().toLowerCase())!.id, e.nom)}
+                            aria-label={`Supprimer ${e.nom}`} className="rounded border px-2 py-1 font-bold text-red-700"><Trash2 className="h-3 w-3" /></button>
+                        ) : null}
+                      </span>
                     </li>
                   );
                 })}
               </ul>
+              {(() => {
+                const connus = new Set(c.elements.map((e) => e.nom.trim().toLowerCase()));
+                const autres = (secrets.data ?? []).filter((x) => x.service.trim().toLowerCase() === c.service.trim().toLowerCase() && !connus.has(x.nom.trim().toLowerCase()));
+                return autres.length ? (
+                  <div className="space-y-1 border-t border-black/5 pt-2" aria-label={`Autres secrets ${c.libelle}`}>
+                    <p className="text-[11px] font-bold text-black/60">Autres secrets ajoutés ({autres.length})</p>
+                    <ul className="space-y-1">
+                      {autres.map((x) => (
+                        <li key={x.id} className="flex items-center justify-between gap-2 text-xs">
+                          <span className="min-w-0 truncate"><Check className="mr-1 inline h-3 w-3 text-green-700" aria-hidden="true" />{x.nom}<span className="text-black/50"> · {x.apercu}</span></span>
+                          <button type="button" disabled={supprimer.isPending} onClick={() => retirer(x.id, x.nom)} aria-label={`Supprimer ${x.nom}`} className="shrink-0 rounded border px-2 py-1 font-bold text-red-700"><Trash2 className="h-3 w-3" /></button>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : null;
+              })()}
               <p className="text-[11px] text-black/70"><strong>Ce que le moteur en fait aujourd'hui :</strong> {c.usage}</p>
               {c.avertissement ? <p className="text-[11px] text-amber-800">{c.avertissement}</p> : null}
             </div>
@@ -309,8 +346,11 @@ export function Coffre() {
         </button>
       </div>
 
-      <div ref={formulaire} className="rounded-xl border border-black/10 p-4 space-y-3">
-        <h3 className="text-sm font-black">Ajouter une clé secrète</h3>
+      {formulaireOuvert ? <div ref={formulaire} className="rounded-xl border border-black/10 p-4 space-y-3" aria-label="Ajouter un secret">
+        <div className="flex items-center justify-between gap-2">
+          <h3 className="text-sm font-black">Ajouter un secret</h3>
+          <button type="button" onClick={() => { setFormulaireOuvert(false); setMessage(""); }} className="rounded border px-2 py-1 text-xs font-bold">Annuler</button>
+        </div>
         <label className="block text-xs">
           Nom
           <input value={nom} onChange={(e) => setNom(e.target.value)} disabled={!disponible || ajouter.isPending} maxLength={120}
@@ -333,7 +373,7 @@ export function Coffre() {
           className="rounded-lg bg-[#111] px-3 py-2 text-sm font-bold text-white disabled:opacity-40">
           {ajouter.isPending ? "Chiffrement…" : "Enregistrer dans le coffre"}
         </button>
-      </div>
+      </div> : null}
 
       {message ? <p role="status" className="text-sm">{message}</p> : null}
 

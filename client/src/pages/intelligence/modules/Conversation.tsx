@@ -430,6 +430,7 @@ export function Conversation({ navigation, active = true, mode = "chat", onActiv
       const control = await startRealtimeVoice({
         mode: "conversation",
         signal: annulation.signal,
+        langueTranscription: recognitionLanguage(voicePreferences),
         onDiagnostic: setDiagVocal,
         exchangeSdp: async (sdp) => (await creerSessionVocale.mutateAsync({ sdp, mode: "conversation", langue: recognitionLanguage(voicePreferences), voix: voicePreferences.realtimeVoice, reductionBruit: noiseReductionFor(voicePreferences) })).sdp,
         onState: (etat) => setEtatVocal(libelleEtatVocal(etat)),
@@ -538,6 +539,7 @@ export function Conversation({ navigation, active = true, mode = "chat", onActiv
       const control = await startRealtimeVoice({
         mode: "dictee",
         signal: annulation.signal,
+        langueTranscription: recognitionLanguage(voicePreferences),
         onDiagnostic: setDiagVocal,
         onState: (etat) => { if (generation === dicteeGeneration.current) setEtatDictee(etat === "connexion" ? "connexion" : "ecoute"); },
         exchangeSdp: async (sdp) => (await creerSessionVocale.mutateAsync({ sdp, mode: "dictee", langue: recognitionLanguage(voicePreferences), voix: voicePreferences.realtimeVoice, reductionBruit: noiseReductionFor(voicePreferences) })).sdp,
