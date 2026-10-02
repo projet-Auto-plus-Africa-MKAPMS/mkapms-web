@@ -10707,7 +10707,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "routeurs": [
       "intelligences"
     ],
-    "fichiersServeur": 106,
+    "fichiersServeur": 108,
     "dependancesDeclarees": [
       "ai_fabric",
       "code_graph",
@@ -11068,6 +11068,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "retirerApprobateurDeploiement",
       "revoquerCleDeveloppeur",
       "shadow",
+      "sondeEtat",
+      "sondeLancer",
       "supprimerConversation",
       "transcrireDictee",
       "universDetail",
@@ -11114,6 +11116,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "in_sessions",
       "in_shadow",
       "in_shadow_runs",
+      "in_sondes_openai",
       "in_usage"
     ],
     "acces": [

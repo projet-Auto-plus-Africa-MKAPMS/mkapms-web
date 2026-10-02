@@ -48,6 +48,8 @@ import {
   journal as journalPermissions,
   tableau as tableauPermissions,
 } from "./permissions.js";
+import { lancerSonde } from "./provider-sonde.js";
+import { lirePreuves } from "./sonde-store.js";
 import {
   FONCTIONS,
   etat as etatFonctions,
@@ -304,7 +306,8 @@ export const intelligencesRouter = router({
   /** Court exemple parlé d'une voix du mode direct : pour choisir à l'oreille, sans lancer de conversation. */
   apercuVoix: pdgProcedure.input(z.object({ voix: z.enum(VOIX_TEMPS_REEL) }).strict()).mutation(async ({ input }) => {
     try {
-      return await creerApercuVoix(input.voix);
+      const { mime, base64 } = await creerApercuVoix(input.voix);
+      return { mime, base64 };
     } catch (error) {
       const code = error instanceof Error ? error.message : "VOICE_PREVIEW_UNKNOWN";
       console.error("[MKA.P-MS] aperçu de voix refusé :", code);
@@ -891,6 +894,23 @@ export const intelligencesRouter = router({
     fonctions: await etatFonctions(),
     resume: await resumeFonctions(),
   })),
+
+  /** Dernières preuves des tests réels des capacités du fournisseur de modèles (jamais de clé ni de message brut). */
+  sondeEtat: pdgProcedure.query(async () => ({ capacites: await lirePreuves() })),
+
+  /**
+   * Lance la sonde : un vrai appel par capacité, sur le point d'entrée exact et le modèle exact. Les essais
+   * coûteux (génération d'image) ne partent que sur demande explicite.
+   */
+  sondeLancer: pdgProcedure
+    .input(z.object({ inclureCouteux: z.boolean().default(false) }).strict())
+    .mutation(async ({ input }) => {
+      const r = await lancerSonde({ inclureCouteux: input.inclureCouteux });
+      if (!r.ok && r.capacites.length === 0) {
+        throw new TRPCError({ code: "PRECONDITION_FAILED", message: "Clé du fournisseur absente du serveur : aucune capacité n'a pu être testée." });
+      }
+      return { ok: r.ok, httpListe: r.httpListe, nombreModeles: r.modelesDuProjet.length, capacites: r.capacites };
+    }),
 
   reglerFonction: pdgProcedure
     .input(

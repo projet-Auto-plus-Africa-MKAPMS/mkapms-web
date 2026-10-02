@@ -584,6 +584,24 @@ export const inFonctions = pgTable("in_fonctions", {
 });
 
 /**
+ * Preuves des tests réels des capacités du fournisseur de modèles : une ligne par
+ * capacité, remplacée à chaque sonde. Statut HTTP et codes publics d'erreur
+ * seulement — jamais la clé, jamais le message brut du fournisseur.
+ */
+export const inSondesOpenai = pgTable("in_sondes_openai", {
+  id: serial("id").primaryKey(),
+  capacite: varchar("capacite", { length: 48 }).notNull().unique(),
+  etat: varchar("etat", { length: 40 }).notNull(),
+  modele: varchar("modele", { length: 80 }),
+  endpoint: varchar("endpoint", { length: 120 }).notNull().default(""),
+  httpStatus: integer("http_status"),
+  erreurType: varchar("erreur_type", { length: 80 }).notNull().default(""),
+  erreurCode: varchar("erreur_code", { length: 80 }).notNull().default(""),
+  details: jsonb("details").$type<Record<string, unknown>>().notNull().default({}),
+  testeLe: timestamp("teste_le", { withTimezone: true }).notNull().defaultNow(),
+});
+
+/**
  * Point 151 — plateforme développeur. Une clé n'ouvre que les capacités de sa
  * portée, jamais le catalogue entier, et son secret n'est jamais conservé en
  * clair : seule son empreinte est stockée.

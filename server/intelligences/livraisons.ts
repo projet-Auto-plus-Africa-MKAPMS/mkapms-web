@@ -3035,6 +3035,27 @@ export const LIVRAISONS: Livraison[] = [
       "Quand deux plateformes se comportent différemment, chercher d'abord ce qui garde l'accès (ici un outil de données, pas le développement) avant de conclure à un oubli ; et ne jamais laisser l'IA réclamer un secret pour une capacité qu'elle n'a pas.",
     domaine: "confiance",
   },
+  {
+    cle: "branche-sonde-capacites-fournisseur-modeles",
+    titre: "Sonde des capacités du fournisseur de modèles : un vrai test par capacité, états séparés, preuve de chaque refus",
+    moteurs: ["intelligences_orchestrateur"],
+    quoi:
+      "Nouvelle sonde (Paramètres IA → « Tests réels des capacités du fournisseur », réservée au PDG) qui, avec la clé du serveur, liste les modèles réellement ouverts au projet (identifiants API exacts) puis essaie chaque capacité sur son point d'entrée exact : texte, sorties structurées, appel d'outils, vision, modération, recherche web, synthèse vocale, transcription (modèle par modèle), session vocale temps réel et sa transcription, embeddings, et — sur demande payante explicite — génération d'image ; traduction audio, vidéo et code : disponibilité constatée seulement. Huit états séparés : NOT_AVAILABLE, AVAILABLE_IN_OPENAI, ENABLED_FOR_PROJECT, ADAPTER_READY, CONNECTED_TO_MKA_PMS_IA, TESTED, FUNCTIONAL, WAITING_EXTERNAL_ACCESS. FUNCTIONAL seulement si la requête réussie traverse l'adaptateur de la plateforme ; TESTED quand le point d'entrée répond mais qu'aucun adaptateur ne le traverse (embeddings, session temps réel) ; un refus malgré l'activation est conservé avec sa preuve (statut, type, code, modèle, endpoint). Les adaptateurs ne devinent plus : la transcription de fichiers essaie le modèle déjà prouvé, puis une liste fermée, et son erreur finale nomme statut, modèle et code public au lieu d'un message générique. Table in_sondes_openai (migration 0153).",
+    pourquoi:
+      "Le PDG a activé tous les modèles du projet chez le fournisseur et demande de passer aux vrais tests plutôt que de renvoyer vers l'écran du fournisseur, en distinguant « activé » de « branché » de « fonctionnel », et de diagnostiquer la transcription par le parcours complet. Cet environnement de développement n'a pas la clé : la sonde s'exécute donc sur le serveur de production, au clic du PDG. Aucun résultat réel n'est affirmé avant ce premier lancement.",
+    ou: [
+      "server/intelligences/provider-sonde.ts",
+      "server/intelligences/sonde-store.ts",
+      "server/intelligences/provider.ts",
+      "server/intelligences/index.ts",
+      "client/src/pages/intelligence/modules/SondeCapacites.tsx",
+      "server/intelligences/__tests__/sonde-openai.test.ts",
+      "drizzle/0153_sondes_openai.sql",
+    ],
+    lecon:
+      "Un état « activé » n'est pas une preuve : on sépare chaque étape (disponible, activé, branché, testé, fonctionnel) et on ne monte d'un cran que sur un vrai appel. Une erreur du fournisseur se conserve par son statut et ses codes publics, jamais par son message brut (il peut citer un fragment de clé) ni par un message générique qui cache la cause.",
+    domaine: "confiance",
+  },
 ];
 
 /**

@@ -18,6 +18,13 @@ const EXTENSIONS = new Set([".ts", ".tsx"]);
 // Seuls ces fichiers ont le droit de parler à un fournisseur de modèle.
 const AUTORISES = new Set([
   join("server", "intelligences", "provider.ts"),
+  // Sonde des capacités du fournisseur : elle constate l'état réel de chaque capacité par un vrai appel
+  // (liste des modèles, embeddings, session temps réel) sans jamais afficher la clé ; les appels passant par
+  // un adaptateur de la plateforme sont délégués à provider.ts.
+  join("server", "intelligences", "provider-sonde.ts"),
+  // Test de la sonde : retire temporairement la variable de clé pour vérifier « sans clé, rien n'est testé » ;
+  // fetch et adaptateurs toujours injectés, jamais un appel réseau réel.
+  join("server", "intelligences", "__tests__", "sonde-openai.test.ts"),
   // La Fabrique possède le catalogue : elle nomme les fournisseurs et leurs clés
   // pour constater leur état, sans jamais émettre l'appel du modèle.
   join("server", "ai-fabric", "service.ts"),

@@ -62,6 +62,7 @@ export interface MessageConversation {
 }
 
 import { lireAudio, type FichierAudio } from "./audio-input.js";
+import { modeleValide } from "./sonde-store.js";
 
 export interface MediaProduit {
   mime: "image/png" | "audio/mpeg" | "text/plain";
@@ -481,10 +482,12 @@ export async function appeler(input: AppelInput, fetchImpl: typeof fetch = fetch
       const tentative: Tentative = { fournisseur: providerCode, rang, ok: true, motif: "", dureeMs: Date.now() - debut };
       await mesurer(input, tentative, 0, 0);
       return { ...vide, ok: true, motifPublic: "", fournisseur: providerCode,
-        modele: input.media === "voix" ? "tts-1" : input.media === "transcription" ? "whisper-1" : resolu.modele, media, tentatives: [tentative], dureeMs: tentative.dureeMs };
-    } catch {
-      // Aucun corps fournisseur, prompt ni donnée binaire dans les journaux/erreurs.
-      const tentative: Tentative = { fournisseur: providerCode, rang, ok: false, motif: "Génération média refusée ou indisponible.", dureeMs: Date.now() - debut };
+        modele: input.media === "voix" ? "tts-1" : input.media === "transcription" ? "transcription" : resolu.modele, media, tentatives: [tentative], dureeMs: tentative.dureeMs };
+    } catch (e) {
+      // Aucun corps fournisseur, prompt ni donnée binaire dans les journaux/erreurs : seulement un code public
+      // (statut, modèle, code d'erreur) quand l'adaptateur en a produit un, pour diagnostiquer sans deviner.
+      const code = e instanceof Error && /^[A-Z][A-Za-z0-9._-]{2,160}$/.test(e.message) ? ` (${e.message})` : "";
+      const tentative: Tentative = { fournisseur: providerCode, rang, ok: false, motif: `Génération média refusée ou indisponible${code}.`, dureeMs: Date.now() - debut };
       await mesurer(input, tentative, 0, 0);
       return { ...vide, motif: tentative.motif, fournisseur: providerCode, modele: resolu.modele, tentatives: [tentative], dureeMs: tentative.dureeMs };
     }
@@ -1011,20 +1014,48 @@ export async function produireMediaNatif(
   return { mime: "audio/mpeg", base64: bytes.toString("base64") };
 }
 
-/** Bounded file transcription; audio never enters prompts, telemetry or fallback calls. */
-export async function transcrireAudioNatif(resolu:{cle:string}, input:FichierAudio, fetchImpl:typeof fetch=fetch):Promise<MediaProduit>{
+/** Modèles de transcription de fichier, par ordre de préférence. Le modèle déjà prouvé par la sonde passe en premier. */
+export const MODELES_TRANSCRIPTION_FICHIER = ["whisper-1", "gpt-4o-mini-transcribe", "gpt-4o-transcribe"] as const;
+
+/** Code public d'une erreur du fournisseur (type/code seulement) : jamais le message brut, qui peut citer un fragment de clé. */
+export function codePublicErreur(corps: string): { type: string; code: string } {
+  try {
+    const e = JSON.parse(corps) as { error?: { code?: unknown; type?: unknown } };
+    const net = (v: unknown) => String(v ?? "").replace(/[^A-Za-z0-9._-]/g, "").slice(0, 60);
+    return { type: net(e.error?.type), code: net(e.error?.code) };
+  } catch {
+    return { type: "", code: "" };
+  }
+}
+
+/**
+ * Transcription d'un fichier audio, bornée. Le modèle n'est plus figé : on essaie le modèle déjà prouvé par la
+ * sonde, puis la liste fermée, et on s'arrête dès qu'un modèle répond. Un refus (400/403/404) passe au suivant ;
+ * l'erreur finale nomme le statut, le modèle et le code public — jamais la clé, l'audio ni le corps brut.
+ */
+export async function transcrireAudioNatif(resolu:{cle:string}, input:FichierAudio, fetchImpl:typeof fetch=fetch, modelePrefere?:string):Promise<MediaProduit>{
  const bytes=lireAudio(input);if(!resolu.cle)throw Error('AUDIO_CREDENTIAL_REQUIRED');
- const form=new FormData();form.append('model','whisper-1');form.append('response_format','json');
  const mime={mp3:'audio/mpeg',wav:'audio/wav',webm:'audio/webm',mp4:'audio/mp4'}[input.format];
- form.append('file',new Blob([new Uint8Array(bytes)],{type:mime}),`recording.${input.format}`);
- const response=await fetchImpl('https://api.openai.com/v1/audio/transcriptions',{method:'POST',redirect:'error',signal:AbortSignal.timeout(150_000),headers:{Authorization:`Bearer ${resolu.cle}`},body:form});
- if(!response.ok){await response.body?.cancel();throw Error('AUDIO_PROVIDER_UNAVAILABLE');}
- if(!response.body)throw Error('AUDIO_EMPTY');
- const reader=response.body.getReader(),chunks:Uint8Array[]=[];let size=0;
- try{while(true){const {done,value}=await reader.read();if(done)break;size+=value.length;if(size>256*1024){await reader.cancel();throw Error('AUDIO_RESULT_TOO_LARGE');}chunks.push(value);}}finally{reader.releaseLock();}
- const parsed=JSON.parse(Buffer.concat(chunks).toString('utf8'));
- if(typeof parsed.text!=='string'||!parsed.text.trim()||parsed.text.length>60000)throw Error('AUDIO_EMPTY');
- return {mime:'text/plain',base64:Buffer.from(parsed.text.trim(),'utf8').toString('base64')};
+ const modeles=[...new Set([modelePrefere,await modeleValide('transcription'),...MODELES_TRANSCRIPTION_FICHIER].filter((m):m is string=>!!m&&/^[A-Za-z0-9._-]{1,80}$/.test(m)))];
+ let derniere='AUDIO_PROVIDER_UNAVAILABLE';
+ for(const modele of modeles){
+  const form=new FormData();form.append('model',modele);form.append('response_format','json');
+  form.append('file',new Blob([new Uint8Array(bytes)],{type:mime}),`recording.${input.format}`);
+  const response=await fetchImpl('https://api.openai.com/v1/audio/transcriptions',{method:'POST',redirect:'error',signal:AbortSignal.timeout(150_000),headers:{Authorization:`Bearer ${resolu.cle}`},body:form});
+  if(!response.ok){
+   const err=codePublicErreur((await response.text()).slice(0,4000));
+   derniere=`AUDIO_PROVIDER_${response.status}_${modele}_${err.code||err.type||'unknown'}`;
+   if([400,403,404].includes(response.status))continue;
+   throw Error(derniere);
+  }
+  if(!response.body)throw Error('AUDIO_EMPTY');
+  const reader=response.body.getReader(),chunks:Uint8Array[]=[];let size=0;
+  try{while(true){const {done,value}=await reader.read();if(done)break;size+=value.length;if(size>256*1024){await reader.cancel();throw Error('AUDIO_RESULT_TOO_LARGE');}chunks.push(value);}}finally{reader.releaseLock();}
+  const parsed=JSON.parse(Buffer.concat(chunks).toString('utf8'));
+  if(typeof parsed.text!=='string'||!parsed.text.trim()||parsed.text.length>60000)throw Error('AUDIO_EMPTY');
+  return {mime:'text/plain',base64:Buffer.from(parsed.text.trim(),'utf8').toString('base64')};
+ }
+ throw Error(derniere);
 }
 
 export type ModeSessionVocale = "dictee" | "conversation";
@@ -1042,7 +1073,7 @@ const VOIX_TTS1 = new Set(["alloy", "echo", "shimmer"]);
  * Court exemple parlé d'une voix (MP3), pour choisir sans tâtonner. Même clé serveur que le micro ;
  * l'audio n'est ni stocké ni journalisé. Renvoie un code public (jamais le corps de la réponse) si le service refuse.
  */
-export async function creerApercuVoix(voix: string, fetchImpl: typeof fetch = fetch): Promise<{ mime: "audio/mpeg"; base64: string }> {
+export async function creerApercuVoix(voix: string, fetchImpl: typeof fetch = fetch): Promise<{ mime: "audio/mpeg"; base64: string; modele: string }> {
   if (!(VOIX_TEMPS_REEL as readonly string[]).includes(voix)) throw new Error("VOICE_PREVIEW_INVALID");
   const cle = process.env.OPENAI_API_KEY?.trim();
   if (!cle) throw new Error("VOICE_PREVIEW_CREDENTIAL_REQUIRED");
@@ -1065,7 +1096,7 @@ export async function creerApercuVoix(voix: string, fetchImpl: typeof fetch = fe
     if (response.ok) {
       const octets = Buffer.from(await response.arrayBuffer());
       if (octets.length < 200 || octets.length > 1_000_000) throw new Error("VOICE_PREVIEW_INVALID_OUTPUT");
-      return { mime: "audio/mpeg", base64: octets.toString("base64") };
+      return { mime: "audio/mpeg", base64: octets.toString("base64"), modele };
     }
     let code = "unknown";
     try {
@@ -1118,7 +1149,7 @@ export async function creerAppelVocalTempsReel(
     ? options.modeleTranscription!
     : /^[A-Za-z0-9._-]{1,60}$/.test(process.env.OPENAI_REALTIME_TRANSCRIPTION_MODEL?.trim() ?? "")
       ? process.env.OPENAI_REALTIME_TRANSCRIPTION_MODEL!.trim()
-      : "gpt-4o-mini-transcribe";
+      : ((await modeleValide("transcription_temps_reel")) ?? "gpt-4o-mini-transcribe");
   const reductionBruit = options.reductionBruit === "far_field" ? "far_field" : "near_field";
   // `gpt-realtime` est l'alias GA le plus largement ouvert. Une installation
   // peut épingler une version plus récente, mais on revient automatiquement à
