@@ -197,15 +197,29 @@ export function Coffre() {
 
   const disponible = etat.data?.disponible === true;
 
+  const etatConnu = etat.data !== undefined && !etat.isError;
+  const secretsExistants = (etat.data?.total ?? 0) > 0;
+
   /**
    * Aucun bouton n'est « mort » : tant que la clé maître du serveur manque, un clic ne peut rien enregistrer (un secret ne
-   * se dépose jamais en clair), alors il mène droit à l'activation — clé fabriquée sur-le-champ, consigne et défilement
-   * jusqu'à la carte d'activation — au lieu de ne rien faire.
+   * se dépose jamais en clair), alors il mène droit à ce qui débloque, selon ce que le serveur a réellement répondu :
+   *  - vérification en cours ou en erreur : on le dit, sans rien conclure sur la clé ;
+   *  - clé absente et coffre vide : une clé maître est fabriquée sur-le-champ pour l'activation initiale ;
+   *  - clé absente alors que des secrets existent : on demande de restaurer la clé d'origine — une nouvelle clé ne
+   *    rouvrirait pas les secrets déjà déposés, elle les rendrait définitivement illisibles pour le moteur.
    */
   function guider(action: () => void) {
     if (disponible) return action();
-    setCleGeneree((c) => c || genererCleMaitre());
-    setMessage("Le coffre n'est pas encore activé : la clé maître manque sur le serveur. Copiez la clé ci-dessous dans Railway (variable COFFRE_CLE_MAITRE), redéployez, puis revenez ici : tous les boutons déposeront alors vos secrets.");
+    if (!etatConnu) {
+      setMessage(etat.isError ? `Vérification du coffre impossible pour le moment : ${etat.error.message}. Réessayez dans un instant.` : "Vérification du coffre en cours… réessayez dans un instant.");
+      return;
+    }
+    if (secretsExistants) {
+      setMessage("Des secrets sont déjà dans le coffre, mais la clé maître du serveur est absente. Restaurez la clé d'origine (variable COFFRE_CLE_MAITRE dans Railway) puis redéployez : une nouvelle clé ne rouvrirait pas les secrets déjà déposés.");
+    } else {
+      setCleGeneree((c) => c || genererCleMaitre());
+      setMessage("Le coffre n'est pas encore activé : la clé maître manque sur le serveur. Copiez la clé ci-dessous dans Railway (variable COFFRE_CLE_MAITRE), redéployez, puis revenez ici : tous les boutons déposeront alors vos secrets.");
+    }
     window.setTimeout(() => carteActivation.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
   }
 
@@ -261,14 +275,21 @@ export function Coffre() {
         <div ref={carteActivation} role="alert" className="rounded-xl border border-red-200 bg-red-50/40 p-4 space-y-2 text-sm">
           <p className="font-bold text-red-700">Coffre pas encore activé</p>
           <p>{etat.data.motif}</p>
-          <p className="text-xs text-black/70">
-            Générez une clé ci-dessous, collez-la dans Railway (variable <code>COFFRE_CLE_MAITRE</code>), redéployez, puis revenez ici.
-            Conservez aussi cette clé ailleurs : sans elle, les secrets déposés deviennent illisibles.
-          </p>
-          <button type="button" onClick={() => setCleGeneree(genererCleMaitre())} className="inline-flex items-center gap-1 rounded border px-2 py-1 text-xs font-bold">
+          {secretsExistants ? (
+            <p className="text-xs font-bold text-red-800">
+              Ce coffre contient déjà {etat.data.total} secret(s) : n'installez pas de nouvelle clé. Restaurez la clé d'origine dans Railway
+              (variable <code>COFFRE_CLE_MAITRE</code>), puis redéployez. Une nouvelle clé ne rouvrirait pas les secrets déjà déposés.
+            </p>
+          ) : (
+            <p className="text-xs text-black/70">
+              Générez une clé ci-dessous, collez-la dans Railway (variable <code>COFFRE_CLE_MAITRE</code>), redéployez, puis revenez ici.
+              Conservez aussi cette clé ailleurs : sans elle, les secrets déposés deviennent illisibles.
+            </p>
+          )}
+          {!secretsExistants ? <button type="button" onClick={() => setCleGeneree(genererCleMaitre())} className="inline-flex items-center gap-1 rounded border px-2 py-1 text-xs font-bold">
             <RefreshCw className="h-3 w-3" /> Générer une clé maître
-          </button>
-          {cleGeneree ? (
+          </button> : null}
+          {cleGeneree && !secretsExistants ? (
             <div className="flex items-center gap-2">
               <code className="min-w-0 flex-1 break-all rounded bg-white p-2 text-[11px]">{cleGeneree}</code>
               <button type="button" onClick={() => void navigator.clipboard?.writeText(cleGeneree)} className="inline-flex shrink-0 items-center gap-1 rounded border px-2 py-1 text-xs font-bold">
@@ -276,7 +297,7 @@ export function Coffre() {
               </button>
             </div>
           ) : null}
-          {cleGeneree ? <p className="text-[11px] text-black/60">Cette clé est fabriquée dans votre navigateur : elle n'est envoyée à aucun serveur et ne s'affichera plus si vous quittez cet écran.</p> : null}
+          {cleGeneree && !secretsExistants ? <p className="text-[11px] text-black/60">Cette clé est fabriquée dans votre navigateur : elle n'est envoyée à aucun serveur et ne s'affichera plus si vous quittez cet écran.</p> : null}
         </div>
       ) : null}
 
