@@ -56,6 +56,7 @@ import {
   FONCTIONS,
   etat as etatFonctions,
   regler as reglerFonction,
+  reglerTout as reglerToutesFonctions,
   resume as resumeFonctions,
 } from "./fonctions.js";
 import {
@@ -954,6 +955,15 @@ export const intelligencesRouter = router({
       }),
     )
     .mutation(({ input, ctx }) => reglerFonction({ ...input, actorId: ctx.user?.uid })),
+
+  reglerToutesFonctions: pdgProcedure
+    .input(
+      z.object({
+        active: z.boolean(),
+        motif: z.string().max(600).default(""),
+      }),
+    )
+    .mutation(({ input, ctx }) => reglerToutesFonctions({ ...input, actorId: ctx.user?.uid })),
 
   /**
    * Approbateurs de déploiement — désignation nominative (jamais un rôle

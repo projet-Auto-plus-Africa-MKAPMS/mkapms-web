@@ -18,14 +18,35 @@ export function FonctionsControle() {
    */
   const [motifs, setMotifs] = useState<Record<string, string>>({});
   const [message, setMessage] = useState("");
+  const [retours, setRetours] = useState<Record<string, { ok: boolean; detail: string }>>({});
   const regler = trpc.intelligences.reglerFonction.useMutation({
     onSuccess: async (r, variables) => {
       setMessage(r.detail);
+      setRetours((m) => ({ ...m, [variables.fonction]: r }));
       setMotifs((m) => ({ ...m, [variables.fonction]: "" }));
       await utils.intelligences.fonctions.invalidate();
     },
     onError: (e) => setMessage(e.message),
   });
+  const reglerTout = trpc.intelligences.reglerToutesFonctions.useMutation({
+    onSuccess: async (r, variables) => {
+      const faites = r.resultats.filter((x) => x.ok).length;
+      setMessage(
+        `${faites}/${r.resultats.length} capacité${r.resultats.length > 1 ? "s" : ""} ${
+          variables.active ? "activée" : "désactivée"
+        }${faites > 1 ? "s" : ""}.`,
+      );
+      setRetours(Object.fromEntries(r.resultats.map((x) => [x.fonction, { ok: x.ok, detail: x.detail }])));
+      await utils.intelligences.fonctions.invalidate();
+    },
+    onError: (e) => setMessage(e.message),
+  });
+  const occupe = regler.isPending || reglerTout.isPending;
+  const motifPar = (active: boolean, saisi: string) =>
+    saisi.trim() ||
+    (active
+      ? "Activation par le propriétaire depuis les paramètres IA."
+      : "Désactivation par le propriétaire depuis les paramètres IA.");
   return (
     <section className="rounded-xl border border-black/10 p-4 space-y-3">
       <h2 className="text-base font-black">Capacités — activées / désactivées</h2>
@@ -35,6 +56,31 @@ export function FonctionsControle() {
         utilisateur, projet et entreprise restent dans leurs espaces actuels ; aucun partage avec SHOP n’est activé
         ici.
       </p>
+      {etat.data && (
+        <p className="text-sm font-bold">
+          {etat.data.resume.actives} active{etat.data.resume.actives > 1 ? "s" : ""} ·{" "}
+          {etat.data.resume.eteintes} éteinte{etat.data.resume.eteintes > 1 ? "s" : ""} ·{" "}
+          {etat.data.resume.impossibles} sans fournisseur
+        </p>
+      )}
+      <div className="flex flex-wrap gap-2">
+        <button
+          type="button"
+          disabled={occupe || !etat.data}
+          onClick={() => reglerTout.mutate({ active: true, motif: motifPar(true, "") })}
+          className="rounded-lg bg-[#111] px-3 py-2 text-sm font-bold text-white disabled:opacity-40"
+        >
+          Tout activer
+        </button>
+        <button
+          type="button"
+          disabled={occupe || !etat.data}
+          onClick={() => reglerTout.mutate({ active: false, motif: motifPar(false, "") })}
+          className="rounded-lg border px-3 py-2 text-sm font-bold disabled:opacity-40"
+        >
+          Tout désactiver
+        </button>
+      </div>
       {etat.isLoading && <p>Chargement…</p>}
       {etat.error && <p role="alert">État des fonctions indisponible.</p>}
       <div className="grid gap-3 md:grid-cols-2">
@@ -61,23 +107,31 @@ export function FonctionsControle() {
                   className="mt-1 w-full rounded-lg border p-2"
                 />
               </label>
-              <button
-                type="button"
-                role="switch"
-                aria-checked={f.etat === "active"}
-                aria-label={f.libelle}
-                disabled={regler.isPending || (!f.activable && f.etat !== "active")}
-                onClick={() =>
-                  regler.mutate({
-                    fonction: f.code,
-                    active: f.etat !== "active",
-                    motif: motif || "Désactivation par le propriétaire depuis les paramètres IA.",
-                  })
-                }
-                className="rounded-lg border px-3 py-2 text-sm disabled:opacity-40"
-              >
-                {f.etat === "active" ? "Désactiver" : "Activer"}
-              </button>
+              <div className="flex flex-wrap gap-2" role="group" aria-label={f.libelle}>
+                <button
+                  type="button"
+                  aria-pressed={f.etat === "active"}
+                  disabled={occupe || f.etat === "active" || !f.activable}
+                  onClick={() => regler.mutate({ fonction: f.code, active: true, motif: motifPar(true, motif) })}
+                  className="rounded-lg bg-[#111] px-3 py-2 text-sm font-bold text-white disabled:opacity-40"
+                >
+                  Activer
+                </button>
+                <button
+                  type="button"
+                  aria-pressed={f.etat !== "active"}
+                  disabled={occupe || f.etat !== "active"}
+                  onClick={() => regler.mutate({ fonction: f.code, active: false, motif: motifPar(false, motif) })}
+                  className="rounded-lg border px-3 py-2 text-sm font-bold disabled:opacity-40"
+                >
+                  Désactiver
+                </button>
+              </div>
+              {retours[f.code] && (
+                <p role="status" className={`text-xs ${retours[f.code].ok ? "text-green-700" : "text-red-700"}`}>
+                  {retours[f.code].detail}
+                </p>
+              )}
               {!f.activable && f.etat !== "active" && (
                 <p className="text-xs text-red-700">Impossible faute de fournisseur joignable pour cette capacité.</p>
               )}
