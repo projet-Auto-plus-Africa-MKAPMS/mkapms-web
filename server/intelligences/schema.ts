@@ -248,6 +248,8 @@ export const inMissions = pgTable("in_missions", {
   testRunId: integer("test_run_id"),
   actorId: integer("actor_id"),
   dureeMs: integer("duree_ms").notNull().default(0),
+  /** Mission poursuivie par celle-ci quand elle reprend un travail interrompu. */
+  repriseDe: integer("reprise_de"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
@@ -310,7 +312,10 @@ export const inExperiences = pgTable(
     missionId: integer("mission_id"),
     testRunId: integer("test_run_id"),
     devRequestId: integer("dev_request_id"),
+    /** Épisodes distincts (résultat ou blocage différents). Un même arrêt répété n'ajoute rien ici. */
     occurrences: integer("occurrences").notNull().default(1),
+    /** Chaque essai, répétitions comprises : l'historique brut reste lisible. */
+    tentatives: integer("tentatives").notNull().default(1),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
   },

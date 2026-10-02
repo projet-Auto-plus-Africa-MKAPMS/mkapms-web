@@ -225,6 +225,24 @@ async function dernierSnapshot() {
   return s ?? null;
 }
 
+/** Un relevé de code a-t-il été ingéré ? Sans lui, « composant absent » n'a aucun sens : rien n'a été inspecté. */
+export async function relevePresent(): Promise<boolean> {
+  return (await dernierSnapshot()) !== null;
+}
+
+/** Parmi ces chemins, ceux qui existent réellement dans le dernier relevé de code (jamais un fichier supposé). */
+export async function fichiersConnus(chemins: string[]): Promise<Set<string>> {
+  const propres = [...new Set(chemins.map((c) => c.trim()).filter((c) => c.length > 0 && c.length < 300))].slice(0, 60);
+  if (propres.length === 0) return new Set();
+  const snap = await dernierSnapshot();
+  if (!snap) return new Set();
+  const lignes = await db
+    .selectDistinct({ cible: cgEdges.target })
+    .from(cgEdges)
+    .where(and(eq(cgEdges.snapshotId, snap.id), inArray(cgEdges.target, propres.map((c) => `fichier:${c}`))));
+  return new Set(lignes.map((l) => l.cible.slice("fichier:".length)));
+}
+
 export interface GrapheEtat {
   checkedAt: string;
   artefact: { present: boolean; motif: string | null; generatedAt: string | null; commit: string | null };
@@ -525,7 +543,13 @@ export async function apprendre(): Promise<{
     moteurs: string[];
   }) => {
     const existante = await db
-      .select({ id: cgLessons.id, occurrences: cgLessons.occurrences })
+      .select({
+        id: cgLessons.id,
+        occurrences: cgLessons.occurrences,
+        releves: cgLessons.releves,
+        validation: cgLessons.validation,
+        resultat: cgLessons.resultat,
+      })
       .from(cgLessons)
       .where(
         and(
@@ -536,16 +560,21 @@ export async function apprendre(): Promise<{
       )
       .limit(1);
     if (existante.length > 0) {
+      // Relire le même événement source n'est PAS une nouvelle occurrence : seul un changement réel de validation ou de
+      // résultat compte comme un épisode de plus. La relecture est tout de même tracée (releves, dernière date).
+      const e = existante[0];
+      const change = e.validation !== l.validation || (e.resultat ?? null) !== (l.resultat ?? null);
       await db
         .update(cgLessons)
         .set({
-          occurrences: existante[0].occurrences + 1,
+          occurrences: change ? e.occurrences + 1 : e.occurrences,
+          releves: e.releves + 1,
           lastSeenAt: new Date(),
           validation: l.validation,
           resultat: l.resultat ?? null,
         })
-        .where(eq(cgLessons.id, existante[0].id));
-      renforcees += 1;
+        .where(eq(cgLessons.id, e.id));
+      if (change) renforcees += 1;
       return;
     }
     await db.insert(cgLessons).values({
@@ -673,11 +702,24 @@ export async function apprendre(): Promise<{
   return { nouvelles, renforcees, sources };
 }
 
-/** « Je connais cette classe d'anomalie » — ou l'inverse, dit franchement. */
+const MOTS_VIDES_LECON = new Set(["pour", "dans", "avec", "cette", "cela", "mais", "plus", "tout", "sont", "être", "etre", "faire", "comme"]);
+
+function motsDe(texte: string): string[] {
+  return [...new Set(texte.toLowerCase().split(/[^a-zà-ÿ0-9_]+/).filter((m) => m.length >= 4 && !MOTS_VIDES_LECON.has(m)))];
+}
+
+/**
+ * « Je connais cette classe d'anomalie » — ou l'inverse, dit franchement.
+ *
+ * Une classe n'est « connue » que si des corrections VALIDÉES existent pour elle. Une observation en attente, une
+ * correction rejetée, une relecture répétée ou la classe « non classée » ne sont jamais présentées comme une correction
+ * acquise. Les leçons rendues sont les plus pertinentes pour le problème posé (mots communs), pas seulement les plus récentes.
+ */
 export async function reconnaitre(probleme: string): Promise<{
   classe: string;
   connue: boolean;
   occurrences: number;
+  verifiees: number;
   lecons: {
     id: number;
     probleme: string;
@@ -691,17 +733,45 @@ export async function reconnaitre(probleme: string): Promise<{
   verdict: string;
 }> {
   const classe = classer(probleme);
-  const lecons = await db
+  if (classe === "anomalie_non_classee") {
+    return {
+      classe,
+      connue: false,
+      occurrences: 0,
+      verifiees: 0,
+      lecons: [],
+      verdict:
+        "Anomalie non classée : aucune classe reconnue, donc aucune correction acquise à rappeler. Il faut d'abord préciser le problème ou l'analyser.",
+    };
+  }
+  const candidates = await db
     .select()
     .from(cgLessons)
     .where(eq(cgLessons.classe, classe))
     .orderBy(desc(cgLessons.lastSeenAt))
-    .limit(10);
-  const occurrences = lecons.reduce((n, l) => n + l.occurrences, 0);
+    .limit(60);
+  const mots = motsDe(probleme);
+  const note = (l: (typeof candidates)[number]) => {
+    const t = `${l.probleme} ${l.proposition ?? ""}`.toLowerCase();
+    return mots.filter((m) => t.includes(m)).length;
+  };
+  const triees = [...candidates].sort((a, b) => {
+    const v = Number(b.validation === "validee") - Number(a.validation === "validee");
+    return v !== 0 ? v : note(b) - note(a) || b.lastSeenAt.getTime() - a.lastSeenAt.getTime();
+  });
+  const lecons = triees.slice(0, 10);
+  const validees = candidates.filter((l) => l.validation === "validee");
+  // Une correction validée n'est « acquise » pour ce cas que si elle porte sur lui (au moins un mot en commun) : une
+  // correction validée pour un autre problème de la même classe n'est pas une réponse à celui-ci.
+  const pertinentes = validees.filter((l) => mots.length === 0 || note(l) >= 1);
+  const verifiees = pertinentes.length;
+  const nonValidees = candidates.length - validees.length;
+  const occurrences = candidates.reduce((n, l) => n + l.occurrences, 0);
   return {
     classe,
-    connue: lecons.length > 0 && classe !== "anomalie_non_classee",
+    connue: verifiees > 0,
     occurrences,
+    verifiees,
     lecons: lecons.map((l) => ({
       id: l.id,
       probleme: l.probleme,
@@ -713,11 +783,65 @@ export async function reconnaitre(probleme: string): Promise<{
       lastSeenAt: l.lastSeenAt.toISOString(),
     })),
     verdict:
-      lecons.length === 0
-        ? classe === "anomalie_non_classee"
-          ? "Anomalie non classée : rien d'appris là-dessus, il faut l'analyser."
-          : `Classe « ${classe} » identifiée, mais aucune correction passée enregistrée.`
-        : `Classe « ${classe} » déjà rencontrée ${occurrences} fois : ${lecons.length} correction(s) mémorisée(s).`,
+      candidates.length === 0
+        ? `Classe « ${classe} » identifiée, mais aucune correction passée enregistrée.`
+        : verifiees > 0
+          ? `Classe « ${classe} » : ${verifiees} correction(s) validée(s) par un humain pour ce cas${nonValidees > 0 ? `, ${nonValidees} observation(s) non validée(s) ou rejetée(s) (pas des corrections acquises)` : ""}.`
+          : validees.length > 0
+            ? `Classe « ${classe} » : ${validees.length} correction(s) validée(s), mais aucune ne porte sur ce cas précis — rien n'est acquis pour lui.`
+            : `Classe « ${classe} » : ${candidates.length} observation(s) en mémoire, aucune correction validée — rien n'est acquis.`,
+  };
+}
+
+export interface AuditLecons {
+  lignes: number;
+  occurrencesTotal: number;
+  relevesTotal: number;
+  parClasse: { classe: string; lignes: number; occurrences: number; releves: number }[];
+  /** Lignes relues plusieurs fois : le compteur d'origine comptait chaque relecture comme une occurrence. */
+  relues: number;
+  /** Même problème, même classe, références sources différentes : doublons probables à examiner. */
+  doublonsProbables: { classe: string; probleme: string; lignes: number; sources: string[] }[];
+  /** Classe « non classée » : volume et part des relectures. */
+  nonClassee: { lignes: number; occurrences: number; releves: number; validees: number };
+  lecture: string;
+}
+
+/** Audit en lecture seule des leçons : ne modifie rien, ne supprime rien. */
+export async function auditerLecons(): Promise<AuditLecons> {
+  const toutes = await db.select().from(cgLessons);
+  const parClasseMap = new Map<string, { classe: string; lignes: number; occurrences: number; releves: number }>();
+  const groupes = new Map<string, { classe: string; probleme: string; sources: Set<string>; lignes: number }>();
+  for (const l of toutes) {
+    const c = parClasseMap.get(l.classe) ?? { classe: l.classe, lignes: 0, occurrences: 0, releves: 0 };
+    c.lignes++; c.occurrences += l.occurrences; c.releves += l.releves;
+    parClasseMap.set(l.classe, c);
+    const cle = `${l.classe}|${l.probleme.trim().toLowerCase().replace(/\s+/g, " ")}`;
+    const g = groupes.get(cle) ?? { classe: l.classe, probleme: l.probleme.slice(0, 200), sources: new Set<string>(), lignes: 0 };
+    g.lignes++; g.sources.add(`${l.source}:${l.sourceRef ?? ""}`);
+    groupes.set(cle, g);
+  }
+  const nc = toutes.filter((l) => l.classe === "anomalie_non_classee");
+  const nonClassee = {
+    lignes: nc.length,
+    occurrences: nc.reduce((n, l) => n + l.occurrences, 0),
+    releves: nc.reduce((n, l) => n + l.releves, 0),
+    validees: nc.filter((l) => l.validation === "validee").length,
+  };
+  const occurrencesTotal = toutes.reduce((n, l) => n + l.occurrences, 0);
+  const relevesTotal = toutes.reduce((n, l) => n + l.releves, 0);
+  return {
+    lignes: toutes.length,
+    occurrencesTotal,
+    relevesTotal,
+    parClasse: [...parClasseMap.values()].sort((a, b) => b.releves - a.releves),
+    relues: toutes.filter((l) => l.releves > 1).length,
+    doublonsProbables: [...groupes.values()].filter((g) => g.lignes > 1).sort((a, b) => b.lignes - a.lignes).slice(0, 20).map((g) => ({ classe: g.classe, probleme: g.probleme, lignes: g.lignes, sources: [...g.sources].slice(0, 5) })),
+    nonClassee,
+    lecture:
+      `« anomalie_non_classee » : ${nonClassee.lignes} ligne(s) pour ${nonClassee.releves} relecture(s) ; ${nonClassee.validees} validée(s). ` +
+      `Une ligne = un événement source (classe + source + référence) : un nombre de relectures bien supérieur au nombre de lignes signale ` +
+      `un même événement relu à chaque apprentissage, pas de nouveaux incidents. Rien n'est supprimé.`,
   };
 }
 
@@ -738,6 +862,7 @@ export async function lecons(limit = 80) {
     resultat: l.resultat,
     moteurs: l.moteurs,
     occurrences: l.occurrences,
+    releves: l.releves,
     lastSeenAt: l.lastSeenAt.toISOString(),
   }));
 }

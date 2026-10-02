@@ -6,6 +6,7 @@ import { z } from "zod";
 import { adminProcedure, router } from "../trpc.js";
 import {
   apprendre,
+  auditerLecons,
   classes,
   etat,
   impact,
@@ -37,6 +38,9 @@ export const codeGraphRouter = router({
   lecons: adminProcedure
     .input(z.object({ limit: z.number().int().min(1).max(200).default(80) }).optional())
     .query(({ input }) => lecons(input?.limit ?? 80)),
+
+  /** Audit en lecture seule des leçons : doublons probables, relectures comptées comme occurrences. Ne modifie rien. */
+  audit: adminProcedure.query(() => auditerLecons()),
 
   classes: adminProcedure.query(() => classes()),
 

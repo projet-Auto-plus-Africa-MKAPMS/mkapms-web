@@ -344,11 +344,15 @@ export function Conversation({ navigation, active = true, mode = "chat", onActiv
     },
   });
 
+  /** Dernière mission inachevée de cette conversation : « continue » la reprend au lieu de repartir de zéro. */
+  const missionActiveRef = useRef<number | null>(null);
   const mission = trpc.intelligences.lancerMission.useMutation({
     onSuccess: (r) => {
       setNotice("");
       drafts.current.delete(missionDraftKeyRef.current);
-      setFil((f) => [...f, { id: idBulle(), role: "moteur", texte: r.rapport, ok: r.statut !== "echouee", motif: r.motif || "Mission interrompue.", outils: r.etapes.filter((e) => e.statut === "fait").map((e) => e.libelle), progressive: true }]);
+      if (r.id > 0) missionActiveRef.current = r.statut === "accomplie" ? null : r.id;
+      // L'état court d'abord (mission, travail réalisé, blocage précis, prochaine action) ; le détail par étape suit.
+      setFil((f) => [...f, { id: idBulle(), role: "moteur", texte: r.rapport || r.resume, ok: r.statut !== "echouee", motif: r.statut === "a_clarifier" ? "" : r.motif || "Mission interrompue.", outils: r.etapes.filter((e) => e.statut === "fait").map((e) => e.libelle), progressive: true }]);
     },
     onError: (_error, variables) => {
       setQuestion((current) => current || variables.objectif);
@@ -370,6 +374,7 @@ export function Conversation({ navigation, active = true, mode = "chat", onActiv
     suitLeFil.current = true; setRetourAuBas(false);
     setQuestion(drafts.current.get("new") ?? "");
     setDerniereQuestion(""); setNotice(""); onActivate?.();
+    missionActiveRef.current = null;
     setSessionId(null);
     sessionChargee.current = null;
     setFil([]);
@@ -381,7 +386,7 @@ export function Conversation({ navigation, active = true, mode = "chat", onActiv
     saveDraft();
     suitLeFil.current = true; setRetourAuBas(false);
     setQuestion(drafts.current.get(String(id)) ?? "");
-    if (sessionId !== id) { sessionChargee.current = null; setFil([]); setDerniereQuestion(""); }
+    if (sessionId !== id) { sessionChargee.current = null; missionActiveRef.current = null; setFil([]); setDerniereQuestion(""); }
     setNotice(""); onActivate?.();
     setSessionId(id);
     setPanneauOuvert(false);
@@ -639,6 +644,8 @@ export function Conversation({ navigation, active = true, mode = "chat", onActiv
         objectif: q,
         pieces: images.map((source, index) => ({ type: "image" as const, nom: pieces.filter((p) => p.type === "image")[index]?.nom, source })),
         fichierIds: fichierIds.length ? fichierIds : undefined,
+        missionActiveId: missionActiveRef.current,
+        contexte: fil.filter((b) => b.role === "moi").slice(-6).map((b) => b.texte.slice(0, 2000)),
       });
     } else {
       sendLock.current = true;

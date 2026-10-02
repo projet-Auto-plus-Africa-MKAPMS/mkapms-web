@@ -118,6 +118,8 @@ export const cgLessons = pgTable(
     moteurs: jsonb("moteurs").$type<string[]>().notNull().default([]),
     /** Nombre de fois que cette classe est revenue : l'expérience, comptée. */
     occurrences: integer("occurrences").notNull().default(1),
+    /** Relectures du même événement source : elles ne comptent plus comme de nouvelles occurrences. */
+    releves: integer("releves").notNull().default(1),
     lastSeenAt: timestamp("last_seen_at").notNull().defaultNow(),
     createdAt: timestamp("created_at").notNull().defaultNow(),
   },

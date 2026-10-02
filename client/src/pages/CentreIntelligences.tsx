@@ -1495,7 +1495,7 @@ export default function CentreIntelligences() {
             />
             <button
               type="button"
-              disabled={objectif.trim().length < 5 || lancerMission.isPending}
+              disabled={objectif.trim().length < 2 || lancerMission.isPending}
               onClick={() => lancerMission.mutate({ objectif: objectif.trim() })}
               className="mt-2 rounded-xl bg-[#111] px-4 py-2 text-sm font-bold text-white disabled:opacity-40"
             >
