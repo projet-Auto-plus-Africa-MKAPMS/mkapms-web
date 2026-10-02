@@ -59,18 +59,37 @@ const WORLD_STATS = [
   { value: "6", label: "Langues disponibles" },
 ];
 
+const drapeau = (code: string) =>
+  code.toUpperCase().replace(/./g, (c) => String.fromCodePoint(127397 + c.charCodeAt(0)));
+const langue = (code: string) => {
+  try { return new Intl.DisplayNames(["fr"], { type: "language" }).of(code) ?? code; } catch { return code; }
+};
+
 export default function HomeSite() {
-  const { currency, country } = useCurrency();
+  const { currency, country, setCountry } = useCurrency();
+  // Pays réellement ouverts par la direction (lecture publique, sans réglages) ;
+  // à défaut de réponse, la liste d'affichage ci-dessus.
+  const { data: paysOuverts } = trpc.country.list.useQuery(undefined, { retry: false });
+  const catalogue = paysOuverts && paysOuverts.length > 0
+    ? paysOuverts.map((p) => ({
+        code: p.code,
+        name: p.nameFr,
+        flag: drapeau(p.code),
+        lang: langue(p.defaultLanguage),
+        currency: p.defaultCurrency,
+        url: FEATURED_COUNTRIES.find((f) => f.code === p.code)?.url ?? null,
+      }))
+    : FEATURED_COUNTRIES;
   const [searchCountry, setSearchCountry] = useState("");
 
   const { data: recentes } = trpc.annonces.list.useQuery({ pays: country ?? undefined, limit: 8 });
 
   const filteredCountries = searchCountry
-    ? FEATURED_COUNTRIES.filter((c) =>
+    ? catalogue.filter((c) =>
         c.name.toLowerCase().includes(searchCountry.toLowerCase()) ||
         c.lang.toLowerCase().includes(searchCountry.toLowerCase())
       )
-    : FEATURED_COUNTRIES;
+    : catalogue;
 
   return (
     <div className="bg-[#F5F3EF] min-h-screen">
@@ -164,21 +183,23 @@ export default function HomeSite() {
 
           {/* Grille pays */}
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
-            {filteredCountries.map((country) => {
+            {filteredCountries.map((item) => {
               const contenu = (
                 <>
-                  <span className="text-2xl">{country.flag}</span>
-                  <p className="text-xs font-bold text-[#111] mt-1.5 group-hover:text-[#D4AF37] transition">{country.name}</p>
-                  <p className="text-[9px] text-[#9CA3AF] mt-0.5">{country.lang}</p>
-                  <span className="mt-1 inline-block rounded-full bg-[#D4AF37]/10 px-2 py-0.5 text-[8px] font-bold text-[#D4AF37]">{country.currency}</span>
+                  <span className="text-2xl">{item.flag}</span>
+                  <p className="text-xs font-bold text-[#111] mt-1.5 group-hover:text-[#D4AF37] transition">{item.name}</p>
+                  <p className="text-[9px] text-[#9CA3AF] mt-0.5">{item.lang}</p>
+                  <span className="mt-1 inline-block rounded-full bg-[#D4AF37]/10 px-2 py-0.5 text-[8px] font-bold text-[#D4AF37]">{item.currency}</span>
                 </>
               );
-              const classes = "group rounded-xl border border-[#E5E7EB] bg-white p-3 text-center transition";
-              // Le moteur interne des pays n'est plus un lien public : une carte sans site dédié n'est pas cliquable.
-              return country.url ? (
-                <a key={country.code} href={country.url} className={`${classes} hover:border-[#D4AF37] hover:shadow-md cursor-pointer`}>{contenu}</a>
+              const choisi = country === item.code;
+              const classes = `group rounded-xl border bg-white p-3 text-center transition hover:border-[#D4AF37] hover:shadow-md cursor-pointer ${choisi ? "border-[#D4AF37] ring-2 ring-[#D4AF37]/40" : "border-[#E5E7EB]"}`;
+              // Un pays avec site dédié ouvre ce site ; sinon un clic choisit le pays
+              // (langue, devise, annonces). Jamais de lien vers les réglages internes.
+              return item.url ? (
+                <a key={item.code} href={item.url} className={classes}>{contenu}</a>
               ) : (
-                <div key={country.code} className={classes}>{contenu}</div>
+                <button key={item.code} type="button" aria-pressed={choisi} onClick={() => setCountry(item.code)} className={classes}>{contenu}</button>
               );
             })}
           </div>

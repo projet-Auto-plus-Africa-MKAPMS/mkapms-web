@@ -3002,6 +3002,23 @@ export const LIVRAISONS: Livraison[] = [
       "Une procédure de changement de rôle ne doit jamais être ouverte à un rôle qui peut ainsi s'élever lui-même : l'attribution de rôles hauts est réservée au rôle le plus haut, et les postes externes (investisseur, partenaire) ne reçoivent jamais de rôle interne.",
     domaine: "confiance",
   },
+  {
+    cle: "branche-pays-publics-choisir-sans-reglages",
+    titre: "Accueil : les pays sont cliquables pour choisir son pays, sans aucun réglage visible du public",
+    moteurs: ["country_os", "identity"],
+    quoi:
+      "Sur l'accueil du portail mondial, chaque carte de pays est maintenant un vrai bouton : un clic choisit le pays (langue, devise, annonces du pays) et la carte choisie est mise en évidence ; un pays qui a son propre site (France) ouvre ce site. La grille affiche les pays réellement ouverts par la direction (country.list) et, à défaut de réponse, la liste d'affichage d'origine. Le public ne voit plus de la fiche d'un pays que son nom, ses langues et sa devise : plus de taux de TVA, réglementation, documents requis, moyens de paiement ni univers activés. Les réglages (activer, désactiver, ajouter un pays) restent dans le Global Country Engine, réservé au PDG connecté.",
+    pourquoi:
+      "Le PDG a précisé son besoin : le visiteur doit pouvoir voir les pays et les choisir, mais jamais les réglages, ni l'argent, ni les comptes du personnel ; ce qui est interne n'est visible qu'une fois connecté en PDG. Auparavant, un clic sur un pays envoyait vers l'écran de réglages interne.",
+    ou: [
+      "client/src/pages/HomeSite.tsx",
+      "server/country-os/index.ts",
+      "server/country-os/__tests__/acces-pdg.test.ts",
+    ],
+    lecon:
+      "Un écran public et un écran de réglages ne se mélangent pas : le public reçoit une projection minimale de la donnée côté serveur (pas la ligne complète), et un clic public ne mène jamais à une page interne.",
+    domaine: "confiance",
+  },
 ];
 
 /**
