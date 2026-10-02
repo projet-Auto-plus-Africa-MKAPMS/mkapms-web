@@ -3,7 +3,8 @@ import { deciderKyc } from "../modules/kyc-decision.js";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { desc, eq, sql, and } from "drizzle-orm";
-import { router, adminProcedure, directionProcedure } from "../trpc.js";
+import { router, adminProcedure, directionProcedure, pdgProcedure } from "../trpc.js";
+import { POSITIONS_ATTRIBUABLES, isPositionExterne } from "@shared/roles.js";
 import { db } from "../db.js";
 import { hashPassword } from "../auth.js";
 import { logAction } from "../audit.js";
@@ -457,7 +458,7 @@ export const adminRouter = router({
         createdAt: users.createdAt,
       })
       .from(users)
-      .where(sql`${users.role} in ('admin','employee','super_admin')`)
+      .where(sql`${users.role} in ('admin','employee','super_admin') or ${users.staffPosition} is not null`)
       .orderBy(desc(users.createdAt));
   }),
 
@@ -468,11 +469,22 @@ export const adminRouter = router({
         email: z.string().trim().email().transform((value) => value.toLowerCase()),
         name: z.string().trim().min(2).max(255),
         password: z.string().min(8),
-        role: z.enum(["employee", "admin"]).default("employee"),
-        staffPosition: z.enum(["directeur", "adjoint", "gerant", "chef_equipe", "agent"]).optional(),
+        role: z.enum(["employee", "admin", "user"]).default("employee"),
+        staffPosition: z.enum(POSITIONS_ATTRIBUABLES).optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
+      // Le droit vient du rôle. Un compte Administration ouvre tout le
+      // back-office : seul le PDG peut en créer (jamais un autre admin).
+      if (input.role === "admin" && ctx.user.role !== "super_admin") {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Seul le PDG peut créer un compte Administration" });
+      }
+      // Investisseur / partenaire : externes, jamais de rôle back-office.
+      const externe = isPositionExterne(input.staffPosition);
+      const role = externe ? "user" : input.role;
+      if (role === "user" && !externe) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Le rôle Particulier n'est réservé qu'aux postes Investisseur et Partenaire" });
+      }
       const existing = await db.select().from(users).where(sql`lower(${users.email}) = ${input.email}`).limit(1);
       if (existing.length) {
         throw new TRPCError({ code: "CONFLICT", message: "Un compte existe déjà avec cet email" });
@@ -483,14 +495,29 @@ export const adminRouter = router({
           email: input.email,
           name: input.name,
           passwordHash: await hashPassword(input.password),
-          role: input.role,
-          accountType: "professionnel",
+          role,
+          accountType: externe ? "particulier" : "professionnel",
           staffPosition: input.staffPosition ?? null,
           emailVerified: true,
         })
-        .returning({ id: users.id, email: users.email });
-      await logAction(ctx.user.uid, "staff.create", "user", u.id, { email: u.email, role: input.role });
+        .returning({ id: users.id, email: users.email, role: users.role, staffPosition: users.staffPosition });
+      await logAction(ctx.user.uid, "staff.create", "user", u.id, { email: u.email, role, staffPosition: input.staffPosition ?? null });
       return u;
+    }),
+
+  // Attribution (ou retrait) d'un poste sur un compte existant — réservé PDG.
+  // Ne change jamais le rôle : un poste est un intitulé, les droits restent
+  // ceux du rôle. Le compte PDG et son propre compte sont intouchables.
+  assignStaffPosition: pdgProcedure
+    .input(z.object({ userId: z.number().int().positive(), staffPosition: z.enum(POSITIONS_ATTRIBUABLES).nullable() }))
+    .mutation(async ({ ctx, input }) => {
+      if (input.userId === ctx.user.uid) throw new TRPCError({ code: "BAD_REQUEST", message: "Impossible de modifier son propre poste" });
+      const [target] = await db.select({ id: users.id, role: users.role, staffPosition: users.staffPosition }).from(users).where(eq(users.id, input.userId)).limit(1);
+      if (!target) throw new TRPCError({ code: "NOT_FOUND", message: "Compte introuvable" });
+      if (target.role === "super_admin") throw new TRPCError({ code: "FORBIDDEN", message: "Le poste du PDG ne se modifie pas" });
+      await db.update(users).set({ staffPosition: input.staffPosition, updatedAt: new Date() }).where(eq(users.id, input.userId));
+      await logAction(ctx.user.uid, "staff.assign_position", "user", input.userId, { from: target.staffPosition, to: input.staffPosition });
+      return { ok: true, staffPosition: input.staffPosition };
     }),
 
   // Suppression d'un compte — PDG : tout. Directeur : particuliers uniquement.
@@ -772,13 +799,14 @@ export const adminRouter = router({
       return { ok: true };
     }),
 
-  // Réservé direction : changement de rôle (§10.1)
-  setUserRole: directionProcedure
+  // Réservé PDG : changement de rôle (§10.1). Un administrateur ne doit jamais
+  // pouvoir se promouvoir ni promouvoir un autre compte en super_admin.
+  setUserRole: pdgProcedure
     .input(
       z.object({
         userId: z.number(),
         role: z.enum(["user", "pro", "garage", "employee", "society", "admin", "super_admin"]),
-        staffPosition: z.enum(["pdg", "directeur", "adjoint", "gerant", "chef_equipe", "agent"]).optional(),
+        staffPosition: z.enum(["pdg", ...POSITIONS_ATTRIBUABLES]).optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {

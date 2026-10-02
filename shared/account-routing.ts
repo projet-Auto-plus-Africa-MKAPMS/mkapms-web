@@ -99,7 +99,8 @@ export function resolveUniverse(identity: AccountIdentity): AccountUniverse {
   const position = identity.staffPosition ?? null;
 
   if (role === "super_admin" || position === "pdg") return "pdg";
-  if (position === "directeur" || position === "adjoint") return "direction";
+  if (position === "directeur" || position === "sous_directeur" || position === "adjoint") return "direction";
+  if (position === "comptable" && role === "admin") return "comptabilite";
   if (role === "admin" || role === "employee") return "administration";
 
   const byCategory = identity.proCategory ? PRO_CATEGORY_UNIVERSE[identity.proCategory] : undefined;

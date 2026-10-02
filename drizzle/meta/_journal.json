@@ -1051,6 +1051,13 @@
       "when": 1788404841000,
       "tag": "0151_parts_vehicle_type_electrique",
       "breakpoints": true
+    },
+    {
+      "idx": 150,
+      "version": "7",
+      "when": 1788404842000,
+      "tag": "0152_staff_positions_etendues",
+      "breakpoints": true
     }
   ]
 }

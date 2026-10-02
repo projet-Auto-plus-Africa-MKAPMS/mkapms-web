@@ -2981,6 +2981,27 @@ export const LIVRAISONS: Livraison[] = [
       "Un écran interne ne se protège pas en espérant que personne ne tape l'adresse : verrou de route côté interface ET garde de chaque procédure côté serveur, et aucun lien public ne doit y mener. On vérifie ensuite par un test que le visiteur et chaque rôle ordinaire sont refusés.",
     domaine: "confiance",
   },
+  {
+    cle: "branche-postes-equipe-pdg",
+    titre: "Postes d'équipe : sous-directeur, comptable, chef d'équipe, investisseur, partenaire — création et attribution par le PDG",
+    moteurs: ["identity", "permission_engine"],
+    quoi:
+      "Dans la zone PDG, la création d'un compte interne propose maintenant un champ « Poste » complet : directeur, sous-directeur, adjoint, gérant, chef d'équipe, comptable, agent, investisseur, partenaire (l'employé reste un rôle). Investisseur et partenaire sont des comptes externes : rôle Particulier forcé, aucun accès au back-office. Le PDG peut aussi attribuer ou retirer un poste sur un compte déjà existant (liste « Employés MKA.P-MS »), sans jamais changer son rôle. Les nouveaux postes sont ajoutés à l'énumération en base (migration additive 0152, aucun compte existant modifié). Un sous-directeur est routé vers l'espace Direction ; un comptable au rôle Administration vers l'espace comptabilité. Faille corrigée au passage : seul le PDG peut créer un compte Administration, et changer un rôle (setUserRole, qui permettait de se promouvoir PDG) est réservé au PDG.",
+    pourquoi:
+      "Le PDG voulait pouvoir créer des comptes directeur, sous-directeur, comptable, investisseur, partenaire, chef d'équipe, et donner leur rôle à ceux qui n'en ont pas. Les droits restent portés par le rôle (le poste est un intitulé) : aucun poste ne confère d'accès à lui seul, et aucun poste n'a été attribué automatiquement à un compte existant, puisque rien dans les données ne dit quel poste chacun occupe.",
+    ou: [
+      "shared/roles.ts",
+      "server/routers/admin.ts",
+      "server/schema.ts",
+      "drizzle/0152_staff_positions_etendues.sql",
+      "client/src/pages/superadmin/GestionEmployesMKAPMS.tsx",
+      "client/src/pages/Admin.tsx",
+      "server/routers/__tests__/postes-equipe.test.ts",
+    ],
+    lecon:
+      "Une procédure de changement de rôle ne doit jamais être ouverte à un rôle qui peut ainsi s'élever lui-même : l'attribution de rôles hauts est réservée au rôle le plus haut, et les postes externes (investisseur, partenaire) ne reçoivent jamais de rôle interne.",
+    domaine: "confiance",
+  },
 ];
 
 /**

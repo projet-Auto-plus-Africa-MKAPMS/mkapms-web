@@ -296,6 +296,11 @@ export default function Compte() {
             {(user as any).staffPosition === "pdg" && " — PDG / Fondateur"}
             {(user as any).staffPosition === "directeur" && " — Directeur"}
             {(user as any).staffPosition === "adjoint" && " — Adjoint de direction"}
+            {(user as any).staffPosition === "sous_directeur" && " — Sous-directeur"}
+            {(user as any).staffPosition === "comptable" && " — Comptable"}
+            {(user as any).staffPosition === "chef_equipe" && " — Chef d'équipe"}
+            {(user as any).staffPosition === "investisseur" && " — Investisseur"}
+            {(user as any).staffPosition === "partenaire" && " — Partenaire"}
             {user.email ? ` · ${user.email}` : ""}
           </p>
           {/* Badge email vérifié */}

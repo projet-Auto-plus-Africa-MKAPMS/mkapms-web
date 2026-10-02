@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { getAnnonceUrl } from "../lib/annonceUrl";
 import { trpc } from "../lib/trpc";
 import { useAuth } from "../lib/auth";
-import { isAdmin, isDirection } from "@shared/roles";
+import { isAdmin, isDirection, isPositionExterne, POSITIONS_ATTRIBUABLES, STAFF_LABELS, type PositionAttribuable, type StaffPosition } from "@shared/roles";
 import { Eye, Pencil, Trash2, Pause, Play, ChevronDown, ChevronUp, X } from "lucide-react";
 
 export default function Admin() {
@@ -131,7 +131,7 @@ export default function Admin() {
   const respondTicket = trpc.support.respond.useMutation({ onSuccess: () => { utils.admin.ticketsList.invalidate(); setTicketReply({}); } });
   const setTicketStatus = trpc.support.setStatus.useMutation({ onSuccess: () => utils.admin.ticketsList.invalidate() });
 
-  const [staff, setStaff] = useState({ email: "", name: "", password: "", role: "employee" as "employee" | "admin" });
+  const [staff, setStaff] = useState<{ email: string; name: string; password: string; role: "employee" | "admin"; staffPosition?: PositionAttribuable }>({ email: "", name: "", password: "", role: "employee" });
   const [promo, setPromo] = useState({ code: "", type: "pourcentage" as "pourcentage" | "montant", value: 10 });
   const [certifyId, setCertifyId] = useState("");
   const [partner, setPartner] = useState({ name: "", type: "autre", country: "" });
@@ -1116,15 +1116,19 @@ export default function Admin() {
           <section className="mt-12 border-t border-slate-200 pt-8">
             <h2 className="text-lg font-bold text-slate-800">Équipe interne <span className="text-xs font-normal text-gold-dark">(Direction)</span></h2>
             <form
-              className="mt-3 grid gap-2 md:grid-cols-5"
+              className="mt-3 grid gap-2 md:grid-cols-6"
               onSubmit={(e) => { e.preventDefault(); createStaff.mutate(staff); }}
             >
               <input className="input" placeholder="Nom" value={staff.name} onChange={(e) => setStaff({ ...staff, name: e.target.value })} required />
               <input className="input" type="email" placeholder="Email" value={staff.email} onChange={(e) => setStaff({ ...staff, email: e.target.value })} required />
               <input className="input" type="password" placeholder="Mot de passe (8+)" value={staff.password} onChange={(e) => setStaff({ ...staff, password: e.target.value })} required minLength={8} />
-              <select className="input" value={staff.role} onChange={(e) => setStaff({ ...staff, role: e.target.value as "employee" | "admin" })}>
+              <select className="input" aria-label="Rôle" value={staff.role} disabled={isPositionExterne(staff.staffPosition)} onChange={(e) => setStaff({ ...staff, role: e.target.value as "employee" | "admin" })}>
                 <option value="employee">Employé</option>
-                <option value="admin">Administration</option>
+                {user?.role === "super_admin" && <option value="admin">Administration</option>}
+              </select>
+              <select className="input" aria-label="Poste" value={staff.staffPosition ?? ""} onChange={(e) => setStaff({ ...staff, staffPosition: (e.target.value || undefined) as PositionAttribuable | undefined })}>
+                <option value="">Poste non renseigné</option>
+                {POSITIONS_ATTRIBUABLES.map((k) => <option key={k} value={k}>{STAFF_LABELS[k]}</option>)}
               </select>
               <button className="btn-primary !text-sm" disabled={createStaff.isPending}>Créer le compte</button>
             </form>
@@ -1136,8 +1140,8 @@ export default function Admin() {
                     <span className="text-slate-700 font-medium">{s.name}</span>
                     <span className="text-slate-400"> — {s.email}</span>
                     <span className="ml-2 inline-flex items-center gap-1">
-                      <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold ${s.role === "super_admin" ? "bg-[#D4AF37]/20 text-[#D4AF37]" : s.role === "admin" ? "bg-blue-100 text-blue-700" : "bg-slate-100 text-slate-600"}`}>{s.role === "super_admin" ? "PDG" : s.role === "admin" ? "Admin" : "Employ\u00e9"}</span>
-                      {(s as any).staffPosition && <span className="px-1.5 py-0.5 rounded bg-slate-50 text-[9px] text-slate-500">{(s as any).staffPosition}</span>}
+                      <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold ${s.role === "super_admin" ? "bg-[#D4AF37]/20 text-[#D4AF37]" : s.role === "admin" ? "bg-blue-100 text-blue-700" : "bg-slate-100 text-slate-600"}`}>{s.role === "super_admin" ? "PDG" : s.role === "admin" ? "Admin" : s.role === "employee" ? "Employ\u00e9" : "Externe"}</span>
+                      {s.staffPosition && <span className="px-1.5 py-0.5 rounded bg-slate-50 text-[9px] text-slate-500">{STAFF_LABELS[s.staffPosition as StaffPosition] ?? s.staffPosition}</span>}
                     </span>
                   </div>
                   {s.role !== "super_admin" && (

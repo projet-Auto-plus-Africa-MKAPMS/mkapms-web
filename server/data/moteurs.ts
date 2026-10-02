@@ -6555,6 +6555,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "adminStats",
       "annoncesAll",
       "annoncesPending",
+      "assignStaffPosition",
       "auditLog",
       "certifyVehicle",
       "communications",
@@ -24138,7 +24139,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "genre": "formulaire",
         "ecran": "/superadmin/gestion-employes-m-k-a-p-m-s",
         "fichier": "client/src/pages/superadmin/GestionEmployesMKAPMS.tsx",
-        "ligne": 28
+        "ligne": 30
       },
       {
         "code": "admin_employe_enregistrer",
@@ -24146,7 +24147,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "genre": "formulaire",
         "ecran": "/superadmin/gestion-employes-m-k-a-p-m-s",
         "fichier": "client/src/pages/superadmin/GestionEmployesMKAPMS.tsx",
-        "ligne": 38
+        "ligne": 42
       },
       {
         "code": "admin_employes_ajouter_mission",
@@ -24617,8 +24618,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "cliquables": 4,
         "parMoteur": 2,
         "sansAction": 0,
-        "textes": 15,
-        "mots": 51
+        "textes": 17,
+        "mots": 76
       }
     ],
     "ecransHotes": [
@@ -24748,8 +24749,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "direction",
       "public"
     ],
-    "textes": 246,
-    "mots": 768,
+    "textes": 248,
+    "mots": 793,
     "battement": "sonde",
     "manques": [
       {
