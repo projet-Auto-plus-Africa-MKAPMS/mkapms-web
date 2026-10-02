@@ -3019,6 +3019,22 @@ export const LIVRAISONS: Livraison[] = [
       "Un écran public et un écran de réglages ne se mélangent pas : le public reçoit une projection minimale de la donnée côté serveur (pas la ligne complète), et un clic public ne mène jamais à une page interne.",
     domaine: "confiance",
   },
+  {
+    cle: "branche-ia-jeton-boutique-pas-pour-developpement",
+    titre: "IA : le jeton de la boutique ne se réclame plus pour du développement ou un déploiement",
+    moteurs: ["intelligences_orchestrateur"],
+    quoi:
+      "La consigne de l'IA précise maintenant que le « jeton de service » de la boutique sert uniquement à lire le catalogue, travailler les photos et proposer des brouillons (outils boutique.*), et qu'elle ne doit jamais le réclamer pour du code, un développement ou un déploiement — ni pour la plateforme principale ni pour la boutique. Si on lui demande de coder, pousser ou déployer sans qu'elle ait l'outil, elle le dit franchement, une seule fois : le code est poussé par la session de développement et le PDG déploie à la main.",
+    pourquoi:
+      "Le PDG a constaté que l'IA demandait un jeton quand on lui parlait de la boutique, mais pas pour la plateforme principale. Vérification dans le code : le jeton demandé est celui des outils boutique.* (accès aux données de la boutique, créé par le Fondateur avec mot de passe et MFA) ; la plateforme principale n'a aucun outil gardé par jeton, donc elle n'en réclame pas ; et aucun outil de l'IA ne pousse du code ni ne déploie, ni pour l'une ni pour l'autre (les outils GitHub sont en lecture seule sur mkapms-web). L'asymétrie vient de là. Construire des outils d'écriture et de déploiement serait une décision à part (droits d'écriture sur les dépôts, approbation humaine) : non faite ici.",
+    ou: [
+      "server/intelligences/regles.ts",
+      "server/intelligences/__tests__/regles-jeton-developpement.test.ts",
+    ],
+    lecon:
+      "Quand deux plateformes se comportent différemment, chercher d'abord ce qui garde l'accès (ici un outil de données, pas le développement) avant de conclure à un oubli ; et ne jamais laisser l'IA réclamer un secret pour une capacité qu'elle n'a pas.",
+    domaine: "confiance",
+  },
 ];
 
 /**
