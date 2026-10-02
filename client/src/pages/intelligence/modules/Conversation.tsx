@@ -969,7 +969,7 @@ export function Conversation({ navigation, active = true, mode = "chat", onActiv
                     data-history-close
                     onClick={() => ouvrirConversation(c.id)}
                     disabled={busy}
-                    className={`min-w-0 flex-1 truncate rounded px-1 py-1 text-left text-xs font-semibold ${
+                    className={`alhud-history-title min-w-0 flex-1 truncate rounded px-1 py-1 text-left text-xs font-semibold ${
                       sessionId === c.id ? "text-black" : "text-black/60"
                     }`}
                     title={c.titre}

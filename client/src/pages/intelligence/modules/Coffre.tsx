@@ -141,6 +141,28 @@ function ChampsValeur({ type, valeur, onChange, desactive }: { type: TypeSecret;
   );
 }
 
+async function copierTexte(texte: string): Promise<boolean> {
+  try {
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(texte);
+      return true;
+    }
+  } catch {
+    /* repli ci-dessous */
+  }
+  const zone = document.createElement("textarea");
+  zone.value = texte;
+  zone.setAttribute("readonly", "");
+  zone.style.position = "fixed";
+  zone.style.opacity = "0";
+  document.body.appendChild(zone);
+  zone.focus();
+  zone.setSelectionRange(0, texte.length);
+  const ok = document.execCommand("copy");
+  document.body.removeChild(zone);
+  return ok;
+}
+
 function genererCleMaitre(): string {
   const octets = new Uint8Array(32);
   crypto.getRandomValues(octets);
@@ -161,6 +183,7 @@ export function Coffre() {
   const [remplacementId, setRemplacementId] = useState<number | null>(null);
   const [valeurRemplacement, setValeurRemplacement] = useState<Valeur>(VALEUR_VIDE);
   const [cleGeneree, setCleGeneree] = useState("");
+  const [cleCopiee, setCleCopiee] = useState<"" | "ok" | "echec">("");
   /** Le formulaire d'ajout s'ouvre au clic sur « + Ajouter » et se referme une fois le secret déposé. */
   const [formulaireOuvert, setFormulaireOuvert] = useState(false);
   const formulaire = useRef<HTMLDivElement>(null);
@@ -286,17 +309,18 @@ export function Coffre() {
               Conservez aussi cette clé ailleurs : sans elle, les secrets déposés deviennent illisibles.
             </p>
           )}
-          {!secretsExistants ? <button type="button" onClick={() => setCleGeneree(genererCleMaitre())} className="inline-flex items-center gap-1 rounded border px-2 py-1 text-xs font-bold">
+          {!secretsExistants ? <button type="button" onClick={() => { setCleGeneree(genererCleMaitre()); setCleCopiee(""); }} className="inline-flex items-center gap-1 rounded border px-2 py-1 text-xs font-bold">
             <RefreshCw className="h-3 w-3" /> Générer une clé maître
           </button> : null}
           {cleGeneree && !secretsExistants ? (
             <div className="flex items-center gap-2">
-              <code className="min-w-0 flex-1 break-all rounded bg-white p-2 text-[11px]">{cleGeneree}</code>
-              <button type="button" onClick={() => void navigator.clipboard?.writeText(cleGeneree)} className="inline-flex shrink-0 items-center gap-1 rounded border px-2 py-1 text-xs font-bold">
-                <Copy className="h-3 w-3" /> Copier
+              <code className="min-w-0 flex-1 select-all break-all rounded bg-white p-2 text-[11px]">{cleGeneree}</code>
+              <button type="button" onClick={() => void copierTexte(cleGeneree).then((ok) => setCleCopiee(ok ? "ok" : "echec"))} className="inline-flex min-h-[44px] shrink-0 items-center gap-1 rounded border px-3 py-1 text-xs font-bold">
+                {cleCopiee === "ok" ? <><Check className="h-3 w-3" /> Copiée</> : <><Copy className="h-3 w-3" /> Copier</>}
               </button>
             </div>
           ) : null}
+          {cleCopiee === "echec" && !secretsExistants ? <p role="alert" className="text-[11px] text-red-700">Copie refusée par le navigateur : appuyez longuement sur la clé pour la sélectionner, puis Copier.</p> : null}
           {cleGeneree && !secretsExistants ? <p className="text-[11px] text-black/60">Cette clé est fabriquée dans votre navigateur : elle n'est envoyée à aucun serveur et ne s'affichera plus si vous quittez cet écran.</p> : null}
         </div>
       ) : null}
