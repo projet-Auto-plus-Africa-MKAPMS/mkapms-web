@@ -3147,6 +3147,26 @@ export const LIVRAISONS: Livraison[] = [
       "Comparer avant d'ajouter : le recouvrement de vocabulaire a écarté 29 entrées déjà présentes. Citer les messages d'origine plutôt que les réécrire garde le récit fidèle ; seuls les noms de variables de clés, les adresses de fournisseurs, les adresses e-mail et l'identité du PDG sont remplacés, car les garde-fous du dépôt interdisent de les écrire dans le code. Ces garde-fous scannent aussi le registre des livraisons : lancer le build complet avant de pousser. La recherche globale ne transmet que les 300 premiers caractères d'une entrée : un récit long commence par son résumé et se découpe en sections courtes, sinon l'assistant retrouve l'entrée mais pas le détail (relevé par la revue automatique de la PR 555).",
     domaine: "confiance",
   },
+  {
+    cle: "branche-boutique-jeton-refuse-nom-coffre-raison-journal",
+    titre: "Boutique : le jeton enregistré est retrouvé malgré un tiret ou des espaces différents, et chaque refus dit pourquoi",
+    moteurs: ["intelligences"],
+    quoi:
+      "Le jeton et l'adresse de la boutique étaient bien enregistrés dans le Coffre secret, mais le journal du Coffre affichait « refusé » pour boutique.capacites et boutique.listerProduits, sans raison. Le « refusé » est un refus du Coffre au moment de lire le secret : le nom devait être identique au caractère près (« Boutique — jeton de service » avec le tiret long), et la raison n'était pas écrite. Corrections sur l'existant, rien n'est reconstruit : (1) le nom est retrouvé par sa forme normalisée (tirets de toute sorte, espaces, casse) parmi les seuls secrets du même compte ; un nom exact garde la priorité ; deux noms équivalents ne sont jamais départagés au hasard ; (2) chaque refus de lecture écrit sa RAISON au journal (jamais une valeur) : aucun secret de ce nom, les noms enregistrés pour ce compte, coffre propre à chaque compte, clé maître différente ; (3) le jeton et l'adresse collés avec guillemets, « Bearer », espaces ou caractères invisibles sont nettoyés avant la vérification de forme ; (4) la coche « déposé » du catalogue Connecter les outils utilise la même règle de noms que l'outil, pour tous les emplacements (Boutique, GitHub, Railway, Google Play, Apple, boîte mail) : coche et outil ne se contredisent plus ; (5) les erreurs de la boutique sont distinguées : jeton refusé avec l'hôte et son message, route de service absente (réponse sans le format attendu), redirection refusée (adresse « www »), délai, réseau.",
+    pourquoi:
+      "Un refus sans raison oblige à deviner. Le coffre est propre à chaque compte et ne tolérait aucune variation de nom : un tiret ordinaire à la place du tiret long suffisait à ne rien retrouver. Le test avec la vraie boutique n'a pas pu être fait ici (aucun accès à la production) : la cause exacte se lit désormais dans le journal du Coffre, ligne « refus : … ».",
+    ou: [
+      "server/intelligences/coffre.ts",
+      "server/intelligences/boutique.ts",
+      "server/intelligences/__tests__/boutique.test.ts",
+      "server/intelligences/__tests__/coffre-boutique.integration.test.ts",
+      "client/src/lib/connecteurs.ts",
+      ".github/workflows/build-check.yml",
+    ],
+    lecon:
+      "Un nom de secret saisi à la main n'est jamais identique à celui du catalogue : comparer des formes normalisées, dans le seul périmètre du compte, et dire exactement ce qui a échoué. Un refus journalisé sans raison ne peut pas être corrigé ; la raison ne contient que des noms, jamais une valeur.",
+    domaine: "confiance",
+  },
 ];
 
 /** Texte mémorisé d'une livraison. La recherche globale ne transmet que le début d'une entrée : le plus important vient en premier. */

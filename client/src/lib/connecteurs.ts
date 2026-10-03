@@ -140,12 +140,26 @@ export interface ResumeConnecteur {
   etats: { nom: string; etat: EtatElement }[];
 }
 
+/**
+ * Forme comparable d'un nom de secret : même règle que le serveur (coffre.ts, nomNormalise) pour que la coche et l'outil
+ * disent la même chose — tirets de toute sorte, espaces, guillemets de bord et casse ne comptent pas.
+ */
+export function nomNormalise(nom: string): string {
+  return nom
+    .normalize("NFKC")
+    .replace(/[\u2010-\u2015\u2212\u00ad]/g, "-")
+    .replace(/\s+/g, " ")
+    .replace(/\s*-\s*/g, " - ")
+    .replace(/^["'«»`\s]+|["'«»`\s]+$/g, "")
+    .toLowerCase();
+}
+
 /** Compare le catalogue aux noms des secrets réellement présents (jamais à leur valeur). */
 export function resumerConnecteur(connecteur: Connecteur, nomsPresents: readonly string[]): ResumeConnecteur {
-  const presents = new Set(nomsPresents.map((n) => n.trim().toLowerCase()));
+  const presents = new Set(nomsPresents.map(nomNormalise));
   const etats = connecteur.elements.map((e) => ({
     nom: e.nom,
-    etat: (presents.has(e.nom.trim().toLowerCase()) ? "depose" : "a_deposer") as EtatElement,
+    etat: (presents.has(nomNormalise(e.nom)) ? "depose" : "a_deposer") as EtatElement,
   }));
   const obligatoires = connecteur.elements.map((e, i) => ({ e, i })).filter(({ e }) => !e.facultatif);
   const obligatoiresDeposes = obligatoires.filter(({ i }) => etats[i]!.etat === "depose").length;

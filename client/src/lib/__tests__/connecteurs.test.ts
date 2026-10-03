@@ -43,3 +43,12 @@ test("résumé : compte seulement les obligatoires, insensible à la casse, igno
   // un élément facultatif absent ne bloque pas la complétude
   assert.ok(complet.etats.some((e) => e.etat === "a_deposer"));
 });
+
+test("la coche reconnaît un nom saisi avec un tiret ordinaire ou des espaces en trop, comme le fait l'outil côté serveur", () => {
+  const boutique = CONNECTEURS.find((c) => c.id === "boutique-shop")!;
+  const resume = resumerConnecteur(boutique, ["Boutique - adresse", "  boutique – jeton de service "]);
+  assert.equal(resume.complet, true);
+  assert.deepEqual(resume.etats.map((e) => e.etat), ["depose", "depose"]);
+  // Un nom réellement différent n'est pas confondu.
+  assert.equal(resumerConnecteur(boutique, ["Boutique — jeton"]).complet, false);
+});

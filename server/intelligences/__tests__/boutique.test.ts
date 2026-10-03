@@ -13,6 +13,7 @@ import {
   listerProduitsBoutique,
   lireProduitBoutique,
   nettoyer,
+  nettoyerValeurSecret,
   origineBoutique,
   proposerFicheBoutique,
 } from "../boutique.js";
@@ -193,4 +194,39 @@ test("connaissances boutique : 23 entrées copiées + 3 de connexion, titres uni
   const copiees = CONNAISSANCES_BOUTIQUE.filter((c) => c.source.startsWith("mkapms-shop · migrations/"));
   assert.equal(copiees.length, 23);
   for (const c of copiees) assert.match(c.source, /copiée ici le 2 octobre 2026/);
+});
+
+test("jeton refusé : la boutique et son message sont nommés ; route de service absente et redirection sont distinguées d'un jeton invalide", async () => {
+  // 401 avec la réponse de la boutique : l'hôte et son message figurent dans le diagnostic.
+  const a = await capacitesBoutique(ACCES, faux([{ status: 401, json: { error: "Jeton expiré" } }]).f);
+  assert.equal(a.ok, false);
+  if (!a.ok) {
+    assert.match(a.detail, /boutique\.exemple\.com/);
+    assert.match(a.detail, /Réponse de la boutique : « Jeton expiré »/);
+    assert.match(a.detail, /invalide, expiré ou révoqué/);
+  }
+  // 401 SANS format JSON : la route de service n'est pas reconnue, ce n'est pas (encore) le jeton.
+  const b = await capacitesBoutique(ACCES, faux([{ status: 401, texte: "<html>Connexion requise</html>" }]).f);
+  assert.equal(b.ok, false);
+  if (!b.ok) assert.match(b.detail, /sans le format attendu.*\/api\/service.*le jeton n'est pas en cause/);
+  // Redirection refusée : message propre, avec l'action à faire.
+  const redirige = (async () => {
+    throw Object.assign(new TypeError("fetch failed"), { cause: new Error("unexpected redirect") });
+  }) as typeof fetch;
+  const c = await capacitesBoutique(ACCES, redirige);
+  assert.equal(c.ok, false);
+  if (!c.ok) assert.match(c.detail, /redirige cette adresse.*adresse finale exacte/);
+  // Réseau : pas de promesse sur la cause.
+  const reseau = (async () => {
+    throw new TypeError("fetch failed");
+  }) as typeof fetch;
+  const d = await capacitesBoutique(ACCES, reseau);
+  if (!d.ok) assert.match(d.detail, /réseau ou nom de domaine introuvable/);
+});
+
+test("valeur collée dans le coffre : guillemets, Bearer, espaces et caractères invisibles sont retirés", () => {
+  assert.equal(nettoyerValeurSecret(`  "${JETON}"  `), JETON);
+  assert.equal(nettoyerValeurSecret(`Bearer ${JETON}`), JETON);
+  assert.equal(nettoyerValeurSecret(`\u200b${JETON}\ufeff\n`), JETON);
+  assert.equal(nettoyerValeurSecret("https://boutique.exemple.com"), "https://boutique.exemple.com");
 });

@@ -302,9 +302,26 @@ export async function supprimerSecret(input: { ownerId: number; id: number }): P
 }
 
 /**
+ * Forme comparable d'un nom de secret : tirets de toute sorte (-, –, —…), espaces (insécables compris), guillemets de
+ * bord et casse n'empêchent plus de retrouver « Boutique — jeton de service » saisi « Boutique - jeton de service ».
+ */
+export function nomNormalise(nom: string): string {
+  return nom
+    .normalize("NFKC")
+    .replace(/[\u2010-\u2015\u2212\u00ad]/g, "-")
+    .replace(/\s+/g, " ")
+    .replace(/\s*-\s*/g, " - ")
+    .replace(/^["'«»`\s]+|["'«»`\s]+$/g, "")
+    .toLowerCase();
+}
+
+/**
  * Seul point du code qui déchiffre. Réservé au code serveur d'un outil précis :
  * jamais exposé par tRPC, jamais renvoyé au modèle. Chaque usage — réussi ou
- * refusé — est journalisé avec l'outil et le motif.
+ * refusé — est journalisé avec l'outil, le motif et, en cas de refus, sa RAISON (jamais une valeur).
+ *
+ * Le nom est cherché tel quel d'abord, puis par sa forme normalisée (voir nomNormalise) parmi les seuls secrets du
+ * même compte ; deux noms équivalents ne sont jamais départagés au hasard.
  */
 export async function lireSecretPourOutil(input: {
   ownerId: number;
@@ -314,7 +331,7 @@ export async function lireSecretPourOutil(input: {
 }): Promise<{ ok: true; contenu: ContenuSecret } | { ok: false; detail: string }> {
   const motif = input.motif.trim();
   const refuser = async (detail: string, secretId: number | null = null) => {
-    await journaliser({ secretId, nomSecret: input.nom, acteurId: input.ownerId, action: "utiliser", outil: input.outil, motif, ok: false });
+    await journaliser({ secretId, nomSecret: input.nom, acteurId: input.ownerId, action: "utiliser", outil: input.outil, motif: `${motif} — refus : ${detail}`, ok: false });
     return { ok: false as const, detail };
   };
 
@@ -322,12 +339,32 @@ export async function lireSecretPourOutil(input: {
   const master = cleMaitre();
   if (!master) return refuser(MOTIF_INDISPONIBLE);
 
-  const [ligne] = await db
+  let [ligne] = await db
     .select()
     .from(inCoffreSecrets)
     .where(and(eq(inCoffreSecrets.ownerId, input.ownerId), eq(inCoffreSecrets.nom, input.nom)))
     .limit(1);
-  if (!ligne) return refuser(`Aucun secret nommé « ${input.nom.slice(0, 120)} » dans le coffre.`);
+  if (!ligne) {
+    const tous = await db.select({ id: inCoffreSecrets.id, nom: inCoffreSecrets.nom }).from(inCoffreSecrets).where(eq(inCoffreSecrets.ownerId, input.ownerId)).orderBy(inCoffreSecrets.nom);
+    const cible = nomNormalise(input.nom);
+    const equivalents = tous.filter((x) => nomNormalise(x.nom) === cible);
+    if (equivalents.length > 1) {
+      return refuser(`Plusieurs secrets portent un nom équivalent à « ${input.nom.slice(0, 120)} » (${equivalents.map((x) => `« ${x.nom.slice(0, 60)} »`).join(", ")}) : gardez-en un seul.`);
+    }
+    if (equivalents.length === 1) {
+      [ligne] = await db
+        .select()
+        .from(inCoffreSecrets)
+        .where(and(eq(inCoffreSecrets.id, equivalents[0]!.id), eq(inCoffreSecrets.ownerId, input.ownerId)))
+        .limit(1);
+    }
+    if (!ligne) {
+      const connus = tous.length === 0
+        ? " Ce compte n'a encore aucun secret : le coffre est propre à chaque compte, il faut le remplir avec le compte qui lance la mission."
+        : ` Noms enregistrés pour ce compte : ${tous.slice(0, 15).map((x) => `« ${x.nom.slice(0, 60)} »`).join(", ")}.`;
+      return refuser(`Aucun secret nommé « ${input.nom.slice(0, 120)} » dans le coffre.${connus}`);
+    }
+  }
 
   let contenu: ContenuSecret;
   try {
