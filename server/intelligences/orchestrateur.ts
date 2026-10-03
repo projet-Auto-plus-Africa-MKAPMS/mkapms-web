@@ -120,6 +120,8 @@ export interface OrchestrerInput {
   confidentialite?: Confidentiality;
   /** Dernière mission affichée par l'écran dans cette conversation (reprise explicite). */
   missionActiveId?: number | null;
+  /** Conversation ouverte dans l'écran : le travail s'y poursuit (mêmes messages, même fil) au lieu d'en ouvrir une nouvelle. */
+  sessionId?: number | null;
   /** Derniers ordres de la conversation (les plus anciens d'abord) : contexte pour reconnaître la mission d'une demande courte. */
   contexte?: string[];
   /** Reçoit chaque étape au moment où elle démarre puis quand elle se termine (affichage en direct). */
@@ -148,6 +150,8 @@ export interface Mission {
   testRunId: number | null;
   deploiementDemandeId: number | null;
   etapes: EtapeMission[];
+  /** Conversation où le travail a été enregistré (celle reçue, ou la nouvelle si aucune n'était ouverte) ; absente pour les autres missions. */
+  sessionId?: number | null;
 }
 
 type CleEtape = "comprendre" | "architecture" | "experience" | "analyse" | "correctif" | "dossier" | "tests" | "deploiement";
@@ -942,6 +946,7 @@ async function travailOutille(input: OrchestrerInput, objectif: string, domaine:
   let reponse = "";
   let ok = false;
   let motif = "";
+  let sessionTravail: number | null = input.sessionId ?? null;
   let appels: { toolId: string; verdictPolitique: string; statutExecution: string | null; motif: string }[] = [];
   const t0 = Date.now();
   try {
@@ -950,6 +955,8 @@ async function travailOutille(input: OrchestrerInput, objectif: string, domaine:
       question: n.texte,
       cote: "direction",
       mode: "travail",
+      // La conversation ouverte reste LA conversation : sans cela, chaque ordre en créait une nouvelle, sans l'historique.
+      sessionId: input.sessionId ?? null,
       userId: input.actorId ?? null,
       role: input.role,
       countryCode: input.countryCode ?? null,
@@ -959,6 +966,7 @@ async function travailOutille(input: OrchestrerInput, objectif: string, domaine:
     reponse = r.reponse;
     motif = r.motif;
     appels = r.appelsOutils;
+    if (r.sessionId > 0) sessionTravail = r.sessionId;
   } catch (e) {
     motif = `Travail interrompu : ${e instanceof Error ? e.message : "erreur inconnue"}`;
   }
@@ -1037,5 +1045,6 @@ async function travailOutille(input: OrchestrerInput, objectif: string, domaine:
     testRunId: null,
     deploiementDemandeId: null,
     etapes: etapes.map(etapeVers),
+    sessionId: sessionTravail,
   };
 }

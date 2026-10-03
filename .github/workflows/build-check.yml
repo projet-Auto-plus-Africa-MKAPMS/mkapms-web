@@ -105,7 +105,7 @@ jobs:
           SHOP_KNOWLEDGE_TEST_DB: postgresql://core_ai_test:disposable_ci_fixture@localhost:5432/core_ai_test
 
       - name: Work mode output budget (reasoning exhausts max tokens)
-        run: node --import tsx --test server/intelligences/__tests__/budget-relance.test.ts
+        run: node --import tsx --test server/intelligences/__tests__/budget-relance.test.ts server/intelligences/__tests__/conversation-continue-travail.test.ts
 
       - name: Semantic memory (embeddings, simulated provider)
         run: node --import tsx --test server/intelligences/__tests__/empreintes.integration.test.ts server/intelligences/__tests__/sonde-openai.test.ts

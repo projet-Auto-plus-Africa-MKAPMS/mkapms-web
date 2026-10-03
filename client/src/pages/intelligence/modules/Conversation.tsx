@@ -382,6 +382,16 @@ export function Conversation({ navigation, active = true, mode = "chat", onActiv
       setNotice("");
       drafts.current.delete(missionDraftKeyRef.current);
       if (r.id > 0) missionActiveRef.current = r.statut === "accomplie" ? null : r.id;
+      // Le travail est enregistré dans la conversation ouverte (ou dans la nouvelle, la première fois) : on y reste, sans recharger le fil.
+      if (typeof r.sessionId === "number" && r.sessionId > 0) {
+        if (missionDraftKeyRef.current === "new") {
+          drafts.current.set(String(r.sessionId), drafts.current.get("new") ?? "");
+          drafts.current.delete("new");
+        }
+        sessionIdRef.current = r.sessionId;
+        sessionChargee.current = r.sessionId;
+        setSessionId(r.sessionId);
+      }
       // L'état court d'abord (mission, travail réalisé, blocage précis, prochaine action) ; le détail par étape suit.
       setFil((f) => [...f, { id: idBulle(), role: "moteur", texte: r.rapport || r.resume, ok: r.statut !== "echouee", motif: r.statut === "a_clarifier" ? "" : r.motif || "Mission interrompue.", outils: r.etapes.filter((e) => e.statut === "fait").map((e) => e.libelle), etapes: r.etapes.map((e) => ({ etape: e.etape, libelle: e.libelle, statut: e.statut, observe: e.observe })), progressive: true }]);
     },
@@ -762,6 +772,7 @@ export function Conversation({ navigation, active = true, mode = "chat", onActiv
         pieces: images.map((source, index) => ({ type: "image" as const, nom: pieces.filter((p) => p.type === "image")[index]?.nom, source })),
         fichierIds: fichierIds.length ? fichierIds : undefined,
         missionActiveId: missionActiveRef.current,
+        sessionId,
         contexte: fil.filter((b) => b.role === "moi").slice(-6).map((b) => b.texte.slice(0, 2000)),
       });
     } else {

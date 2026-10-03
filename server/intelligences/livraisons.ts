@@ -3245,6 +3245,24 @@ export const LIVRAISONS: Livraison[] = [
       "Documenter dans l'outil la forme EXACTE attendue et renvoyer la cause d'un refus (champ, règle) évite des allers-retours à l'aveugle. Ne pas confondre « code déjà prévu » et « configuration manquante » : le lien de stock est un secret du PDG, pas du code. Les portées d'un jeton ne se modifient pas : un nouveau jeton est nécessaire pour en ajouter.",
     domaine: "confiance",
   },
+  {
+    cle: "travail-conversation-ouverte-conservee",
+    titre: "Mode Travail : chaque ordre reste dans la conversation ouverte au lieu d'en créer une nouvelle",
+    moteurs: ["intelligences"],
+    quoi:
+      "Demande du PDG (3 octobre 2026) : en mode Travail, chaque envoi refaisait un début de conversation, même après avoir cliqué sur une conversation existante ; il veut rester dans la même conversation (par exemple pour travailler sur le même produit) tant qu'il n'en a pas créé une nouvelle. Cause : la mission du mode Travail appelait le moteur de conversation SANS la conversation ouverte, ce qui créait à chaque ordre une nouvelle conversation sans l'historique des échanges précédents, et l'écran n'adoptait jamais la conversation créée. Corrections : l'écran envoie la conversation ouverte avec l'ordre ; le routeur vérifie qu'elle appartient au PDG puis la transmet à l'orchestrateur ; l'orchestrateur poursuit le travail dans cette conversation (le moteur relit alors les échanges précédents) et renvoie la conversation utilisée ; l'écran l'adopte sans recharger le fil. Un premier ordre sans conversation ouverte en crée une, puis tous les suivants y restent ; seul le bouton « Nouvelle conversation » en ouvre une autre. Le Chat gardait déjà ce comportement.",
+    pourquoi:
+      "Sans la conversation, le travail sur un même produit perdait son contexte à chaque ordre et la liste se remplissait de conversations d'un seul échange.",
+    ou: [
+      "client/src/pages/intelligence/modules/Conversation.tsx",
+      "server/intelligences/index.ts",
+      "server/intelligences/orchestrateur.ts",
+      "server/intelligences/__tests__/conversation-continue-travail.test.ts",
+    ],
+    lecon:
+      "Un identifiant de conversation doit traverser toute la chaîne (écran, routeur, orchestrateur, moteur) et revenir à l'écran ; vérifier chaque maillon quand deux chemins (Chat et Travail) partagent une même conversation.",
+    domaine: "confiance",
+  },
 ];
 
 /** Texte mémorisé d'une livraison. La recherche globale ne transmet que le début d'une entrée : le plus important vient en premier. */
