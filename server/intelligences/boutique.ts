@@ -86,6 +86,7 @@ function messageErreur(statut: number, corps: unknown, origine = ""): { detail: 
     const portee = typeof (corps as { scope?: unknown } | null)?.scope === "string" ? ` « ${String((corps as { scope: string }).scope).slice(0, 40)} »` : "";
     return { detail: `Ce jeton n'a pas la portée${portee} nécessaire pour cette action : le PDG doit créer un nouveau jeton avec cette portée (les portées d'un jeton ne se modifient pas après sa création).`, code };
   }
+  if (statut === 409 && code === "MAIN_PHOTO_NOT_ELIGIBLE") return { detail: "Cette photo fournisseur n'est pas validée « sans marque » : elle ne peut pas devenir la photo principale. Choisir une version MKA.P-MS contrôlée (état de contrôle de marque dans la fiche complète).", code };
   if (statut === 409 && code === "MEDIA_RIGHTS_REQUIRED") return { detail: "Les droits d'image de ce fournisseur ne sont pas enregistrés dans la boutique : le PDG enregistre la preuve du fournisseur une fois (boutique → Logistique fournisseur → « Droits d'image »), elle couvre tous les produits de ce fournisseur, puis la préparation des photos peut démarrer.", code };
   if (statut === 429 && code === "STOCK_SYNC_TOO_SOON") return { detail: "Le stock de ce fournisseur vient d'être synchronisé (une synchronisation par minute) : relire la fiche complète, ou réessayer dans une minute.", code };
   if (statut === 404) return { detail: "Produit ou route introuvable dans la boutique." };
@@ -289,6 +290,14 @@ export function proposerFicheBoutique(a: { origine: string; jeton: string }, pro
   const traduite = traduireFiche(fiche);
   if (!traduite.ok) return Promise.resolve({ ok: false, detail: traduite.detail });
   return appeler(a, "PUT", `/products/${id}/draft`, { expectedRevision: fiche.revisionAttendue, title: fiche.titre, shopDescription: fiche.descriptionBoutique, fields: traduite.fields, packages: traduite.packages }, f);
+}
+
+/** Choisit la photo principale parmi les versions prêtes du produit : la boutique refuse une photo fournisseur avec marque (jamais confirmée par l'IA). */
+export function choisirPhotoPrincipaleBoutique(a: { origine: string; jeton: string }, produitId: unknown, mediaId: unknown, f: Fetch = fetch): Promise<ResultatBoutique> {
+  const id = verifierId(produitId);
+  const media = verifierId(mediaId);
+  if (!id || !media) return Promise.resolve({ ok: false, detail: "Identifiants invalides (UUID attendus : produit et photo, tels que renvoyés par la fiche complète)." });
+  return appeler(a, "POST", `/products/${id}/media/${media}/select`, {}, f);
 }
 
 /** Demande la synchronisation du stock du fournisseur de ce produit (lien CSV du coffre de la boutique) : portée stock.sync. */

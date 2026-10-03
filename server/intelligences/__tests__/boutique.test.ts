@@ -18,6 +18,7 @@ import {
   origineBoutique,
   proposerFicheBoutique,
   synchroniserStockBoutique,
+  choisirPhotoPrincipaleBoutique,
   traduireFiche,
   detailSynchroStock,
 } from "../boutique.js";
@@ -164,7 +165,7 @@ test("défense en profondeur : prix, adresses et secrets retirés de ce qui revi
 });
 
 test("registre : sept outils, lecture seule ou risque faible, réservés au PDG, aucun outil de modification de prix/TVA/approbation/publication", () => {
-  assert.equal(OUTILS_BOUTIQUE.length, 7);
+  assert.equal(OUTILS_BOUTIQUE.length, 8);
   for (const o of OUTILS_BOUTIQUE) {
     assert.ok(OUTILS.some((x) => x.toolId === o.toolId), `${o.toolId} enregistré`);
     assert.ok(IMPLEMENTATIONS[o.toolId], `${o.toolId} implémenté`);
@@ -174,10 +175,10 @@ test("registre : sept outils, lecture seule ou risque faible, réservés au PDG,
     assert.equal(o.category, "boutique");
   }
   const noms = OUTILS_BOUTIQUE.map((o) => o.toolId).sort();
-  assert.deepEqual(noms, ["boutique.capacites", "boutique.lancerPhotos", "boutique.lireFicheComplete", "boutique.lireProduit", "boutique.listerProduits", "boutique.proposerFiche", "boutique.synchroniserStock"]);
+  assert.deepEqual(noms, ["boutique.capacites", "boutique.choisirPhotoPrincipale", "boutique.lancerPhotos", "boutique.lireFicheComplete", "boutique.lireProduit", "boutique.listerProduits", "boutique.proposerFiche", "boutique.synchroniserStock"]);
   assert.equal(noms.some((n) => /prix|tva|livraison|approuver|publier|decision|offre/i.test(n)), false);
   const ecritures = OUTILS_BOUTIQUE.filter((o) => o.requiredPermissions.includes("WRITE")).map((o) => o.toolId).sort();
-  assert.deepEqual(ecritures, ["boutique.lancerPhotos", "boutique.proposerFiche", "boutique.synchroniserStock"]);
+  assert.deepEqual(ecritures, ["boutique.choisirPhotoPrincipale", "boutique.lancerPhotos", "boutique.proposerFiche", "boutique.synchroniserStock"]);
 });
 
 test("implémentations : refusent sans compte appelant connu (le coffre n'est lisible que pour son propriétaire)", async () => {
@@ -344,4 +345,20 @@ test("stock : chemin fixe /stock-sync, corps vide, jamais d'adresse ; lien absen
   assert.equal((await synchroniserStockBoutique(ACCES, "../x", f)).ok, false);
   assert.match(detailSynchroStock("FEED_ERROR", "FEED_UNAVAILABLE"), /n'a pas répondu/);
   assert.match(detailSynchroStock("NO_SOURCE", "NO_INTEGRATION"), /pas d'intégration/);
+});
+
+test("photo principale : chemin fixe, corps vide, identifiants validés avant l'appel, photo avec marque refusée dite clairement", async () => {
+  const MEDIA = "7a1c2b0e-8c3a-4f4e-9d54-0a1b2c3d4e5f";
+  const { f, appels } = faux([{ json: { selected: true, published: false } }, { status: 409, json: { error: "x", code: "MAIN_PHOTO_NOT_ELIGIBLE" } }]);
+  const ok = await choisirPhotoPrincipaleBoutique(ACCES, ID, MEDIA, f);
+  assert.equal(ok.ok, true);
+  const marque = await choisirPhotoPrincipaleBoutique(ACCES, ID, MEDIA, f);
+  assert.equal(marque.ok, false);
+  if (!marque.ok) assert.match(marque.detail, /sans marque/);
+  assert.deepEqual(appels.map((a) => `${a.init.method} ${a.url}`), Array(2).fill(`POST https://boutique.exemple.com/api/service/products/${ID}/media/${MEDIA}/select`));
+  for (const a of appels) assert.equal(String(a.init.body), "{}");
+  const { f: f2, appels: a2 } = faux([]);
+  assert.equal((await choisirPhotoPrincipaleBoutique(ACCES, ID, "../x", f2)).ok, false);
+  assert.equal((await choisirPhotoPrincipaleBoutique(ACCES, 5, MEDIA, f2)).ok, false);
+  assert.equal(a2.length, 0);
 });

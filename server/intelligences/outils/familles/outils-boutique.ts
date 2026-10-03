@@ -6,6 +6,7 @@
 import type { ImplementationOutil } from "../outils-test.js";
 import {
   accesBoutique,
+  choisirPhotoPrincipaleBoutique,
   capacitesBoutique,
   lancerPhotosBoutique,
   listerProduitsBoutique,
@@ -42,6 +43,10 @@ export const IMPLEMENTATIONS: Record<string, ImplementationOutil> = {
   "boutique.lireFicheComplete": async (args, contexte) => {
     const a = await accesBoutique(compteAppelant(contexte), "boutique.lireFicheComplete", "Lire la fiche complète (prix, colis, stock, photos) d'un produit de la boutique, demandé par le PDG");
     return a.ok ? lireFicheCompleteBoutique(a, args.produitId) : { ok: false, detail: a.detail };
+  },
+  "boutique.choisirPhotoPrincipale": async (args, contexte) => {
+    const a = await accesBoutique(compteAppelant(contexte), "boutique.choisirPhotoPrincipale", "Choisir la photo principale d'une fiche de la boutique, demandé par le PDG");
+    return a.ok ? choisirPhotoPrincipaleBoutique(a, args.produitId, args.mediaId) : { ok: false, detail: a.detail };
   },
   "boutique.synchroniserStock": async (args, contexte) => {
     const a = await accesBoutique(compteAppelant(contexte), "boutique.synchroniserStock", "Synchroniser le stock du fournisseur d'un produit de la boutique, demandé par le PDG");

@@ -4,7 +4,7 @@
  * L'IA principale travaille DANS la boutique (SHOP) avec le jeton de service que le PDG a créé côté boutique et
  * déposé dans le Coffre secret (server/intelligences/boutique.ts). Décision du PDG du 2 octobre 2026.
  *
- * Quatre outils de lecture et trois outils d'écriture de faible risque, tous bornés par les portées du jeton :
+ * Quatre outils de lecture et quatre outils d'écriture de faible risque, tous bornés par les portées du jeton :
  *  - lancer les photos met une tâche en file côté boutique (droits d'image = ceux enregistrés par le PDG) ;
  *  - proposer une fiche écrit un BROUILLON « à relire » : seul le PDG approuve et publie, dans la boutique.
  * Un sixième outil LIT la fiche complète (prix fournisseur, prix saisi, offre boutique, colis, stock observé, photos) : décision
@@ -87,7 +87,7 @@ export const OUTILS_BOUTIQUE: OutilSpec[] = [
     toolId: "boutique.lireFicheComplete",
     name: "boutiqueLireFicheComplete",
     description:
-      "Lit TOUT d'une fiche produit de la boutique, en lecture seule : titre, descriptions, champs, colis (nombre et preuve : un colis, deux colis…), prix fournisseur confirmé, prix saisi par le PDG, offre boutique, stock observé, ligne d'origine du fournisseur telle que reçue (colonnes de prix et de colis non confirmées comprises), avertissements (par exemple PRICE_UNCONFIRMED), photos d'origine et médias. Indique aussi si la preuve des droits d'image du fournisseur est enregistrée (mediaRights) et pourquoi un stock est vide (stockSync : lien CSV de stock présent ? dernière synchronisation, erreur). Un prix absent ou non confirmé est dit tel quel, jamais deviné. Nécessite un jeton créé avec la portée facultative catalogue.full. Ne modifie rien. Les prix et la fiche complète restent entre le PDG et cette IA : ne les copier dans aucun message public.",
+      "Lit TOUT d'une fiche produit de la boutique, en lecture seule : titre, descriptions, champs, colis (nombre et preuve : un colis, deux colis…), prix fournisseur confirmé, prix saisi par le PDG, offre boutique, stock observé, ligne d'origine du fournisseur telle que reçue (colonnes de prix et de colis non confirmées comprises), avertissements (par exemple PRICE_UNCONFIRMED), photos d'origine et médias. Donne `readiness` : READY_FOR_PDG_REVIEW quand tout ce que l'IA peut préparer est acquis (droits d'image, originaux archivés, photos premium, photo principale, description, champs sourcés, colis, stock réel, prix du PDG présent, fiche « à relire », non publiée) — sinon INCOMPLETE avec la liste de ce qui manque ; `delivery` (grille de livraison du fournisseur) ; `publicationCheck` (ce qui bloquerait une publication : la publication reste au Fondateur). Indique aussi si la preuve des droits d'image du fournisseur est enregistrée (mediaRights) et pourquoi un stock est vide (stockSync : lien CSV de stock présent ? dernière synchronisation, erreur). Un prix absent ou non confirmé est dit tel quel, jamais deviné. Nécessite un jeton créé avec la portée facultative catalogue.full. Ne modifie rien. Les prix et la fiche complète restent entre le PDG et cette IA : ne les copier dans aucun message public.",
     schemaInput: { type: "object", properties: { produitId: { type: "string" } }, required: ["produitId"] },
     schemaOutput: { type: "object", properties: { ok: { type: "boolean" }, id: { type: "string" }, supplierPrice: { type: "object" }, founderPrice: { type: "object" }, shopOffer: { type: "object" }, parcels: { type: "object" }, stock: { type: "object" }, supplierSheet: { type: "object" }, warnings: { type: "array" } } },
     legalBasis: "Lecture complète d'une fiche de la boutique de l'entreprise avec un jeton que le PDG a lui-même créé avec la portée facultative catalogue.full (décision du PDG du 3 octobre 2026) ; usage journalisé dans le coffre et dans la boutique.",
@@ -103,6 +103,17 @@ export const OUTILS_BOUTIQUE: OutilSpec[] = [
     schemaOutput: { type: "object", properties: { ok: { type: "boolean" }, sync: { type: "object" }, stock: { type: "object" } } },
     legalBasis: "Synchronisation d'un flux de stock fournisseur déjà configuré par le PDG dans la boutique, avec un jeton qu'il a lui-même créé avec la portée stock.sync ; usage journalisé dans le coffre et dans la boutique.",
     fallback: "Jeton sans la portée, lien de stock absent ou illisible, ou boutique indisponible : l'outil le dit tel quel — aucune disponibilité n'est inventée.",
+  },
+  {
+    ...ECRITURE,
+    toolId: "boutique.choisirPhotoPrincipale",
+    name: "boutiqueChoisirPhotoPrincipale",
+    description:
+      "Choisit, parmi les versions prêtes du produit (fiche complète → médias), la photo PRINCIPALE de la fiche ; les autres versions prêtes restent les photos secondaires. La boutique refuse une photo fournisseur dont la marque n'est pas contrôlée « sans marque » : choisir alors une version MKA.P-MS contrôlée. Ne publie rien et ne touche à aucun prix. Nécessite la portée photos.work.",
+    schemaInput: { type: "object", properties: { produitId: { type: "string" }, mediaId: { type: "string" } }, required: ["produitId", "mediaId"] },
+    schemaOutput: { type: "object", properties: { ok: { type: "boolean" }, selected: { type: "boolean" } } },
+    legalBasis: "Choix d'une photo déjà préparée et contrôlée par la boutique, avec un jeton que le PDG a lui-même créé (portée photos.work) ; usage journalisé dans le coffre et dans la boutique.",
+    fallback: "Photo non prête, marque non contrôlée, jeton sans la portée ou boutique indisponible : l'outil le dit tel quel — la photo principale ne change pas.",
   },
   {
     ...ECRITURE,
