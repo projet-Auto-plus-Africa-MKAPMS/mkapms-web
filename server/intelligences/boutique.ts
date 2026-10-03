@@ -187,6 +187,9 @@ export function detailSynchroStock(statut: string, raison: string, httpStatus?: 
     FEED_CSV_INVALID: "le fichier reçu n'est pas un CSV lisible",
     FEED_CONTENT_REJECTED: "le fichier reçu n'est pas un CSV de stock (page web ou donnée sensible)",
     FEED_TIMEOUT: "le fournisseur n'a pas répondu à temps",
+    INTEGRATION_NOT_STORED: "les intégrations du coffre de la boutique sont révoquées ou à renouveler : aucune n'est active",
+    INTEGRATION_EXPIRED: "l'intégration du coffre de la boutique qui porte le lien de stock est expirée",
+    AMBIGUOUS_STOCK_LINK: "plusieurs intégrations du coffre portent un lien de stock : laquelle est celle du fournisseur n'est pas déterminable (rattacher l'intégration au fournisseur)",
     MAPPING_REQUIRED: "les colonnes du flux de stock ne sont pas reconnues (il faut une colonne SKU et une colonne quantité)",
   };
   const cause = causes[raison] ?? (raison ? `motif ${raison.slice(0, 200)}` : "motif non précisé");

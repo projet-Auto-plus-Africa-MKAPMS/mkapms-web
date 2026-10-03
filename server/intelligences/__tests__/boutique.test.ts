@@ -371,6 +371,8 @@ test("stock : chemin fixe /stock-sync, corps vide, jamais d'adresse ; lien absen
   assert.match(detailSynchroStock("NO_SOURCE", "NO_INTEGRATION"), /pas d'intégration/);
   assert.match(detailSynchroStock("FEED_ERROR", "FEED_HTTP_FAILED", 404), /HTTP 404/);
   assert.match(detailSynchroStock("FEED_ERROR", "FEED_URL_INVALID"), /https valide/);
+  assert.match(detailSynchroStock("NO_SOURCE", "INTEGRATION_EXPIRED"), /expirée/);
+  assert.match(detailSynchroStock("NO_SOURCE", "AMBIGUOUS_STOCK_LINK"), /plusieurs intégrations/);
 });
 
 test("photo principale : chemin fixe, corps vide, identifiants validés avant l'appel, photo avec marque refusée dite clairement", async () => {
