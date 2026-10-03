@@ -3,6 +3,7 @@ import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { trpc } from "../lib/trpc";
+import { mkapmsMapUrl } from "../lib/mkapmsMap";
 
 const CATEGORY_COLORS: Record<string, string> = {
   garage: "#D4AF37",
@@ -95,6 +96,7 @@ export default function CarteMondiale() {
                     <div className="text-sm font-bold text-[#111]">{pt.name}</div>
                     {pt.city && <div className="text-xs text-[#6B7280]">{pt.city}</div>}
                     {pt.countryCode && <div className="text-xs text-[#6B7280]">{pt.countryCode}</div>}
+                    <a href={mkapmsMapUrl([pt.name,pt.city,pt.countryCode].filter(Boolean).join(", "), "car")} target="_blank" rel="noopener noreferrer" className="mt-2 inline-block rounded-lg bg-[#111] px-3 py-1.5 text-xs font-semibold text-white">Itinéraire MKA.P-MS</a>
                   </div>
                 </Popup>
               </Marker>
