@@ -81,6 +81,20 @@ export default function Connexion() {
       retirer?.();
     };
   }, [enApplication]);
+  // Site sur un domaine dont le retour Google est déclaré : le ticket revient sur /connexion.
+  useEffect(() => {
+    if (enApplication) return;
+    const params = new URLSearchParams(window.location.search);
+    const ticket = params.get("google_ticket");
+    const erreur = params.get("google_erreur");
+    if (!ticket && !erreur) return;
+    params.delete("google_ticket");
+    params.delete("google_erreur");
+    const reste = params.toString();
+    window.history.replaceState(null, "", `${window.location.pathname}${reste ? `?${reste}` : ""}`);
+    if (ticket) googleTicketCallback.current({ ticket });
+    else setGoogleAppErreur(erreur || "La connexion Google a échoué. Réessayez.");
+  }, [enApplication]);
   async function ouvrirGoogleApplication() {
     setGoogleAppErreur("");
     try {
@@ -108,7 +122,7 @@ export default function Connexion() {
 
   useEffect(() => {
     // Pas de bouton Google dans « mot de passe oublié » ; il revient (et se redessine) quand on repasse en connexion ou inscription.
-    if (!googleClientId || mode === "forgot" || enApplication) return;
+    if (!googleClientId || mode === "forgot" || enApplication || googleConfig.isLoading || googleConfig.data?.site) return;
     setGoogleEtat("chargement");
     let annule = false;
     let essais = 0;
@@ -144,7 +158,7 @@ export default function Connexion() {
     return () => {
       annule = true;
     };
-  }, [googleClientId, mode, enApplication]);
+  }, [googleClientId, mode, enApplication, googleConfig.isLoading, googleConfig.data?.site]);
 
   const err = loginM.error || registerM.error || googleM.error || googleTicketM.error;
 
@@ -208,6 +222,21 @@ export default function Connexion() {
                     La connexion avec Google n'est pas encore activée dans l'application. Utilisez votre adresse email ci-dessous.
                   </div>
                 )
+              ) : googleConfig.data?.site ? (
+                <div className="flex flex-col items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => window.location.assign("/api/auth/google/app/site")}
+                    disabled={googleTicketM.isPending}
+                    className="flex min-h-[44px] w-full items-center justify-center gap-3 rounded-full border border-[#DADCE0] bg-white px-4 text-sm font-medium text-[#3C4043] disabled:opacity-60"
+                    data-testid="google-bouton-site"
+                  >
+                    <span className="text-base font-bold text-[#4285F4]">G</span>
+                    {mode === "register" ? "S'inscrire avec Google" : "Continuer avec Google"}
+                  </button>
+                  {googleTicketM.isPending && <p className="text-xs text-[#9CA3AF]">Connexion en cours…</p>}
+                  {googleAppErreur && <p className="text-center text-xs text-red-600">{googleAppErreur}</p>}
+                </div>
               ) : googleClientId ? (
                 <div className="flex flex-col items-center gap-2">
                   <div ref={googleDiv} className="flex min-h-[44px] w-full justify-center" data-testid="google-bouton" />

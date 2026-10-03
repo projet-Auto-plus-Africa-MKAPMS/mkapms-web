@@ -10,6 +10,9 @@ export const env = {
   JWT_SECRET: get("JWT_SECRET", "dev-insecure-secret-change-me"),
   GOOGLE_CLIENT_ID: get("GOOGLE_CLIENT_ID"),
   GOOGLE_CLIENT_SECRET: get("GOOGLE_CLIENT_SECRET"),
+  // Domaines dont l'adresse /api/auth/google/app/retour est déclarée dans Google Cloud
+  // (séparés par une virgule) : la connexion Google du site y passe par redirection serveur.
+  GOOGLE_RETOUR_HOTES: get("GOOGLE_RETOUR_HOTES", "www.mkapms.fr"),
   // ─── Stripe (Payment Engine) ─────────────────────────────────────
   // Auto-injectées par Emergent (onglet "Payments") en préview et en prod.
   // - Test  : sk_test_… / pk_test_…  (aucun débit réel)
