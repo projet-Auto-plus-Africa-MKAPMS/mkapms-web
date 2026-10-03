@@ -82,12 +82,23 @@ function messageErreur(statut: number, corps: unknown, origine = ""): { detail: 
     return { detail: `La boutique${hote} refuse le jeton (invalide, expiré ou révoqué).${cause} Le PDG peut en créer un autre dans la boutique : réglages de l'assistant SHOP → « Accès de l'IA de la plateforme principale ».`, code };
   }
   if (statut === 403 && code === "TOOLS_DISABLED") return { detail: "Les outils de l'IA sont désactivés dans la boutique (réglage du Fondateur).", code };
-  if (statut === 403 && code === "SCOPE_REQUIRED") return { detail: "Ce jeton n'a pas la portée nécessaire pour cette action : le PDG doit en créer un avec la portée voulue.", code };
-  if (statut === 409 && code === "MEDIA_RIGHTS_REQUIRED") return { detail: "Les droits d'image de ce fournisseur ne sont pas enregistrés dans la boutique : le PDG doit les renseigner avant tout travail sur les photos.", code };
+  if (statut === 403 && code === "SCOPE_REQUIRED") {
+    const portee = typeof (corps as { scope?: unknown } | null)?.scope === "string" ? ` « ${String((corps as { scope: string }).scope).slice(0, 40)} »` : "";
+    return { detail: `Ce jeton n'a pas la portée${portee} nécessaire pour cette action : le PDG doit créer un nouveau jeton avec cette portée (les portées d'un jeton ne se modifient pas après sa création).`, code };
+  }
+  if (statut === 409 && code === "MEDIA_RIGHTS_REQUIRED") return { detail: "Les droits d'image de ce fournisseur ne sont pas enregistrés dans la boutique : le PDG enregistre la preuve du fournisseur une fois (boutique → Logistique fournisseur → « Droits d'image »), elle couvre tous les produits de ce fournisseur, puis la préparation des photos peut démarrer.", code };
+  if (statut === 429 && code === "STOCK_SYNC_TOO_SOON") return { detail: "Le stock de ce fournisseur vient d'être synchronisé (une synchronisation par minute) : relire la fiche complète, ou réessayer dans une minute.", code };
   if (statut === 404) return { detail: "Produit ou route introuvable dans la boutique." };
   if (statut === 429) return { detail: "La boutique limite temporairement les appels. Réessayez dans une minute." };
   if (statut === 409) return { detail: texte || "La boutique refuse : la fiche a changé entre-temps. Relisez-la puis recommencez.", code };
-  if (statut === 400) return { detail: texte ? `La boutique a refusé la demande : ${texte}` : "La boutique a refusé la demande (champs invalides)." };
+  if (statut === 400) {
+    const issues = (corps as { issues?: { path?: unknown; message?: unknown }[] } | null)?.issues;
+    const details = Array.isArray(issues)
+      ? issues.slice(0, 8).map((i) => `${String(i.path ?? "").slice(0, 80)} : ${String(i.message ?? "").slice(0, 120)}`).join(" ; ")
+      : "";
+    const base = texte ? `La boutique a refusé la demande : ${texte}` : "La boutique a refusé la demande (champs invalides).";
+    return { detail: details ? `${base} Détails : ${details}.` : base };
+  }
   return { detail: `La boutique a répondu avec une erreur (${statut}).` };
 }
 
@@ -152,9 +163,26 @@ async function appeler(
     }
     return { ok: false, detail: `La boutique a répondu dans un format inattendu (${reponse.status}).` };
   }
-  if (!reponse.ok) return { ok: false, ...messageErreur(reponse.status, json, acces.origine) };
+  if (!reponse.ok) {
+    const sync = (json as { sync?: { status?: unknown; reason?: unknown } } | null)?.sync;
+    if (sync && typeof sync === "object") return { ok: false, detail: detailSynchroStock(String(sync.status ?? ""), sync.reason == null ? "" : String(sync.reason)) };
+    return { ok: false, ...messageErreur(reponse.status, json, acces.origine) };
+  }
   const propre = nettoyer(json, 0, ficheComplete);
   return { ok: true, ...(propre && typeof propre === "object" && !Array.isArray(propre) ? (propre as Record<string, unknown>) : { resultat: propre }) };
+}
+
+/** Pourquoi la synchronisation du stock n'a rien rapporté, dit tel quel (jamais une disponibilité supposée). */
+export function detailSynchroStock(statut: string, raison: string): string {
+  const causes: Record<string, string> = {
+    NO_INTEGRATION: "ce fournisseur n'a pas d'intégration enregistrée dans le coffre de la boutique",
+    INTEGRATION_UNAVAILABLE: "l'intégration du fournisseur est absente, expirée ou non enregistrée dans le coffre de la boutique",
+    VAULT_UNAVAILABLE: "le coffre de la boutique n'a pas pu ouvrir l'intégration du fournisseur",
+    NO_STOCK_LINK: "aucun « Lien CSV stock » n'est enregistré dans l'intégration du fournisseur (le PDG le saisit dans le coffre de la boutique)",
+    FEED_UNAVAILABLE: "le lien CSV de stock n'a pas répondu ou n'est pas lisible",
+  };
+  const cause = causes[raison] ?? (raison ? `motif ${raison.slice(0, 60)}` : "motif non précisé");
+  return `Le stock n'a pas été synchronisé (${statut || "échec"}) : ${cause}. Aucune disponibilité n'est supposée : le stock reste inconnu tant que le flux n'est pas lu.`;
 }
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -204,14 +232,68 @@ export interface FicheProposee {
   colis: { longueurMm: number; largeurMm: number; hauteurMm: number; poidsGrammes: number; source: string }[];
 }
 
-/** Traduit la proposition vers le contrat de la boutique ; la boutique valide tout (source obligatoire par champ, pas de secret). */
+/** Noms de champs structurés connus de la boutique (copie de childFields) : sert seulement à corriger la casse, la boutique reste juge. */
+const CHAMPS_BOUTIQUE = ["RecommendedAgeMin", "RecommendedAgeMax", "RecommendedHeightMin", "RecommendedHeightMax", "MaxChildWeight", "Seats", "SeatDimensions", "ProductLength", "ProductWidth", "ProductHeight", "ProductWeight", "BatteryVoltage", "BatteryCapacity", "MotorCount", "MotorPower", "MaxSpeed", "EstimatedRuntime", "ChargingTime", "RemoteControl", "WheelType", "SeatType", "Lights", "Bluetooth", "USB", "Audio", "ChargerIncluded", "BatteryIncluded", "SafetyWarnings", "AdultSupervision", "IndoorOutdoor"] as const;
+const PAR_MINUSCULE = new Map(CHAMPS_BOUTIQUE.map((c) => [c.toLowerCase(), c as string]));
+
+const texteChamp = (v: unknown): string => (typeof v === "string" ? v : typeof v === "number" || typeof v === "boolean" ? String(v) : Array.isArray(v) ? v.map(String).join(", ") : "");
+const premier = (o: Record<string, unknown>, ...cles: string[]): unknown => cles.map((k) => o[k]).find((v) => v !== undefined && v !== null);
+const entier = (v: unknown): number | null => {
+  const n = typeof v === "string" ? Number(v.replace(",", ".").trim()) : typeof v === "number" ? v : NaN;
+  return Number.isFinite(n) && n > 0 ? Math.round(n) : null;
+};
+
+/**
+ * Accepte la fiche telle que l'IA l'écrit — clés françaises (statut, valeur, source ; longueurMm…) OU clés de la boutique
+ * (status, value, sourceRef ; lengthMm…) —, met les valeurs en texte, arrondit les dimensions en entiers et corrige la casse des
+ * noms de champs connus. Une erreur évidente est dite AVANT l'appel, avec le nom du champ ou du colis.
+ */
+export function traduireFiche(fiche: unknown): { ok: true; fields: Record<string, unknown>; packages: unknown[] } | { ok: false; detail: string } {
+  const f = (fiche && typeof fiche === "object" ? fiche : {}) as { champs?: unknown; colis?: unknown };
+  const fields: Record<string, unknown> = {};
+  const champs = f.champs && typeof f.champs === "object" && !Array.isArray(f.champs) ? (f.champs as Record<string, unknown>) : {};
+  for (const [nom, brut] of Object.entries(champs)) {
+    const c = (brut && typeof brut === "object" && !Array.isArray(brut) ? brut : {}) as Record<string, unknown>;
+    const statut = String(premier(c, "statut", "status") ?? "").trim().toUpperCase();
+    if (!statut) return { ok: false, detail: `Le champ « ${nom} » n'a pas de statut : FIELD_AVAILABLE (valeur + source), FIELD_NOT_APPLICABLE (source), FIELD_UNVERIFIED ou FIELD_MISSING.` };
+    fields[PAR_MINUSCULE.get(nom.trim().toLowerCase()) ?? nom] = {
+      status: statut,
+      value: texteChamp(premier(c, "valeur", "value")).trim(),
+      sourceRef: texteChamp(premier(c, "source", "sourceRef")).trim(),
+    };
+  }
+  const colis = Array.isArray(f.colis) ? f.colis : [];
+  const packages: unknown[] = [];
+  for (const [i, brut] of colis.entries()) {
+    const c = (brut && typeof brut === "object" ? brut : {}) as Record<string, unknown>;
+    const mesures: [string, string[]][] = [["lengthMm", ["longueurMm", "lengthMm"]], ["widthMm", ["largeurMm", "widthMm"]], ["heightMm", ["hauteurMm", "heightMm"]], ["weightGrams", ["poidsGrammes", "weightGrams"]]];
+    const p: Record<string, unknown> = {};
+    for (const [cle, noms] of mesures) {
+      const n = entier(premier(c, ...noms));
+      if (n === null) return { ok: false, detail: `Colis n°${i + 1} : « ${noms[0]} » doit être un nombre positif (millimètres ou grammes). Ne pas deviner : si la mesure n'est pas documentée, ne pas déclarer ce colis.` };
+      p[cle] = n;
+    }
+    const source = texteChamp(premier(c, "source", "sourceRef")).trim();
+    if (!source) return { ok: false, detail: `Colis n°${i + 1} : la source (« source ») est obligatoire.` };
+    p.sourceRef = source;
+    packages.push(p);
+  }
+  return { ok: true, fields, packages };
+}
+
+/** Traduit la proposition vers le contrat de la boutique ; la boutique valide tout (source obligatoire par champ, pas de secret) et dit, en cas de refus, quel champ est en cause. */
 export function proposerFicheBoutique(a: { origine: string; jeton: string }, produitId: unknown, fiche: FicheProposee, f: Fetch = fetch): Promise<ResultatBoutique> {
   const id = verifierId(produitId);
   if (!id) return Promise.resolve({ ok: false, detail: "Identifiant de produit invalide (UUID attendu, tel que renvoyé par la liste)." });
   if (!Number.isInteger(fiche.revisionAttendue) || fiche.revisionAttendue < 1) return Promise.resolve({ ok: false, detail: "La révision attendue est celle lue dans la fiche (entier ≥ 1)." });
-  const fields = Object.fromEntries(
-    Object.entries(fiche.champs ?? {}).map(([nom, c]) => [nom, { status: c.statut, value: c.valeur ?? "", sourceRef: c.source ?? "" }]),
-  );
-  const packages = (fiche.colis ?? []).map((c) => ({ lengthMm: c.longueurMm, widthMm: c.largeurMm, heightMm: c.hauteurMm, weightGrams: c.poidsGrammes, sourceRef: c.source }));
-  return appeler(a, "PUT", `/products/${id}/draft`, { expectedRevision: fiche.revisionAttendue, title: fiche.titre, shopDescription: fiche.descriptionBoutique, fields, packages }, f);
+  const traduite = traduireFiche(fiche);
+  if (!traduite.ok) return Promise.resolve({ ok: false, detail: traduite.detail });
+  return appeler(a, "PUT", `/products/${id}/draft`, { expectedRevision: fiche.revisionAttendue, title: fiche.titre, shopDescription: fiche.descriptionBoutique, fields: traduite.fields, packages: traduite.packages }, f);
+}
+
+/** Demande la synchronisation du stock du fournisseur de ce produit (lien CSV du coffre de la boutique) : portée stock.sync. */
+export function synchroniserStockBoutique(a: { origine: string; jeton: string }, produitId: unknown, f: Fetch = fetch): Promise<ResultatBoutique> {
+  const id = verifierId(produitId);
+  if (!id) return Promise.resolve({ ok: false, detail: "Identifiant de produit invalide (UUID attendu, tel que renvoyé par la liste)." });
+  return appeler(a, "POST", `/products/${id}/stock-sync`, {}, f, true);
 }

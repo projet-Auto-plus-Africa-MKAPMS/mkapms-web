@@ -17,6 +17,9 @@ import {
   nettoyerValeurSecret,
   origineBoutique,
   proposerFicheBoutique,
+  synchroniserStockBoutique,
+  traduireFiche,
+  detailSynchroStock,
 } from "../boutique.js";
 import { OUTILS } from "../outils/registre.js";
 import { IMPLEMENTATIONS } from "../outils/implementations.js";
@@ -160,8 +163,8 @@ test("défense en profondeur : prix, adresses et secrets retirés de ce qui revi
   assert.deepEqual(propre, { id: ID, title: "Voiture", nested: [{ ok: 1 }] });
 });
 
-test("registre : six outils, lecture seule ou risque faible, réservés au PDG, aucun outil de modification de prix/TVA/stock/approbation/publication", () => {
-  assert.equal(OUTILS_BOUTIQUE.length, 6);
+test("registre : sept outils, lecture seule ou risque faible, réservés au PDG, aucun outil de modification de prix/TVA/approbation/publication", () => {
+  assert.equal(OUTILS_BOUTIQUE.length, 7);
   for (const o of OUTILS_BOUTIQUE) {
     assert.ok(OUTILS.some((x) => x.toolId === o.toolId), `${o.toolId} enregistré`);
     assert.ok(IMPLEMENTATIONS[o.toolId], `${o.toolId} implémenté`);
@@ -171,10 +174,10 @@ test("registre : six outils, lecture seule ou risque faible, réservés au PDG, 
     assert.equal(o.category, "boutique");
   }
   const noms = OUTILS_BOUTIQUE.map((o) => o.toolId).sort();
-  assert.deepEqual(noms, ["boutique.capacites", "boutique.lancerPhotos", "boutique.lireFicheComplete", "boutique.lireProduit", "boutique.listerProduits", "boutique.proposerFiche"]);
-  assert.equal(noms.some((n) => /prix|tva|stock|livraison|approuver|publier|decision|offre/i.test(n)), false);
+  assert.deepEqual(noms, ["boutique.capacites", "boutique.lancerPhotos", "boutique.lireFicheComplete", "boutique.lireProduit", "boutique.listerProduits", "boutique.proposerFiche", "boutique.synchroniserStock"]);
+  assert.equal(noms.some((n) => /prix|tva|livraison|approuver|publier|decision|offre/i.test(n)), false);
   const ecritures = OUTILS_BOUTIQUE.filter((o) => o.requiredPermissions.includes("WRITE")).map((o) => o.toolId).sort();
-  assert.deepEqual(ecritures, ["boutique.lancerPhotos", "boutique.proposerFiche"]);
+  assert.deepEqual(ecritures, ["boutique.lancerPhotos", "boutique.proposerFiche", "boutique.synchroniserStock"]);
 });
 
 test("implémentations : refusent sans compte appelant connu (le coffre n'est lisible que pour son propriétaire)", async () => {
@@ -271,4 +274,74 @@ test("fiche complète : chemin fixe /full, jeton en en-tête, prix et ligne d'or
   const refus = await lireFicheCompleteBoutique(ACCES, ID, f3);
   assert.equal(refus.ok, false);
   if (!refus.ok) assert.match(refus.detail, /portée/);
+});
+
+test("fiche : clés françaises OU de la boutique, valeurs en texte, dimensions arrondies, casse des noms de champs corrigée", () => {
+  const fr = traduireFiche({
+    champs: { Seats: { statut: "FIELD_AVAILABLE", valeur: 1, source: "fiche fournisseur" }, maxchildweight: { status: "field_available", value: "30 kg", sourceRef: "fiche fournisseur" }, BatteryCapacity: { statut: "FIELD_UNVERIFIED" } },
+    colis: [{ longueurMm: 800.4, largeurMm: "400", hauteurMm: 300, poidsGrammes: 9000.6, source: "liste fournisseur" }, { lengthMm: 700, widthMm: 300, heightMm: 200, weightGrams: 5000, sourceRef: "liste fournisseur" }],
+  });
+  assert.ok(fr.ok);
+  if (fr.ok) {
+    assert.deepEqual(fr.fields, {
+      Seats: { status: "FIELD_AVAILABLE", value: "1", sourceRef: "fiche fournisseur" },
+      MaxChildWeight: { status: "FIELD_AVAILABLE", value: "30 kg", sourceRef: "fiche fournisseur" },
+      BatteryCapacity: { status: "FIELD_UNVERIFIED", value: "", sourceRef: "" },
+    });
+    assert.deepEqual(fr.packages, [
+      { lengthMm: 800, widthMm: 400, heightMm: 300, weightGrams: 9001, sourceRef: "liste fournisseur" },
+      { lengthMm: 700, widthMm: 300, heightMm: 200, weightGrams: 5000, sourceRef: "liste fournisseur" },
+    ]);
+  }
+});
+
+test("fiche : une erreur évidente est dite avant l'appel, avec le champ ou le colis en cause ; rien n'est deviné", async () => {
+  const sansStatut = traduireFiche({ champs: { Seats: { valeur: "1", source: "x" } } });
+  assert.equal(sansStatut.ok, false);
+  if (!sansStatut.ok) assert.match(sansStatut.detail, /Seats.*statut/);
+  const colisIncomplet = traduireFiche({ colis: [{ longueurMm: 800, largeurMm: 400, poidsGrammes: 9000, source: "x" }] });
+  assert.equal(colisIncomplet.ok, false);
+  if (!colisIncomplet.ok) assert.match(colisIncomplet.detail, /Colis n°1.*hauteurMm/);
+  const colisSansSource = traduireFiche({ colis: [{ longueurMm: 1, largeurMm: 1, hauteurMm: 1, poidsGrammes: 1 }] });
+  assert.equal(colisSansSource.ok, false);
+  const { f, appels } = faux([]);
+  const r = await proposerFicheBoutique(ACCES, ID, { revisionAttendue: 1, titre: "t", descriptionBoutique: "d", champs: { Seats: { valeur: "1" } } as never, colis: [] }, f);
+  assert.equal(r.ok, false);
+  assert.equal(appels.length, 0);
+});
+
+test("refus 400 de la boutique : les champs en cause sont nommés (chemin + règle), jamais une valeur ; portée manquante nommée", async () => {
+  const { f } = faux([{ status: 400, json: { error: "Requête invalide.", issues: [{ path: "fields.Seats.value", message: "Expected string, received number" }, { path: "packages.0.heightMm", message: "Required" }] } }]);
+  const r = await proposerFicheBoutique(ACCES, ID, { revisionAttendue: 1, titre: "t", descriptionBoutique: "d", champs: {}, colis: [] }, f);
+  assert.equal(r.ok, false);
+  if (!r.ok) {
+    assert.match(r.detail, /fields\.Seats\.value : Expected string/);
+    assert.match(r.detail, /packages\.0\.heightMm : Required/);
+  }
+  const { f: f2 } = faux([{ status: 403, json: { error: "x", code: "SCOPE_REQUIRED", scope: "catalogue.full" } }]);
+  const portee = await lireFicheCompleteBoutique(ACCES, ID, f2);
+  assert.equal(portee.ok, false);
+  if (!portee.ok) assert.match(portee.detail, /portée « catalogue\.full »/);
+});
+
+test("stock : chemin fixe /stock-sync, corps vide, jamais d'adresse ; lien absent ou limite d'une minute dits tels quels", async () => {
+  const { f, appels } = faux([
+    { json: { sync: { status: "SYNCED", rows: 10, matched: 9 }, stock: { sku: "c4k1166 zwart", status: "IN_STOCK", quantity: 7 } } },
+    { status: 409, json: { sync: { status: "NO_SOURCE", reason: "NO_STOCK_LINK" }, stock: { sku: "x", status: "UNKNOWN", quantity: null } } },
+    { status: 429, json: { error: "x", code: "STOCK_SYNC_TOO_SOON" } },
+  ]);
+  const ok = await synchroniserStockBoutique(ACCES, ID, f);
+  assert.equal(ok.ok, true);
+  assert.equal(JSON.stringify(ok).includes("IN_STOCK") && JSON.stringify(ok).includes("7"), true);
+  const sansLien = await synchroniserStockBoutique(ACCES, ID, f);
+  assert.equal(sansLien.ok, false);
+  if (!sansLien.ok) assert.match(sansLien.detail, /aucun « Lien CSV stock »/);
+  const trop = await synchroniserStockBoutique(ACCES, ID, f);
+  assert.equal(trop.ok, false);
+  if (!trop.ok) assert.match(trop.detail, /une synchronisation par minute/);
+  assert.deepEqual(appels.map((a) => `${a.init.method} ${a.url}`), Array(3).fill(`POST https://boutique.exemple.com/api/service/products/${ID}/stock-sync`));
+  for (const a of appels) assert.equal(String(a.init.body), "{}");
+  assert.equal((await synchroniserStockBoutique(ACCES, "../x", f)).ok, false);
+  assert.match(detailSynchroStock("FEED_ERROR", "FEED_UNAVAILABLE"), /n'a pas répondu/);
+  assert.match(detailSynchroStock("NO_SOURCE", "NO_INTEGRATION"), /pas d'intégration/);
 });

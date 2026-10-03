@@ -3225,6 +3225,26 @@ export const LIVRAISONS: Livraison[] = [
       "Sur un modèle à raisonnement, le budget de sortie couvre aussi la réflexion : prévoir une marge pour le rendu final d'un long travail, et relancer une fois plutôt qu'échouer. Dire la cause exacte (jetons de raisonnement sur jetons alloués) évite de la deviner.",
     domaine: "confiance",
   },
+  {
+    cle: "boutique-automatisation-cars4kids-droits-champs-stock",
+    titre: "Boutique ↔ MKA PMS IA : droits d'image par fournisseur, champs structurés lisibles, stock synchronisable — test c4k1166 zwart",
+    moteurs: ["intelligences"],
+    quoi:
+      "Autorisation du PDG (3 octobre 2026) de finaliser l'automatisation sur le produit test c4k1166 zwart (Cars4Kids), après trois blocages réels. (1) DROITS D'IMAGE : la boutique avait une route Fondateur mais AUCUN écran ; la préparation des photos répondait MEDIA_RIGHTS_REQUIRED sans que le PDG puisse enregistrer sa preuve. Ajout d'un formulaire « Droits d'image » dans Logistique fournisseur : UNE preuve par fournisseur couvre tous ses produits, présents et futurs (rien à reconfigurer à chaque produit Cars4Kids) ; la fiche complète indique mediaRights.recorded. L'IA n'enregistre jamais ces droits elle-même. (2) CHAMPS STRUCTURÉS : boutique_proposerFiche répondait « Requête invalide » sans dire pourquoi, alors que l'outil ne documentait pas la forme attendue (clés françaises ou de la boutique mélangées, valeurs numériques, dimensions décimales). Désormais : l'outil accepte les deux jeux de clés, met les valeurs en texte, arrondit les dimensions, corrige la casse des noms de champs, dit avant l'appel quel champ ou colis est incomplet, et la boutique renvoie la liste issues (chemin + règle, jamais la valeur) ; la description de l'outil donne la forme exacte et les 30 noms de champs. (3) STOCK : le flux CSV live et son worker automatique (toutes les 60 minutes) existaient déjà dans la boutique ; ce qui manque est le « Lien CSV stock » dans l'intégration du fournisseur (secret du PDG, que seul lui saisit). Ajout : la fiche complète dit pourquoi un stock est vide (lien absent, dernière synchronisation en erreur), une portée facultative stock.sync et un outil boutique.synchroniserStock (une fois par minute et par fournisseur, lien du coffre uniquement), stock inconnu = UNKNOWN, jamais inventé. Rien ne change aux prix validés par le PDG (prix PDG 120 EUR inchangé dans le test) ; aucune publication automatique : la fiche reste « à relire ». Test d'intégration bout en bout côté boutique, tests unitaires côté plateforme.",
+    pourquoi:
+      "Un blocage dont la cause n'est pas dite oblige à deviner : les erreurs nomment désormais le champ, le lien ou la preuve manquants. Les réglages propres à un fournisseur (preuve de droits, lien de stock) se font une fois et valent pour tous ses produits ; les secrets restent saisis par le PDG.",
+    ou: [
+      "server/intelligences/boutique.ts",
+      "server/intelligences/outils/familles/boutique.ts",
+      "server/intelligences/outils/familles/outils-boutique.ts",
+      "server/intelligences/connaissances-boutique.ts",
+      "server/intelligences/__tests__/boutique.test.ts",
+      "client/src/lib/connecteurs.ts",
+    ],
+    lecon:
+      "Documenter dans l'outil la forme EXACTE attendue et renvoyer la cause d'un refus (champ, règle) évite des allers-retours à l'aveugle. Ne pas confondre « code déjà prévu » et « configuration manquante » : le lien de stock est un secret du PDG, pas du code. Les portées d'un jeton ne se modifient pas : un nouveau jeton est nécessaire pour en ajouter.",
+    domaine: "confiance",
+  },
 ];
 
 /** Texte mémorisé d'une livraison. La recherche globale ne transmet que le début d'une entrée : le plus important vient en premier. */
