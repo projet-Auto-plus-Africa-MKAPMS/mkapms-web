@@ -12,7 +12,8 @@
  * correction du PDG dans le chantier maître Intelligence).
  */
 import { readdirSync, readFileSync, statSync } from "node:fs";
-import { join, extname } from "node:path";
+import { join, extname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 
 const RACINE = "client/src";
 const EXTENSIONS = new Set([".ts", ".tsx"]);
@@ -45,20 +46,18 @@ const MOTIFS = [
   { motif: /console\.mistral\.ai/i, quoi: "URL fournisseur (Mistral)" },
 ];
 
-const fautes = { noms: [], env: [], urls: [] };
-
 function categorie(quoi) {
   if (quoi.startsWith("variable")) return "env";
   if (quoi.startsWith("URL")) return "urls";
   return "noms";
 }
 
-function parcourir(chemin) {
+function parcourir(chemin, fautes) {
   for (const entree of readdirSync(chemin)) {
     if (entree === "node_modules" || entree.startsWith(".")) continue;
     const complet = join(chemin, entree);
     if (statSync(complet).isDirectory()) {
-      parcourir(complet);
+      parcourir(complet, fautes);
       continue;
     }
     if (!EXTENSIONS.has(extname(complet))) continue;
@@ -75,21 +74,34 @@ function parcourir(chemin) {
   }
 }
 
-parcourir(RACINE);
+export function verifierFuitesFournisseursPublics() {
+  const fautes = { noms: [], env: [], urls: [] };
+  parcourir(RACINE, fautes);
+  const total = fautes.noms.length + fautes.env.length + fautes.urls.length;
 
-const total = fautes.noms.length + fautes.env.length + fautes.urls.length;
-
-console.log(`public_provider_names_visible=${fautes.noms.length}`);
-console.log(`public_provider_env_names=${fautes.env.length}`);
-console.log(`public_provider_urls=${fautes.urls.length}`);
-
-if (total > 0) {
-  console.error(`\n[fuites-fournisseurs-public] ${total} occurrence(s) hors liste blanche :\n`);
-  for (const f of [...fautes.noms, ...fautes.env, ...fautes.urls]) console.error(`  ${f}`);
-  console.error(
-    "\nSi l'écran est réellement réservé à la direction et backé par une procédure pdgProcedure, ajoute-le à LISTE_BLANCHE avec le motif exact. Sinon, retire le détail fournisseur de l'interface.\n",
-  );
-  process.exit(1);
+  return { fautes, total };
 }
 
-console.log("[fuites-fournisseurs-public] Aucune occurrence hors liste blanche.");
+export function afficherVerificationFuitesFournisseursPublics() {
+  const { fautes, total } = verifierFuitesFournisseursPublics();
+
+  console.log(`public_provider_names_visible=${fautes.noms.length}`);
+  console.log(`public_provider_env_names=${fautes.env.length}`);
+  console.log(`public_provider_urls=${fautes.urls.length}`);
+
+  if (total > 0) {
+    console.error(`\n[fuites-fournisseurs-public] ${total} occurrence(s) hors liste blanche :\n`);
+    for (const f of [...fautes.noms, ...fautes.env, ...fautes.urls]) console.error(`  ${f}`);
+    console.error(
+      "\nSi l'écran est réellement réservé à la direction et backé par une procédure pdgProcedure, ajoute-le à LISTE_BLANCHE avec le motif exact. Sinon, retire le détail fournisseur de l'interface.\n",
+    );
+    return false;
+  }
+
+  console.log("[fuites-fournisseurs-public] Aucune occurrence hors liste blanche.");
+  return true;
+}
+
+if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  if (!afficherVerificationFuitesFournisseursPublics()) process.exitCode = 1;
+}

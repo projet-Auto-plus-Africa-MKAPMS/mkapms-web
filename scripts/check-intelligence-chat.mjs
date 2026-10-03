@@ -24,9 +24,9 @@
  * fichier reste un script Node statique pur, comme check-providers.mjs et
  * check-public-provider-leaks.mjs.
  */
-import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
+import { verifierFuitesFournisseursPublics } from "./check-public-provider-leaks.mjs";
 
 const CONVERSATION = join("client", "src", "pages", "intelligence", "modules", "Conversation.tsx");
 const SERVICE = join("server", "intelligences", "service.ts");
@@ -69,14 +69,7 @@ async function main() {
   const fautesControlesVides = (conversation.match(/onClick=\{\s*\(\)\s*=>\s*\{\s*\}\s*\}/g) ?? []).length;
   const fake_chat_controls = fautesControlesVides > 0 ? 1 : 0;
 
-  let public_provider_names_visible;
-  try {
-    execFileSync("node", ["scripts/check-public-provider-leaks.mjs"], { encoding: "utf8" });
-    public_provider_names_visible = 0;
-  } catch (e) {
-    console.error(e.stdout ?? e.stderr ?? String(e));
-    public_provider_names_visible = 1;
-  }
+  const public_provider_names_visible = verifierFuitesFournisseursPublics().total > 0 ? 1 : 0;
 
   const gate = {
     intelligence_chat_input_real,
