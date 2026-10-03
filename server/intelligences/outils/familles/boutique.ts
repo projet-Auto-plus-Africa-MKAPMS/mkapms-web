@@ -105,6 +105,28 @@ export const OUTILS_BOUTIQUE: OutilSpec[] = [
     fallback: "Jeton sans la portée, lien de stock absent ou illisible, ou boutique indisponible : l'outil le dit tel quel — aucune disponibilité n'est inventée.",
   },
   {
+    ...LECTURE,
+    toolId: "boutique.lireApercu",
+    name: "boutiqueLireApercu",
+    description:
+      "Lit l'APERÇU de la fiche tel qu'il apparaît au PDG avant publication, c'est-à-dire la page de vente : titre, description (MKA.P-MS ou, à défaut, celle du fournisseur), photos, PRIX DE VENTE client (distinct du prix fournisseur), disponibilité réelle (« EN STOCK — quantité réelle restante : X »), détails, nombre de colis et tarif de livraison par pays, plus le volet privé (prix fournisseur, ce qui bloque encore la publication). Lecture seule : l'IA ne fixe jamais un prix de vente, le PDG le saisit dans l'atelier produits. Exige la portée catalogue.full.",
+    schemaInput: { type: "object", properties: { produitId: { type: "string" } }, required: ["produitId"] },
+    schemaOutput: { type: "object", properties: { ok: { type: "boolean" }, product: { type: "object" }, sellingPrice: { type: "object" }, stock: { type: "object" }, delivery: { type: "object" }, private: { type: "object" } } },
+    legalBasis: "Lecture de l'aperçu d'une fiche de la boutique de l'entreprise avec un jeton que le PDG a lui-même créé avec la portée facultative catalogue.full (décision du PDG du 3 octobre 2026) ; usage journalisé dans le coffre et dans la boutique.",
+    fallback: "Jeton sans la portée catalogue.full, refusé ou boutique indisponible : l'outil le dit tel quel — jamais un prix ou un stock supposé.",
+  },
+  {
+    ...ECRITURE,
+    toolId: "boutique.recontrolerMarquePhoto",
+    name: "boutiqueRecontrolerMarquePhoto",
+    description:
+      "Relance le VRAI contrôle de marque d'une version de photo (fiche complète → médias) dont le contrôle n'a pas pu s'exécuter (NOT_CHECKED / CHECK_UNAVAILABLE) ou qui montrait une marque. La version est reconstruite depuis l'original archivé puis contrôlée par l'IA de la boutique ; elle n'est jamais déclarée propre par défaut. Si le contrôle ne peut toujours pas tourner, l'outil rend le motif exact (IA de la boutique non activée, clé absente, quota…). Exige la portée photos.work. Ne publie rien.",
+    schemaInput: { type: "object", properties: { produitId: { type: "string" }, mediaId: { type: "string" } }, required: ["produitId", "mediaId"] },
+    schemaOutput: { type: "object", properties: { ok: { type: "boolean" }, brandState: { type: "string" }, brandReason: { type: "string" }, eligibleAsMain: { type: "boolean" }, why: { type: "string" } } },
+    legalBasis: "Relance d'un contrôle de marque sur une photo déjà archivée par la boutique, avec un jeton que le PDG a lui-même créé (portée photos.work) ; usage journalisé dans le coffre et dans la boutique.",
+    fallback: "Version déjà contrôlée, d'un autre produit, jeton sans la portée ou IA de la boutique indisponible : l'outil le dit tel quel — la photo reste non éligible.",
+  },
+  {
     ...ECRITURE,
     toolId: "boutique.definirColis",
     name: "boutiqueDefinirColis",
