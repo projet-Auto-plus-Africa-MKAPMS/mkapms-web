@@ -230,3 +230,9 @@ test("valeur collée dans le coffre : guillemets, Bearer, espaces et caractères
   assert.equal(nettoyerValeurSecret(`\u200b${JETON}\ufeff\n`), JETON);
   assert.equal(nettoyerValeurSecret("https://boutique.exemple.com"), "https://boutique.exemple.com");
 });
+
+test("nettoyerValeurSecret : retire aussi la ponctuation de fin collée avec la valeur", () => {
+  assert.equal(nettoyerValeurSecret(`${JETON}.`), JETON);
+  assert.equal(nettoyerValeurSecret(`  "${JETON}" ; `), JETON);
+  assert.equal(nettoyerValeurSecret("https://boutique.exemple.com."), "https://boutique.exemple.com");
+});
