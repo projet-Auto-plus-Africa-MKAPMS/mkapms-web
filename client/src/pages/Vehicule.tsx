@@ -631,7 +631,7 @@ export default function Vehicule({ univers }: { univers?: string }) {
             <p className="text-xs text-slate-500">Prix TTC · Frais inclus</p>
             <p className="mt-1 text-xs text-slate-500">ou {Math.round(Number(v.prix) / 60)} €/mois</p>
             <div className="mt-2"><span className="inline-flex items-center gap-1 rounded-full border border-[#D4AF37] bg-[#FFFDF5] px-3 py-0.5 text-[10px] font-bold text-[#D4AF37]"><ShieldCheck size={10} /> MKA.P-MS Certifié</span></div>
-            <div className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 cursor-pointer hover:bg-slate-100 transition" onClick={() => window.open(`https://maps.google.com/?q=${encodeURIComponent(v.ville || "Belloy-en-France 95270")}`, "_blank")}>
+            <div className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 cursor-pointer hover:bg-slate-100 transition" onClick={() => window.open(`https://mkapms-carte-api-production.up.railway.app/?q=${encodeURIComponent(v.ville || "Belloy-en-France 95270")}&mode=car`, "_blank", "noopener,noreferrer")}>
               <MapPin size={14} className="text-red-500" />
               <span className="text-xs font-medium text-slate-600">{v.ville || "Belloy-en-France"} · 95270</span>
             </div>
