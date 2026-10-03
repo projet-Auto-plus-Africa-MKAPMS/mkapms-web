@@ -4,7 +4,7 @@
  * L'IA principale travaille DANS la boutique (SHOP) avec le jeton de service que le PDG a créé côté boutique et
  * déposé dans le Coffre secret (server/intelligences/boutique.ts). Décision du PDG du 2 octobre 2026.
  *
- * Quatre outils de lecture et deux outils d'écriture de faible risque, tous bornés par les portées du jeton :
+ * Quatre outils de lecture et trois outils d'écriture de faible risque, tous bornés par les portées du jeton :
  *  - lancer les photos met une tâche en file côté boutique (droits d'image = ceux enregistrés par le PDG) ;
  *  - proposer une fiche écrit un BROUILLON « à relire » : seul le PDG approuve et publie, dans la boutique.
  * Un sixième outil LIT la fiche complète (prix fournisseur, prix saisi, offre boutique, colis, stock observé, photos) : décision
@@ -87,11 +87,22 @@ export const OUTILS_BOUTIQUE: OutilSpec[] = [
     toolId: "boutique.lireFicheComplete",
     name: "boutiqueLireFicheComplete",
     description:
-      "Lit TOUT d'une fiche produit de la boutique, en lecture seule : titre, descriptions, champs, colis (nombre et preuve : un colis, deux colis…), prix fournisseur confirmé, prix saisi par le PDG, offre boutique, stock observé, ligne d'origine du fournisseur telle que reçue (colonnes de prix et de colis non confirmées comprises), avertissements (par exemple PRICE_UNCONFIRMED), photos d'origine et médias. Un prix absent ou non confirmé est dit tel quel, jamais deviné. Nécessite un jeton créé avec la portée facultative catalogue.full. Ne modifie rien. Les prix et la fiche complète restent entre le PDG et cette IA : ne les copier dans aucun message public.",
+      "Lit TOUT d'une fiche produit de la boutique, en lecture seule : titre, descriptions, champs, colis (nombre et preuve : un colis, deux colis…), prix fournisseur confirmé, prix saisi par le PDG, offre boutique, stock observé, ligne d'origine du fournisseur telle que reçue (colonnes de prix et de colis non confirmées comprises), avertissements (par exemple PRICE_UNCONFIRMED), photos d'origine et médias. Indique aussi si la preuve des droits d'image du fournisseur est enregistrée (mediaRights) et pourquoi un stock est vide (stockSync : lien CSV de stock présent ? dernière synchronisation, erreur). Un prix absent ou non confirmé est dit tel quel, jamais deviné. Nécessite un jeton créé avec la portée facultative catalogue.full. Ne modifie rien. Les prix et la fiche complète restent entre le PDG et cette IA : ne les copier dans aucun message public.",
     schemaInput: { type: "object", properties: { produitId: { type: "string" } }, required: ["produitId"] },
     schemaOutput: { type: "object", properties: { ok: { type: "boolean" }, id: { type: "string" }, supplierPrice: { type: "object" }, founderPrice: { type: "object" }, shopOffer: { type: "object" }, parcels: { type: "object" }, stock: { type: "object" }, supplierSheet: { type: "object" }, warnings: { type: "array" } } },
     legalBasis: "Lecture complète d'une fiche de la boutique de l'entreprise avec un jeton que le PDG a lui-même créé avec la portée facultative catalogue.full (décision du PDG du 3 octobre 2026) ; usage journalisé dans le coffre et dans la boutique.",
     fallback: "Jeton sans la portée catalogue.full, refusé ou boutique indisponible : l'outil le dit tel quel — jamais un prix supposé.",
+  },
+  {
+    ...ECRITURE,
+    toolId: "boutique.synchroniserStock",
+    name: "boutiqueSynchroniserStock",
+    description:
+      "Demande à la boutique de synchroniser le stock du fournisseur d'un produit depuis le lien CSV de stock que le PDG a enregistré dans le coffre de la boutique, puis rend le stock lu pour ce SKU (statut, quantité, date d'observation). L'adresse du flux n'est jamais fournie ici. Une synchronisation par minute et par fournisseur. Si le lien manque ou ne répond pas, l'outil le dit : le stock reste INCONNU, jamais supposé. Nécessite un jeton créé avec la portée facultative stock.sync. Ne crée aucun produit et ne touche à aucun prix.",
+    schemaInput: { type: "object", properties: { produitId: { type: "string" } }, required: ["produitId"] },
+    schemaOutput: { type: "object", properties: { ok: { type: "boolean" }, sync: { type: "object" }, stock: { type: "object" } } },
+    legalBasis: "Synchronisation d'un flux de stock fournisseur déjà configuré par le PDG dans la boutique, avec un jeton qu'il a lui-même créé avec la portée stock.sync ; usage journalisé dans le coffre et dans la boutique.",
+    fallback: "Jeton sans la portée, lien de stock absent ou illisible, ou boutique indisponible : l'outil le dit tel quel — aucune disponibilité n'est inventée.",
   },
   {
     ...ECRITURE,
@@ -109,7 +120,7 @@ export const OUTILS_BOUTIQUE: OutilSpec[] = [
     toolId: "boutique.proposerFiche",
     name: "boutiqueProposerFiche",
     description:
-      "Propose le contenu d'une fiche produit (titre, description MKA.P-MS originale, caractéristiques avec leur source, colis). C'est un BROUILLON « à relire » : le PDG l'approuve ou le refuse dans la boutique, jamais l'IA. Lire d'abord la fiche (révision attendue). N'inventer aucune caractéristique : chaque champ renseigné exige sa source ; un champ inconnu reste FIELD_MISSING. Champs possibles : RecommendedAgeMin, RecommendedAgeMax, MaxChildWeight, Seats, ProductLength, ProductWidth, ProductHeight, ProductWeight, BatteryVoltage, BatteryCapacity, MotorCount, MotorPower, MaxSpeed, RemoteControl, SafetyWarnings, etc. (liste exacte validée par la boutique). Statuts : FIELD_AVAILABLE (valeur + source), FIELD_NOT_APPLICABLE (source), FIELD_UNVERIFIED, FIELD_MISSING.",
+      "Propose le contenu d'une fiche produit (titre, description MKA.P-MS originale, caractéristiques avec leur source, colis). C'est un BROUILLON « à relire » : le PDG l'approuve ou le refuse dans la boutique, jamais l'IA. Lire d'abord la fiche (révision attendue). N'inventer aucune caractéristique : chaque champ renseigné exige sa source ; un champ inconnu reste FIELD_MISSING. FORME EXACTE de `champs` : un objet dont chaque clé est UN de ces noms — RecommendedAgeMin, RecommendedAgeMax, RecommendedHeightMin, RecommendedHeightMax, MaxChildWeight, Seats, SeatDimensions, ProductLength, ProductWidth, ProductHeight, ProductWeight, BatteryVoltage, BatteryCapacity, MotorCount, MotorPower, MaxSpeed, EstimatedRuntime, ChargingTime, RemoteControl, WheelType, SeatType, Lights, Bluetooth, USB, Audio, ChargerIncluded, BatteryIncluded, SafetyWarnings, AdultSupervision, IndoorOutdoor (aucun autre nom) — et dont la valeur est { statut, valeur, source } (les clés status/value/sourceRef sont aussi acceptées) : statut = FIELD_AVAILABLE (valeur ET source obligatoires), FIELD_NOT_APPLICABLE (source obligatoire), FIELD_UNVERIFIED ou FIELD_MISSING ; valeur = TEXTE (écrire « 30 kg », pas un nombre seul si l'unité compte). Exemple : {\"Seats\":{\"statut\":\"FIELD_AVAILABLE\",\"valeur\":\"1\",\"source\":\"fiche fournisseur c4k1166\"}}. FORME de `colis` : liste de { longueurMm, largeurMm, hauteurMm, poidsGrammes, source } en nombres positifs (arrondis à l'entier) ; ne déclarer un colis que si ses mesures sont documentées. En cas de refus, le message nomme le champ en cause : corriger CE champ et rejouer, sans rien inventer.",
     schemaInput: {
       type: "object",
       properties: {
@@ -117,8 +128,8 @@ export const OUTILS_BOUTIQUE: OutilSpec[] = [
         revisionAttendue: { type: "number" },
         titre: { type: "string" },
         descriptionBoutique: { type: "string" },
-        champs: { type: "object" },
-        colis: { type: "array" },
+        champs: { type: "object", description: "Clés = noms de champs de la boutique ; valeur = { statut, valeur (texte), source }." },
+        colis: { type: "array", description: "Liste de { longueurMm, largeurMm, hauteurMm, poidsGrammes, source }." },
       },
       required: ["produitId", "revisionAttendue", "titre", "descriptionBoutique"],
     },

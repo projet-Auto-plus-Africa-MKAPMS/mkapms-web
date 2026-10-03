@@ -12,6 +12,7 @@ import {
   lireFicheCompleteBoutique,
   lireProduitBoutique,
   proposerFicheBoutique,
+  synchroniserStockBoutique,
   type FicheProposee,
 } from "../../boutique.js";
 
@@ -41,6 +42,10 @@ export const IMPLEMENTATIONS: Record<string, ImplementationOutil> = {
   "boutique.lireFicheComplete": async (args, contexte) => {
     const a = await accesBoutique(compteAppelant(contexte), "boutique.lireFicheComplete", "Lire la fiche complète (prix, colis, stock, photos) d'un produit de la boutique, demandé par le PDG");
     return a.ok ? lireFicheCompleteBoutique(a, args.produitId) : { ok: false, detail: a.detail };
+  },
+  "boutique.synchroniserStock": async (args, contexte) => {
+    const a = await accesBoutique(compteAppelant(contexte), "boutique.synchroniserStock", "Synchroniser le stock du fournisseur d'un produit de la boutique, demandé par le PDG");
+    return a.ok ? synchroniserStockBoutique(a, args.produitId) : { ok: false, detail: a.detail };
   },
   "boutique.lancerPhotos": async (args, contexte) => {
     const a = await accesBoutique(compteAppelant(contexte), "boutique.lancerPhotos", "Lancer la préparation des photos d'une fiche de la boutique, demandé par le PDG");
