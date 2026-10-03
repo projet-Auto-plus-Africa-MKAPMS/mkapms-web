@@ -187,8 +187,8 @@ test("implémentations : refusent sans compte appelant connu (le coffre n'est li
   }
 });
 
-test("connaissances boutique : 23 entrées copiées + 3 de connexion, titres uniques et courts, aucun secret, sources datées", () => {
-  assert.equal(CONNAISSANCES_BOUTIQUE.length, 26);
+test("connaissances boutique : 23 entrées copiées + 4 propres à la plateforme, titres uniques et courts, aucun secret, sources datées", () => {
+  assert.equal(CONNAISSANCES_BOUTIQUE.length, 27);
   const titres = CONNAISSANCES_BOUTIQUE.map((c) => `${c.categorie}|${c.titre}`);
   assert.equal(new Set(titres).size, titres.length);
   for (const c of CONNAISSANCES_BOUTIQUE) {
@@ -345,6 +345,8 @@ test("stock : chemin fixe /stock-sync, corps vide, jamais d'adresse ; lien absen
   assert.equal((await synchroniserStockBoutique(ACCES, "../x", f)).ok, false);
   assert.match(detailSynchroStock("FEED_ERROR", "FEED_UNAVAILABLE"), /n'a pas répondu/);
   assert.match(detailSynchroStock("NO_SOURCE", "NO_INTEGRATION"), /pas d'intégration/);
+  assert.match(detailSynchroStock("FEED_ERROR", "FEED_HTTP_FAILED", 404), /HTTP 404/);
+  assert.match(detailSynchroStock("FEED_ERROR", "FEED_URL_INVALID"), /https valide/);
 });
 
 test("photo principale : chemin fixe, corps vide, identifiants validés avant l'appel, photo avec marque refusée dite clairement", async () => {

@@ -165,8 +165,8 @@ async function appeler(
     return { ok: false, detail: `La boutique a répondu dans un format inattendu (${reponse.status}).` };
   }
   if (!reponse.ok) {
-    const sync = (json as { sync?: { status?: unknown; reason?: unknown } } | null)?.sync;
-    if (sync && typeof sync === "object") return { ok: false, detail: detailSynchroStock(String(sync.status ?? ""), sync.reason == null ? "" : String(sync.reason)) };
+    const sync = (json as { sync?: { status?: unknown; reason?: unknown; httpStatus?: unknown } } | null)?.sync;
+    if (sync && typeof sync === "object") return { ok: false, detail: detailSynchroStock(String(sync.status ?? ""), sync.reason == null ? "" : String(sync.reason), typeof sync.httpStatus === "number" ? sync.httpStatus : undefined) };
     return { ok: false, ...messageErreur(reponse.status, json, acces.origine) };
   }
   const propre = nettoyer(json, 0, ficheComplete);
@@ -174,15 +174,22 @@ async function appeler(
 }
 
 /** Pourquoi la synchronisation du stock n'a rien rapporté, dit tel quel (jamais une disponibilité supposée). */
-export function detailSynchroStock(statut: string, raison: string): string {
+export function detailSynchroStock(statut: string, raison: string, httpStatus?: number): string {
   const causes: Record<string, string> = {
     NO_INTEGRATION: "ce fournisseur n'a pas d'intégration enregistrée dans le coffre de la boutique",
     INTEGRATION_UNAVAILABLE: "l'intégration du fournisseur est absente, expirée ou non enregistrée dans le coffre de la boutique",
     VAULT_UNAVAILABLE: "le coffre de la boutique n'a pas pu ouvrir l'intégration du fournisseur",
     NO_STOCK_LINK: "aucun « Lien CSV stock » n'est enregistré dans l'intégration du fournisseur (le PDG le saisit dans le coffre de la boutique)",
     FEED_UNAVAILABLE: "le lien CSV de stock n'a pas répondu ou n'est pas lisible",
+    FEED_URL_INVALID: "le lien CSV de stock enregistré n'est pas une adresse https valide (adresse complète, sans identifiant ni port)",
+    FEED_HTTP_FAILED: `le fournisseur a répondu une erreur${httpStatus ? ` HTTP ${httpStatus}` : ""} à l'adresse du lien CSV de stock`,
+    FEED_ACCESS_DENIED: `le fournisseur refuse l'accès au lien CSV de stock${httpStatus ? ` (HTTP ${httpStatus})` : ""} : le lien est expiré ou incomplet`,
+    FEED_CSV_INVALID: "le fichier reçu n'est pas un CSV lisible",
+    FEED_CONTENT_REJECTED: "le fichier reçu n'est pas un CSV de stock (page web ou donnée sensible)",
+    FEED_TIMEOUT: "le fournisseur n'a pas répondu à temps",
+    MAPPING_REQUIRED: "les colonnes du flux de stock ne sont pas reconnues (il faut une colonne SKU et une colonne quantité)",
   };
-  const cause = causes[raison] ?? (raison ? `motif ${raison.slice(0, 60)}` : "motif non précisé");
+  const cause = causes[raison] ?? (raison ? `motif ${raison.slice(0, 200)}` : "motif non précisé");
   return `Le stock n'a pas été synchronisé (${statut || "échec"}) : ${cause}. Aucune disponibilité n'est supposée : le stock reste inconnu tant que le flux n'est pas lu.`;
 }
 
