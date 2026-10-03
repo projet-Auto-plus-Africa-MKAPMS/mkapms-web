@@ -3207,6 +3207,24 @@ export const LIVRAISONS: Livraison[] = [
       "Une règle de sécurité change par décision datée du PDG, en gardant le minimum : lecture seule, portée facultative par jeton, rôle PDG, aucun secret renvoyé. Montrer honnêtement ce qui n'est pas confirmé (prix du fichier fournisseur non validé) plutôt que de l'afficher comme un fait.",
     domaine: "confiance",
   },
+  {
+    cle: "mode-travail-budget-sortie-raisonnement-epuise-relance",
+    titre: "Mode Travail : un rendu final n'échoue plus quand le raisonnement épuise le budget de sortie (4000 sur 4000)",
+    moteurs: ["intelligences"],
+    quoi:
+      "Test réel du PDG (3 octobre 2026) : un travail de 34 étapes (identifier 27 produits de la boutique après les capacités du jeton) a fait 33 étapes, puis la dernière, « exécution du travail et rendu », a échoué : « OpenAI a répondu sans contenu utilisable (arrêté par limite de jetons : 4000 jeton(s) de raisonnement sur 4000 alloué(s)) ». Cause : le budget de sortie du côté direction était fixé à 4000 jetons par appel, et sur un modèle à raisonnement interne la réflexion compte dans ce budget : à la dernière étape (rendu de synthèse de 27 produits) tout est parti en réflexion avant la première ligne visible. Ce n'était pas lié au déploiement ni à la boutique. Corrections : (1) mode Travail : 16 000 jetons par appel (le chat reste à 4000) ; (2) relance automatique UNE fois quand un appel s'arrête par limite de jetons sans aucun texte ni appel d'outil : même requête avec un budget quatre fois plus large (entre 16 000 et 32 000), même intensité de réflexion que le PDG a choisie ; si la relance échoue aussi, le diagnostic d'origine est conservé et dit ; (3) test sans base et étape CI dédiée.",
+    pourquoi:
+      "Un budget trop juste fait perdre la fin d'un long travail alors que 33 étapes sur 34 sont faites. Élargir le budget ne coûte que ce qui est réellement utilisé ; la relance bornée évite une boucle de coût sans fin.",
+    ou: [
+      "server/intelligences/provider.ts",
+      "server/intelligences/service.ts",
+      "server/intelligences/__tests__/budget-relance.test.ts",
+      ".github/workflows/build-check.yml",
+    ],
+    lecon:
+      "Sur un modèle à raisonnement, le budget de sortie couvre aussi la réflexion : prévoir une marge pour le rendu final d'un long travail, et relancer une fois plutôt qu'échouer. Dire la cause exacte (jetons de raisonnement sur jetons alloués) évite de la deviner.",
+    domaine: "confiance",
+  },
 ];
 
 /** Texte mémorisé d'une livraison. La recherche globale ne transmet que le début d'une entrée : le plus important vient en premier. */

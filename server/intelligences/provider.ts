@@ -308,6 +308,34 @@ async function modeleDisponible(
   return spec.modeleParDefaut;
 }
 
+/** Plafond de relance : au-delà, un modèle à raisonnement qui boucle coûterait sans limite. */
+const BUDGET_RELANCE_MAX = 32_000;
+const BUDGET_RELANCE_MIN = 16_000;
+
+/**
+ * Réponse vide parce que TOUT le budget de sortie est parti en raisonnement interne (finish_reason "length", ni texte ni
+ * appel d'outil) : c'est un budget trop juste, pas une panne. Renvoie le corps à rejouer UNE fois avec un budget plus
+ * large (quatre fois l'ancien, entre 16 000 et 32 000 jetons), avec la même intensité de réflexion que le PDG a choisie ;
+ * `null` si la réponse n'est pas dans ce cas ou si le budget est déjà au plafond. Observé en production : « 4000 jetons de
+ * raisonnement sur 4000 » à la toute dernière étape d'un travail de 34 étapes (rendu final) — tout le travail précédent
+ * était fait, seul le rendu échouait.
+ */
+export function corpsRelanceBudget(brut: string, corpsCourant: Record<string, unknown>): Record<string, unknown> | null {
+  let c: { choices?: { finish_reason?: string | null; message?: { content?: string | null; tool_calls?: unknown[] } }[] };
+  try {
+    c = JSON.parse(brut) as typeof c;
+  } catch {
+    return null;
+  }
+  const choix = c.choices?.[0];
+  const vide = (choix?.message?.content ?? "").trim().length === 0 && (choix?.message?.tool_calls?.length ?? 0) === 0;
+  if (choix?.finish_reason !== "length" || !vide) return null;
+  const actuel = Number(corpsCourant.max_completion_tokens) || 1200;
+  const nouveau = Math.min(BUDGET_RELANCE_MAX, Math.max(actuel * 4, BUDGET_RELANCE_MIN));
+  if (nouveau <= actuel) return null;
+  return { ...corpsCourant, max_completion_tokens: nouveau };
+}
+
 /** Modèle → valeur de reasoning_effort prouvée nécessaire pour que les outils fonctionnent. */
 const cacheReasoningEffort = new Map<string, { valeur: string; expire: number }>();
 
@@ -602,6 +630,20 @@ export async function appeler(input: AppelInput, fetchImpl: typeof fetch = fetch
     if (reponse.ok && input.outils?.length && dejaEssaye.size > 0) {
       const valeurRetenue = [...dejaEssaye].pop()!;
       cacheReasoningEffort.set(resolu.modele, { valeur: valeurRetenue, expire: Date.now() + 3600 * 1000 });
+    }
+
+    // Budget de sortie épuisé par le raisonnement interne : une seule relance avec un budget plus large (voir corpsRelanceBudget).
+    // Si elle échoue à son tour, on garde la première réponse et son diagnostic « arrêté par limite de jetons ».
+    if (reponse.ok) {
+      const relance = corpsRelanceBudget(brut, corpsCourant);
+      if (relance) {
+        const reponse2 = await envoyer(relance);
+        const brut2 = await reponse2.text();
+        if (reponse2.ok) {
+          reponse = reponse2;
+          brut = brut2;
+        }
+      }
     }
 
     if (!reponse.ok) {
