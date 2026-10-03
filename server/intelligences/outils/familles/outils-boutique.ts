@@ -9,6 +9,7 @@ import {
   capacitesBoutique,
   lancerPhotosBoutique,
   listerProduitsBoutique,
+  lireFicheCompleteBoutique,
   lireProduitBoutique,
   proposerFicheBoutique,
   type FicheProposee,
@@ -36,6 +37,10 @@ export const IMPLEMENTATIONS: Record<string, ImplementationOutil> = {
   "boutique.lireProduit": async (args, contexte) => {
     const a = await accesBoutique(compteAppelant(contexte), "boutique.lireProduit", "Lire une fiche produit de la boutique, demandé par le PDG");
     return a.ok ? lireProduitBoutique(a, args.produitId) : { ok: false, detail: a.detail };
+  },
+  "boutique.lireFicheComplete": async (args, contexte) => {
+    const a = await accesBoutique(compteAppelant(contexte), "boutique.lireFicheComplete", "Lire la fiche complète (prix, colis, stock, photos) d'un produit de la boutique, demandé par le PDG");
+    return a.ok ? lireFicheCompleteBoutique(a, args.produitId) : { ok: false, detail: a.detail };
   },
   "boutique.lancerPhotos": async (args, contexte) => {
     const a = await accesBoutique(compteAppelant(contexte), "boutique.lancerPhotos", "Lancer la préparation des photos d'une fiche de la boutique, demandé par le PDG");

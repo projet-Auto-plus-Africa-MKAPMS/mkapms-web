@@ -4,10 +4,12 @@
  * L'IA principale travaille DANS la boutique (SHOP) avec le jeton de service que le PDG a créé côté boutique et
  * déposé dans le Coffre secret (server/intelligences/boutique.ts). Décision du PDG du 2 octobre 2026.
  *
- * Trois outils de lecture et deux outils d'écriture de faible risque, tous bornés par les portées du jeton :
+ * Quatre outils de lecture et deux outils d'écriture de faible risque, tous bornés par les portées du jeton :
  *  - lancer les photos met une tâche en file côté boutique (droits d'image = ceux enregistrés par le PDG) ;
  *  - proposer une fiche écrit un BROUILLON « à relire » : seul le PDG approuve et publie, dans la boutique.
- * Aucun outil ne touche un prix, une TVA, un stock, une livraison, ni n'approuve ou ne publie quoi que ce soit : la
+ * Un sixième outil LIT la fiche complète (prix fournisseur, prix saisi, offre boutique, colis, stock observé, photos) : décision
+ * du PDG du 3 octobre 2026, en lecture seule et seulement si le PDG a créé le jeton avec la portée facultative catalogue.full.
+ * Aucun outil ne MODIFIE un prix, une TVA, un stock, une livraison, ni n'approuve ou ne publie quoi que ce soit : la
  * boutique ne l'autorise pas à ce jeton, et aucun outil n'existe pour le demander.
  *
  * Réservés au PDG, comme le coffre dont ils dépendent.
@@ -54,7 +56,7 @@ export const OUTILS_BOUTIQUE: OutilSpec[] = [
     toolId: "boutique.capacites",
     name: "boutiqueCapacites",
     description:
-      "Dit ce que le jeton de service de la boutique permet réellement (portées accordées) et ce qui reste interdit quelle que soit la portée (prix, TVA, stock, livraison, approbation, publication). À utiliser avant de promettre un travail dans la boutique.",
+      "Dit ce que le jeton de service de la boutique permet réellement (portées accordées) et ce qui reste interdit quelle que soit la portée (modifier un prix, la TVA, le stock ou la livraison, approuver, publier). À utiliser avant de promettre un travail dans la boutique.",
     schemaInput: { type: "object", properties: {}, required: [] },
     schemaOutput: { type: "object", properties: { ok: { type: "boolean" }, scopes: { type: "array" }, neverAllowed: { type: "array" }, note: { type: "string" } } },
   },
@@ -79,6 +81,17 @@ export const OUTILS_BOUTIQUE: OutilSpec[] = [
       "Lit une fiche produit de la boutique : titre fournisseur et titre actuel, description fournisseur originale, brouillon de description MKA.P-MS, champs et leur source, colis, état et révision, médias (état, contrôle de marque, photo principale). Jamais de prix ni d'adresse fournisseur.",
     schemaInput: { type: "object", properties: { produitId: { type: "string" } }, required: ["produitId"] },
     schemaOutput: { type: "object", properties: { ok: { type: "boolean" }, id: { type: "string" }, revision: { type: "number" }, media: { type: "array" } } },
+  },
+  {
+    ...LECTURE,
+    toolId: "boutique.lireFicheComplete",
+    name: "boutiqueLireFicheComplete",
+    description:
+      "Lit TOUT d'une fiche produit de la boutique, en lecture seule : titre, descriptions, champs, colis (nombre et preuve : un colis, deux colis…), prix fournisseur confirmé, prix saisi par le PDG, offre boutique, stock observé, ligne d'origine du fournisseur telle que reçue (colonnes de prix et de colis non confirmées comprises), avertissements (par exemple PRICE_UNCONFIRMED), photos d'origine et médias. Un prix absent ou non confirmé est dit tel quel, jamais deviné. Nécessite un jeton créé avec la portée facultative catalogue.full. Ne modifie rien. Les prix et la fiche complète restent entre le PDG et cette IA : ne les copier dans aucun message public.",
+    schemaInput: { type: "object", properties: { produitId: { type: "string" } }, required: ["produitId"] },
+    schemaOutput: { type: "object", properties: { ok: { type: "boolean" }, id: { type: "string" }, supplierPrice: { type: "object" }, founderPrice: { type: "object" }, shopOffer: { type: "object" }, parcels: { type: "object" }, stock: { type: "object" }, supplierSheet: { type: "object" }, warnings: { type: "array" } } },
+    legalBasis: "Lecture complète d'une fiche de la boutique de l'entreprise avec un jeton que le PDG a lui-même créé avec la portée facultative catalogue.full (décision du PDG du 3 octobre 2026) ; usage journalisé dans le coffre et dans la boutique.",
+    fallback: "Jeton sans la portée catalogue.full, refusé ou boutique indisponible : l'outil le dit tel quel — jamais un prix supposé.",
   },
   {
     ...ECRITURE,

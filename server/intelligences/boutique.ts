@@ -47,12 +47,15 @@ export function origineBoutique(brut: string): { ok: true; origine: string } | {
 }
 
 const CLE_INTERDITE = /(price|prix|amount|montant|href|url|email|phone|token|secret|sealed|credential|password)/i;
+/** Lecture complète autorisée par le PDG (portée catalogue.full) : les prix et adresses d'images restent, jamais un secret. */
+const CLE_SECRETE = /(token|secret|sealed|credential|password)/i;
 /** Retire des clés qui ne devraient jamais venir de la boutique (défense en profondeur, jamais la protection principale). */
-export function nettoyer(valeur: unknown, profondeur = 0): unknown {
+export function nettoyer(valeur: unknown, profondeur = 0, ficheComplete = false): unknown {
   if (profondeur > 8) return null;
-  if (Array.isArray(valeur)) return valeur.slice(0, 100).map((v) => nettoyer(v, profondeur + 1));
+  const interdite = ficheComplete ? CLE_SECRETE : CLE_INTERDITE;
+  if (Array.isArray(valeur)) return valeur.slice(0, 100).map((v) => nettoyer(v, profondeur + 1, ficheComplete));
   if (valeur && typeof valeur === "object") {
-    return Object.fromEntries(Object.entries(valeur).filter(([k]) => !CLE_INTERDITE.test(k)).map(([k, v]) => [k, nettoyer(v, profondeur + 1)]));
+    return Object.fromEntries(Object.entries(valeur).filter(([k]) => !interdite.test(k)).map(([k, v]) => [k, nettoyer(v, profondeur + 1, ficheComplete)]));
   }
   if (typeof valeur === "string") return valeur.length > 12_000 ? `${valeur.slice(0, 12_000)}…` : valeur;
   return valeur;
@@ -109,6 +112,7 @@ async function appeler(
   chemin: string,
   corps: unknown,
   fetchImpl: Fetch,
+  ficheComplete = false,
 ): Promise<ResultatBoutique> {
   let reponse: Response;
   try {
@@ -149,7 +153,7 @@ async function appeler(
     return { ok: false, detail: `La boutique a répondu dans un format inattendu (${reponse.status}).` };
   }
   if (!reponse.ok) return { ok: false, ...messageErreur(reponse.status, json, acces.origine) };
-  const propre = nettoyer(json);
+  const propre = nettoyer(json, 0, ficheComplete);
   return { ok: true, ...(propre && typeof propre === "object" && !Array.isArray(propre) ? (propre as Record<string, unknown>) : { resultat: propre }) };
 }
 
@@ -173,6 +177,17 @@ export function lireProduitBoutique(a: { origine: string; jeton: string }, produ
   const id = verifierId(produitId);
   if (!id) return Promise.resolve({ ok: false, detail: "Identifiant de produit invalide (UUID attendu, tel que renvoyé par la liste)." });
   return appeler(a, "GET", `/products/${id}`, undefined, f);
+}
+
+/**
+ * Fiche COMPLÈTE d'un produit (prix fournisseur, prix saisi, offre boutique, colis, stock observé, ligne d'origine du
+ * fournisseur, photos), en lecture seule. Exige la portée facultative catalogue.full du jeton ; décision du PDG du 3 octobre.
+ * Un prix non confirmé arrive vide avec l'avertissement PRICE_UNCONFIRMED : ne jamais l'afficher comme confirmé.
+ */
+export function lireFicheCompleteBoutique(a: { origine: string; jeton: string }, produitId: unknown, f: Fetch = fetch): Promise<ResultatBoutique> {
+  const id = verifierId(produitId);
+  if (!id) return Promise.resolve({ ok: false, detail: "Identifiant de produit invalide (UUID attendu, tel que renvoyé par la liste)." });
+  return appeler(a, "GET", `/products/${id}/full`, undefined, f, true);
 }
 
 export function lancerPhotosBoutique(a: { origine: string; jeton: string }, produitId: unknown, f: Fetch = fetch): Promise<ResultatBoutique> {

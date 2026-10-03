@@ -11,6 +11,7 @@ import {
   capacitesBoutique,
   lancerPhotosBoutique,
   listerProduitsBoutique,
+  lireFicheCompleteBoutique,
   lireProduitBoutique,
   nettoyer,
   nettoyerValeurSecret,
@@ -159,8 +160,8 @@ test("défense en profondeur : prix, adresses et secrets retirés de ce qui revi
   assert.deepEqual(propre, { id: ID, title: "Voiture", nested: [{ ok: 1 }] });
 });
 
-test("registre : cinq outils, lecture seule ou risque faible, réservés au PDG, aucun outil de prix/TVA/stock/approbation/publication", () => {
-  assert.equal(OUTILS_BOUTIQUE.length, 5);
+test("registre : six outils, lecture seule ou risque faible, réservés au PDG, aucun outil de modification de prix/TVA/stock/approbation/publication", () => {
+  assert.equal(OUTILS_BOUTIQUE.length, 6);
   for (const o of OUTILS_BOUTIQUE) {
     assert.ok(OUTILS.some((x) => x.toolId === o.toolId), `${o.toolId} enregistré`);
     assert.ok(IMPLEMENTATIONS[o.toolId], `${o.toolId} implémenté`);
@@ -170,7 +171,7 @@ test("registre : cinq outils, lecture seule ou risque faible, réservés au PDG,
     assert.equal(o.category, "boutique");
   }
   const noms = OUTILS_BOUTIQUE.map((o) => o.toolId).sort();
-  assert.deepEqual(noms, ["boutique.capacites", "boutique.lancerPhotos", "boutique.lireProduit", "boutique.listerProduits", "boutique.proposerFiche"]);
+  assert.deepEqual(noms, ["boutique.capacites", "boutique.lancerPhotos", "boutique.lireFicheComplete", "boutique.lireProduit", "boutique.listerProduits", "boutique.proposerFiche"]);
   assert.equal(noms.some((n) => /prix|tva|stock|livraison|approuver|publier|decision|offre/i.test(n)), false);
   const ecritures = OUTILS_BOUTIQUE.filter((o) => o.requiredPermissions.includes("WRITE")).map((o) => o.toolId).sort();
   assert.deepEqual(ecritures, ["boutique.lancerPhotos", "boutique.proposerFiche"]);
@@ -235,4 +236,39 @@ test("nettoyerValeurSecret : retire aussi la ponctuation de fin collée avec la 
   assert.equal(nettoyerValeurSecret(`${JETON}.`), JETON);
   assert.equal(nettoyerValeurSecret(`  "${JETON}" ; `), JETON);
   assert.equal(nettoyerValeurSecret("https://boutique.exemple.com."), "https://boutique.exemple.com");
+});
+
+test("fiche complète : chemin fixe /full, jeton en en-tête, prix et ligne d'origine conservés, aucun secret, entrée invalide refusée", async () => {
+  const { f, appels } = faux([
+    {
+      json: {
+        id: ID,
+        supplierPrice: { decimal: null, currency: null },
+        founderPrice: { decimal: "120.50", currency: "EUR" },
+        shopOffer: { amountMinor: 19900, currency: "EUR" },
+        parcels: { count: 2 },
+        supplierSheet: { "Regular price": "987.65", Colis: "2 colis" },
+        sourceImages: ["https://images.exemple.org/a.jpg"],
+        warnings: ["PRICE_UNCONFIRMED"],
+        apiToken: "ne-doit-pas-passer",
+        nested: { credential: "ne-doit-pas-passer", ok: 1 },
+      },
+    },
+  ]);
+  const r = await lireFicheCompleteBoutique(ACCES, ID, f);
+  assert.deepEqual(appels.map((a) => `${a.init.method} ${a.url}`), [`GET https://boutique.exemple.com/api/service/products/${ID}/full`]);
+  assert.equal(new Headers(appels[0]!.init.headers).get("authorization"), `Bearer ${JETON}`);
+  assert.equal(appels[0]!.init.redirect, "error");
+  assert.equal(r.ok, true);
+  const texte = JSON.stringify(r);
+  assert.ok(texte.includes("987.65") && texte.includes("19900") && texte.includes("PRICE_UNCONFIRMED") && texte.includes("2 colis"), "prix, offre, colis et avertissement conservés");
+  assert.equal(/ne-doit-pas-passer|apiToken|credential/.test(texte), false, "aucun secret");
+  const { f: f2, appels: a2 } = faux([]);
+  assert.equal((await lireFicheCompleteBoutique(ACCES, "../../vault", f2)).ok, false);
+  assert.equal(a2.length, 0);
+  // Sans la portée catalogue.full, la boutique répond SCOPE_REQUIRED : message clair, aucun prix supposé.
+  const { f: f3 } = faux([{ status: 403, json: { error: "Portée non accordée à ce jeton.", code: "SCOPE_REQUIRED", scope: "catalogue.full" } }]);
+  const refus = await lireFicheCompleteBoutique(ACCES, ID, f3);
+  assert.equal(refus.ok, false);
+  if (!refus.ok) assert.match(refus.detail, /portée/);
 });

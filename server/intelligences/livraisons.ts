@@ -3187,6 +3187,26 @@ export const LIVRAISONS: Livraison[] = [
       "Lire le journal d'abord : la raison du refus (« Aucun secret nommé … ») a montré la cause en un coup d'œil. Un secret doit pouvoir être renommé sans que sa valeur soit relue.",
     domaine: "confiance",
   },
+  {
+    cle: "boutique-lecture-fiche-complete-prix-colis-pdg",
+    titre: "Boutique : l'IA du PDG peut lire la fiche complète d'un produit (prix, colis, stock, photos) — lecture seule, portée facultative",
+    moteurs: ["intelligences"],
+    quoi:
+      "Demande du PDG (3 octobre 2026) : que l'IA voie tout d'un produit — prix, description, photos, nombre de colis (« 1 colis », « 2 colis ») — pour l'identifier directement, et que ces autorisations ne soient données qu'à lui et à cette IA, en commençant par UN test de lecture. Réalisé : (1) côté boutique, nouvelle portée FACULTATIVE catalogue.full (jamais cochée par défaut, accordée jeton par jeton avec mot de passe + MFA) et route GET /api/service/products/:id/full : prix fournisseur confirmé, prix saisi par le Fondateur, offre boutique, colis et leur preuve, stock observé, ligne d'origine du fournisseur telle que reçue (ses colonnes de prix non confirmées restent visibles, avec l'avertissement PRICE_UNCONFIRMED), photos d'origine, médias ; (2) côté plateforme principale, nouvel outil boutique.lireFicheComplete (READ_ONLY, réservé au PDG, jeton lu dans SON coffre) qui conserve les prix mais retire toujours tout secret ; (3) AUCUNE modification de prix, TVA, stock ou livraison, ni approbation ni publication, n'est ouverte : elles attendent la validation du test par le PDG. Un prix absent ou non confirmé est dit tel quel, jamais deviné.",
+    pourquoi:
+      "L'ancienne règle interdisait tout prix à ce jeton ; le PDG la change pour la lecture seulement. Isolation : la portée est opt-in par jeton, l'outil est réservé au rôle PDG et le jeton ne se lit que dans le coffre du compte PDG. La suite (autorisations de modification) n'est faite qu'après son accord sur ce premier test.",
+    ou: [
+      "server/intelligences/boutique.ts",
+      "server/intelligences/outils/familles/boutique.ts",
+      "server/intelligences/outils/familles/outils-boutique.ts",
+      "server/intelligences/connaissances-boutique.ts",
+      "server/intelligences/__tests__/boutique.test.ts",
+      "client/src/lib/connecteurs.ts",
+    ],
+    lecon:
+      "Une règle de sécurité change par décision datée du PDG, en gardant le minimum : lecture seule, portée facultative par jeton, rôle PDG, aucun secret renvoyé. Montrer honnêtement ce qui n'est pas confirmé (prix du fichier fournisseur non validé) plutôt que de l'afficher comme un fait.",
+    domaine: "confiance",
+  },
 ];
 
 /** Texte mémorisé d'une livraison. La recherche globale ne transmet que le début d'une entrée : le plus important vient en premier. */
