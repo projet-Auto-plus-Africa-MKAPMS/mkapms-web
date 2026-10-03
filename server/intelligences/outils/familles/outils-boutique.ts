@@ -14,6 +14,8 @@ import {
   lireProduitBoutique,
   proposerFicheBoutique,
   synchroniserStockBoutique,
+  definirColisBoutique,
+  importerGrilleLivraisonBoutique,
   type FicheProposee,
 } from "../../boutique.js";
 
@@ -51,6 +53,14 @@ export const IMPLEMENTATIONS: Record<string, ImplementationOutil> = {
   "boutique.synchroniserStock": async (args, contexte) => {
     const a = await accesBoutique(compteAppelant(contexte), "boutique.synchroniserStock", "Synchroniser le stock du fournisseur d'un produit de la boutique, demandé par le PDG");
     return a.ok ? synchroniserStockBoutique(a, args.produitId) : { ok: false, detail: a.detail };
+  },
+  "boutique.definirColis": async (args, contexte) => {
+    const a = await accesBoutique(compteAppelant(contexte), "boutique.definirColis", "Enregistrer le nombre de colis d'un produit de la boutique, demandé par le PDG");
+    return a.ok ? definirColisBoutique(a, args.produitId, { nombre: args.nombre, preuve: args.preuve }) : { ok: false, detail: a.detail };
+  },
+  "boutique.importerGrilleLivraison": async (args, contexte) => {
+    const a = await accesBoutique(compteAppelant(contexte), "boutique.importerGrilleLivraison", "Enregistrer la grille de livraison du fournisseur d'un produit de la boutique, demandé par le PDG");
+    return a.ok ? importerGrilleLivraisonBoutique(a, args.produitId, { grille: args.grille, devise: args.devise, base: args.base, taxe: args.taxe, preuve: args.preuve, valideJusqua: args.valideJusqua, apercu: args.apercu }) : { ok: false, detail: a.detail };
   },
   "boutique.lancerPhotos": async (args, contexte) => {
     const a = await accesBoutique(compteAppelant(contexte), "boutique.lancerPhotos", "Lancer la préparation des photos d'une fiche de la boutique, demandé par le PDG");

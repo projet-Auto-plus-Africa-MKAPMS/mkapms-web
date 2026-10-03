@@ -9,7 +9,7 @@
  *  - proposer une fiche écrit un BROUILLON « à relire » : seul le PDG approuve et publie, dans la boutique.
  * Un sixième outil LIT la fiche complète (prix fournisseur, prix saisi, offre boutique, colis, stock observé, photos) : décision
  * du PDG du 3 octobre 2026, en lecture seule et seulement si le PDG a créé le jeton avec la portée facultative catalogue.full.
- * Aucun outil ne MODIFIE un prix, une TVA, un stock, une livraison, ni n'approuve ou ne publie quoi que ce soit : la
+ * Deux outils règlent la livraison (nombre de colis avec preuve, grille de tarifs du fournisseur) avec la portée delivery.work, décision du PDG du 3 octobre 2026. Aucun outil ne MODIFIE un prix, une TVA, un stock, ni n'approuve ou ne publie quoi que ce soit : la
  * boutique ne l'autorise pas à ce jeton, et aucun outil n'existe pour le demander.
  *
  * Réservés au PDG, comme le coffre dont ils dépendent.
@@ -103,6 +103,28 @@ export const OUTILS_BOUTIQUE: OutilSpec[] = [
     schemaOutput: { type: "object", properties: { ok: { type: "boolean" }, sync: { type: "object" }, stock: { type: "object" } } },
     legalBasis: "Synchronisation d'un flux de stock fournisseur déjà configuré par le PDG dans la boutique, avec un jeton qu'il a lui-même créé avec la portée stock.sync ; usage journalisé dans le coffre et dans la boutique.",
     fallback: "Jeton sans la portée, lien de stock absent ou illisible, ou boutique indisponible : l'outil le dit tel quel — aucune disponibilité n'est inventée.",
+  },
+  {
+    ...ECRITURE,
+    toolId: "boutique.definirColis",
+    name: "boutiqueDefinirColis",
+    description:
+      "Enregistre le NOMBRE DE COLIS d'un produit (1, 2…) avec sa preuve (fiche, message ou document du fournisseur). Le panier public en déduit ensuite tout seul le prix de livraison de 1, 2… colis. Jamais un nombre supposé : sans preuve, l'outil refuse. Exige la portée delivery.work du jeton. Ne touche ni prix, ni TVA, ni stock, et ne publie rien.",
+    schemaInput: { type: "object", properties: { produitId: { type: "string" }, nombre: { type: "integer" }, preuve: { type: "string" } }, required: ["produitId", "nombre", "preuve"] },
+    schemaOutput: { type: "object", properties: { ok: { type: "boolean" }, parcelCount: { type: "integer" } } },
+    legalBasis: "Enregistrement d'un nombre de colis justifié par le fournisseur, avec un jeton que le PDG a lui-même créé avec la portée delivery.work (décision du PDG du 3 octobre 2026) ; usage journalisé dans le coffre et dans la boutique.",
+    fallback: "Jeton sans la portée, preuve absente ou boutique indisponible : l'outil le dit tel quel — le nombre de colis ne change pas.",
+  },
+  {
+    ...ECRITURE,
+    toolId: "boutique.importerGrilleLivraison",
+    name: "boutiqueImporterGrilleLivraison",
+    description:
+      "Enregistre la grille de tarifs de livraison du FOURNISSEUR du produit, par pays, telle que communiquée par lui (« Pays ; montant », une ligne par pays). Précisez hors taxes ou taxes comprises, la preuve (document/message du fournisseur) et la date de fin de validité. apercu=true montre ce qui serait enregistré sans rien écrire. Les tarifs ne sont jamais inventés : seulement ceux que le fournisseur a transmis. Exige la portée delivery.work. Ne touche ni prix, ni TVA, ni stock.",
+    schemaInput: { type: "object", properties: { produitId: { type: "string" }, grille: { type: "string" }, devise: { type: "string" }, base: { type: "string", enum: ["PER_PARCEL", "PER_ITEM"] }, taxe: { type: "string", enum: ["EXCLUDED", "INCLUDED"] }, preuve: { type: "string" }, valideJusqua: { type: "string" }, apercu: { type: "boolean" } }, required: ["produitId", "grille", "taxe", "preuve", "valideJusqua"] },
+    schemaOutput: { type: "object", properties: { ok: { type: "boolean" }, stored: { type: "integer" }, countries: { type: "array" }, rejected: { type: "array" } } },
+    legalBasis: "Enregistrement des tarifs de livraison communiqués par le fournisseur, avec un jeton que le PDG a lui-même créé avec la portée delivery.work (décision du PDG du 3 octobre 2026) ; usage journalisé dans le coffre et dans la boutique.",
+    fallback: "Jeton sans la portée, grille illisible, preuve ou validité absentes, ou boutique indisponible : l'outil le dit tel quel — aucun tarif n'est enregistré.",
   },
   {
     ...ECRITURE,

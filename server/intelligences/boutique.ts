@@ -308,6 +308,32 @@ export function choisirPhotoPrincipaleBoutique(a: { origine: string; jeton: stri
 }
 
 /** Demande la synchronisation du stock du fournisseur de ce produit (lien CSV du coffre de la boutique) : portée stock.sync. */
+/** Nombre de colis d'un produit, avec la preuve du fournisseur (portée delivery.work). Le panier en déduit seul le prix de 1, 2… colis. */
+export function definirColisBoutique(a: { origine: string; jeton: string }, produitId: unknown, colis: { nombre: unknown; preuve: unknown }, f: Fetch = fetch): Promise<ResultatBoutique> {
+  const id = verifierId(produitId);
+  if (!id) return Promise.resolve({ ok: false, detail: "Identifiant de produit invalide (UUID attendu, tel que renvoyé par la liste)." });
+  const nombre = Number(colis.nombre);
+  if (!Number.isInteger(nombre) || nombre < 1 || nombre > 100) return Promise.resolve({ ok: false, detail: "Le nombre de colis doit être un entier de 1 à 100." });
+  const preuve = typeof colis.preuve === "string" ? colis.preuve.trim() : "";
+  if (preuve.length < 3) return Promise.resolve({ ok: false, detail: "Indiquez la preuve du nombre de colis (fiche, message ou document du fournisseur) : jamais un nombre supposé." });
+  return appeler(a, "PUT", `/products/${id}/parcels`, { parcelCount: nombre, evidenceRef: preuve.slice(0, 200) }, f);
+}
+
+export interface GrilleLivraison { grille: unknown; devise?: unknown; base?: unknown; taxe: unknown; preuve: unknown; valideJusqua: unknown; apercu?: unknown }
+
+/** Grille de tarifs de livraison du fournisseur par pays, telle que communiquée par lui (portée delivery.work). */
+export function importerGrilleLivraisonBoutique(a: { origine: string; jeton: string }, produitId: unknown, g: GrilleLivraison, f: Fetch = fetch): Promise<ResultatBoutique> {
+  const id = verifierId(produitId);
+  if (!id) return Promise.resolve({ ok: false, detail: "Identifiant de produit invalide (UUID attendu, tel que renvoyé par la liste)." });
+  if (typeof g.grille !== "string" || !g.grille.trim()) return Promise.resolve({ ok: false, detail: "La grille est vide : une ligne par pays, « Pays ; montant » (ou « Pays ; Prix sur demande » / « Pays ; Pas de livraison »)." });
+  if (g.taxe !== "EXCLUDED" && g.taxe !== "INCLUDED") return Promise.resolve({ ok: false, detail: "Précisez si les tarifs du fournisseur sont hors taxes (EXCLUDED) ou taxes comprises (INCLUDED) : jamais supposé." });
+  const preuve = typeof g.preuve === "string" ? g.preuve.trim() : "";
+  if (!preuve) return Promise.resolve({ ok: false, detail: "Indiquez d'où viennent ces tarifs (document ou message du fournisseur, date)." });
+  if (typeof g.valideJusqua !== "string" || Number.isNaN(Date.parse(g.valideJusqua))) return Promise.resolve({ ok: false, detail: "Indiquez la date de fin de validité des tarifs (ISO 8601, avec fuseau)." });
+  const corps = { grid: g.grille, currency: typeof g.devise === "string" ? g.devise : "EUR", basis: g.base === "PER_ITEM" ? "PER_ITEM" : "PER_PARCEL", taxBasis: g.taxe, evidenceRef: preuve.slice(0, 200), validUntil: new Date(g.valideJusqua).toISOString() };
+  return appeler(a, "POST", `/products/${id}/shipping-grid${g.apercu === true ? "?preview=1" : ""}`, corps, f);
+}
+
 export function synchroniserStockBoutique(a: { origine: string; jeton: string }, produitId: unknown, f: Fetch = fetch): Promise<ResultatBoutique> {
   const id = verifierId(produitId);
   if (!id) return Promise.resolve({ ok: false, detail: "Identifiant de produit invalide (UUID attendu, tel que renvoyé par la liste)." });
