@@ -111,7 +111,7 @@ export const CONNECTEURS: Connecteur[] = [
       { nom: "Boutique — jeton de service", type: "cle_api", aide: "Jeton créé dans la boutique : réglages de l'assistant SHOP → « Accès de l'IA de la plateforme principale » (mot de passe Fondateur + code de sécurité). Il n'est affiché qu'une fois, expire (90 jours maximum) et se révoque à tout moment." },
     ],
     usage:
-      "Cinq outils : lire la liste et la fiche des produits, lancer la préparation des photos, proposer le brouillon d'une fiche, dire les portées du jeton. Les fiches restent « à relire » : seul le PDG approuve et publie, dans la boutique. Jamais de prix, de TVA, de stock ni de livraison avec ce jeton. Les droits d'image du fournisseur doivent être enregistrés dans la boutique avant tout travail sur les photos.",
+      "Six outils : lire la liste et la fiche des produits, lire la fiche COMPLÈTE (prix, colis, stock, photos) si le jeton a la portée facultative catalogue.full, lancer la préparation des photos, proposer le brouillon d'une fiche, dire les portées du jeton. Les fiches restent « à relire » : seul le PDG approuve et publie, dans la boutique. Aucune modification de prix, de TVA, de stock ni de livraison avec ce jeton. Les droits d'image du fournisseur doivent être enregistrés dans la boutique avant tout travail sur les photos.",
     avertissement: "Ne collez jamais ce jeton dans une conversation : déposez-le ici seulement. Si vous le croyez exposé, révoquez-le dans la boutique.",
   },
   {
