@@ -3263,6 +3263,25 @@ export const LIVRAISONS: Livraison[] = [
       "Un identifiant de conversation doit traverser toute la chaîne (écran, routeur, orchestrateur, moteur) et revenir à l'écran ; vérifier chaque maillon quand deux chemins (Chat et Travail) partagent une même conversation.",
     domaine: "confiance",
   },
+  {
+    cle: "boutique-traitement-produit-de-a-a-z-jusqu-a-ready-for-pdg-review",
+    titre: "Boutique : l'IA traite un produit de A à Z jusqu'à READY_FOR_PDG_REVIEW (photo principale, état de la fiche, livraison) — elle s'arrête avant la publication",
+    moteurs: ["intelligences"],
+    quoi:
+      "Liste du PDG (3 octobre 2026) de ce qu'il manque pour que l'IA termine un produit (test c4k1166 zwart) : champs structurés, stock réel, droits d'image, traitement des photos, colis et livraison, prix du PDG protégé, contrôle final. Déjà livré : champs structurés lisibles, outil de synchronisation du stock, droits d'image par fournisseur. Ajouté ici : (1) outil boutique.choisirPhotoPrincipale (la boutique refuse une photo fournisseur avec marque) ; (2) la fiche complète renvoie readiness (READY_FOR_PDG_REVIEW ou INCOMPLETE avec la liste de ce qui manque : droits, originaux, photos premium, photo principale, description, champs, colis, stock réel, prix du PDG présent, fiche à relire, non publiée), delivery (grille de livraison du fournisseur) et publicationCheck (ce qui bloquerait une publication) ; (3) procédure complète dans la mémoire de l'IA. Le prix du PDG reste en lecture seule. LA PUBLICATION n'est PAS donnée à l'IA : le PDG a demandé qu'elle puisse publier sur son ordre explicite, mais ce changement a été bloqué par le système de permissions de l'agent développeur et attend la décision du PDG ; la publication reste donc au Fondateur dans la boutique.",
+    pourquoi:
+      "Sans un état de fiche lisible, l'IA ne peut pas savoir qu'un produit est prêt. Les limites restantes sont celles du réel : le traitement des photos tourne dans la boutique (asynchrone, selon son moteur d'IA) ; le lien CSV de stock et la preuve de droits sont des données du PDG saisies une fois par fournisseur.",
+    ou: [
+      "server/intelligences/boutique.ts",
+      "server/intelligences/outils/familles/boutique.ts",
+      "server/intelligences/outils/familles/outils-boutique.ts",
+      "server/intelligences/connaissances-boutique.ts",
+      "server/intelligences/__tests__/boutique.test.ts",
+    ],
+    lecon:
+      "Décrire dans l'outil la fin de la chaîne (READY_FOR_PDG_REVIEW) donne à l'IA un critère d'arrêt vérifiable. Une capacité de sécurité sensible (publier en public) se donne par décision explicite, jamais en contournant un refus de permission.",
+    domaine: "confiance",
+  },
 ];
 
 /** Texte mémorisé d'une livraison. La recherche globale ne transmet que le début d'une entrée : le plus important vient en premier. */
