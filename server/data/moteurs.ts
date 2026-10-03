@@ -23869,7 +23869,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "parMoteur": 0,
         "sansAction": 0,
         "textes": 42,
-        "mots": 229
+        "mots": 227
       },
       {
         "fichier": "client/src/pages/RepriseVehicule.tsx",
@@ -23921,7 +23921,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "public"
     ],
     "textes": 73,
-    "mots": 329,
+    "mots": 327,
     "battement": "sonde",
     "manques": []
   },

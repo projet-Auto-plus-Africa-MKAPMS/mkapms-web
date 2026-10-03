@@ -110,29 +110,29 @@ export default function VehicleIdentification({ onVehicleFound, compact }: Props
   ];
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       {/* Methode de recherche */}
-      <div className="flex gap-2">
-        <button onClick={() => { setMethod("plaque"); reset(); }} className={`flex-1 py-2 rounded-xl text-xs font-bold border ${method === "plaque" ? "bg-[#D4AF37] text-white border-[#D4AF37]" : "bg-white text-[#6B7280] border-[#E5E7EB]"}`}>Plaque</button>
-        <button onClick={() => { setMethod("vin"); reset(); }} className={`flex-1 py-2 rounded-xl text-xs font-bold border ${method === "vin" ? "bg-[#D4AF37] text-white border-[#D4AF37]" : "bg-white text-[#6B7280] border-[#E5E7EB]"}`}>VIN</button>
+      <div className="flex gap-3">
+        <button onClick={() => { setMethod("plaque"); reset(); }} className={`flex-1 rounded-2xl py-3 text-sm font-bold transition ${method === "plaque" ? "border border-[#D4AF37] bg-[#D4AF37] text-white shadow-[0_7px_16px_rgba(212,175,55,.22)]" : "border border-[#E2E8F0] bg-slate-50 text-[#64748B] hover:border-[#D4AF37]/50 hover:bg-white"}`}>Plaque</button>
+        <button onClick={() => { setMethod("vin"); reset(); }} className={`flex-1 rounded-2xl py-3 text-sm font-bold transition ${method === "vin" ? "border border-[#D4AF37] bg-[#D4AF37] text-white shadow-[0_7px_16px_rgba(212,175,55,.22)]" : "border border-[#E2E8F0] bg-slate-50 text-[#64748B] hover:border-[#D4AF37]/50 hover:bg-white"}`}>VIN</button>
       </div>
 
       {/* Champ de saisie */}
-      <div className="rounded-xl bg-white border border-[#E5E7EB] p-3 shadow-sm">
-        <div className="flex gap-2">
+      <div className="rounded-2xl border border-[#E2E8F0] bg-slate-50 p-2 shadow-sm sm:p-3">
+        <div className="flex flex-col gap-2 sm:flex-row">
           <input
             value={value}
             onChange={(e) => { setValue(e.target.value); reset(); }}
             placeholder={method === "plaque" ? "AA-123-BB" : "VF1XXXXXXXXX12345"}
-            className={`flex-1 rounded-lg border border-[#E5E7EB] px-3 py-2.5 text-sm font-bold uppercase ${method === "plaque" ? "text-center" : "font-mono text-xs"}`}
+            className={`min-w-0 flex-1 rounded-xl border border-[#DCE3EC] bg-white px-3 py-3 text-sm font-bold uppercase outline-none transition placeholder:text-slate-400 focus:border-[#D4AF37] focus:ring-4 focus:ring-[#D4AF37]/10 ${method === "plaque" ? "text-center tracking-[.08em]" : "font-mono text-xs tracking-normal"}`}
             onKeyDown={(e) => { if (e.key === "Enter") void handleSearch(); }}
           />
           <button
             onClick={() => void handleSearch()}
             disabled={value.replace(/\s/g, "").length < 4 || searching}
-            className={`px-4 rounded-lg text-white text-xs font-bold flex items-center gap-1 ${value.replace(/\s/g, "").length >= 4 ? "bg-[#D4AF37]" : "bg-[#D4D4D4]"}`}
+            className={`inline-flex w-full shrink-0 items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-bold text-white transition active:scale-[.98] sm:w-auto ${value.replace(/\s/g, "").length >= 4 ? "bg-[#111827] shadow-[0_7px_16px_rgba(17,24,39,.17)] hover:bg-[#1F2937]" : "bg-[#CBD5E1]"}`}
           >
-            <Search size={14} /> {searching ? "Recherche..." : "Identifier"}
+            <Search size={16} /> {searching ? "Recherche..." : "Identifier"}
           </button>
         </div>
       </div>
@@ -156,7 +156,7 @@ export default function VehicleIdentification({ onVehicleFound, compact }: Props
         <button
           type="button"
           onClick={() => setManuel(true)}
-          className="w-full rounded-xl border border-[#E5E7EB] bg-white py-2.5 text-xs font-bold text-[#111]"
+          className="w-full rounded-2xl border border-[#DCE3EC] bg-white py-3 text-sm font-bold text-[#111827] transition hover:border-[#D4AF37]/60 hover:bg-[#FFFCF3]"
         >
           Saisir le vehicule a la main
         </button>

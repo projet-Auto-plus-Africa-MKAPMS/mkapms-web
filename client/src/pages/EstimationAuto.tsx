@@ -95,57 +95,43 @@ export default function EstimationAuto() {
 
   return (
     <div className="min-h-screen bg-[#F5F3EF] pb-24">
-      <section className="relative isolate overflow-hidden bg-[#07111F] px-4 pb-14 pt-6 text-white sm:px-6 sm:pb-20 sm:pt-8">
-        <video
-          className="absolute inset-0 -z-20 h-full w-full object-cover opacity-55"
-          autoPlay
-          muted
-          loop
-          playsInline
-          preload="metadata"
-          poster="/pubs/hero2-vendez.jpg"
-          aria-hidden="true"
-        >
-          <source src="/videos/vendre/vendre_hero1.mp4" type="video/mp4" />
-        </video>
-        <div className="absolute inset-0 -z-10 bg-[linear-gradient(105deg,rgba(7,17,31,.96)_3%,rgba(7,17,31,.77)_57%,rgba(7,17,31,.87)_100%)]" />
-        <div className="pointer-events-none absolute -right-24 top-12 -z-10 h-72 w-72 rounded-full bg-[#D4AF37]/15 blur-3xl" />
+      <section className="relative isolate overflow-hidden bg-[#101824] px-4 pb-28 pt-5 text-white sm:px-6 sm:pb-32 sm:pt-7">
+        <img src="/hero/car_hero_3.jpg" alt="" className="absolute inset-0 -z-20 h-full w-full object-cover object-center opacity-65" />
+        <div className="absolute inset-0 -z-10 bg-[linear-gradient(180deg,rgba(9,17,29,.65)_0%,rgba(9,17,29,.79)_72%,rgba(9,17,29,.95)_100%)]" />
+        <div className="pointer-events-none absolute left-1/2 top-12 -z-10 h-72 w-72 -translate-x-1/2 rounded-full bg-[#D4AF37]/20 blur-3xl" />
 
         <div className="mx-auto max-w-5xl">
-          <Link to="/acheter" className="inline-flex items-center gap-1 rounded-full border border-white/15 bg-white/5 px-3 py-2 text-xs font-bold text-white/75 backdrop-blur transition hover:border-[#D4AF37]/60 hover:text-white"><ChevronLeft size={15} /> Retour à la vente</Link>
+          <Link to="/acheter" className="inline-flex items-center gap-1 rounded-full border border-white/20 bg-white/10 px-3 py-2 text-xs font-bold text-white/85 backdrop-blur transition hover:border-[#EACD64] hover:bg-white/15 hover:text-white"><ChevronLeft size={15} /> Retour à la vente</Link>
 
-          <div className="mt-10 grid gap-9 lg:grid-cols-[minmax(0,1.05fr)_minmax(360px,.95fr)] lg:items-center">
-            <div className="max-w-2xl">
-              <div className="inline-flex items-center gap-2 rounded-full border border-[#D4AF37]/40 bg-[#D4AF37]/10 px-3 py-2 text-[10px] font-black uppercase tracking-[.16em] text-[#EACD64] backdrop-blur"><Sparkles size={14} /> Valeur de marché, sans engagement</div>
-              <h1 className="mt-5 text-4xl font-black leading-[.98] tracking-tight sm:text-6xl">Votre véhicule mérite un prix juste.</h1>
-              <p className="mt-5 max-w-xl text-sm leading-6 text-white/75 sm:text-base">Identifiez votre véhicule, précisez son état et recevez une fourchette de marché expliquée. Aucun prix de rachat ferme n’est promis avant contrôle réel.</p>
-              <div className="mt-7 flex flex-wrap gap-2 text-xs font-bold text-white/85">
-                <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-2 backdrop-blur"><ScanLine size={14} className="text-[#EACD64]" /> Plaque ou VIN</span>
-                <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-2 backdrop-blur"><FileCheck2 size={14} className="text-[#EACD64]" /> Méthode affichée</span>
-                <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-2 backdrop-blur"><Globe2 size={14} className="text-[#EACD64]" /> Comparaison par pays</span>
-              </div>
-              <div className="mt-9 grid max-w-xl grid-cols-3 gap-3 border-t border-white/15 pt-5">
-                {["Identifier", "Préciser", "Comprendre"].map((step, index) => <div key={step}><p className="text-[10px] font-black tracking-[.16em] text-[#EACD64]">0{index + 1}</p><p className="mt-1 text-xs font-bold text-white/80">{step}</p></div>)}
-              </div>
-            </div>
-
-            <div className="rounded-[28px] border border-white/20 bg-white/[.96] p-3 text-[#111] shadow-[0_26px_80px_rgba(0,0,0,.32)] backdrop-blur sm:p-5">
-              <div className="flex items-start gap-3 border-b border-slate-100 px-1 pb-4">
-                <div className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-[#111] text-[#EACD64]"><Calculator size={21} /></div>
-                <div className="min-w-0"><p className="text-sm font-black">Commencer mon estimation</p><p className="mt-0.5 text-xs leading-5 text-slate-500">Plaque, VIN ou saisie manuelle. Vous gardez la main sur les informations.</p></div>
-              </div>
-              <div className="pt-4"><VehicleIdentification onVehicleFound={(v) => { setVehicle(v); setErreur(null); }} /></div>
-              <div className="mt-4 flex items-center justify-center gap-2 text-[10px] font-bold text-slate-500"><LockKeyhole size={12} className="text-[#0d7391]" /> Données d’identification traitées dans votre parcours MKA.P-MS.</div>
+          <div className="mx-auto mt-9 max-w-3xl text-center sm:mt-12">
+            <div className="inline-flex items-center gap-2 rounded-full border border-[#EACD64]/60 bg-[#D4AF37]/15 px-3 py-2 text-[10px] font-black uppercase tracking-[.16em] text-[#F4DC82] backdrop-blur"><Sparkles size={14} /> Valeur de marché, sans engagement</div>
+            <h1 className="mx-auto mt-5 max-w-3xl text-4xl font-black leading-[1.02] tracking-tight sm:text-6xl">Votre véhicule mérite un prix juste.</h1>
+            <p className="mx-auto mt-5 max-w-2xl text-sm leading-6 text-white/85 sm:text-base sm:leading-7">Identifiez votre véhicule, précisez son état et recevez une fourchette de marché expliquée. Aucun prix de rachat ferme n’est promis avant contrôle réel.</p>
+            <div className="mt-7 flex flex-wrap justify-center gap-2 text-xs font-bold text-white/90">
+              <span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-2 backdrop-blur"><ScanLine size={14} className="text-[#F4DC82]" /> Plaque ou VIN</span>
+              <span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-2 backdrop-blur"><FileCheck2 size={14} className="text-[#F4DC82]" /> Méthode affichée</span>
+              <span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-2 backdrop-blur"><Globe2 size={14} className="text-[#F4DC82]" /> Comparaison par pays</span>
             </div>
           </div>
         </div>
       </section>
 
+      <div className="relative z-10 mx-auto -mt-20 max-w-2xl px-4 sm:-mt-24 sm:px-6">
+        <div className="rounded-[30px] border border-white/80 bg-white p-4 text-[#111] shadow-[0_24px_60px_rgba(5,12,22,.24)] sm:p-6">
+          <div className="flex items-start gap-3 border-b border-slate-100 pb-4 sm:gap-4">
+            <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-[#111827] text-[#EACD64] shadow-inner"><Calculator size={21} /></div>
+            <div className="min-w-0"><p className="text-base font-black tracking-tight">Commencer mon estimation</p><p className="mt-1 text-xs leading-5 text-slate-500 sm:text-sm">Plaque, VIN ou saisie manuelle. Vous gardez toujours la main.</p></div>
+          </div>
+          <div className="pt-5"><VehicleIdentification onVehicleFound={(v) => { setVehicle(v); setErreur(null); }} /></div>
+          <div className="mt-5 flex items-center justify-center gap-2 text-center text-[10px] font-bold leading-4 text-slate-500 sm:text-xs"><LockKeyhole size={13} className="shrink-0 text-[#0d7391]" /> Données d’identification traitées dans votre parcours MKA.P-MS.</div>
+        </div>
+      </div>
+
       <div className="mx-auto max-w-5xl px-4 sm:px-6">
-        <div className="-mt-7 grid gap-2 rounded-3xl border border-[#D4AF37]/30 bg-white p-3 shadow-[0_16px_38px_rgba(17,17,17,.12)] sm:grid-cols-3 sm:p-4">
-          <div className="flex items-center gap-3 px-2 py-1"><ShieldCheck size={19} className="shrink-0 text-[#0d7391]"/><p className="text-xs font-semibold text-slate-700">Vos données d’identification restent privées.</p></div>
-          <div className="flex items-center gap-3 border-y border-slate-100 px-2 py-3 sm:border-x sm:border-y-0 sm:py-1"><FileCheck2 size={19} className="shrink-0 text-[#D4AF37]"/><p className="text-xs font-semibold text-slate-700">La méthode et le niveau de confiance sont affichés.</p></div>
-          <div className="flex items-center gap-3 px-2 py-1"><CarFront size={19} className="shrink-0 text-[#0d7391]"/><p className="text-xs font-semibold text-slate-700">L’offre finale dépend toujours du contrôle réel.</p></div>
+        <div className="mt-6 grid gap-1 rounded-3xl border border-[#D4AF37]/30 bg-white p-3 shadow-[0_16px_38px_rgba(17,17,17,.09)] sm:mt-8 sm:grid-cols-3 sm:p-4">
+          <div className="flex items-start gap-3 px-3 py-3 sm:items-center"><ShieldCheck size={20} className="mt-0.5 shrink-0 text-[#0d7391] sm:mt-0"/><p className="text-xs font-semibold leading-5 text-slate-700">Vos données d’identification restent privées.</p></div>
+          <div className="flex items-start gap-3 border-y border-slate-100 px-3 py-3 sm:items-center sm:border-x sm:border-y-0"><FileCheck2 size={20} className="mt-0.5 shrink-0 text-[#D4AF37] sm:mt-0"/><p className="text-xs font-semibold leading-5 text-slate-700">La méthode et le niveau de confiance sont affichés.</p></div>
+          <div className="flex items-start gap-3 px-3 py-3 sm:items-center"><CarFront size={20} className="mt-0.5 shrink-0 text-[#0d7391] sm:mt-0"/><p className="text-xs font-semibold leading-5 text-slate-700">L’offre finale dépend toujours du contrôle réel.</p></div>
         </div>
 
         <section className="mt-7 grid gap-4 rounded-3xl border border-[#E5E7EB] bg-white p-5 shadow-[0_14px_34px_rgba(17,17,17,.06)] sm:grid-cols-3 sm:p-7">

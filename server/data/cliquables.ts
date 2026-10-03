@@ -40,7 +40,7 @@ export interface AnomalieCliquable {
   readonly motif: MotifAnomalie;
 }
 
-export const CLIQUABLES_TOTAL = 2718;
+export const CLIQUABLES_TOTAL = 2717;
 
 export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/components/AccessDenied.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
@@ -66,7 +66,7 @@ export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/components/SmartRouter.tsx", total: 3, moteur: 0, liens: 0, boutonsLocaux: 3, sansAction: 0, zones: 0 },
   { fichier: "client/src/components/SupportWidget.tsx", total: 3, moteur: 0, liens: 0, boutonsLocaux: 3, sansAction: 0, zones: 0 },
   { fichier: "client/src/components/UniversBoundary.tsx", total: 2, moteur: 0, liens: 1, boutonsLocaux: 1, sansAction: 0, zones: 0 },
-  { fichier: "client/src/components/VehicleIdentification.tsx", total: 6, moteur: 0, liens: 0, boutonsLocaux: 6, sansAction: 0, zones: 0 },
+  { fichier: "client/src/components/VehicleIdentification.tsx", total: 5, moteur: 0, liens: 0, boutonsLocaux: 5, sansAction: 0, zones: 0 },
   { fichier: "client/src/components/VoiceSettingsPanel.tsx", total: 4, moteur: 0, liens: 0, boutonsLocaux: 4, sansAction: 0, zones: 0 },
   { fichier: "client/src/components/VoProGate.tsx", total: 4, moteur: 0, liens: 4, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/lib/boutonMoteur.tsx", total: 5, moteur: 1, liens: 0, boutonsLocaux: 2, sansAction: 2, zones: 0 },
