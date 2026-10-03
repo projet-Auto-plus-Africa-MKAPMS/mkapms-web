@@ -597,6 +597,8 @@ export const intelligencesRouter = router({
         fichierIds: z.array(z.number().int().positive()).max(4).optional(),
         /** Dernière mission affichée dans cette conversation : une demande courte (« continue ») la reprend. */
         missionActiveId: z.number().int().positive().nullable().optional(),
+        /** Conversation ouverte : le travail s'y poursuit tant que le PDG n'en crée pas une nouvelle. */
+        sessionId: z.number().int().positive().nullable().optional(),
         /** Derniers ordres de la conversation (les plus anciens d'abord), pour reconnaître la mission d'une demande courte. */
         contexte: z.array(z.string().max(2000)).max(12).optional(),
         /** Identifiant choisi par l'écran pour relire les étapes pendant l'exécution (progressionMission). */
@@ -605,6 +607,7 @@ export const intelligencesRouter = router({
     )
     .mutation(async ({ input, ctx }) => {
       const suiviId = input.suiviId;
+      if (input.sessionId) await exigerProprieteConversation(input.sessionId, ctx.user.uid);
       if (suiviId) ouvrirSuivi(suiviId, ctx.user.uid);
       try {
         const pieces = [...(input.pieces ?? [])];
@@ -619,6 +622,7 @@ export const intelligencesRouter = router({
           pieces,
           countryCode: input.countryCode ?? null,
           missionActiveId: input.missionActiveId ?? null,
+          sessionId: input.sessionId ?? null,
           contexte: input.contexte ?? [],
           onEtape: suiviId ? (evt) => publierEtape(suiviId, evt) : undefined,
         });
