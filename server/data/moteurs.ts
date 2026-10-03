@@ -10982,6 +10982,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "coffreAjouter",
       "coffreEtat",
       "coffreJournal",
+      "coffreModifier",
       "coffreRemplacer",
       "coffreSecrets",
       "coffreSupprimer",

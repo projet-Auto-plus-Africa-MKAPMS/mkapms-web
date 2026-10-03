@@ -5,7 +5,7 @@
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { CONNECTEURS, resumerConnecteur } from "../connecteurs.js";
+import { CONNECTEURS, nomNormalise, resumerConnecteur } from "../connecteurs.js";
 
 test("catalogue : noms d'éléments uniques, types valides, usage franc, aucun secret", () => {
   const noms = CONNECTEURS.flatMap((c) => c.elements.map((e) => e.nom.toLowerCase()));
@@ -51,4 +51,10 @@ test("la coche reconnaît un nom saisi avec un tiret ordinaire ou des espaces en
   assert.deepEqual(resume.etats.map((e) => e.etat), ["depose", "depose"]);
   // Un nom réellement différent n'est pas confondu.
   assert.equal(resumerConnecteur(boutique, ["Boutique — jeton"]).complet, false);
+});
+
+test("nomNormalise : le point final et la ponctuation de bord ne comptent pas (cas « … service. »)", () => {
+  assert.equal(nomNormalise("Boutique — jeton de service."), nomNormalise("Boutique - jeton de service"));
+  assert.equal(nomNormalise("  Boutique – adresse ;  "), nomNormalise("Boutique — adresse"));
+  assert.notEqual(nomNormalise("Boutique — jeton"), nomNormalise("Boutique — adresse"));
 });

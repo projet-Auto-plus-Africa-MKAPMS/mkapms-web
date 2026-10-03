@@ -72,6 +72,7 @@ import {
   journalCoffre,
   listerSecrets as listerSecretsCoffre,
   remplacerSecret as remplacerSecretCoffre,
+  modifierSecret as modifierSecretCoffre,
   supprimerSecret as supprimerSecretCoffre,
 } from "./coffre.js";
 import {
@@ -1012,6 +1013,11 @@ export const intelligencesRouter = router({
   coffreRemplacer: pdgProcedure
     .input(z.object({ id: z.number().int().positive(), contenu: contenuSecretSchema }))
     .mutation(({ input, ctx }) => remplacerSecretCoffre({ ownerId: ctx.user.uid, ...input })),
+
+  /** Renomme un secret ou change son service ; la valeur chiffrée n'est ni lue ni modifiée. */
+  coffreModifier: pdgProcedure
+    .input(z.object({ id: z.number().int().positive(), nom: z.string().trim().min(2).max(120), service: z.string().trim().max(120).default("") }))
+    .mutation(({ input, ctx }) => modifierSecretCoffre({ ownerId: ctx.user.uid, ...input })),
 
   coffreSupprimer: pdgProcedure
     .input(z.object({ id: z.number().int().positive() }))

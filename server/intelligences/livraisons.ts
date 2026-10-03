@@ -3167,6 +3167,26 @@ export const LIVRAISONS: Livraison[] = [
       "Un nom de secret saisi à la main n'est jamais identique à celui du catalogue : comparer des formes normalisées, dans le seul périmètre du compte, et dire exactement ce qui a échoué. Un refus journalisé sans raison ne peut pas être corrigé ; la raison ne contient que des noms, jamais une valeur.",
     domaine: "confiance",
   },
+  {
+    cle: "coffre-bouton-modifier-point-final-nom-secret",
+    titre: "Coffre : bouton Modifier (nom et service) et un point final dans le nom du secret ne bloque plus la reconnaissance",
+    moteurs: ["intelligences"],
+    quoi:
+      "Après le correctif précédent, le journal du Coffre a donné la vraie cause du « refusé » de la boutique : le secret était enregistré sous « Boutique — jeton de service. » avec un POINT FINAL, donc aucun secret ne portait le nom attendu. Corrections : (1) la normalisation des noms ignore aussi la ponctuation finale (point, virgule, point-virgule, deux-points, ! ?) côté serveur ET côté catalogue, pour que la coche et l'outil restent d'accord ; (2) nouveau bouton « Modifier » sur chaque secret déposé (liste « Secrets déposés » et lignes du catalogue Connecter les outils) : il change le nom et le service, jamais la valeur chiffrée, refuse un doublon et un autre compte, et journalise « Modifié » avec les noms avant/après (jamais une valeur) ; (3) dans le catalogue, les boutons Modifier et Supprimer d'une ligne déposée retrouvent le secret par son nom normalisé, comme l'outil.",
+    pourquoi:
+      "Un nom saisi à la main contient souvent une ponctuation de fin. Sans moyen de le corriger, le PDG devait supprimer puis redéposer le jeton, qui ne se relit pas. Renommer suffit, sans toucher à la valeur.",
+    ou: [
+      "server/intelligences/coffre.ts",
+      "server/intelligences/index.ts",
+      "client/src/lib/connecteurs.ts",
+      "client/src/pages/intelligence/modules/Coffre.tsx",
+      "server/intelligences/__tests__/coffre-boutique.integration.test.ts",
+      "client/src/lib/__tests__/connecteurs.test.ts",
+    ],
+    lecon:
+      "Lire le journal d'abord : la raison du refus (« Aucun secret nommé … ») a montré la cause en un coup d'œil. Un secret doit pouvoir être renommé sans que sa valeur soit relue.",
+    domaine: "confiance",
+  },
 ];
 
 /** Texte mémorisé d'une livraison. La recherche globale ne transmet que le début d'une entrée : le plus important vient en premier. */

@@ -10,7 +10,7 @@
 import { useRef, useState } from "react";
 import { KeyRound, RefreshCw, Trash2, Copy, Check, Plug, Plus } from "lucide-react";
 import { trpc } from "../../../lib/trpc";
-import { CONNECTEURS, resumerConnecteur, type ElementConnecteur } from "../../../lib/connecteurs";
+import { CONNECTEURS, nomNormalise, resumerConnecteur, type ElementConnecteur } from "../../../lib/connecteurs";
 
 type TypeSecret = "identifiants" | "cle_api" | "fichier";
 
@@ -23,6 +23,7 @@ const LIBELLE_TYPE: Record<TypeSecret, string> = {
 const LIBELLE_ACTION: Record<string, string> = {
   creer: "Ajouté",
   remplacer: "Remplacé",
+  modifier: "Modifié",
   supprimer: "Supprimé",
   utiliser: "Utilisé par le moteur",
 };
@@ -181,6 +182,9 @@ export function Coffre() {
   const [valeur, setValeur] = useState<Valeur>(VALEUR_VIDE);
   const [message, setMessage] = useState("");
   const [remplacementId, setRemplacementId] = useState<number | null>(null);
+  const [modifId, setModifId] = useState<number | null>(null);
+  const [modifNom, setModifNom] = useState("");
+  const [modifService, setModifService] = useState("");
   const [valeurRemplacement, setValeurRemplacement] = useState<Valeur>(VALEUR_VIDE);
   const [cleGeneree, setCleGeneree] = useState("");
   const [cleCopiee, setCleCopiee] = useState<"" | "ok" | "echec">("");
@@ -210,6 +214,13 @@ export function Coffre() {
         setRemplacementId(null); setValeurRemplacement(VALEUR_VIDE);
         await rafraichir();
       }
+    },
+    onError: (e) => setMessage(e.message),
+  });
+  const modifier = trpc.intelligences.coffreModifier.useMutation({
+    onSuccess: async (r) => {
+      setMessage(r.detail);
+      if (r.ok) { setModifId(null); await rafraichir(); }
     },
     onError: (e) => setMessage(e.message),
   });
@@ -261,6 +272,21 @@ export function Coffre() {
     remplacer.mutate({ id, contenu: analyse.contenu });
   }
 
+  /** Ouvre le panneau « Modifier » (nom et service) d'un secret déjà déposé, dans la liste « Secrets déposés ». */
+  function ouvrirModification(secret: { id: number; nom: string; service: string }) {
+    setMessage("");
+    setModifId(secret.id); setModifNom(secret.nom); setModifService(secret.service);
+    setRemplacementId(null);
+    window.setTimeout(() => document.getElementById(`secret-${secret.id}`)?.scrollIntoView({ behavior: "smooth", block: "center" }), 50);
+  }
+
+  function enregistrerModification() {
+    if (modifId === null) return;
+    if (modifNom.trim().length < 2) { setMessage("Le nom doit faire 2 caractères minimum."); return; }
+    setMessage("");
+    modifier.mutate({ id: modifId, nom: modifNom.trim(), service: modifService.trim() });
+  }
+
   /** Pré-remplit le formulaire d'ajout pour un élément du catalogue, sans jamais rien envoyer. */
   function preparer(element: ElementConnecteur | null, service: string, nomPropose?: string) {
     setMessage("");
@@ -272,7 +298,7 @@ export function Coffre() {
     window.setTimeout(() => formulaire.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
   }
   const nomsPresents = (secrets.data ?? []).map((s) => s.nom);
-  const parNom = new Map((secrets.data ?? []).map((s) => [s.nom.trim().toLowerCase(), s]));
+  const parNom = new Map((secrets.data ?? []).map((s) => [nomNormalise(s.nom), s]));
   const retirer = (id: number, nomSecret: string) => { if (window.confirm(`Supprimer définitivement « ${nomSecret} » ?`)) supprimer.mutate({ id }); };
 
   return (
@@ -370,9 +396,13 @@ export function Coffre() {
                           className="whitespace-nowrap rounded border px-2 py-1 font-bold">
                           {depose ? "Remplacer…" : "Déposer"}
                         </button>
-                        {depose && parNom.get(e.nom.trim().toLowerCase()) ? (
-                          <button type="button" disabled={supprimer.isPending} onClick={() => retirer(parNom.get(e.nom.trim().toLowerCase())!.id, e.nom)}
-                            aria-label={`Supprimer ${e.nom}`} className="rounded border px-2 py-1 font-bold text-red-700"><Trash2 className="h-3 w-3" /></button>
+                        {depose && parNom.get(nomNormalise(e.nom)) ? (
+                          <>
+                            <button type="button" onClick={() => ouvrirModification(parNom.get(nomNormalise(e.nom))!)}
+                              aria-label={`Modifier ${e.nom}`} className="whitespace-nowrap rounded border px-2 py-1 font-bold">Modifier</button>
+                            <button type="button" disabled={supprimer.isPending} onClick={() => retirer(parNom.get(nomNormalise(e.nom))!.id, e.nom)}
+                              aria-label={`Supprimer ${e.nom}`} className="rounded border px-2 py-1 font-bold text-red-700"><Trash2 className="h-3 w-3" /></button>
+                          </>
                         ) : null}
                       </span>
                     </li>
@@ -380,8 +410,8 @@ export function Coffre() {
                 })}
               </ul>
               {(() => {
-                const connus = new Set(c.elements.map((e) => e.nom.trim().toLowerCase()));
-                const autres = (secrets.data ?? []).filter((x) => x.service.trim().toLowerCase() === c.service.trim().toLowerCase() && !connus.has(x.nom.trim().toLowerCase()));
+                const connus = new Set(c.elements.map((e) => nomNormalise(e.nom)));
+                const autres = (secrets.data ?? []).filter((x) => x.service.trim().toLowerCase() === c.service.trim().toLowerCase() && !connus.has(nomNormalise(x.nom)));
                 return autres.length ? (
                   <div className="space-y-1 border-t border-black/5 pt-2" aria-label={`Autres secrets ${c.libelle}`}>
                     <p className="text-[11px] font-bold text-black/60">Autres secrets ajoutés ({autres.length})</p>
@@ -389,7 +419,10 @@ export function Coffre() {
                       {autres.map((x) => (
                         <li key={x.id} className="flex items-center justify-between gap-2 text-xs">
                           <span className="min-w-0 truncate"><Check className="mr-1 inline h-3 w-3 text-green-700" aria-hidden="true" />{x.nom}<span className="text-black/50"> · {x.apercu}</span></span>
-                          <button type="button" disabled={supprimer.isPending} onClick={() => retirer(x.id, x.nom)} aria-label={`Supprimer ${x.nom}`} className="shrink-0 rounded border px-2 py-1 font-bold text-red-700"><Trash2 className="h-3 w-3" /></button>
+                          <span className="flex shrink-0 gap-1">
+                            <button type="button" onClick={() => ouvrirModification(x)} aria-label={`Modifier ${x.nom}`} className="whitespace-nowrap rounded border px-2 py-1 font-bold">Modifier</button>
+                            <button type="button" disabled={supprimer.isPending} onClick={() => retirer(x.id, x.nom)} aria-label={`Supprimer ${x.nom}`} className="rounded border px-2 py-1 font-bold text-red-700"><Trash2 className="h-3 w-3" /></button>
+                          </span>
                         </li>
                       ))}
                     </ul>
@@ -443,7 +476,7 @@ export function Coffre() {
         {!secrets.isLoading && (secrets.data ?? []).length === 0 ? <p className="text-xs text-black/60">Aucun secret déposé.</p> : null}
         <ul className="divide-y divide-black/5">
           {(secrets.data ?? []).map((s) => (
-            <li key={s.id} className="space-y-2 py-2 text-sm">
+            <li key={s.id} id={`secret-${s.id}`} className="space-y-2 py-2 text-sm">
               <div className="flex items-start justify-between gap-2">
                 <span className="min-w-0">
                   <strong>{s.nom}</strong>{s.service ? <span className="text-black/50"> — {s.service}</span> : null}
@@ -453,14 +486,39 @@ export function Coffre() {
                   </span>
                 </span>
                 <span className="flex shrink-0 gap-1">
+                  <button type="button" disabled={modifier.isPending}
+                    onClick={() => (modifId === s.id ? setModifId(null) : ouvrirModification(s))}
+                    className="whitespace-nowrap rounded border px-2 py-1 text-xs font-bold">Modifier</button>
                   <button type="button" disabled={remplacer.isPending}
-                    onClick={() => guider(() => { setRemplacementId(remplacementId === s.id ? null : s.id); setValeurRemplacement(VALEUR_VIDE); })}
+                    onClick={() => guider(() => { setModifId(null); setRemplacementId(remplacementId === s.id ? null : s.id); setValeurRemplacement(VALEUR_VIDE); })}
                     className="whitespace-nowrap rounded border px-2 py-1 text-xs font-bold">Remplacer</button>
                   <button type="button" disabled={supprimer.isPending}
                     onClick={() => { if (window.confirm(`Supprimer définitivement « ${s.nom} » ?`)) supprimer.mutate({ id: s.id }); }}
                     aria-label={`Supprimer ${s.nom}`} className="rounded border px-2 py-1 text-xs font-bold text-red-700"><Trash2 className="h-3 w-3" /></button>
                 </span>
               </div>
+              {modifId === s.id ? (
+                <div className="space-y-2 rounded-lg border p-3">
+                  <label className="block text-xs font-bold">
+                    Nom
+                    <input value={modifNom} onChange={(e) => setModifNom(e.target.value)} maxLength={120} disabled={modifier.isPending}
+                      className="mt-1 w-full rounded-lg border p-2 text-sm font-normal" />
+                  </label>
+                  <label className="block text-xs font-bold">
+                    Service
+                    <input value={modifService} onChange={(e) => setModifService(e.target.value)} maxLength={120} disabled={modifier.isPending}
+                      className="mt-1 w-full rounded-lg border p-2 text-sm font-normal" />
+                  </label>
+                  <p className="text-[11px] text-black/60">Seuls le nom et le service changent. La valeur reste chiffrée et inchangée : pour la changer, utilisez « Remplacer ».</p>
+                  <div className="flex gap-2">
+                    <button type="button" disabled={modifier.isPending} onClick={enregistrerModification}
+                      className="rounded-lg bg-[#111] px-3 py-1.5 text-xs font-bold text-white disabled:opacity-40">
+                      {modifier.isPending ? "Enregistrement…" : "Enregistrer"}
+                    </button>
+                    <button type="button" disabled={modifier.isPending} onClick={() => setModifId(null)} className="rounded-lg border px-3 py-1.5 text-xs font-bold">Annuler</button>
+                  </div>
+                </div>
+              ) : null}
               {remplacementId === s.id ? (
                 <div className="space-y-2 rounded-lg border p-3">
                   <ChampsValeur type={s.type as TypeSecret} valeur={valeurRemplacement} onChange={setValeurRemplacement} desactive={remplacer.isPending} />
