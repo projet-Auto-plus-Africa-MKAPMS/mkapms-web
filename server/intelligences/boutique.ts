@@ -58,10 +58,24 @@ export function nettoyer(valeur: unknown, profondeur = 0): unknown {
   return valeur;
 }
 
-function messageErreur(statut: number, corps: unknown): { detail: string; code?: string } {
+/** Valeur collée dans le coffre : retire guillemets, « Bearer », espaces et caractères invisibles qui font échouer la forme attendue. */
+export function nettoyerValeurSecret(brut: string): string {
+  return brut
+    .replace(/[\u200b-\u200f\u2060\ufeff]/g, "")
+    .trim()
+    .replace(/^["'`«»]+|["'`«»]+$/g, "")
+    .replace(/^bearer\s+/i, "")
+    .trim();
+}
+
+function messageErreur(statut: number, corps: unknown, origine = ""): { detail: string; code?: string } {
   const code = typeof (corps as { code?: unknown } | null)?.code === "string" ? String((corps as { code: string }).code) : undefined;
   const texte = typeof (corps as { error?: unknown } | null)?.error === "string" ? String((corps as { error: string }).error).slice(0, 240) : "";
-  if (statut === 401) return { detail: "La boutique refuse le jeton (invalide, expiré ou révoqué). Le PDG peut en créer un autre dans la boutique : réglages de l'assistant SHOP → « Accès de l'IA de la plateforme principale »." };
+  if (statut === 401) {
+    const hote = origine ? ` (${origine.replace(/^https:\/\//, "")})` : "";
+    const cause = texte ? ` Réponse de la boutique : « ${texte} ».` : "";
+    return { detail: `La boutique${hote} refuse le jeton (invalide, expiré ou révoqué).${cause} Le PDG peut en créer un autre dans la boutique : réglages de l'assistant SHOP → « Accès de l'IA de la plateforme principale ».`, code };
+  }
   if (statut === 403 && code === "TOOLS_DISABLED") return { detail: "Les outils de l'IA sont désactivés dans la boutique (réglage du Fondateur).", code };
   if (statut === 403 && code === "SCOPE_REQUIRED") return { detail: "Ce jeton n'a pas la portée nécessaire pour cette action : le PDG doit en créer un avec la portée voulue.", code };
   if (statut === 409 && code === "MEDIA_RIGHTS_REQUIRED") return { detail: "Les droits d'image de ce fournisseur ne sont pas enregistrés dans la boutique : le PDG doit les renseigner avant tout travail sur les photos.", code };
@@ -76,14 +90,15 @@ function messageErreur(statut: number, corps: unknown): { detail: string; code?:
 export async function accesBoutique(ownerId: number, outil: string, motif: string): Promise<{ ok: true; origine: string; jeton: string } | { ok: false; detail: string }> {
   const adresse = await lireSecretPourOutil({ ownerId, nom: NOM_SECRET_ADRESSE_BOUTIQUE, outil, motif });
   if (!adresse.ok) return { ok: false, detail: `${adresse.detail} Déposez l'adresse sous le nom « ${NOM_SECRET_ADRESSE_BOUTIQUE} » (Coffre secret → Connecter les outils → Boutique).` };
-  if (adresse.contenu.type !== "cle_api") return { ok: false, detail: `Le secret « ${NOM_SECRET_ADRESSE_BOUTIQUE} » doit être de type « Clé ou jeton ».` };
-  const origine = origineBoutique(adresse.contenu.valeur);
+  if (adresse.contenu.type !== "cle_api") return { ok: false, detail: `Le secret « ${NOM_SECRET_ADRESSE_BOUTIQUE} » doit être de type « Clé ou jeton » (il est de type « ${adresse.contenu.type} »).` };
+  const origine = origineBoutique(nettoyerValeurSecret(adresse.contenu.valeur));
   if (!origine.ok) return { ok: false, detail: origine.detail };
   const jeton = await lireSecretPourOutil({ ownerId, nom: NOM_SECRET_JETON_BOUTIQUE, outil, motif });
   if (!jeton.ok) return { ok: false, detail: `${jeton.detail} Le PDG crée le jeton dans la boutique (réglages de l'assistant SHOP) puis le dépose sous « ${NOM_SECRET_JETON_BOUTIQUE} ».` };
-  if (jeton.contenu.type !== "cle_api") return { ok: false, detail: `Le secret « ${NOM_SECRET_JETON_BOUTIQUE} » doit être de type « Clé ou jeton ».` };
-  if (!JETON.test(jeton.contenu.valeur)) return { ok: false, detail: `Le secret « ${NOM_SECRET_JETON_BOUTIQUE} » n'a pas la forme d'un jeton de service de la boutique (shopsvc_…).` };
-  return { ok: true, origine: origine.origine, jeton: jeton.contenu.valeur };
+  if (jeton.contenu.type !== "cle_api") return { ok: false, detail: `Le secret « ${NOM_SECRET_JETON_BOUTIQUE} » doit être de type « Clé ou jeton » (il est de type « ${jeton.contenu.type} »).` };
+  const valeurJeton = nettoyerValeurSecret(jeton.contenu.valeur);
+  if (!JETON.test(valeurJeton)) return { ok: false, detail: `Le secret « ${NOM_SECRET_JETON_BOUTIQUE} » n'a pas la forme d'un jeton de service de la boutique (shopsvc_ suivi de 43 caractères) : recréez-le dans la boutique et recollez-le en entier.` };
+  return { ok: true, origine: origine.origine, jeton: valeurJeton };
 }
 
 async function appeler(
@@ -107,8 +122,13 @@ async function appeler(
       },
       ...(corps === undefined ? {} : { body: JSON.stringify(corps) }),
     });
-  } catch {
-    return { ok: false, detail: "La boutique n'a pas répondu (réseau, délai dépassé ou redirection refusée)." };
+  } catch (e) {
+    const trace = `${e instanceof Error ? e.message : ""} ${(e as { cause?: { message?: string } } | null)?.cause?.message ?? ""} ${e instanceof Error ? e.name : ""}`.toLowerCase();
+    if (trace.includes("redirect")) {
+      return { ok: false, detail: "La boutique redirige cette adresse vers un autre site (par exemple avec ou sans « www ») et la plateforme ne suit jamais une redirection : enregistrez dans « Boutique — adresse » l'adresse finale exacte du site." };
+    }
+    if (trace.includes("timeout") || trace.includes("abort")) return { ok: false, detail: "La boutique n'a pas répondu dans le délai (20 secondes)." };
+    return { ok: false, detail: "La boutique n'a pas répondu (réseau ou nom de domaine introuvable) : vérifiez l'adresse enregistrée dans « Boutique — adresse »." };
   }
   let texte = "";
   try {
@@ -121,9 +141,12 @@ async function appeler(
   try {
     json = texte ? JSON.parse(texte) : null;
   } catch {
+    if ([401, 403, 404, 405].includes(reponse.status)) {
+      return { ok: false, detail: `La boutique a répondu ${reponse.status} sans le format attendu : l'accès de service (/api/service) n'est probablement pas actif sur ce site (boutique non redéployée avec l'accès de service, ou adresse d'un autre site). Tant que cette route n'est pas reconnue, le jeton n'est pas en cause.` };
+    }
     return { ok: false, detail: `La boutique a répondu dans un format inattendu (${reponse.status}).` };
   }
-  if (!reponse.ok) return { ok: false, ...messageErreur(reponse.status, json) };
+  if (!reponse.ok) return { ok: false, ...messageErreur(reponse.status, json, acces.origine) };
   const propre = nettoyer(json);
   return { ok: true, ...(propre && typeof propre === "object" && !Array.isArray(propre) ? (propre as Record<string, unknown>) : { resultat: propre }) };
 }

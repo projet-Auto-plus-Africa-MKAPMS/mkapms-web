@@ -99,6 +99,11 @@ jobs:
         env:
           SHOP_KNOWLEDGE_TEST_DB: postgresql://core_ai_test:disposable_ci_fixture@localhost:5432/core_ai_test
 
+      - name: SHOP access (vault name tolerance, token diagnostics)
+        run: node --import tsx --test server/intelligences/__tests__/boutique.test.ts server/intelligences/__tests__/coffre-boutique.integration.test.ts client/src/lib/__tests__/connecteurs.test.ts
+        env:
+          SHOP_KNOWLEDGE_TEST_DB: postgresql://core_ai_test:disposable_ci_fixture@localhost:5432/core_ai_test
+
       - name: Semantic memory (embeddings, simulated provider)
         run: node --import tsx --test server/intelligences/__tests__/empreintes.integration.test.ts server/intelligences/__tests__/sonde-openai.test.ts
         env:
