@@ -10012,8 +10012,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "cliquables": 6,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 21,
-        "mots": 132
+        "textes": 22,
+        "mots": 137
       },
       {
         "fichier": "client/src/pages/DemandesSuppression.tsx",
@@ -10458,8 +10458,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "direction",
       "public"
     ],
-    "textes": 444,
-    "mots": 2131,
+    "textes": 445,
+    "mots": 2136,
     "battement": "pont_os",
     "manques": [
       {

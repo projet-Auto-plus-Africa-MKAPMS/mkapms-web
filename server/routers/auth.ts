@@ -17,7 +17,7 @@ import {
 } from "../auth.js";
 import { requestEmailVerification } from "../identity-os/complete.js";
 import { resolveIdentityForUser } from "../identity-os/index.js";
-import { compteDepuisGoogle, consommerTicketApplication, googleApplicationConfiguree } from "../auth-google.js";
+import { compteDepuisGoogle, consommerTicketApplication, googleApplicationConfiguree, googleSiteParRedirection } from "../auth-google.js";
 
 function publicUser(u: typeof users.$inferSelect) {
   // Utiliser try/catch sur les champs nouveaux pour éviter tout crash
@@ -149,9 +149,10 @@ export const authRouter = router({
    * Identifiant client Google (public par nature : il figure dans la page de connexion de n'importe quel site). Lu à
    * l'exécution côté serveur pour que le bouton Google ne dépende pas d'une variable de construction du site.
    */
-  googleConfig: publicProcedure.query(() => ({
+  googleConfig: publicProcedure.query(({ ctx }) => ({
     clientId: env.GOOGLE_CLIENT_ID || null,
     application: googleApplicationConfiguree(),
+    site: googleSiteParRedirection(ctx.req),
   })),
 
   /** Applications Android : échange le ticket à usage unique rendu par /api/auth/google/app/retour. */

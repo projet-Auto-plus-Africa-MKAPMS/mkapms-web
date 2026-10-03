@@ -7,6 +7,10 @@
  * /api/auth/google/app/demarrer, Google renvoie sur /api/auth/google/app/retour,
  * et le serveur rend la main à l'application par son schéma (applicationId) avec
  * un ticket à usage unique, échangé ensuite par auth.googleTicket.
+ *
+ * Sur les domaines dont l'adresse de retour est déclarée (GOOGLE_RETOUR_HOTES),
+ * le site emprunte le même parcours serveur (/api/auth/google/app/site) et
+ * reçoit le ticket sur /connexion : aucune origine JavaScript n'y est requise.
  */
 import { randomUUID } from "node:crypto";
 import { Router, type Request } from "express";
@@ -28,6 +32,16 @@ type Compte = typeof users.$inferSelect;
 
 export function googleApplicationConfiguree(): boolean {
   return Boolean(env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET);
+}
+
+export function retourSiteDeclare(hote: string | undefined): boolean {
+  if (!hote) return false;
+  const nom = hote.toLowerCase().split(":")[0];
+  return env.GOOGLE_RETOUR_HOTES.split(",").some((h) => h.trim().toLowerCase() === nom);
+}
+
+export function googleSiteParRedirection(req: Request): boolean {
+  return googleApplicationConfiguree() && retourSiteDeclare(req.get("host"));
 }
 
 /** Compte rattaché à l'adresse Google vérifiée : créé s'il n'existe pas, lié sinon. */
@@ -86,6 +100,13 @@ function retourApplication(app: string, params: Record<string, string>): string 
   return `${app}://auth/google?${new URLSearchParams(params).toString()}`;
 }
 
+export function retourSite(params: { ticket?: string; erreur?: string }): string {
+  const q = new URLSearchParams();
+  if (params.ticket) q.set("google_ticket", params.ticket);
+  if (params.erreur) q.set("google_erreur", params.erreur);
+  return `/connexion?${q.toString()}`;
+}
+
 export const googleApplicationRouter = Router();
 
 googleApplicationRouter.get("/demarrer", (req, res) => {
@@ -105,28 +126,49 @@ googleApplicationRouter.get("/demarrer", (req, res) => {
   );
 });
 
+googleApplicationRouter.get("/site", (req, res) => {
+  if (!googleSiteParRedirection(req)) {
+    return res.redirect(retourSite({ erreur: "La connexion Google par redirection n'est pas déclarée pour ce domaine." }));
+  }
+  const etat = jwt.sign({ t: "google-site-etat" }, env.JWT_SECRET, { expiresIn: DUREE_ETAT });
+  const client = new OAuth2Client(env.GOOGLE_CLIENT_ID, env.GOOGLE_CLIENT_SECRET, adresseRetour(req));
+  res.redirect(
+    client.generateAuthUrl({
+      scope: ["openid", "email", "profile"],
+      state: etat,
+      prompt: "select_account",
+    }),
+  );
+});
+
 googleApplicationRouter.get("/retour", async (req, res) => {
-  let app: string;
+  let rendre: (params: { ticket?: string; erreur?: string }) => string;
   try {
     const etat = jwt.verify(String(req.query.state ?? ""), env.JWT_SECRET) as { app?: unknown; t?: unknown };
-    if (etat.t !== "google-app-etat" || typeof etat.app !== "string" || !APPLICATION_ID.test(etat.app)) throw new Error();
-    app = etat.app;
+    if (etat.t === "google-site-etat") {
+      rendre = retourSite;
+    } else if (etat.t === "google-app-etat" && typeof etat.app === "string" && APPLICATION_ID.test(etat.app)) {
+      const app = etat.app;
+      rendre = (params) => retourApplication(app, params as Record<string, string>);
+    } else {
+      throw new Error();
+    }
   } catch {
-    return res.status(400).type("text").send("Demande de connexion expirée. Recommencez depuis l'application.");
+    return res.status(400).type("text").send("Demande de connexion expirée. Recommencez la connexion.");
   }
-  if (req.query.error) return res.redirect(retourApplication(app, { erreur: "Connexion Google annulée." }));
+  if (req.query.error) return res.redirect(rendre({ erreur: "Connexion Google annulée." }));
   try {
     const client = new OAuth2Client(env.GOOGLE_CLIENT_ID, env.GOOGLE_CLIENT_SECRET, adresseRetour(req));
     const { tokens } = await client.getToken(String(req.query.code ?? ""));
     const profile = tokens.id_token ? await verifyGoogleIdToken(tokens.id_token) : null;
-    if (!profile) return res.redirect(retourApplication(app, { erreur: "Google n'a pas confirmé cette adresse." }));
+    if (!profile) return res.redirect(rendre({ erreur: "Google n'a pas confirmé cette adresse." }));
     const u = await compteDepuisGoogle(profile);
     if (u.status !== "active") {
-      return res.redirect(retourApplication(app, { erreur: u.status === "suspended" ? "Ce compte a été suspendu." : "Ce compte n'est plus actif." }));
+      return res.redirect(rendre({ erreur: u.status === "suspended" ? "Ce compte a été suspendu." : "Ce compte n'est plus actif." }));
     }
-    res.redirect(retourApplication(app, { ticket: creerTicketApplication(u.id) }));
+    res.redirect(rendre({ ticket: creerTicketApplication(u.id) }));
   } catch (e) {
     console.warn("[auth-google] retour", e instanceof Error ? e.message : e);
-    res.redirect(retourApplication(app, { erreur: "La connexion Google a échoué. Réessayez." }));
+    res.redirect(rendre({ erreur: "La connexion Google a échoué. Réessayez." }));
   }
 });
