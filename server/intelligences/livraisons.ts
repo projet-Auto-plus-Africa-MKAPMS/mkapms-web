@@ -3282,6 +3282,23 @@ export const LIVRAISONS: Livraison[] = [
       "Décrire dans l'outil la fin de la chaîne (READY_FOR_PDG_REVIEW) donne à l'IA un critère d'arrêt vérifiable. Une capacité de sécurité sensible (publier en public) se donne par décision explicite, jamais en contournant un refus de permission.",
     domaine: "confiance",
   },
+  {
+    cle: "boutique-stock-cars4kids-fiche-existante-flux-par-sku",
+    titre: "Boutique : le stock réel Cars4Kids arrive sur la fiche EXISTANTE, rapproché par SKU, sans réimport ni changement de prix",
+    moteurs: ["intelligences"],
+    quoi:
+      "Côté boutique (PR dédiée), la synchronisation du stock retrouve seule le lien CSV de stock dans le coffre de la boutique (intégration du fournisseur ou autre intégration du même fournisseur), le nettoie, le télécharge (redirections contrôlées, Windows-1252), reconnaît les colonnes, rapproche chaque ligne du SKU de la fiche existante sans tenir compte de la casse, des espaces ni des tirets, enregistre la quantité réelle, rattache le SKU à l'offre déjà saisie par le PDG et réapplique un fichier inchangé. Côté plateforme, l'IA lit les nouvelles causes (HTTP du fournisseur, lien invalide, colonnes non reconnues) et une connaissance décrit la chaîne fiche → SKU → flux → quantité.",
+    pourquoi:
+      "Depuis le matin du 3 octobre le stock du produit test restait inconnu alors que le lien de stock était dans le coffre : un fichier identique au précédent était ignoré (NO_MATCH), un SKU écrit autrement n'était pas rapproché, une colonne ambiguë sans importance bloquait la lecture et la cause d'un échec n'était pas lisible. Le PDG ne doit jamais avoir à ressaisir une clé ni à activer les capacités une par une.",
+    ou: [
+      "server/intelligences/boutique.ts",
+      "server/intelligences/connaissances-boutique.ts",
+      "server/intelligences/__tests__/boutique.test.ts",
+    ],
+    lecon:
+      "Tester la chaîne réelle (flux → rapprochement → fiche) avec un faux flux de la forme attendue, pas seulement une fausse synchronisation : c'est ainsi que le fichier inchangé ignoré et le rapprochement exact trop strict sont apparus. Une cause d'échec doit être dite telle quelle, sans supposer un stock.",
+    domaine: "confiance",
+  },
 ];
 
 /** Texte mémorisé d'une livraison. La recherche globale ne transmet que le début d'une entrée : le plus important vient en premier. */
