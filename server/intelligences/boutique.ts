@@ -165,8 +165,8 @@ async function appeler(
     return { ok: false, detail: `La boutique a répondu dans un format inattendu (${reponse.status}).` };
   }
   if (!reponse.ok) {
-    const sync = (json as { sync?: { status?: unknown; reason?: unknown } } | null)?.sync;
-    if (sync && typeof sync === "object") return { ok: false, detail: detailSynchroStock(String(sync.status ?? ""), sync.reason == null ? "" : String(sync.reason)) };
+    const sync = (json as { sync?: { status?: unknown; reason?: unknown; httpStatus?: unknown } } | null)?.sync;
+    if (sync && typeof sync === "object") return { ok: false, detail: detailSynchroStock(String(sync.status ?? ""), sync.reason == null ? "" : String(sync.reason), typeof sync.httpStatus === "number" ? sync.httpStatus : undefined) };
     return { ok: false, ...messageErreur(reponse.status, json, acces.origine) };
   }
   const propre = nettoyer(json, 0, ficheComplete);
@@ -174,15 +174,22 @@ async function appeler(
 }
 
 /** Pourquoi la synchronisation du stock n'a rien rapporté, dit tel quel (jamais une disponibilité supposée). */
-export function detailSynchroStock(statut: string, raison: string): string {
+export function detailSynchroStock(statut: string, raison: string, httpStatus?: number): string {
   const causes: Record<string, string> = {
     NO_INTEGRATION: "ce fournisseur n'a pas d'intégration enregistrée dans le coffre de la boutique",
     INTEGRATION_UNAVAILABLE: "l'intégration du fournisseur est absente, expirée ou non enregistrée dans le coffre de la boutique",
     VAULT_UNAVAILABLE: "le coffre de la boutique n'a pas pu ouvrir l'intégration du fournisseur",
     NO_STOCK_LINK: "aucun « Lien CSV stock » n'est enregistré dans l'intégration du fournisseur (le PDG le saisit dans le coffre de la boutique)",
     FEED_UNAVAILABLE: "le lien CSV de stock n'a pas répondu ou n'est pas lisible",
+    FEED_URL_INVALID: "le lien CSV de stock enregistré n'est pas une adresse https valide (adresse complète, sans identifiant ni port)",
+    FEED_HTTP_FAILED: `le fournisseur a répondu une erreur${httpStatus ? ` HTTP ${httpStatus}` : ""} à l'adresse du lien CSV de stock`,
+    FEED_ACCESS_DENIED: `le fournisseur refuse l'accès au lien CSV de stock${httpStatus ? ` (HTTP ${httpStatus})` : ""} : le lien est expiré ou incomplet`,
+    FEED_CSV_INVALID: "le fichier reçu n'est pas un CSV lisible",
+    FEED_CONTENT_REJECTED: "le fichier reçu n'est pas un CSV de stock (page web ou donnée sensible)",
+    FEED_TIMEOUT: "le fournisseur n'a pas répondu à temps",
+    MAPPING_REQUIRED: "les colonnes du flux de stock ne sont pas reconnues (il faut une colonne SKU et une colonne quantité)",
   };
-  const cause = causes[raison] ?? (raison ? `motif ${raison.slice(0, 60)}` : "motif non précisé");
+  const cause = causes[raison] ?? (raison ? `motif ${raison.slice(0, 200)}` : "motif non précisé");
   return `Le stock n'a pas été synchronisé (${statut || "échec"}) : ${cause}. Aucune disponibilité n'est supposée : le stock reste inconnu tant que le flux n'est pas lu.`;
 }
 
@@ -301,6 +308,32 @@ export function choisirPhotoPrincipaleBoutique(a: { origine: string; jeton: stri
 }
 
 /** Demande la synchronisation du stock du fournisseur de ce produit (lien CSV du coffre de la boutique) : portée stock.sync. */
+/** Nombre de colis d'un produit, avec la preuve du fournisseur (portée delivery.work). Le panier en déduit seul le prix de 1, 2… colis. */
+export function definirColisBoutique(a: { origine: string; jeton: string }, produitId: unknown, colis: { nombre: unknown; preuve: unknown }, f: Fetch = fetch): Promise<ResultatBoutique> {
+  const id = verifierId(produitId);
+  if (!id) return Promise.resolve({ ok: false, detail: "Identifiant de produit invalide (UUID attendu, tel que renvoyé par la liste)." });
+  const nombre = Number(colis.nombre);
+  if (!Number.isInteger(nombre) || nombre < 1 || nombre > 100) return Promise.resolve({ ok: false, detail: "Le nombre de colis doit être un entier de 1 à 100." });
+  const preuve = typeof colis.preuve === "string" ? colis.preuve.trim() : "";
+  if (preuve.length < 3) return Promise.resolve({ ok: false, detail: "Indiquez la preuve du nombre de colis (fiche, message ou document du fournisseur) : jamais un nombre supposé." });
+  return appeler(a, "PUT", `/products/${id}/parcels`, { parcelCount: nombre, evidenceRef: preuve.slice(0, 200) }, f);
+}
+
+export interface GrilleLivraison { grille: unknown; devise?: unknown; base?: unknown; taxe: unknown; preuve: unknown; valideJusqua: unknown; apercu?: unknown }
+
+/** Grille de tarifs de livraison du fournisseur par pays, telle que communiquée par lui (portée delivery.work). */
+export function importerGrilleLivraisonBoutique(a: { origine: string; jeton: string }, produitId: unknown, g: GrilleLivraison, f: Fetch = fetch): Promise<ResultatBoutique> {
+  const id = verifierId(produitId);
+  if (!id) return Promise.resolve({ ok: false, detail: "Identifiant de produit invalide (UUID attendu, tel que renvoyé par la liste)." });
+  if (typeof g.grille !== "string" || !g.grille.trim()) return Promise.resolve({ ok: false, detail: "La grille est vide : une ligne par pays, « Pays ; montant » (ou « Pays ; Prix sur demande » / « Pays ; Pas de livraison »)." });
+  if (g.taxe !== "EXCLUDED" && g.taxe !== "INCLUDED") return Promise.resolve({ ok: false, detail: "Précisez si les tarifs du fournisseur sont hors taxes (EXCLUDED) ou taxes comprises (INCLUDED) : jamais supposé." });
+  const preuve = typeof g.preuve === "string" ? g.preuve.trim() : "";
+  if (!preuve) return Promise.resolve({ ok: false, detail: "Indiquez d'où viennent ces tarifs (document ou message du fournisseur, date)." });
+  if (typeof g.valideJusqua !== "string" || Number.isNaN(Date.parse(g.valideJusqua))) return Promise.resolve({ ok: false, detail: "Indiquez la date de fin de validité des tarifs (ISO 8601, avec fuseau)." });
+  const corps = { grid: g.grille, currency: typeof g.devise === "string" ? g.devise : "EUR", basis: g.base === "PER_ITEM" ? "PER_ITEM" : "PER_PARCEL", taxBasis: g.taxe, evidenceRef: preuve.slice(0, 200), validUntil: new Date(g.valideJusqua).toISOString() };
+  return appeler(a, "POST", `/products/${id}/shipping-grid${g.apercu === true ? "?preview=1" : ""}`, corps, f);
+}
+
 export function synchroniserStockBoutique(a: { origine: string; jeton: string }, produitId: unknown, f: Fetch = fetch): Promise<ResultatBoutique> {
   const id = verifierId(produitId);
   if (!id) return Promise.resolve({ ok: false, detail: "Identifiant de produit invalide (UUID attendu, tel que renvoyé par la liste)." });

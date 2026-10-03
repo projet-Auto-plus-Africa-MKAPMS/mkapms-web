@@ -21,6 +21,8 @@ import {
   choisirPhotoPrincipaleBoutique,
   traduireFiche,
   detailSynchroStock,
+  definirColisBoutique,
+  importerGrilleLivraisonBoutique,
 } from "../boutique.js";
 import { OUTILS } from "../outils/registre.js";
 import { IMPLEMENTATIONS } from "../outils/implementations.js";
@@ -164,8 +166,8 @@ test("défense en profondeur : prix, adresses et secrets retirés de ce qui revi
   assert.deepEqual(propre, { id: ID, title: "Voiture", nested: [{ ok: 1 }] });
 });
 
-test("registre : sept outils, lecture seule ou risque faible, réservés au PDG, aucun outil de modification de prix/TVA/approbation/publication", () => {
-  assert.equal(OUTILS_BOUTIQUE.length, 8);
+test("registre : dix outils, lecture seule ou risque faible, réservés au PDG, aucun outil de modification de prix/TVA/approbation/publication", () => {
+  assert.equal(OUTILS_BOUTIQUE.length, 10);
   for (const o of OUTILS_BOUTIQUE) {
     assert.ok(OUTILS.some((x) => x.toolId === o.toolId), `${o.toolId} enregistré`);
     assert.ok(IMPLEMENTATIONS[o.toolId], `${o.toolId} implémenté`);
@@ -175,10 +177,32 @@ test("registre : sept outils, lecture seule ou risque faible, réservés au PDG,
     assert.equal(o.category, "boutique");
   }
   const noms = OUTILS_BOUTIQUE.map((o) => o.toolId).sort();
-  assert.deepEqual(noms, ["boutique.capacites", "boutique.choisirPhotoPrincipale", "boutique.lancerPhotos", "boutique.lireFicheComplete", "boutique.lireProduit", "boutique.listerProduits", "boutique.proposerFiche", "boutique.synchroniserStock"]);
-  assert.equal(noms.some((n) => /prix|tva|livraison|approuver|publier|decision|offre/i.test(n)), false);
+  assert.deepEqual(noms, ["boutique.capacites", "boutique.choisirPhotoPrincipale", "boutique.definirColis", "boutique.importerGrilleLivraison", "boutique.lancerPhotos", "boutique.lireFicheComplete", "boutique.lireProduit", "boutique.listerProduits", "boutique.proposerFiche", "boutique.synchroniserStock"]);
+  assert.equal(noms.some((n) => /prix|tva|approuver|publier|decision|offre/i.test(n)), false);
   const ecritures = OUTILS_BOUTIQUE.filter((o) => o.requiredPermissions.includes("WRITE")).map((o) => o.toolId).sort();
-  assert.deepEqual(ecritures, ["boutique.choisirPhotoPrincipale", "boutique.lancerPhotos", "boutique.proposerFiche", "boutique.synchroniserStock"]);
+  assert.deepEqual(ecritures, ["boutique.choisirPhotoPrincipale", "boutique.definirColis", "boutique.importerGrilleLivraison", "boutique.lancerPhotos", "boutique.proposerFiche", "boutique.synchroniserStock"]);
+});
+
+test("livraison : colis avec preuve et grille du fournisseur, jamais supposés ; la requête part vers les bonnes routes", async () => {
+  const ID = "11111111-1111-4111-8111-111111111111";
+  const sans = await definirColisBoutique(ACCES, ID, { nombre: 2, preuve: "" }, faux([]).f);
+  assert.equal(sans.ok, false);
+  assert.equal((await definirColisBoutique(ACCES, ID, { nombre: 0, preuve: "Fiche fournisseur" }, faux([]).f)).ok, false);
+  const a = faux([{ status: 200, json: { stored: 1, parcelCount: 2 } }]);
+  assert.equal((await definirColisBoutique(ACCES, ID, { nombre: 2, preuve: "Fiche Cars4Kids" }, a.f)).ok, true);
+  assert.equal(a.appels[0]!.init.method, "PUT");
+  assert.match(a.appels[0]!.url, /\/products\/11111111-1111-4111-8111-111111111111\/parcels$/);
+  assert.deepEqual(JSON.parse(String(a.appels[0]!.init.body)), { parcelCount: 2, evidenceRef: "Fiche Cars4Kids" });
+  const base = { grille: "Belgique ; 18", taxe: "EXCLUDED", preuve: "Tarifs du 3 octobre", valideJusqua: "2026-12-01T00:00:00Z" };
+  assert.equal((await importerGrilleLivraisonBoutique(ACCES, ID, { ...base, taxe: "?" }, faux([]).f)).ok, false, "taxe obligatoire");
+  assert.equal((await importerGrilleLivraisonBoutique(ACCES, ID, { ...base, preuve: "" }, faux([]).f)).ok, false, "preuve obligatoire");
+  const b = faux([{ status: 200, json: { preview: true, rows: [] } }]);
+  assert.equal((await importerGrilleLivraisonBoutique(ACCES, ID, { ...base, apercu: true }, b.f)).ok, true);
+  assert.match(b.appels[0]!.url, /shipping-grid\?preview=1$/);
+  const c = faux([{ status: 403, json: { code: "SCOPE_REQUIRED", scope: "delivery.work", error: "Portée non accordée à ce jeton." } }]);
+  const refus = await importerGrilleLivraisonBoutique(ACCES, ID, base, c.f);
+  assert.equal(refus.ok, false);
+  if (!refus.ok) assert.match(refus.detail, /delivery\.work/);
 });
 
 test("implémentations : refusent sans compte appelant connu (le coffre n'est lisible que pour son propriétaire)", async () => {
@@ -187,8 +211,8 @@ test("implémentations : refusent sans compte appelant connu (le coffre n'est li
   }
 });
 
-test("connaissances boutique : 23 entrées copiées + 3 de connexion, titres uniques et courts, aucun secret, sources datées", () => {
-  assert.equal(CONNAISSANCES_BOUTIQUE.length, 26);
+test("connaissances boutique : 23 entrées copiées + 4 propres à la plateforme, titres uniques et courts, aucun secret, sources datées", () => {
+  assert.equal(CONNAISSANCES_BOUTIQUE.length, 27);
   const titres = CONNAISSANCES_BOUTIQUE.map((c) => `${c.categorie}|${c.titre}`);
   assert.equal(new Set(titres).size, titres.length);
   for (const c of CONNAISSANCES_BOUTIQUE) {
@@ -345,6 +369,8 @@ test("stock : chemin fixe /stock-sync, corps vide, jamais d'adresse ; lien absen
   assert.equal((await synchroniserStockBoutique(ACCES, "../x", f)).ok, false);
   assert.match(detailSynchroStock("FEED_ERROR", "FEED_UNAVAILABLE"), /n'a pas répondu/);
   assert.match(detailSynchroStock("NO_SOURCE", "NO_INTEGRATION"), /pas d'intégration/);
+  assert.match(detailSynchroStock("FEED_ERROR", "FEED_HTTP_FAILED", 404), /HTTP 404/);
+  assert.match(detailSynchroStock("FEED_ERROR", "FEED_URL_INVALID"), /https valide/);
 });
 
 test("photo principale : chemin fixe, corps vide, identifiants validés avant l'appel, photo avec marque refusée dite clairement", async () => {
