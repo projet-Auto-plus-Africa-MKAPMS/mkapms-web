@@ -311,6 +311,21 @@ export function choisirPhotoPrincipaleBoutique(a: { origine: string; jeton: stri
 }
 
 /** Demande la synchronisation du stock du fournisseur de ce produit (lien CSV du coffre de la boutique) : portée stock.sync. */
+/** Aperçu fidèle de la page de vente (portée catalogue.full, lecture seule) : prix de vente, stock réel, livraison, détails, blocages de publication. */
+export function lireApercuBoutique(a: { origine: string; jeton: string }, produitId: unknown, f: Fetch = fetch): Promise<ResultatBoutique> {
+  const id = verifierId(produitId);
+  if (!id) return Promise.resolve({ ok: false, detail: "Identifiant de produit invalide (UUID attendu, tel que renvoyé par la liste)." });
+  return appeler(a, "GET", `/products/${id}/preview`, undefined, f, true);
+}
+
+/** Relance le VRAI contrôle de marque d'une version qui n'a pas pu être contrôlée (portée photos.work). */
+export function recontrolerMarquePhotoBoutique(a: { origine: string; jeton: string }, produitId: unknown, mediaId: unknown, f: Fetch = fetch): Promise<ResultatBoutique> {
+  const id = verifierId(produitId);
+  const media = verifierId(mediaId);
+  if (!id || !media) return Promise.resolve({ ok: false, detail: "Identifiants invalides (UUID attendus : produit et version de photo, tels que renvoyés par la fiche complète)." });
+  return appeler(a, "POST", `/products/${id}/media/${media}/recheck-brand`, {}, f);
+}
+
 /** Nombre de colis d'un produit, avec la preuve du fournisseur (portée delivery.work). Le panier en déduit seul le prix de 1, 2… colis. */
 export function definirColisBoutique(a: { origine: string; jeton: string }, produitId: unknown, colis: { nombre: unknown; preuve: unknown }, f: Fetch = fetch): Promise<ResultatBoutique> {
   const id = verifierId(produitId);

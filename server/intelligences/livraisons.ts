@@ -3299,6 +3299,25 @@ export const LIVRAISONS: Livraison[] = [
       "Tester la chaîne réelle (flux → rapprochement → fiche) avec un faux flux de la forme attendue, pas seulement une fausse synchronisation : c'est ainsi que le fichier inchangé ignoré et le rapprochement exact trop strict sont apparus. Une cause d'échec doit être dite telle quelle, sans supposer un stock.",
     domaine: "confiance",
   },
+  {
+    cle: "boutique-apercu-fiche-prix-de-vente-recontrole-photo",
+    titre: "Boutique : l'IA lit l'aperçu de la page de vente (prix de vente, stock réel, livraison) et relance le contrôle de marque d'une photo",
+    moteurs: ["intelligences"],
+    quoi:
+      "Deux outils de plus pour l'IA du PDG : boutique_lireApercu (aperçu fidèle de la fiche avant publication : prix de vente distinct du prix fournisseur, stock réel, nombre de colis et tarif par pays, blocages de publication) et boutique_recontrolerMarquePhoto (relance le vrai contrôle de marque d'une photo non contrôlée). Côté boutique : volet « Prix de vente et aperçu » dans l'atelier produits et page d'aperçu #/apercu/<produit>. Une connaissance explique la différence prix fournisseur / prix de vente.",
+    pourquoi:
+      "Le PDG voyait seulement le prix fournisseur, n'avait pas d'endroit pour fixer le prix de vente, et le bouton d'aperçu le ramenait à l'accueil (la route n'existait pas). L'IA doit pouvoir lire la même page que lui, sans jamais fixer un prix.",
+    ou: [
+      "server/intelligences/boutique.ts",
+      "server/intelligences/outils/familles/boutique.ts",
+      "server/intelligences/outils/familles/outils-boutique.ts",
+      "server/intelligences/connaissances-boutique.ts",
+      "server/intelligences/__tests__/boutique.test.ts",
+    ],
+    lecon:
+      "Une route d'interface inconnue retombe silencieusement sur l'accueil : tester le parcours complet dans le navigateur (prix → enregistrer → aperçu) plutôt que le seul serveur.",
+    domaine: "confiance",
+  },
 ];
 
 /** Texte mémorisé d'une livraison. La recherche globale ne transmet que le début d'une entrée : le plus important vient en premier. */

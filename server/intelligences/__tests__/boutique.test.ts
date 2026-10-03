@@ -22,6 +22,8 @@ import {
   traduireFiche,
   detailSynchroStock,
   definirColisBoutique,
+  lireApercuBoutique,
+  recontrolerMarquePhotoBoutique,
   importerGrilleLivraisonBoutique,
 } from "../boutique.js";
 import { OUTILS } from "../outils/registre.js";
@@ -166,8 +168,8 @@ test("défense en profondeur : prix, adresses et secrets retirés de ce qui revi
   assert.deepEqual(propre, { id: ID, title: "Voiture", nested: [{ ok: 1 }] });
 });
 
-test("registre : dix outils, lecture seule ou risque faible, réservés au PDG, aucun outil de modification de prix/TVA/approbation/publication", () => {
-  assert.equal(OUTILS_BOUTIQUE.length, 10);
+test("registre : douze outils, lecture seule ou risque faible, réservés au PDG, aucun outil de modification de prix/TVA/approbation/publication", () => {
+  assert.equal(OUTILS_BOUTIQUE.length, 12);
   for (const o of OUTILS_BOUTIQUE) {
     assert.ok(OUTILS.some((x) => x.toolId === o.toolId), `${o.toolId} enregistré`);
     assert.ok(IMPLEMENTATIONS[o.toolId], `${o.toolId} implémenté`);
@@ -177,10 +179,10 @@ test("registre : dix outils, lecture seule ou risque faible, réservés au PDG, 
     assert.equal(o.category, "boutique");
   }
   const noms = OUTILS_BOUTIQUE.map((o) => o.toolId).sort();
-  assert.deepEqual(noms, ["boutique.capacites", "boutique.choisirPhotoPrincipale", "boutique.definirColis", "boutique.importerGrilleLivraison", "boutique.lancerPhotos", "boutique.lireFicheComplete", "boutique.lireProduit", "boutique.listerProduits", "boutique.proposerFiche", "boutique.synchroniserStock"]);
+  assert.deepEqual(noms, ["boutique.capacites", "boutique.choisirPhotoPrincipale", "boutique.definirColis", "boutique.importerGrilleLivraison", "boutique.lancerPhotos", "boutique.lireApercu", "boutique.lireFicheComplete", "boutique.lireProduit", "boutique.listerProduits", "boutique.proposerFiche", "boutique.recontrolerMarquePhoto", "boutique.synchroniserStock"]);
   assert.equal(noms.some((n) => /prix|tva|approuver|publier|decision|offre/i.test(n)), false);
   const ecritures = OUTILS_BOUTIQUE.filter((o) => o.requiredPermissions.includes("WRITE")).map((o) => o.toolId).sort();
-  assert.deepEqual(ecritures, ["boutique.choisirPhotoPrincipale", "boutique.definirColis", "boutique.importerGrilleLivraison", "boutique.lancerPhotos", "boutique.proposerFiche", "boutique.synchroniserStock"]);
+  assert.deepEqual(ecritures, ["boutique.choisirPhotoPrincipale", "boutique.definirColis", "boutique.importerGrilleLivraison", "boutique.lancerPhotos", "boutique.proposerFiche", "boutique.recontrolerMarquePhoto", "boutique.synchroniserStock"]);
 });
 
 test("livraison : colis avec preuve et grille du fournisseur, jamais supposés ; la requête part vers les bonnes routes", async () => {
@@ -203,6 +205,21 @@ test("livraison : colis avec preuve et grille du fournisseur, jamais supposés ;
   const refus = await importerGrilleLivraisonBoutique(ACCES, ID, base, c.f);
   assert.equal(refus.ok, false);
   if (!refus.ok) assert.match(refus.detail, /delivery\.work/);
+});
+
+test("aperçu et recontrôle de marque : bonnes routes, identifiants vérifiés, motif lisible", async () => {
+  const ID = "11111111-1111-4111-8111-111111111111", MEDIA = "22222222-2222-4222-8222-222222222222";
+  assert.equal((await lireApercuBoutique(ACCES, "pas-un-uuid", faux([]).f)).ok, false);
+  const a = faux([{ status: 200, json: { product: { id: ID, title: "Voiture" }, sellingPrice: { amountMinor: 18990, currency: "EUR" }, stock: { status: "IN_STOCK", quantity: 7 } } }]);
+  const r = await lireApercuBoutique(ACCES, ID, a.f);
+  assert.equal(r.ok, true);
+  assert.match(a.appels[0]!.url, /\/products\/11111111-1111-4111-8111-111111111111\/preview$/);
+  assert.equal(a.appels[0]!.init.method, "GET");
+  assert.equal((await recontrolerMarquePhotoBoutique(ACCES, ID, "x", faux([]).f)).ok, false);
+  const b = faux([{ status: 200, json: { brandState: "NOT_CHECKED", brandReason: "NOT_CONFIGURED", eligibleAsMain: false, why: "le contrôle de marque n'a pas pu s'exécuter" } }]);
+  assert.equal((await recontrolerMarquePhotoBoutique(ACCES, ID, MEDIA, b.f)).ok, true);
+  assert.equal(b.appels[0]!.init.method, "POST");
+  assert.match(b.appels[0]!.url, /\/media\/22222222-2222-4222-8222-222222222222\/recheck-brand$/);
 });
 
 test("implémentations : refusent sans compte appelant connu (le coffre n'est lisible que pour son propriétaire)", async () => {

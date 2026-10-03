@@ -15,6 +15,8 @@ import {
   proposerFicheBoutique,
   synchroniserStockBoutique,
   definirColisBoutique,
+  lireApercuBoutique,
+  recontrolerMarquePhotoBoutique,
   importerGrilleLivraisonBoutique,
   type FicheProposee,
 } from "../../boutique.js";
@@ -53,6 +55,14 @@ export const IMPLEMENTATIONS: Record<string, ImplementationOutil> = {
   "boutique.synchroniserStock": async (args, contexte) => {
     const a = await accesBoutique(compteAppelant(contexte), "boutique.synchroniserStock", "Synchroniser le stock du fournisseur d'un produit de la boutique, demandé par le PDG");
     return a.ok ? synchroniserStockBoutique(a, args.produitId) : { ok: false, detail: a.detail };
+  },
+  "boutique.lireApercu": async (args, contexte) => {
+    const a = await accesBoutique(compteAppelant(contexte), "boutique.lireApercu", "Lire l'aperçu (page de vente) d'un produit de la boutique, demandé par le PDG");
+    return a.ok ? lireApercuBoutique(a, args.produitId) : { ok: false, detail: a.detail };
+  },
+  "boutique.recontrolerMarquePhoto": async (args, contexte) => {
+    const a = await accesBoutique(compteAppelant(contexte), "boutique.recontrolerMarquePhoto", "Relancer le contrôle de marque d'une photo d'un produit de la boutique, demandé par le PDG");
+    return a.ok ? recontrolerMarquePhotoBoutique(a, args.produitId, args.mediaId) : { ok: false, detail: a.detail };
   },
   "boutique.definirColis": async (args, contexte) => {
     const a = await accesBoutique(compteAppelant(contexte), "boutique.definirColis", "Enregistrer le nombre de colis d'un produit de la boutique, demandé par le PDG");
