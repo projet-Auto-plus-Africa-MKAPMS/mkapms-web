@@ -703,7 +703,11 @@ export async function demander(input: DemandeInput): Promise<DemandeResultat> {
       // Autonomie de travail (décision du PDG du 2 octobre 2026) : assez de tours pour enchaîner lecture, action et contrôle
       // (la limite par défaut de 5 coupait un travail en plein milieu). Les outils HIGH/CRITICAL restent refusés par la politique.
       maxIterations: 12,
-      maxTokens: 4000,
+      // Mode travail : le rendu final d'un long travail (par exemple 27 produits identifiés) a besoin de place, et le
+      // raisonnement interne compte dans ce budget — 4000 jetons ont été entièrement consommés par la réflexion à la dernière
+      // étape (« 4000 jetons de raisonnement sur 4000 »). Le chat garde 4000 ; une relance automatique élargit encore le
+      // budget si besoin (provider.ts, corpsRelanceBudget).
+      maxTokens: input.mode === "travail" ? 16_000 : 4000,
       actorId: input.userId ?? null,
       traceId,
     });
