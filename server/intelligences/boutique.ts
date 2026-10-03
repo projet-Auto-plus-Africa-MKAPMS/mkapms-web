@@ -63,8 +63,10 @@ export function nettoyerValeurSecret(brut: string): string {
   return brut
     .replace(/[\u200b-\u200f\u2060\ufeff]/g, "")
     .trim()
+    .replace(/[\s.,;:]+$/, "")
     .replace(/^["'`«»]+|["'`«»]+$/g, "")
     .replace(/^bearer\s+/i, "")
+    .replace(/[\s.,;:]+$/, "") // ponctuation de fin collée avec la valeur : jamais dans un jeton (A-Z a-z 0-9 _ -) ni dans un nom de domaine
     .trim();
 }
 

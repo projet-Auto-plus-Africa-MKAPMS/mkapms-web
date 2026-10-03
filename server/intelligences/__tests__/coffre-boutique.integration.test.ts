@@ -67,6 +67,27 @@ test("accesBoutique : noms équivalents retrouvés, comptes cloisonnés, raison 
     assert.equal(exact.ok, true);
     if (exact.ok) assert.equal(exact.jeton, JETON);
 
+    // Cas réel : nom saisi avec un POINT FINAL (« … service. ») — retrouvé quand même.
+    assert.equal((await coffre.ajouterSecret({ ownerId: 9, nom: "Boutique — jeton de service.", contenu: { type: "cle_api", valeur: JETON } })).ok, true);
+    assert.equal((await coffre.ajouterSecret({ ownerId: 9, nom: "Boutique — adresse", contenu: { type: "cle_api", valeur: "https://boutique.exemple.com" } })).ok, true);
+    const pointFinal = await accesBoutique(9, "boutique.capacites", "Nom avec point final");
+    assert.equal(pointFinal.ok, true, pointFinal.ok ? "" : pointFinal.detail);
+
+    // Modifier : renomme (nom et service seulement), valeur intacte, comptes cloisonnés, doublon refusé, journal sans valeur.
+    const [cible] = (await pool.query("select id from in_coffre_secrets where owner_id = 9 and nom like '%service.'")).rows as { id: number }[];
+    assert.equal((await coffre.modifierSecret({ ownerId: 8, id: cible.id, nom: "Pris par un autre compte" })).ok, false, "un autre compte ne modifie pas");
+    assert.equal((await coffre.modifierSecret({ ownerId: 9, id: cible.id, nom: "Boutique — adresse" })).ok, false, "doublon refusé");
+    assert.equal((await coffre.modifierSecret({ ownerId: 9, id: cible.id, nom: "x" })).ok, false, "nom trop court");
+    const renomme = await coffre.modifierSecret({ ownerId: 9, id: cible.id, nom: "Boutique — jeton de service", service: "Boutique MKA.P-MS (SHOP)" });
+    assert.equal(renomme.ok, true, renomme.detail);
+    const apres = await accesBoutique(9, "boutique.listerProduits", "Après renommage");
+    assert.equal(apres.ok, true, apres.ok ? "" : apres.detail);
+    if (apres.ok) assert.equal(apres.jeton, JETON, "la valeur n'a pas bougé");
+    const modifs = (await pool.query("select motif, ok from in_coffre_acces where action = 'modifier'")).rows as { motif: string; ok: boolean }[];
+    assert.equal(modifs.length, 1);
+    assert.match(modifs[0].motif, /renommé/);
+    assert.ok(!modifs[0].motif.includes("shopsvc_"));
+
     // Journal : chaque refus porte sa RAISON ; aucune valeur n'y figure.
     const lignes = (await pool.query("select ok, outil, motif from in_coffre_acces where action = 'utiliser' order by id")).rows as { ok: boolean; outil: string; motif: string }[];
     const refus = lignes.filter((l) => !l.ok);

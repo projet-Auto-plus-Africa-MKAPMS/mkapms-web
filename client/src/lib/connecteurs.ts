@@ -150,6 +150,7 @@ export function nomNormalise(nom: string): string {
     .replace(/[\u2010-\u2015\u2212\u00ad]/g, "-")
     .replace(/\s+/g, " ")
     .replace(/\s*-\s*/g, " - ")
+    .replace(/^["'«»`\s]+|["'«»`\s.,;:!?]+$/g, "")
     .replace(/^["'«»`\s]+|["'«»`\s]+$/g, "")
     .toLowerCase();
 }

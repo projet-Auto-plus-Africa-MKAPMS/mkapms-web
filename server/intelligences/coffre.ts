@@ -166,7 +166,7 @@ async function journaliser(entree: {
   secretId: number | null;
   nomSecret: string;
   acteurId: number | null;
-  action: "creer" | "remplacer" | "supprimer" | "utiliser";
+  action: "creer" | "remplacer" | "modifier" | "supprimer" | "utiliser";
   outil?: string;
   motif?: string;
   ok?: boolean;
@@ -291,6 +291,37 @@ export async function remplacerSecret(input: { ownerId: number; id: number; cont
   return { ok: true, id: existant.id, detail: "Secret remplacé. L'ancienne valeur n'existe plus." };
 }
 
+export async function modifierSecret(input: { ownerId: number; id: number; nom: string; service?: string }): Promise<ResultatCoffre> {
+  const nom = input.nom.trim();
+  if (nom.length < 2 || nom.length > 120) return { ok: false, detail: "Le nom doit faire entre 2 et 120 caractères." };
+  const [existant] = await db
+    .select({ id: inCoffreSecrets.id, nom: inCoffreSecrets.nom, service: inCoffreSecrets.service })
+    .from(inCoffreSecrets)
+    .where(and(eq(inCoffreSecrets.id, input.id), eq(inCoffreSecrets.ownerId, input.ownerId)))
+    .limit(1);
+  if (!existant) return { ok: false, detail: "Secret introuvable." };
+  const service = (input.service ?? existant.service).trim().slice(0, 120);
+  if (nom === existant.nom && service === existant.service) return { ok: true, id: existant.id, detail: "Rien à modifier : le nom et le service sont identiques." };
+  if (nom !== existant.nom) {
+    const [doublon] = await db
+      .select({ id: inCoffreSecrets.id })
+      .from(inCoffreSecrets)
+      .where(and(eq(inCoffreSecrets.ownerId, input.ownerId), eq(inCoffreSecrets.nom, nom)))
+      .limit(1);
+    if (doublon) return { ok: false, detail: "Un autre secret porte déjà ce nom : choisissez-en un autre." };
+  }
+  // Seuls le nom et le service changent : la valeur chiffrée reste telle quelle (elle ne se relit jamais).
+  await db.update(inCoffreSecrets).set({ nom, service, updatedAt: new Date() }).where(eq(inCoffreSecrets.id, existant.id));
+  await journaliser({
+    secretId: existant.id,
+    nomSecret: nom,
+    acteurId: input.ownerId,
+    action: "modifier",
+    motif: nom !== existant.nom ? `renommé : « ${existant.nom} » → « ${nom} »` : "service modifié",
+  });
+  return { ok: true, id: existant.id, detail: "Secret modifié. Sa valeur n'a pas changé." };
+}
+
 export async function supprimerSecret(input: { ownerId: number; id: number }): Promise<ResultatCoffre> {
   const [supprime] = await db
     .delete(inCoffreSecrets)
@@ -303,7 +334,7 @@ export async function supprimerSecret(input: { ownerId: number; id: number }): P
 
 /**
  * Forme comparable d'un nom de secret : tirets de toute sorte (-, –, —…), espaces (insécables compris), guillemets de
- * bord et casse n'empêchent plus de retrouver « Boutique — jeton de service » saisi « Boutique - jeton de service ».
+ * bord, ponctuation finale (« … service. ») et casse n'empêchent plus de retrouver « Boutique — jeton de service » saisi « Boutique - jeton de service ».
  */
 export function nomNormalise(nom: string): string {
   return nom
@@ -311,6 +342,7 @@ export function nomNormalise(nom: string): string {
     .replace(/[\u2010-\u2015\u2212\u00ad]/g, "-")
     .replace(/\s+/g, " ")
     .replace(/\s*-\s*/g, " - ")
+    .replace(/^["'«»`\s]+|["'«»`\s.,;:!?]+$/g, "")
     .replace(/^["'«»`\s]+|["'«»`\s]+$/g, "")
     .toLowerCase();
 }
