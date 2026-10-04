@@ -12017,7 +12017,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "genre": "formulaire",
         "ecran": "/livraison-vehicule",
         "fichier": "client/src/pages/LivraisonVehicule.tsx",
-        "ligne": 307
+        "ligne": 313
       },
       {
         "code": "livraison_vehicule_choisir_mode",
@@ -12033,7 +12033,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "genre": "navigation",
         "ecran": "/livraison-vehicule",
         "fichier": "client/src/pages/LivraisonVehicule.tsx",
-        "ligne": 303
+        "ligne": 309
       },
       {
         "code": "livraison_vehicule_connexion",
@@ -12041,7 +12041,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "genre": "navigation",
         "ecran": "/livraison-vehicule",
         "fichier": "client/src/pages/LivraisonVehicule.tsx",
-        "ligne": 348
+        "ligne": 354
       },
       {
         "code": "livraison_vehicule_onglet_devis",
@@ -12083,8 +12083,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "cliquables": 7,
         "parMoteur": 7,
         "sansAction": 0,
-        "textes": 57,
-        "mots": 314
+        "textes": 58,
+        "mots": 317
       },
       {
         "fichier": "client/src/pages/SuiviVehicule.tsx",
@@ -12131,8 +12131,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "pdg",
       "public"
     ],
-    "textes": 82,
-    "mots": 369,
+    "textes": 83,
+    "mots": 372,
     "battement": "pont_os",
     "manques": []
   },
@@ -22207,7 +22207,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "genre": "formulaire",
         "ecran": "/vente/livraison",
         "fichier": "client/src/pages/LivraisonVehicule.tsx",
-        "ligne": 307
+        "ligne": 313
       },
       {
         "code": "livraison_vehicule_choisir_mode",
@@ -22223,7 +22223,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "genre": "navigation",
         "ecran": "/vente/livraison",
         "fichier": "client/src/pages/LivraisonVehicule.tsx",
-        "ligne": 303
+        "ligne": 309
       },
       {
         "code": "livraison_vehicule_connexion",
@@ -22231,7 +22231,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "genre": "navigation",
         "ecran": "/vente/livraison",
         "fichier": "client/src/pages/LivraisonVehicule.tsx",
-        "ligne": 348
+        "ligne": 354
       },
       {
         "code": "livraison_vehicule_onglet_devis",
@@ -22400,8 +22400,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "cliquables": 7,
         "parMoteur": 7,
         "sansAction": 0,
-        "textes": 57,
-        "mots": 314
+        "textes": 58,
+        "mots": 317
       },
       {
         "fichier": "client/src/pages/TableauBordProVente.tsx",
@@ -23124,8 +23124,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "procedures": [],
     "tables": [],
     "acces": [],
-    "textes": 979,
-    "mots": 3541,
+    "textes": 980,
+    "mots": 3544,
     "battement": "sonde",
     "manques": [
       {

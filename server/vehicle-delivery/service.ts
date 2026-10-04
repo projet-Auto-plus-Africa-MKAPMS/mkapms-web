@@ -22,7 +22,7 @@ import { annonces } from "../schema.js";
 import { countryCountries } from "../country-os/index.js";
 import { evaluateAction, reglesConfirmees } from "../country-policy/service.js";
 import { emitSafe } from "../event-bus/service.js";
-import { calculerDistanceRoutiere } from "./routing.js";
+import { mesurerItineraire, type SourceDistance } from "./routing.js";
 import {
   VD_CATEGORIES,
   VD_ETAPES,
@@ -153,6 +153,8 @@ export interface Devis {
   villeArrivee: string | null
   transfrontalier: boolean;
   distanceKm: number | null;
+  /** Origine de la distance : fournie par l'appelant ou mesurée par un connecteur d'itinéraire. */
+  distanceSource: "appelant" | SourceDistance | null;
   etapes: LigneEtape[];
   options: LigneOption[];
   /** Null dès qu'une étape obligatoire n'est pas chiffrée : un total partiel ment. */
@@ -371,20 +373,28 @@ export async function devis(input: {
   }
 
   const cat: VdCategorie = categorie ?? "berline";
-  const paysArrivee = input.paysArrivee ? input.paysArrivee.toUpperCase() : null;
+  let paysArrivee = input.paysArrivee ? input.paysArrivee.toUpperCase() : null;
   const villeArrivee = input.villeArrivee ?? null;
-  const transfrontalier = Boolean(paysDepart && paysArrivee && paysDepart !== paysArrivee);
-  // Distance fournie par l'appelant en priorité ; sinon, tentative de calcul
-  // routier réel (server/vehicle-delivery/routing.ts) si les deux villes sont
-  // connues. Sans clé configurée ou en cas d'échec réel, reste null — jamais
-  // une distance approximée en remplacement (voir le manque plus bas).
+  // Distance fournie par l'appelant en priorité ; sinon, mesure routière réelle
+  // (server/vehicle-delivery/routing.ts : Google si clé, puis connecteur ouvert
+  // OpenStreetMap) dès que les deux villes sont connues. Un pays absent est
+  // complété par celui que le géocodage constate. Sans réponse, reste null —
+  // jamais une distance approximée en remplacement (voir le manque plus bas).
   let distanceKm = input.distanceKm ?? null;
-  if (distanceKm === null && villeDepart && paysDepart && villeArrivee && paysArrivee) {
-    distanceKm = await calculerDistanceRoutiere(
+  let distanceSource: Devis["distanceSource"] = distanceKm === null ? null : "appelant";
+  if (distanceKm === null && villeDepart && villeArrivee) {
+    const mesure = await mesurerItineraire(
       { ville: villeDepart, pays: paysDepart },
       { ville: villeArrivee, pays: paysArrivee },
     );
+    if (mesure) {
+      distanceKm = mesure.distanceKm;
+      distanceSource = mesure.source;
+      paysDepart = paysDepart ?? mesure.paysOrigine;
+      paysArrivee = paysArrivee ?? mesure.paysDestination;
+    }
   }
+  const transfrontalier = Boolean(paysDepart && paysArrivee && paysDepart !== paysArrivee);
 
   const compatibles = MODES_PAR_CATEGORIE[cat];
   const mode: VdMode = input.mode && compatibles.includes(input.mode) ? input.mode : compatibles[0];
@@ -473,6 +483,7 @@ export async function devis(input: {
     villeArrivee,
     transfrontalier,
     distanceKm,
+    distanceSource,
     etapes,
     options,
     total,

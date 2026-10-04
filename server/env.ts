@@ -34,6 +34,15 @@ export const env = {
   // Tant que la clé n'est pas fournie, aucune distance n'est calculée : le
   // devis reste honnêtement "non mesuré", jamais une distance approximée.
   GOOGLE_MAPS_API_KEY: get("GOOGLE_MAPS_API_KEY"),
+  // Connecteur d'itinéraire ouvert (OpenStreetMap), utilisé quand Google ne
+  // répond pas : géocodage Nominatim puis itinéraire routier OSRM. Adresses
+  // réglables pour basculer sur des serveurs auto-hébergés ; ROUTAGE_OUVERT=off
+  // le coupe. ROUTAGE_CONTACT (adresse e-mail) est transmis dans l'en-tête
+  // User-Agent comme le demande la politique d'usage de Nominatim.
+  ROUTAGE_OUVERT: get("ROUTAGE_OUVERT", "on"),
+  NOMINATIM_URL: get("NOMINATIM_URL", "https://nominatim.openstreetmap.org"),
+  OSRM_URL: get("OSRM_URL", "https://router.project-osrm.org"),
+  ROUTAGE_CONTACT: get("ROUTAGE_CONTACT"),
   // Vérification de propriété Google (Search Console, Merchant Center).
   // Plusieurs jetons possibles, séparés par une virgule, sous la forme
   // « google<jeton>.html », « google<jeton> » ou « <jeton> » : permet de
