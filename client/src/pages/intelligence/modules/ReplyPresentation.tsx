@@ -45,7 +45,7 @@ export function ProgressiveReply({ text, animate, onProgress }: {
   </p>;
 }
 
-export function WaitingReply() {
+export function WaitingReply({ action }: { action?: string } = {}) {
   const [seconds, setSeconds] = useState(0);
   useEffect(() => {
     const start = performance.now();
@@ -54,7 +54,7 @@ export function WaitingReply() {
   }, []);
   const time = `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
   return <div className="alhud-waiting-reply">
-    <span role="status" className="alhud-active-line">AL-HUDHUD·M réfléchit…</span>
+    <span role="status" className="alhud-active-line">{action ? `${action}…` : "AL-HUDHUD·M réfléchit…"}</span>
     <span role="timer" aria-live="off" aria-label="Temps d’attente" className="alhud-waiting-time">{time}</span>
   </div>;
 }
@@ -84,7 +84,7 @@ export function MissionSteps({ etapes, enCours }: { etapes: EtapeTravail[]; enCo
   return <div className="alhud-mission-steps" aria-label="Étapes de la mission">
     <p className="alhud-mission-steps-count">{faites}/{etapes.length} étape{etapes.length > 1 ? "s" : ""} faite{faites > 1 ? "s" : ""}</p>
     <ol>
-      {etapes.map((e) => <li key={e.etape} data-statut={e.statut}>
+      {etapes.map((e, i) => <li key={`${e.etape}-${i}`} data-statut={e.statut}>
         <span className={e.statut === "en_cours" ? "alhud-active-line" : undefined}>
           <strong>{e.libelle}</strong> · {LIBELLES_STATUT[e.statut] ?? e.statut}
         </span>

@@ -31,7 +31,7 @@ import { lireRegistre, reponseCourtoisie } from "./registre.js";
 import { engineRegistry } from "../engine-registry/schema.js";
 import { smartAlerts } from "../smart-engine/schema.js";
 import { emitSafe } from "../event-bus/service.js";
-import { executerAvecOutils } from "./outils/boucle.js";
+import { executerAvecOutils, type AppelOutilEnDirect } from "./outils/boucle.js";
 import { listerActifsPourMode } from "./outils/registre.js";
 import { randomUUID } from "node:crypto";
 import { resumerSiNecessaire } from "./conversation-resume.js";
@@ -340,6 +340,8 @@ export interface DemandeInput {
    * tous les outils actifs. Même mémoire, même conversation, même consigne des deux côtés. Défaut : chat.
    */
   mode?: "chat" | "travail";
+  /** Suivi en direct des outils appelés (côté direction), relu par l'écran pendant la réponse. */
+  onOutil?: (evt: AppelOutilEnDirect) => void;
 }
 
 export interface DemandeResultat {
@@ -710,6 +712,7 @@ export async function demander(input: DemandeInput): Promise<DemandeResultat> {
       maxTokens: input.mode === "travail" ? 16_000 : 4000,
       actorId: input.userId ?? null,
       traceId,
+      onOutil: input.onOutil,
     });
     appelsOutilsTrace = boucle.appelsOutils.map((a) => ({
       toolId: a.toolId,

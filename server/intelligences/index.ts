@@ -49,7 +49,7 @@ import {
   tableau as tableauPermissions,
 } from "./permissions.js";
 import { lancerSonde } from "./provider-sonde.js";
-import { lireSuivi, ouvrirSuivi, publierEtape, terminerSuivi } from "./mission-progression.js";
+import { etapeOutil, lireSuivi, ouvrirSuivi, publierEtape, terminerSuivi } from "./mission-progression.js";
 import { lirePreuves } from "./sonde-store.js";
 import { etatEmpreintes, reindexerUnLot } from "./empreintes.js";
 import {
@@ -615,7 +615,7 @@ export const intelligencesRouter = router({
           const fichier = await fichiers.lireFichier(id, ctx.user.uid);
           pieces.push({ type: "texte", nom: fichier.resume.nom, texte: fichier.contenuTexte ?? "Document sans texte extractible." });
         }
-        return orchestrer({
+        return await orchestrer({
           objectif: input.objectif,
           role: ctx.user?.role ?? null,
           actorId: ctx.user?.uid,
@@ -656,12 +656,17 @@ export const intelligencesRouter = router({
         fichierIds: z.array(z.number().int().positive()).max(4).optional(),
         /** Intensité de réflexion souhaitée (voir provider.ts, reasoningEffortPrefere) — jamais un choix de modèle. */
         effort: z.enum(["minimal", "low", "medium", "high"]).optional(),
+        /** Identifiant choisi par l'écran pour relire en direct les outils appelés (progressionMission). */
+        suiviId: z.string().regex(/^[A-Za-z0-9_-]{8,64}$/).optional(),
       }),
     )
     .mutation(async ({ input, ctx }) => {
       const userId = ctx.user?.uid ?? 0;
       if (input.sessionId) await exigerProprieteConversation(input.sessionId, userId);
-      return demander({
+      const suiviId = input.suiviId;
+      if (suiviId) ouvrirSuivi(suiviId, userId);
+      try {
+      return await demander({
         question: input.question,
         cote: "direction",
         domaine: input.domaine ?? null,
@@ -672,7 +677,11 @@ export const intelligencesRouter = router({
         images: input.images,
         fichierIds: input.fichierIds,
         effort: input.effort,
+        onOutil: suiviId ? (a) => publierEtape(suiviId, etapeOutil(a)) : undefined,
       });
+      } finally {
+        if (suiviId) terminerSuivi(suiviId);
+      }
     }),
 
   enregistrerEchangeVocal: pdgProcedure.input(z.object({

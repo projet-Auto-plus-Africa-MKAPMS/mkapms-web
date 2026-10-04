@@ -81,6 +81,16 @@ export interface EntreeBoucle {
   actorId?: number | null;
   /** LOT IA02B — identifiant partagé avec le message de conversation à l'origine de cet appel (point 13). */
   traceId?: string;
+  /** Suivi en direct : chaque appel d'outil est signalé au lancement puis à son issue (même `rang`). */
+  onOutil?: (evt: AppelOutilEnDirect) => void;
+}
+
+export interface AppelOutilEnDirect {
+  rang: number;
+  toolId: string;
+  verdictPolitique: string;
+  statutExecution: string | null;
+  motif: string;
 }
 
 export async function executerAvecOutils(
@@ -110,6 +120,13 @@ export async function executerAvecOutils(
   let dureeMs = 0;
   let fournisseur: string | null = null;
   let modele: string | null = null;
+  const signaler = (rang: number, a: Omit<AppelOutilEnDirect, "rang">) => {
+    try {
+      input.onOutil?.({ rang, ...a });
+    } catch {
+      // L'affichage en direct ne doit jamais interrompre la boucle.
+    }
+  };
 
   for (let iteration = 1; iteration <= maxIterations; iteration++) {
     const res = await routerImpl({
@@ -191,6 +208,7 @@ export async function executerAvecOutils(
       if (!outil) {
         const motif = `Outil inconnu : « ${appel.nom} ».`;
         trace.push({ toolId: appel.nom, verdictPolitique: "refuse", statutExecution: null, motif, dureeMs: Date.now() - debut });
+        signaler(trace.length - 1, { toolId: appel.nom, verdictPolitique: "refuse", statutExecution: null, motif });
         await journaliserImpl({
           toolId: appel.nom,
           moteur: input.moteur,
@@ -223,6 +241,7 @@ export async function executerAvecOutils(
           motif: politique.motif,
           dureeMs: Date.now() - debut,
         });
+        signaler(trace.length - 1, { toolId: outil.toolId, verdictPolitique: politique.verdict, statutExecution: null, motif: politique.motif });
         await journaliserImpl({
           toolId: outil.toolId,
           moteur: input.moteur,
@@ -240,6 +259,7 @@ export async function executerAvecOutils(
         continue;
       }
 
+      signaler(trace.length, { toolId: outil.toolId, verdictPolitique: politique.verdict, statutExecution: null, motif: "" });
       const execution = await executer(outil, appel.arguments, {
         role: input.role,
         moteur: input.moteur,
@@ -252,6 +272,7 @@ export async function executerAvecOutils(
         motif: execution.motif,
         dureeMs: execution.dureeMs,
       });
+      signaler(trace.length - 1, { toolId: outil.toolId, verdictPolitique: politique.verdict, statutExecution: execution.statut, motif: execution.motif });
       await journaliserImpl({
         toolId: outil.toolId,
         moteur: input.moteur,
