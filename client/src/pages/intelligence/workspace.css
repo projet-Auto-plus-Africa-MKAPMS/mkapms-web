@@ -182,3 +182,9 @@
 .alhud-live-conversation .alhud-mission-steps{font-size:15px;line-height:1.55;border:0;border-left:3px solid #e2e8f0;border-radius:0;background:transparent;padding:4px 0 4px 12px}
 .alhud-live-conversation .alhud-waiting-reply{font-size:16px}
 @media(max-width:767px){.alhud-conversation-panel{border:0!important;border-radius:0!important}.alhud-live-conversation [role=log]{padding:12px 6px!important}}
+
+/* Chat et Travail : les deux voix restent en pleine largeur, sans bulle ni cadre. */
+.alhud-live-conversation [role=log]>.alhud-message,
+.alhud-live-conversation [role=log]>.alhud-message.ml-auto{max-width:100%!important;margin-left:0!important;background:transparent!important;border:0!important;border-radius:0!important;box-shadow:none!important}
+.alhud-live-conversation [role=log]>.alhud-message>div:first-child{background:transparent!important;border-radius:0!important;box-shadow:none!important}
+.alhud-live-conversation [role=log]>.alhud-message[data-role=moi]>div:first-child{border-left:3px solid #1683ef;padding-left:14px!important}

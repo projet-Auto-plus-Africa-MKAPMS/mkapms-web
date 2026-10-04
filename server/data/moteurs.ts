@@ -21393,7 +21393,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "supplierEngine",
       "supplierPortal"
     ],
-    "fichiersServeur": 7,
+    "fichiersServeur": 6,
     "dependancesDeclarees": [
       "core",
       "country",
