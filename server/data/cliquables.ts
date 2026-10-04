@@ -40,7 +40,7 @@ export interface AnomalieCliquable {
   readonly motif: MotifAnomalie;
 }
 
-export const CLIQUABLES_TOTAL = 2727;
+export const CLIQUABLES_TOTAL = 2731;
 
 export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/components/AccessDenied.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
@@ -586,7 +586,7 @@ export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/pages/pieces/VerificationCompatibilite.tsx", total: 2, moteur: 0, liens: 1, boutonsLocaux: 1, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/PiecesCommande.tsx", total: 3, moteur: 0, liens: 0, boutonsLocaux: 3, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/PiecesProduit.tsx", total: 25, moteur: 0, liens: 20, boutonsLocaux: 5, sansAction: 0, zones: 0 },
-  { fichier: "client/src/pages/PresDeMoi.tsx", total: 1, moteur: 0, liens: 0, boutonsLocaux: 1, sansAction: 0, zones: 0 },
+  { fichier: "client/src/pages/PresDeMoi.tsx", total: 5, moteur: 0, liens: 5, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/pro/AvisPro.tsx", total: 3, moteur: 0, liens: 2, boutonsLocaux: 1, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/pro/DossierPro.tsx", total: 5, moteur: 0, liens: 1, boutonsLocaux: 4, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/pro/PortailPro.tsx", total: 4, moteur: 0, liens: 2, boutonsLocaux: 2, sansAction: 0, zones: 0 },
