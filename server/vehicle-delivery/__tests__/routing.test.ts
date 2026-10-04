@@ -13,7 +13,7 @@
  */
 import assert from "node:assert/strict";
 import { env } from "../../env.js";
-import { calculerDistanceRoutiere } from "../routing.js";
+import { calculerDistanceRoutiere, mesurerItineraire, viderCacheItineraire } from "../routing.js";
 import { devis } from "../service.js";
 
 let ok = 0;
@@ -27,6 +27,9 @@ function verif(nom: string, condition: boolean) {
 
 async function main() {
   const cleOriginale = env.GOOGLE_MAPS_API_KEY;
+  const routageOriginal = env.ROUTAGE_OUVERT;
+  // Scénarios 1 à 4 : Google seul, connecteur ouvert coupé (aucun appel réseau réel).
+  env.ROUTAGE_OUVERT = "off";
 
   // 1. Sans clé (état réel actuel) : jamais d'appel réseau, jamais de distance inventée.
   env.GOOGLE_MAPS_API_KEY = "";
@@ -73,6 +76,54 @@ async function main() {
   } finally {
     globalThis.fetch = fetchOriginal;
     env.GOOGLE_MAPS_API_KEY = cleOriginale;
+  }
+
+  // 5. Connecteur ouvert OpenStreetMap (sans clé Google) : géocodage Nominatim puis itinéraire OSRM simulés.
+  env.GOOGLE_MAPS_API_KEY = "";
+  env.ROUTAGE_OUVERT = "on";
+  viderCacheItineraire();
+  const appels: string[] = [];
+  globalThis.fetch = (async (url: string | URL | Request) => {
+    const u = String(url);
+    appels.push(u);
+    if (u.includes("/search?")) {
+      const q = new URL(u).searchParams.get("q");
+      const point = q === "Paris" ? { lat: "48.8566", lon: "2.3522" } : { lat: "45.764", lon: "4.8357" };
+      return new Response(JSON.stringify([{ ...point, address: { country_code: "fr" } }]), { status: 200 });
+    }
+    if (u.includes("/route/v1/driving/")) {
+      return new Response(JSON.stringify({ code: "Ok", routes: [{ distance: 465321 }] }), { status: 200 });
+    }
+    return new Response("{}", { status: 404 });
+  }) as typeof fetch;
+  try {
+    const mesure = await mesurerItineraire({ ville: "Paris", pays: null }, { ville: "Lyon", pays: "FR" });
+    verif("OSM : distance routière réelle parsée (465,3 km)", mesure?.distanceKm === 465.3);
+    verif("OSM : source « osm »", mesure?.source === "osm");
+    verif("OSM : pays absent complété par le géocodage (FR)", mesure?.paysOrigine === "FR");
+    verif("OSM : pays connu transmis à Nominatim (countrycodes=fr)", appels.some((a) => a.includes("countrycodes=fr")));
+    const nbAppels = appels.length;
+    await mesurerItineraire({ ville: "Paris", pays: null }, { ville: "Lyon", pays: "FR" });
+    verif("OSM : seconde mesure servie par le cache (aucun nouvel appel)", appels.length === nbAppels);
+  } finally {
+    globalThis.fetch = fetchOriginal;
+  }
+
+  // 6. OSRM sans itinéraire routier (ex : NoRoute) : jamais de distance inventée.
+  viderCacheItineraire();
+  globalThis.fetch = (async (url: string | URL | Request) => {
+    const u = String(url);
+    if (u.includes("/search?")) return new Response(JSON.stringify([{ lat: "48.85", lon: "2.35" }]), { status: 200 });
+    return new Response(JSON.stringify({ code: "NoRoute" }), { status: 200 });
+  }) as typeof fetch;
+  try {
+    const sansRoute = await mesurerItineraire({ ville: "Paris", pays: "FR" }, { ville: "Ajaccio", pays: "FR" });
+    verif("OSRM NoRoute : retourne null, jamais une distance inventée", sansRoute === null);
+  } finally {
+    globalThis.fetch = fetchOriginal;
+    env.GOOGLE_MAPS_API_KEY = cleOriginale;
+    env.ROUTAGE_OUVERT = routageOriginal;
+    viderCacheItineraire();
   }
 
   console.log(`\n${ok}/${total} vérifications réussies.`);

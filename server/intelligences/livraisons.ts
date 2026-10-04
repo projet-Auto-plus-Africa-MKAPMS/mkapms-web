@@ -1410,6 +1410,25 @@ export const LIVRAISONS: Livraison[] = [
     domaine: "confiance",
   },
   {
+    cle: "vehicle-delivery-connecteur-distance-ouvert-osm",
+    titre: "Vehicle Delivery Engine — distance routière réelle par connecteur ouvert (OpenStreetMap : Nominatim + OSRM) en repli de Google",
+    moteurs: ["livraison_vehicule"],
+    quoi:
+      "Le devis d'acheminement restait « Non mesuré » (bandeau rouge) faute de clé Google Maps. Ajout dans server/vehicle-delivery/routing.ts de mesurerItineraire() : distance fournie par l'appelant > Google Maps Distance Matrix si GOOGLE_MAPS_API_KEY > géocodage Nominatim puis itinéraire routier OSRM (profil driving) > null. Le pays absent est complété par le pays constaté au géocodage. Le devis expose distanceSource (appelant / google / osm) et l'écran Livraison véhicule affiche la distance routière et sa source. calculerDistanceRoutiere() conservée. Variables : ROUTAGE_OUVERT (on/off), NOMINATIM_URL, OSRM_URL (remplaçables par des serveurs auto-hébergés), ROUTAGE_CONTACT (User-Agent).",
+    pourquoi:
+      "Demande du Fondateur : estimer la livraison de toute catégorie de véhicule par un connecteur ouvert pour supprimer le « Non mesuré » rouge, sans dépendre d'une clé fournisseur — conforme à l'objectif d'autonomie (connecteur ouvert, serveurs auto-hébergeables).",
+    ou: [
+      "server/vehicle-delivery/routing.ts",
+      "server/vehicle-delivery/service.ts",
+      "server/env.ts",
+      "client/src/pages/LivraisonVehicule.tsx",
+      "server/vehicle-delivery/__tests__/routing.test.ts",
+    ],
+    lecon:
+      "Jamais de distance à vol d'oiseau : sans réponse routière réelle (réseau, ville introuvable, OSRM NoRoute), la distance reste null et le manque « connecteur d'itinéraire » reste affiché. Politique Nominatim respectée : une requête par seconde maximum (file d'appels), User-Agent identifié, cache 30 jours plafonné à 2000 entrées. Vérifié : 11/11 contrôles du connecteur (réponses Google et OSM simulées, cache, NoRoute → null) et appels réels Paris → Lyon 463,8 km, Dakar → Bamako 1256,8 km (pays ML déduit).",
+    domaine: "confiance",
+  },
+  {
     cle: "moteur-boutons-cluster-confiance-superadmin",
     titre: "Moteur des boutons — 5 écrans superadmin confiance/sécurité 100% fabriqués reconnectés aux moteurs réels",
     moteurs: ["smart", "vente", "avis_reputation"],

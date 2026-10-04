@@ -228,6 +228,12 @@ export default function LivraisonVehicule() {
                     <Clock size={10} /> Délai {d.delaiJoursMin ?? "?"} à {d.delaiJoursMax ?? "?"} jours cumulés
                   </p>
                 )}
+                {d.distanceKm !== null && (
+                  <p className="text-[10px] text-[#6B7280]">
+                    Distance routière {d.distanceKm.toLocaleString("fr-FR")} km
+                    {d.distanceSource === "osm" ? " · itinéraire OpenStreetMap" : d.distanceSource === "google" ? " · itinéraire Google Maps" : ""}
+                  </p>
+                )}
               </div>
 
               <div className="p-4 space-y-3">
