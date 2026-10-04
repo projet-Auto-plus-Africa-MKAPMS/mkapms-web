@@ -1092,14 +1092,14 @@ export function Conversation({ navigation, active = true, mode = "chat", onActiv
             </div>
           ) : (
             fil.map((b) => (
-              <div key={b.id} className={`group alhud-message ${b.role === "moi" ? "ml-auto max-w-[85%]" : "w-full"}`} data-role={b.role}>
+              <div key={b.id} className="group alhud-message w-full" data-role={b.role}>
               <div
                 className={`relative ${
                   b.role === "moi"
-                    ? "rounded-2xl border border-black/5 bg-[#FAFAFA] px-4 py-2.5"
+                    ? "px-0 py-2.5"
                     : b.ok
                       ? "py-1"
-                      : "rounded-xl border border-red-200 bg-red-50/40 p-3"
+                      : "border-l-2 border-red-300 py-2 pl-3"
                 }`}
               >
                 {b.ok ? (
