@@ -17335,11 +17335,11 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/pres-de-moi"
         ],
-        "cliquables": 1,
+        "cliquables": 5,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 8,
-        "mots": 52
+        "textes": 31,
+        "mots": 202
       }
     ],
     "ecransHotes": [],
@@ -17354,8 +17354,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "admin",
       "public"
     ],
-    "textes": 15,
-    "mots": 94,
+    "textes": 38,
+    "mots": 244,
     "battement": "sonde",
     "manques": []
   },
