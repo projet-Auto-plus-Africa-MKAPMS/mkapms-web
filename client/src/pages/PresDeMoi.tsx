@@ -1,207 +1,43 @@
 /**
- * MKA.P-MS — « Près de moi » (point 35).
- *
- * Un seul écran pour tous les services locaux : garage, comptable, pièces,
- * contrôle technique, dépannage… Le service choisi arrive dans l'URL
- * (`/pres-de-moi?service=garage`) pour que « contrôle technique près de moi »
- * soit un lien partageable et indexable.
- *
- * Règle affichée telle quelle au visiteur : la distance n'apparaît que si les
- * prestataires portent réellement des coordonnées, et un service sans annuaire
- * dit « non configuré » au lieu de laisser croire que la zone est vide.
+ * MKA.P-MS — portail public « près de moi ».
+ * Les annuaires Garage, Comptabilité et Pièces gardent leurs pages et moteurs
+ * propres : cet écran ne fait que guider le visiteur vers le bon portail.
  */
-import { useState } from "react";
-import { useSearchParams, Link } from "react-router-dom";
-import { MapPin, Navigation, Star, Phone, Loader2, Info, AlertTriangle } from "lucide-react";
+import { Link } from "react-router-dom";
+import { ArrowRight, Building2, CheckCircle2, Clock3, MapPin, Navigation, Search, ShieldCheck, Sparkles } from "lucide-react";
 import { trpc } from "../lib/trpc";
 
-const PAYS = ["FR", "BE", "ES", "MA", "TN", "SN", "CI", "ML", "GN"];
+const SERVICE_STYLES: Record<string, { icon: React.ReactNode; description: string }> = {
+  garage: { icon: <Building2 size={20} />, description: "Trouver un garage, demander un devis ou préparer un rendez-vous." },
+  comptable: { icon: <CheckCircle2 size={20} />, description: "Accéder au centre comptable et à son annuaire vérifié." },
+  pieces: { icon: <Search size={20} />, description: "Explorer les pièces et les professionnels spécialisés." },
+  controle_technique: { icon: <ShieldCheck size={20} />, description: "Préparer votre contrôle et découvrir le service dédié." },
+  depannage: { icon: <Navigation size={20} />, description: "Accéder à l’assistance et au parcours dépannage." },
+  livraison: { icon: <ArrowRight size={20} />, description: "Organiser une livraison avec le portail transport." },
+  vtc_taxi: { icon: <MapPin size={20} />, description: "Découvrir les solutions VTC et Taxi." },
+  location: { icon: <Clock3 size={20} />, description: "Voir les véhicules et solutions de location." },
+};
 
 export default function PresDeMoi() {
-  const [params, setParams] = useSearchParams();
-  const service = params.get("service") ?? "garage";
-  const [countryCode, setCountryCode] = useState("FR");
-  const [city, setCity] = useState("");
-  const [radiusKm, setRadiusKm] = useState(50);
-  const [position, setPosition] = useState<{ latitude: number; longitude: number } | null>(null);
-  const [geoError, setGeoError] = useState<string | null>(null);
-  const [locating, setLocating] = useState(false);
-
   const services = trpc.proximity.services.useQuery();
-  const results = trpc.proximity.nearby.useQuery({
-    service,
-    countryCode,
-    city: city.trim() || undefined,
-    latitude: position?.latitude,
-    longitude: position?.longitude,
-    radiusKm,
-  });
 
-  const current = services.data?.find((s) => s.code === service);
+  return <main className="min-h-screen overflow-hidden bg-[#F5F7FB] pb-14 text-[#111827]">
+    <section className="relative isolate overflow-hidden bg-[#101824] px-4 pb-28 pt-9 text-white sm:px-6 sm:pb-32 sm:pt-12">
+      <div className="absolute inset-0 -z-20 bg-[radial-gradient(circle_at_78%_15%,rgba(0,134,255,.37),transparent_31%),radial-gradient(circle_at_16%_82%,rgba(255,215,0,.16),transparent_35%)]" />
+      <div className="absolute -right-20 top-5 -z-10 h-80 w-80 rounded-full border border-sky-200/15" /><div className="absolute -right-9 top-14 -z-10 h-80 w-80 rounded-full border border-sky-200/10" />
+      <div className="mx-auto max-w-6xl text-center"><Link to="/services" className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-2 text-xs font-bold text-white/85 backdrop-blur transition hover:border-[#FFD700] hover:bg-white/15"><ArrowRight size={14} className="rotate-180" /> Retour aux services</Link><div className="mx-auto mt-9 inline-flex items-center gap-2 rounded-full border border-[#FFD700]/50 bg-[#FFD700]/10 px-3 py-2 text-[10px] font-black uppercase tracking-[.16em] text-[#FFE891]"><Navigation size={14} /> Portails de proximité MKA.P-MS</div><h1 className="mx-auto mt-5 max-w-4xl text-4xl font-black leading-[1.03] tracking-tight sm:text-6xl">Le bon portail, au bon moment.</h1><p className="mx-auto mt-5 max-w-2xl text-sm leading-7 text-white/80 sm:text-base">Choisissez votre besoin. Chaque accès vous emmène vers l’univers MKA.P-MS adapté, avec ses propres outils, informations et parcours sécurisé.</p><div className="mt-7 flex flex-wrap justify-center gap-2 text-xs font-bold text-white/90"><span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-2"><ShieldCheck size={14} className="text-[#FFE891]" /> Accès officiels</span><span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-2"><CheckCircle2 size={14} className="text-[#7FD3FF]" /> Parcours vérifiés</span><span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-2"><Clock3 size={14} className="text-[#FFE891]" /> Disponible 24h/24</span></div></div>
+    </section>
 
-  function locate() {
-    if (!navigator.geolocation) {
-      setGeoError("Votre navigateur ne partage pas la position : utilisez la recherche par ville.");
-      return;
-    }
-    setLocating(true);
-    setGeoError(null);
-    navigator.geolocation.getCurrentPosition(
-      (p) => {
-        setPosition({ latitude: p.coords.latitude, longitude: p.coords.longitude });
-        setLocating(false);
-      },
-      () => {
-        setGeoError("Position refusée ou indisponible : recherche par ville ou par pays.");
-        setLocating(false);
-      },
-      { timeout: 10000 },
-    );
-  }
+    <section className="relative z-10 mx-auto -mt-16 max-w-6xl px-4 sm:-mt-20 sm:px-6" aria-labelledby="portals-title"><div className="rounded-[30px] border border-white/90 bg-white p-5 shadow-[0_24px_60px_rgba(5,12,22,.18)] sm:p-7"><div className="border-b border-slate-100 pb-5 text-center"><p className="text-xs font-black uppercase tracking-[.14em] text-[#087BA8]">Vos portails de service</p><h2 id="portals-title" className="mt-1 text-2xl font-black tracking-tight text-[#111827] sm:text-3xl">Où souhaitez-vous aller ?</h2><p className="mx-auto mt-2 max-w-2xl text-sm leading-6 text-slate-500">Un accès clair par besoin : aucun faux résultat ni annuaire inventé. Les pages existantes restent intactes et vous y êtes redirigé directement.</p></div>
+      {services.isLoading ? <div className="flex items-center justify-center py-14 text-sm font-semibold text-slate-500"><Sparkles className="mr-2 h-5 w-5 animate-pulse text-[#087BA8]" /> Préparation de vos portails…</div> : <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">{(services.data ?? []).map((service) => { const style = SERVICE_STYLES[service.code] ?? { icon: <Building2 size={20} />, description: "Accéder à ce service MKA.P-MS." }; return <Link key={service.code} to={service.path} className="group flex min-h-56 flex-col rounded-[24px] border border-slate-200 bg-white p-5 text-center shadow-[0_8px_20px_rgba(17,17,17,.04)] transition hover:-translate-y-1 hover:border-[#7FD3FF] hover:shadow-[0_18px_36px_rgba(0,134,255,.12)]"><span className={`mx-auto grid h-12 w-12 place-items-center rounded-2xl ${service.localisable ? "bg-[#0086FF]/10 text-[#087BA8]" : "bg-[#FFD700]/15 text-[#B8860B]"}`}>{style.icon}</span><h3 className="mt-4 text-base font-black text-[#111827]">{service.label}</h3><p className="mt-2 text-sm leading-6 text-slate-600">{style.description}</p><span className="mt-auto inline-flex items-center justify-center gap-2 pt-5 text-sm font-black text-[#087BA8]">Ouvrir le portail <ArrowRight size={16} className="transition group-hover:translate-x-1" /></span></Link>; })}</div>}
+    </div></section>
 
-  return (
-    <div className="max-w-5xl mx-auto px-4 py-8">
-      <div className="flex items-center gap-3 mb-2">
-        <Navigation className="w-7 h-7 text-[#D4AF37]" />
-        <h1 className="text-2xl font-bold">{current ? `${current.label} près de moi` : "Près de moi"}</h1>
-      </div>
-      <p className="text-gray-600 mb-6">
-        Les professionnels autour de vous, service par service, avec la distance réelle lorsqu'elle est connue.
-      </p>
+    <section className="mx-auto max-w-6xl px-4 py-10 sm:px-6"><div className="grid gap-4 md:grid-cols-3"><TrustCard icon={<ShieldCheck size={21} />} title="Clarté avant tout" text="Chaque carte ouvre le vrai univers concerné. Les pages, données et moteurs déjà en place ne sont pas modifiés ici." tone="blue" /><TrustCard icon={<MapPin size={21} />} title="Une proximité responsable" text="La géolocalisation et les distances ne sont utilisées que dans les portails réellement équipés pour les traiter." tone="gold" /><TrustCard icon={<CheckCircle2 size={21} />} title="Un parcours fiable" text="Les accès sont organisés par besoin pour aller plus vite, sans confusion entre vos services ni promesse non vérifiable." tone="blue" /></div></section>
 
-      {/* Choix du service */}
-      <div className="flex flex-wrap gap-2 mb-5">
-        {(services.data ?? []).map((s) => (
-          <button
-            key={s.code}
-            type="button"
-            onClick={() => setParams({ service: s.code })}
-            className={`px-3 py-2 rounded-lg border text-sm transition ${
-              s.code === service
-                ? "bg-[#0B1B33] text-white border-[#0B1B33]"
-                : "bg-white text-gray-700 border-gray-300 hover:border-[#D4AF37]"
-            }`}
-          >
-            {s.label}
-            {!s.localisable && <span className="ml-1 text-xs opacity-70">(non configuré)</span>}
-          </button>
-        ))}
-      </div>
+    <section className="border-y border-[#FFD700]/20 bg-white px-4 py-10 sm:px-6"><div className="mx-auto max-w-6xl"><div className="flex flex-col items-center gap-5 rounded-[28px] bg-[#101824] p-6 text-center text-white sm:p-8"><div className="max-w-2xl"><p className="text-xs font-black uppercase tracking-[.14em] text-[#FFE891]">Vous êtes professionnel ?</p><h2 className="mt-2 text-2xl font-black">Faites connaître votre activité sur MKA.P-MS.</h2><p className="mt-2 text-sm leading-6 text-white/70">Préparez votre dossier depuis votre espace professionnel. Les informations visibles restent soumises aux contrôles de la plateforme.</p></div><Link to="/espace-pro" className="inline-flex w-full max-w-sm items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#0086FF] to-[#006AD1] px-5 py-3 text-sm font-black text-white shadow-[0_10px_24px_rgba(0,134,255,.28)] transition hover:from-[#1294FF] hover:to-[#0874D9]">Référencer mon activité <ArrowRight size={17} /></Link></div></div></section>
 
-      {/* Filtres */}
-      <div className="bg-white border border-gray-200 rounded-xl p-4 mb-5 grid gap-3 sm:grid-cols-4">
-        <button
-          type="button"
-          onClick={locate}
-          disabled={locating}
-          className="flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-[#D4AF37] text-[#0B1B33] font-semibold disabled:opacity-60"
-        >
-          {locating ? <Loader2 className="w-4 h-4 animate-spin" /> : <MapPin className="w-4 h-4" />}
-          {position ? "Position prise en compte" : "Utiliser ma position"}
-        </button>
-        <select
-          value={countryCode}
-          onChange={(e) => setCountryCode(e.target.value)}
-          className="px-3 py-2 rounded-lg border border-gray-300"
-          aria-label="Pays"
-        >
-          {PAYS.map((p) => (
-            <option key={p} value={p}>
-              {p}
-            </option>
-          ))}
-        </select>
-        <input
-          value={city}
-          onChange={(e) => setCity(e.target.value)}
-          placeholder="Ville"
-          className="px-3 py-2 rounded-lg border border-gray-300"
-        />
-        <select
-          value={radiusKm}
-          onChange={(e) => setRadiusKm(Number(e.target.value))}
-          className="px-3 py-2 rounded-lg border border-gray-300"
-          aria-label="Rayon de recherche"
-        >
-          {[10, 25, 50, 100, 200].map((r) => (
-            <option key={r} value={r}>
-              {r} km
-            </option>
-          ))}
-        </select>
-      </div>
-
-      {geoError && (
-        <div className="flex items-start gap-2 bg-amber-50 border border-amber-200 text-amber-900 rounded-lg p-3 mb-4 text-sm">
-          <AlertTriangle className="w-4 h-4 mt-0.5 shrink-0" />
-          <span>{geoError}</span>
-        </div>
-      )}
-
-      {results.isLoading && (
-        <div className="flex items-center gap-2 text-gray-600">
-          <Loader2 className="w-4 h-4 animate-spin" /> Recherche en cours…
-        </div>
-      )}
-
-      {results.data && (
-        <>
-          <div className="flex items-start gap-2 bg-blue-50 border border-blue-200 text-blue-900 rounded-lg p-3 mb-4 text-sm">
-            <Info className="w-4 h-4 mt-0.5 shrink-0" />
-            <span>{results.data.explication}</span>
-          </div>
-
-          {results.data.mode === "non_configure" ? (
-            <div className="text-center py-10 text-gray-600">
-              <p className="font-semibold mb-1">Service pas encore localisable</p>
-              <p className="text-sm">
-                Vous pouvez tout de même accéder au service :{" "}
-                <Link to={results.data.path} className="text-[#0B1B33] underline">
-                  {results.data.label}
-                </Link>
-                .
-              </p>
-            </div>
-          ) : results.data.results.length === 0 ? (
-            <div className="text-center py-10 text-gray-600">
-              Aucun professionnel référencé pour cette recherche.
-            </div>
-          ) : (
-            <ul className="grid gap-3 sm:grid-cols-2">
-              {results.data.results.map((r) => (
-                <li key={r.id} className="bg-white border border-gray-200 rounded-xl p-4">
-                  <div className="flex items-start justify-between gap-3">
-                    <span className="font-semibold">{r.name}</span>
-                    {r.distanceKm !== null && (
-                      <span className="text-sm font-semibold text-[#0B1B33] whitespace-nowrap">
-                        {r.distanceKm} km
-                      </span>
-                    )}
-                  </div>
-                  <div className="text-sm text-gray-600 mt-1">
-                    {[r.address, r.city, r.country].filter(Boolean).join(" · ") || "Adresse non renseignée"}
-                  </div>
-                  <div className="flex items-center gap-4 mt-2 text-sm">
-                    {r.rating !== null ? (
-                      <span className="flex items-center gap-1 text-amber-600">
-                        <Star className="w-4 h-4 fill-current" />
-                        {r.rating} <span className="text-gray-500">({r.reviewCount} avis)</span>
-                      </span>
-                    ) : (
-                      <span className="text-gray-500">Pas encore d'avis</span>
-                    )}
-                    {r.phone && (
-                      <a href={`tel:${r.phone}`} className="flex items-center gap-1 text-[#0B1B33]">
-                        <Phone className="w-4 h-4" /> {r.phone}
-                      </a>
-                    )}
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
-        </>
-      )}
-    </div>
-  );
+    <footer className="mx-auto max-w-6xl px-4 py-9 text-center sm:px-6"><p className="text-sm font-black text-[#111827]">MKA.P-MS <span className="text-[#B8860B]">Proximité</span></p><p className="mx-auto mt-3 max-w-3xl text-xs leading-6 text-slate-500">MKA.P-MS vous redirige vers le bon portail. Les conditions, informations et contrôles propres à chaque service restent affichés dans son univers.</p><div className="mt-4 flex flex-wrap justify-center gap-x-5 gap-y-2 text-xs font-bold text-[#087BA8]"><Link to="/confiance">Centre de confiance</Link><Link to="/confidentialite">Confidentialité</Link><Link to="/aide">Aide & questions</Link></div></footer>
+  </main>;
 }
+
+function TrustCard({ icon, title, text, tone }: { icon: React.ReactNode; title: string; text: string; tone: "blue" | "gold" }) { return <article className="rounded-3xl border border-slate-100 bg-white p-6 text-center shadow-[0_8px_20px_rgba(17,17,17,.03)]"><span className={`mx-auto grid h-11 w-11 place-items-center rounded-2xl ${tone === "blue" ? "bg-[#0086FF]/10 text-[#087BA8]" : "bg-[#FFD700]/15 text-[#B8860B]"}`}>{icon}</span><h2 className="mt-4 text-base font-black text-[#111827]">{title}</h2><p className="mt-2 text-sm leading-6 text-slate-600">{text}</p></article>; }
