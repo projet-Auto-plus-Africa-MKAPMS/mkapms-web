@@ -80,6 +80,7 @@ import { modeleTranscriptionMemorise, startRealtimeVoice, type RealtimeVoiceCont
 import { prefersRecordedDictation, speechRecognitionConstructor, startDictation } from "../../../lib/speech";
 
 import { MissionSteps, ProgressiveReply, WaitingReply, type EtapeTravail } from "./ReplyPresentation";
+import { libelleOutil, statutAppelOutil } from "@shared/libelles-outils";
 
 interface Bulle {
   id: string;
@@ -122,6 +123,18 @@ function idBulle(): string {
 /** Les lignes de contexte "Outil appelé : …" (server/intelligences/service.ts) deviennent des puces visibles, sans jamais nommer un fournisseur. */
 function outilsDepuisContexte(contexte: string[]): string[] {
   return contexte.filter((l) => l.startsWith("Outil appelé :")).map((l) => l.replace("Outil appelé : ", ""));
+}
+
+/** Les outils appelés deviennent les mêmes lignes lisibles que le suivi en direct (« Lit la fiche produit complète · fait »). */
+function etapesOutils(appels: { toolId: string; verdictPolitique: string; statutExecution: string | null }[]): EtapeTravail[] {
+  return appels.map((a, i) => ({ etape: `outil-${i}`, libelle: libelleOutil(a.toolId), statut: statutAppelOutil(a.verdictPolitique, a.statutExecution), observe: "" }));
+}
+
+function etapesDepuisContexte(contexte: string[]): EtapeTravail[] {
+  return etapesOutils(outilsDepuisContexte(contexte).flatMap((l) => {
+    const m = /^(\S+) — ([a-z_]+)(?:\/([a-z_]+))?/.exec(l);
+    return m ? [{ toolId: m[1], verdictPolitique: m[2], statutExecution: m[3] ?? null }] : [];
+  }));
 }
 
 /**
@@ -288,6 +301,7 @@ export function Conversation({ navigation, active = true, mode = "chat", onActiv
           ok: m.ok,
           motif: m.motifPublic || "Aucune réponse — le service n'a pas communiqué de motif.",
           outils: outilsDepuisContexte(m.contexte ?? []),
+          etapes: etapesDepuisContexte(m.contexte ?? []),
         })),
     );
   }, [sessionId, filServeur.data, filServeur.isFetching, filServeur.isError]);
@@ -325,7 +339,8 @@ export function Conversation({ navigation, active = true, mode = "chat", onActiv
           progressive: r.ok,
           // Point 5/02A — jamais le motif interne (fournisseur, modèle, code HTTP) dans cette interface.
           motif: r.motifPublic || "Aucune réponse — le service n'a pas communiqué de motif.",
-          outils: r.appelsOutils.map((a) => `${a.toolId} — ${a.verdictPolitique}${a.statutExecution ? `/${a.statutExecution}` : ""}`),
+          outils: r.appelsOutils.map((a) => libelleOutil(a.toolId)),
+          etapes: etapesOutils(r.appelsOutils),
         },
       ]);
       void conversations.refetch();
@@ -404,7 +419,7 @@ export function Conversation({ navigation, active = true, mode = "chat", onActiv
   });
   const progression = trpc.intelligences.progressionMission.useQuery(
     { suiviId: suiviMission ?? "" },
-    { enabled: !!suiviMission && mission.isPending, refetchInterval: 700, refetchOnWindowFocus: false },
+    { enabled: !!suiviMission && (mission.isPending || demander.isPending), refetchInterval: 700, refetchOnWindowFocus: false },
   );
 
   const creerSessionVocale = trpc.intelligences.creerSessionVocale.useMutation();
@@ -778,7 +793,9 @@ export function Conversation({ navigation, active = true, mode = "chat", onActiv
     } else {
       sendLock.current = true;
       sent.current = { key, text: q, consumesDraft, vocal };
-      demander.mutate({ question: q, sessionId, effort: intensite, images: images.length ? images : undefined, fichierIds: fichierIds.length ? fichierIds : undefined });
+      const suiviId = `c${Date.now().toString(36)}${Math.random().toString(36).slice(2, 10)}`;
+      setSuiviMission(suiviId);
+      demander.mutate({ suiviId, question: q, sessionId, effort: intensite, images: images.length ? images : undefined, fichierIds: fichierIds.length ? fichierIds : undefined });
     }
   }
 
@@ -1057,7 +1074,7 @@ export function Conversation({ navigation, active = true, mode = "chat", onActiv
       {historySlot ? createPortal(historique(true), historySlot) : null}
 
 
-      <div className="flex min-h-0 min-w-0 flex-1 flex-col rounded-xl border border-black/10">
+      <div className="alhud-conversation-panel flex min-h-0 min-w-0 flex-1 flex-col rounded-xl border border-black/10">
         {!active ? <section className="alhud-active-tool flex-1 overflow-auto p-4" aria-label="Outil sélectionné">{children}</section> : null}
         <div hidden={!active} className="alhud-live-conversation flex min-h-0 flex-1 flex-col">
         {sessionId && filServeur.isFetching ? <p role="status" className="p-3 text-sm">Chargement de la conversation…</p> : null}
@@ -1075,14 +1092,14 @@ export function Conversation({ navigation, active = true, mode = "chat", onActiv
             </div>
           ) : (
             fil.map((b) => (
-              <div key={b.id} className={`group max-w-[85%] ${b.role === "moi" ? "ml-auto" : ""}`}>
+              <div key={b.id} className={`group alhud-message ${b.role === "moi" ? "ml-auto max-w-[85%]" : "w-full"}`} data-role={b.role}>
               <div
-                className={`relative rounded-xl border p-3 text-sm ${
+                className={`relative ${
                   b.role === "moi"
-                    ? "border-black/5 bg-[#FAFAFA]"
+                    ? "rounded-2xl border border-black/5 bg-[#FAFAFA] px-4 py-2.5"
                     : b.ok
-                      ? "border-[#8B7500]/20 bg-[#FFFBEA]"
-                      : "border-red-200 bg-red-50/40"
+                      ? "py-1"
+                      : "rounded-xl border border-red-200 bg-red-50/40 p-3"
                 }`}
               >
                 {b.ok ? (
@@ -1167,12 +1184,15 @@ export function Conversation({ navigation, active = true, mode = "chat", onActiv
             ))
           )}
           {demander.isPending && (
-            <WaitingReply />
+            <div className="alhud-mission-live" role="status" aria-label="Réponse en cours">
+              <MissionSteps etapes={progression.data?.etapes ?? []} enCours={false} />
+              <WaitingReply action={[...(progression.data?.etapes ?? [])].reverse().find((e) => e.statut === "en_cours")?.libelle} />
+            </div>
           )}
           {mission.isPending && (
             <div className="alhud-mission-live" role="status" aria-label="Travail en cours">
               <MissionSteps etapes={progression.data?.etapes ?? []} enCours />
-              <WaitingReply />
+              <WaitingReply action={[...(progression.data?.etapes ?? [])].reverse().find((e) => e.statut === "en_cours")?.libelle} />
             </div>
           )}
           <div ref={finDuFil} />

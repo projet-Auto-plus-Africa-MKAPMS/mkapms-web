@@ -5,6 +5,8 @@
  * reste celle enregistrée par l'orchestrateur en fin de mission.
  */
 import type { StatutEtape } from "./mission-etat.js";
+import type { AppelOutilEnDirect } from "./outils/boucle.js";
+import { libelleOutil, statutAppelOutil } from "../../shared/libelles-outils.js";
 
 export type StatutProgression = StatutEtape | "en_cours";
 
@@ -76,4 +78,10 @@ export function lireSuivi(id: string, actorId: number, maintenant = Date.now()) 
     dureeMs: maintenant - suivi.debut,
     etapes: suivi.etapes.map((e) => ({ ...e })),
   };
+}
+
+/** Un appel d'outil de la boucle devient une ligne lisible du suivi (« Lit la fiche produit complète · en cours »). */
+export function etapeOutil(a: AppelOutilEnDirect): EvenementProgression {
+  const statut = statutAppelOutil(a.verdictPolitique, a.statutExecution);
+  return { etape: `outil-${a.rang}`, libelle: libelleOutil(a.toolId), statut, observe: statut === "fait" || statut === "en_cours" ? "" : a.motif };
 }

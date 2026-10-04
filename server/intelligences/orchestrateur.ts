@@ -19,6 +19,8 @@
 import { desc, eq } from "drizzle-orm";
 import { db } from "../db.js";
 import { inMissionEtapes, inMissions } from "./schema.js";
+import { etapeOutil } from "./mission-progression.js";
+import { libelleOutil } from "../../shared/libelles-outils.js";
 import { router, permissionsDuRole } from "./routeur.js";
 import { autorise, type NiveauAutonomie, type Verdict } from "./autonomie.js";
 import { normaliser, type Piece } from "./multimodal.js";
@@ -961,6 +963,15 @@ async function travailOutille(input: OrchestrerInput, objectif: string, domaine:
       role: input.role,
       countryCode: input.countryCode ?? null,
       images: n.images.length > 0 ? n.images : undefined,
+      onOutil: input.onEtape
+        ? (a) => {
+            try {
+              input.onEtape?.(etapeOutil(a));
+            } catch {
+              // L'affichage en direct ne doit jamais interrompre la mission.
+            }
+          }
+        : undefined,
     });
     ok = r.ok;
     reponse = r.reponse;
@@ -976,7 +987,7 @@ async function travailOutille(input: OrchestrerInput, objectif: string, domaine:
     const echec = a.statutExecution !== null && a.statutExecution !== "execute";
     etapes.push({
       etape: "outil",
-      libelle: `Outil : ${a.toolId}`,
+      libelle: libelleOutil(a.toolId),
       permission: "READ",
       capacite: null,
       statut: refuse ? "refuse" : attente ? "en_attente_autorisation" : echec ? "echec" : "fait",

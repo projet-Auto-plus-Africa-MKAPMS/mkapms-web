@@ -33,3 +33,14 @@ test("l'aperçu d'une étape est borné", () => {
   publierEtape("suivi-borne-01", { etape: "analyse", libelle: "Analyse", statut: "fait", observe: "x".repeat(5000) }, 1);
   assert.equal(lireSuivi("suivi-borne-01", 7, 2)?.etapes[0].observe.length, 600);
 });
+
+test("un appel d'outil devient une ligne lisible, en cours puis faite, sans exposer l'identifiant technique", async () => {
+  const { etapeOutil } = await import("../mission-progression.js");
+  const debut = etapeOutil({ rang: 0, toolId: "boutique.lireFicheComplete", verdictPolitique: "autorise", statutExecution: null, motif: "" });
+  assert.deepEqual(debut, { etape: "outil-0", libelle: "Lit la fiche produit complète", statut: "en_cours", observe: "" });
+  const fin = etapeOutil({ rang: 0, toolId: "boutique.lireFicheComplete", verdictPolitique: "autorise", statutExecution: "execute", motif: "ok" });
+  assert.equal(fin.statut, "fait");
+  const refus = etapeOutil({ rang: 1, toolId: "boutique.synchroniserStock", verdictPolitique: "attente_approbation_humaine", statutExecution: null, motif: "Validation du PDG requise" });
+  assert.equal(refus.statut, "en_attente_autorisation");
+  assert.equal(refus.observe, "Validation du PDG requise");
+});
