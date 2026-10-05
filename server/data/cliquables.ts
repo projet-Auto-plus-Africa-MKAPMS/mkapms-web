@@ -40,7 +40,7 @@ export interface AnomalieCliquable {
   readonly motif: MotifAnomalie;
 }
 
-export const CLIQUABLES_TOTAL = 2734;
+export const CLIQUABLES_TOTAL = 2733;
 
 export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/components/AccessDenied.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
@@ -339,7 +339,7 @@ export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/pages/InscriptionProVente.tsx", total: 8, moteur: 0, liens: 4, boutonsLocaux: 4, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/InscriptionProVO.tsx", total: 7, moteur: 0, liens: 3, boutonsLocaux: 4, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/InspectionNumerique.tsx", total: 2, moteur: 0, liens: 2, boutonsLocaux: 0, sansAction: 0, zones: 0 },
-  { fichier: "client/src/pages/intelligence/index.tsx", total: 22, moteur: 0, liens: 1, boutonsLocaux: 19, sansAction: 1, zones: 1 },
+  { fichier: "client/src/pages/intelligence/index.tsx", total: 21, moteur: 0, liens: 1, boutonsLocaux: 18, sansAction: 1, zones: 1 },
   { fichier: "client/src/pages/intelligence/modules/AgentDeveloppeur.tsx", total: 2, moteur: 0, liens: 0, boutonsLocaux: 2, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/intelligence/modules/Agents.tsx", total: 2, moteur: 0, liens: 0, boutonsLocaux: 2, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/intelligence/modules/Automatisations.tsx", total: 3, moteur: 0, liens: 0, boutonsLocaux: 3, sansAction: 0, zones: 0 },
@@ -776,7 +776,7 @@ export const CLIQUABLES_ANOMALIES: readonly AnomalieCliquable[] = [
   { fichier: "client/src/pages/GestionConducteurs.tsx", ligne: 66, genre: "bouton", libelle: "Ajouter le conducteur", motif: "sans_action" },
   { fichier: "client/src/pages/GestionConducteurs.tsx", ligne: 85, genre: "bouton", libelle: "(sans texte)", motif: "sans_action" },
   { fichier: "client/src/pages/GestionFranchises.tsx", ligne: 89, genre: "bouton", libelle: "Appliquer la franchise", motif: "sans_action" },
-  { fichier: "client/src/pages/intelligence/index.tsx", ligne: 186, genre: "bouton", libelle: "Boutique", motif: "sans_action" },
+  { fichier: "client/src/pages/intelligence/index.tsx", ligne: 183, genre: "bouton", libelle: "Boutique", motif: "sans_action" },
   { fichier: "client/src/pages/LocationLOA.tsx", ligne: 100, genre: "bouton", libelle: "Simulation indisponible", motif: "sans_action" },
   { fichier: "client/src/pages/pieces/AbonnementsProPieces.tsx", ligne: 17, genre: "bouton", libelle: "Choisir", motif: "sans_action" },
   { fichier: "client/src/pages/pieces/MontageGarage.tsx", ligne: 10, genre: "bouton", libelle: "(sans texte)", motif: "sans_action" },
