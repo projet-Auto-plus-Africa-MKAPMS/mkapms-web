@@ -17,6 +17,7 @@ import {
   proposerFicheBoutique,
   synchroniserStockBoutique,
   definirColisBoutique,
+  retirerPhotosProduitBoutique,
   remplirFicheDepuisFournisseurBoutique,
   appliquerColisFournisseurBoutique,
   lireApercuBoutique,
@@ -71,6 +72,10 @@ export const IMPLEMENTATIONS: Record<string, ImplementationOutil> = {
   "boutique.definirColis": async (args, contexte) => {
     const a = await accesBoutique(compteAppelant(contexte), "boutique.definirColis", "Enregistrer le nombre de colis d'un produit de la boutique, demandé par le PDG");
     return a.ok ? definirColisBoutique(a, args.produitId, { nombre: args.nombre, preuve: args.preuve }) : { ok: false, detail: a.detail };
+  },
+  "boutique.retirerPhotosProduit": async (args, contexte) => {
+    const a = await accesBoutique(compteAppelant(contexte), "boutique.retirerPhotosProduit", "Retirer d'une fiche de la boutique les photos venues avec le produit, demandé par le PDG");
+    return a.ok ? retirerPhotosProduitBoutique(a, args.produitId) : { ok: false, detail: a.detail };
   },
   "boutique.remplirFicheDepuisFournisseur": async (args, contexte) => {
     const a = await accesBoutique(compteAppelant(contexte), "boutique.remplirFicheDepuisFournisseur", "Reprendre dans une fiche de la boutique les caractéristiques données par le fournisseur, demandé par le PDG");
