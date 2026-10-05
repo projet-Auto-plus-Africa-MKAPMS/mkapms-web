@@ -91,6 +91,32 @@ interface Bulle {
   outils: string[];
   progressive?: boolean;
   etapes?: EtapeTravail[];
+  /** Création privée rendue directement dans le fil Chat ou Travail. */
+  imageSrc?: string;
+}
+
+type NiveauImageConversation = "normal" | "premium" | "pro";
+
+const CONSIGNES_IMAGE: Record<NiveauImageConversation, string> = {
+  normal: "Créer une image claire, équilibrée et fidèle à la demande. Respecter exactement les couleurs, le texte et les détails fournis.",
+  premium: "Créer une image premium : composition soignée, contraste maîtrisé, lumière élégante, hiérarchie visuelle nette et rendu crédible. Préserver fidèlement tous les détails demandés.",
+  pro: "Créer une proposition professionnelle prête à être revue : direction artistique cohérente, lisibilité irréprochable, composition éditoriale, couleurs précises et finitions haut de gamme. Ne pas inventer de logo, texte, marque, chiffre ou promesse non demandés.",
+};
+
+function consigneImageConversation(texte: string, niveau: NiveauImageConversation): string {
+  return `${CONSIGNES_IMAGE[niveau]}\n\nDemande du Fondateur :\n${texte.trim()}\n\nContraintes : si des photos sont jointes, elles sont des références visuelles privées. Aucun watermark, aucun texte ajouté, aucun logo ajouté sans instruction explicite.`;
+}
+
+/** Une demande écrite normalement suffit : aucun nouveau bouton ni écran intermédiaire. */
+function estDemandeImage(texte: string): boolean {
+  const t = texte.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+  return /\b(cree|cree-moi|genere|fais|fabrique|dessine|transforme|realise)\b[\s\S]{0,90}\b(image|visuel|logo|illustration|affiche|banniere|photo)\b/.test(t) || /\b(image|visuel|logo|illustration|affiche|banniere)\b[\s\S]{0,60}\b(normal|premium|pro)\b/.test(t);
+}
+function niveauImageDepuisTexte(texte: string): NiveauImageConversation {
+  const t = texte.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+  if (/\b(mode |niveau )?normal\b/.test(t)) return "normal";
+  if (/\b(mode |niveau )?pro\b/.test(t)) return "pro";
+  return "premium";
 }
 
 type PieceConversation =
@@ -222,6 +248,8 @@ export function Conversation({ navigation, active = true, mode = "chat", onActiv
   const sessionIdRef = useRef<number | null>(null);
   const [menuPiecesOuvert, setMenuPiecesOuvert] = useState(false);
   const [pieces, setPieces] = useState<PieceConversation[]>([]);
+  const [productionImageId, setProductionImageId] = useState<string | null>(null);
+  const productionImageBulleId = useRef<string | null>(null);
   const cameraInput = useRef<HTMLInputElement>(null);
   const photosInput = useRef<HTMLInputElement>(null);
   const fichiersInput = useRef<HTMLInputElement>(null);
@@ -285,6 +313,29 @@ export function Conversation({ navigation, active = true, mode = "chat", onActiv
   );
 
   const deposerFichier = trpc.intelligences.fichierDeposer.useMutation();
+  const memoriserPreferenceImage = trpc.intelligences.memoireUtilisateurEcrire.useMutation();
+  const productionImage = trpc.intelligences.mediaProduire.useMutation();
+  const imageProduite = trpc.intelligences.mediaLire.useQuery(
+    { id: productionImageId ?? "" },
+    { enabled: !!productionImageId, refetchInterval: (q) => q.state.data?.statut === "PROCESSING" ? 2500 : false },
+  );
+
+  useEffect(() => {
+    const media = imageProduite.data;
+    const bulleId = productionImageBulleId.current;
+    if (!media || !bulleId) return;
+    if (media.statut === "READY" && media.donnees && media.mime === "image/png") {
+      const imageSrc = `data:${media.mime};base64,${media.donnees}`;
+      setFil((f) => f.map((b) => b.id === bulleId ? { ...b, texte: "Votre création est prête à contrôler.", imageSrc, progressive: false } : b));
+      setProductionImageId(null);
+      productionImageBulleId.current = null;
+    }
+    if (media.statut === "FAILED") {
+      setFil((f) => f.map((b) => b.id === bulleId ? { ...b, ok: false, motif: media.motif || "La création d’image n’a pas abouti.", progressive: false } : b));
+      setProductionImageId(null);
+      productionImageBulleId.current = null;
+    }
+  }, [imageProduite.data]);
 
   useEffect(() => {
     if (!sessionId || !filServeur.data || filServeur.isFetching || filServeur.isError) return;
@@ -761,6 +812,10 @@ export function Conversation({ navigation, active = true, mode = "chat", onActiv
   function envoyer(texte?: string, action: "composer" | "regenerate" = "composer", vocal = false) {
     const q = (texte ?? question).trim();
     if (q.length < 2 || busy || historyUnavailable || !active || !mounted.current) return;
+    if (action === "composer" && !vocal && estDemandeImage(q)) {
+      void genererImageDansLeFil(q, niveauImageDepuisTexte(q));
+      return;
+    }
     if (!vocal && conversationVocaleRef.current) arreterConversationVocale();
     suitLeFil.current = true; setRetourAuBas(false);
     setFil(f => f.map(b => ({ ...b, progressive: false })));
@@ -796,6 +851,23 @@ export function Conversation({ navigation, active = true, mode = "chat", onActiv
       const suiviId = `c${Date.now().toString(36)}${Math.random().toString(36).slice(2, 10)}`;
       setSuiviMission(suiviId);
       demander.mutate({ suiviId, question: q, sessionId, effort: intensite, images: images.length ? images : undefined, fichierIds: fichierIds.length ? fichierIds : undefined });
+    }
+  }
+
+  /** Création réellement exécutée sans quitter Chat ou Travail. */
+  async function genererImageDansLeFil(q: string, niveauImage: NiveauImageConversation) {
+    const references = pieces.filter((p): p is Extract<PieceConversation, { type: "image" }> => p.type === "image").map((p) => p.donnees);
+    const attenteId = idBulle(); suitLeFil.current = true; setRetourAuBas(false); setNotice("");
+    setFil((f) => [...f, { id: idBulle(), role: "moi", texte: `Création d’image (${niveauImage}) : ${q}`, ok: true, motif: "", outils: [] }, { id: attenteId, role: "moteur", texte: "Création de votre image privée en cours…", ok: true, motif: "", outils: [], progressive: false }]);
+    setQuestion(""); setPieces([]); productionImageBulleId.current = attenteId;
+    try {
+      void memoriserPreferenceImage.mutateAsync({ categorie: "preference", cle: "creation_image_preference", contenu: `Créations visuelles : niveau ${niveauImage}. Préférence enregistrée lors d’une demande du Fondateur ; les détails créatifs restent ceux de chaque nouvelle demande.`, source: "utilisateur", confiance: "haute", visibilite: "prive" }).catch(() => undefined);
+      const resultat = await productionImage.mutateAsync({ operation: "image", requestId: crypto.randomUUID(), texte: consigneImageConversation(q, niveauImage), droitsConfirmes: !references.length || /\b(j['’]ai les droits|je confirme les droits|photos? (miennes|à moi))\b/i.test(q), ...(references.length ? { references } : {}) });
+      setProductionImageId(resultat.id);
+    } catch {
+      if (!mounted.current) return;
+      setFil((f) => f.map((b) => b.id === attenteId ? { ...b, ok: false, motif: "La création d’image est momentanément indisponible. Votre demande n’a pas été publiée ; vous pouvez réessayer.", progressive: false } : b));
+      productionImageBulleId.current = null;
     }
   }
 
@@ -1103,7 +1175,7 @@ export function Conversation({ navigation, active = true, mode = "chat", onActiv
                 }`}
               >
                 {b.ok ? (
-                  b.role === "moteur" ? <ProgressiveReply text={b.texte} animate={!!b.progressive && active} onProgress={suivreReponse} /> :
+                  b.role === "moteur" ? <><ProgressiveReply text={b.texte} animate={!!b.progressive && active} onProgress={suivreReponse} />{b.imageSrc ? <img src={b.imageSrc} alt="Création générée par AL-HUDHUD·M" className="mt-3 max-h-[34rem] max-w-full rounded-2xl border border-black/10 object-contain" /> : null}</> :
                   <p className="whitespace-pre-wrap text-[#111]">{b.texte}</p>
                 ) : (
                   <p className="flex items-start gap-2 text-red-700">
@@ -1363,7 +1435,7 @@ export function Conversation({ navigation, active = true, mode = "chat", onActiv
                 <button
                   type="button"
                   onClick={() => envoyer()}
-                  disabled={busy || historyUnavailable || question.trim().length < 2}
+                  disabled={busy || historyUnavailable || productionImage.isPending || question.trim().length < 2}
                   aria-label={mode === "travail" ? "Envoyer l’ordre à l’Agent développeur" : "Envoyer le message"}
                   className="alhud-composer-send grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-[#111] text-white disabled:opacity-40"
                 >
