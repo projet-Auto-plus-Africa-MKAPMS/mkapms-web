@@ -6333,7 +6333,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/admin/intelligences/direction"
         ],
-        "cliquables": 21,
+        "cliquables": 22,
         "parMoteur": 0,
         "sansAction": 0,
         "textes": 198,
@@ -11141,7 +11141,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "manques": [
       {
         "genre": "bouton_sans_action",
-        "detail": "« Boutique » client/src/pages/intelligence/index.tsx:185"
+        "detail": "« Boutique » client/src/pages/intelligence/index.tsx:186"
       },
       {
         "genre": "dependance_non_declaree",
