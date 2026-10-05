@@ -365,6 +365,20 @@ export function definirColisBoutique(a: { origine: string; jeton: string }, prod
   return appeler(a, "PUT", `/products/${id}/parcels`, { parcelCount: nombre, evidenceRef: preuve.slice(0, 200) }, f);
 }
 
+/** Reprend dans la fiche les caractéristiques que le fournisseur a lui-même données, avec leur source (portée drafts.propose). Jamais d'écrasement ni d'invention ; la fiche reste « à relire ». */
+export function remplirFicheDepuisFournisseurBoutique(a: { origine: string; jeton: string }, produitId: unknown, f: Fetch = fetch): Promise<ResultatBoutique> {
+  const id = verifierId(produitId);
+  if (!id) return Promise.resolve({ ok: false, detail: "Identifiant de produit invalide (UUID attendu, tel que renvoyé par la liste)." });
+  return appeler(a, "POST", `/products/${id}/fill-from-supplier`, {}, f);
+}
+
+/** Nombre de colis lu dans l'attribut Shipment du fournisseur (« Regular shipment » = 1, « 2x regular shipping » = 2) (portée delivery.work). Un nombre confirmé sans attribut : boutique.definirColis avec sa preuve. */
+export function appliquerColisFournisseurBoutique(a: { origine: string; jeton: string }, produitId: unknown, f: Fetch = fetch): Promise<ResultatBoutique> {
+  const id = verifierId(produitId);
+  if (!id) return Promise.resolve({ ok: false, detail: "Identifiant de produit invalide (UUID attendu, tel que renvoyé par la liste)." });
+  return appeler(a, "POST", `/products/${id}/apply-parcels`, {}, f);
+}
+
 export interface GrilleLivraison { grille: unknown; devise?: unknown; base?: unknown; taxe: unknown; preuve: unknown; valideJusqua: unknown; apercu?: unknown }
 
 /** Grille de tarifs de livraison du fournisseur par pays, telle que communiquée par lui (portée delivery.work). */
