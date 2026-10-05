@@ -24,6 +24,7 @@ import {
   traduireFiche,
   detailSynchroStock,
   definirColisBoutique,
+  retirerPhotosProduitBoutique,
   remplirFicheDepuisFournisseurBoutique,
   appliquerColisFournisseurBoutique,
   lireApercuBoutique,
@@ -173,7 +174,7 @@ test("défense en profondeur : prix, adresses et secrets retirés de ce qui revi
 });
 
 test("registre : quatorze outils, lecture seule ou risque faible, réservés au PDG, aucun outil de modification de prix/TVA/approbation/publication", () => {
-  assert.equal(OUTILS_BOUTIQUE.length, 16);
+  assert.equal(OUTILS_BOUTIQUE.length, 17);
   for (const o of OUTILS_BOUTIQUE) {
     assert.ok(OUTILS.some((x) => x.toolId === o.toolId), `${o.toolId} enregistré`);
     assert.ok(IMPLEMENTATIONS[o.toolId], `${o.toolId} implémenté`);
@@ -183,10 +184,10 @@ test("registre : quatorze outils, lecture seule ou risque faible, réservés au 
     assert.equal(o.category, "boutique");
   }
   const noms = OUTILS_BOUTIQUE.map((o) => o.toolId).sort();
-  assert.deepEqual(noms, ["boutique.ajouterMediaParLien", "boutique.appliquerColisFournisseur", "boutique.capacites", "boutique.choisirPhotoPrincipale", "boutique.definirColis", "boutique.importerGrilleLivraison", "boutique.lancerPhotos", "boutique.lireApercu", "boutique.lireFicheComplete", "boutique.lireProduit", "boutique.listerProduits", "boutique.proposerFiche", "boutique.recontrolerMarquePhoto", "boutique.remplirFicheDepuisFournisseur", "boutique.retirerMediaGalerie", "boutique.synchroniserStock"]);
+  assert.deepEqual(noms, ["boutique.ajouterMediaParLien", "boutique.appliquerColisFournisseur", "boutique.capacites", "boutique.choisirPhotoPrincipale", "boutique.definirColis", "boutique.importerGrilleLivraison", "boutique.lancerPhotos", "boutique.lireApercu", "boutique.lireFicheComplete", "boutique.lireProduit", "boutique.listerProduits", "boutique.proposerFiche", "boutique.recontrolerMarquePhoto", "boutique.remplirFicheDepuisFournisseur", "boutique.retirerMediaGalerie", "boutique.retirerPhotosProduit", "boutique.synchroniserStock"]);
   assert.equal(noms.some((n) => /prix|tva|approuver|publier|decision|offre/i.test(n)), false);
   const ecritures = OUTILS_BOUTIQUE.filter((o) => o.requiredPermissions.includes("WRITE")).map((o) => o.toolId).sort();
-  assert.deepEqual(ecritures, ["boutique.ajouterMediaParLien", "boutique.appliquerColisFournisseur", "boutique.choisirPhotoPrincipale", "boutique.definirColis", "boutique.importerGrilleLivraison", "boutique.lancerPhotos", "boutique.proposerFiche", "boutique.recontrolerMarquePhoto", "boutique.remplirFicheDepuisFournisseur", "boutique.retirerMediaGalerie", "boutique.synchroniserStock"]);
+  assert.deepEqual(ecritures, ["boutique.ajouterMediaParLien", "boutique.appliquerColisFournisseur", "boutique.choisirPhotoPrincipale", "boutique.definirColis", "boutique.importerGrilleLivraison", "boutique.lancerPhotos", "boutique.proposerFiche", "boutique.recontrolerMarquePhoto", "boutique.remplirFicheDepuisFournisseur", "boutique.retirerMediaGalerie", "boutique.retirerPhotosProduit", "boutique.synchroniserStock"]);
 });
 
 test("livraison : colis avec preuve et grille du fournisseur, jamais supposés ; la requête part vers les bonnes routes", async () => {
@@ -232,8 +233,8 @@ test("implémentations : refusent sans compte appelant connu (le coffre n'est li
   }
 });
 
-test("connaissances boutique : 23 entrées copiées + 6 propres à la plateforme, titres uniques et courts, aucun secret, sources datées", () => {
-  assert.equal(CONNAISSANCES_BOUTIQUE.length, 29);
+test("connaissances boutique : 23 entrées copiées + 7 propres à la plateforme, titres uniques et courts, aucun secret, sources datées", () => {
+  assert.equal(CONNAISSANCES_BOUTIQUE.length, 30);
   const titres = CONNAISSANCES_BOUTIQUE.map((c) => `${c.categorie}|${c.titre}`);
   assert.equal(new Set(titres).size, titres.length);
   for (const c of CONNAISSANCES_BOUTIQUE) {
@@ -445,4 +446,14 @@ test("fiches fournisseur : la reprise des caractéristiques et des colis part ve
   assert.equal((await appliquerColisFournisseurBoutique(ACCES, ID, b.f)).ok, true);
   assert.match(b.appels[0]!.url, /\/products\/11111111-1111-4111-8111-111111111111\/apply-parcels$/);
   assert.deepEqual(JSON.parse(String(b.appels[0]!.init.body)), {});
+});
+
+test("retrait en bloc des photos du produit : la requête part vers la bonne route, sans corps, identifiant vérifié", async () => {
+  const ID = "11111111-1111-4111-8111-111111111111";
+  assert.equal((await retirerPhotosProduitBoutique(ACCES, "x", faux([]).f)).ok, false);
+  const a = faux([{ status: 200, json: { retired: 2, mainKept: true } }]);
+  assert.equal((await retirerPhotosProduitBoutique(ACCES, ID, a.f)).ok, true);
+  assert.equal(a.appels[0]!.init.method, "POST");
+  assert.match(a.appels[0]!.url, /\/products\/11111111-1111-4111-8111-111111111111\/media\/retire-supplier-versions$/);
+  assert.deepEqual(JSON.parse(String(a.appels[0]!.init.body)), {});
 });

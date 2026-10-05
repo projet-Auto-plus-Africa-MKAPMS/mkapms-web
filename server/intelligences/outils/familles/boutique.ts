@@ -139,6 +139,17 @@ export const OUTILS_BOUTIQUE: OutilSpec[] = [
   },
   {
     ...ECRITURE,
+    toolId: "boutique.retirerPhotosProduit",
+    name: "boutiqueRetirerPhotosProduit",
+    description:
+      "Retire d'un coup de la fiche (aperçu, galerie, vitrine) TOUTES les photos venues avec le produit, pour les remplacer par celles qu'on ajoute soi-même (boutique.ajouterMediaParLien). La boutique ne supprime JAMAIS rien : le retrait est réversible (boutique.retirerMediaGalerie avec remettre=true) et les originaux du fournisseur restent conservés tels quels. La photo principale actuelle reste tant qu'une autre n'est pas choisie. Pour une fiche publiée, la vitrine est mise à jour tout de suite, sans republier. Exige la portée photos.work. Ne touche ni prix, ni stock, ni publication.",
+    schemaInput: { type: "object", properties: { produitId: { type: "string" } }, required: ["produitId"] },
+    schemaOutput: { type: "object", properties: { ok: { type: "boolean" }, retired: { type: "integer" }, mainKept: { type: "boolean" } } },
+    legalBasis: "Retrait réversible de photos de la galerie, avec un jeton que le PDG a lui-même créé (portée photos.work) ; aucune suppression ; usage journalisé dans le coffre et dans la boutique.",
+    fallback: "Produit inconnu ou jeton sans la portée : l'outil le dit tel quel — la galerie ne change pas.",
+  },
+  {
+    ...ECRITURE,
     toolId: "boutique.remplirFicheDepuisFournisseur",
     name: "boutiqueRemplirFicheDepuisFournisseur",
     description:
