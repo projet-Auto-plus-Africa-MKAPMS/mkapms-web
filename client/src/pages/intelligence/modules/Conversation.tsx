@@ -325,7 +325,7 @@ export function Conversation({ navigation, active = true, mode = "chat", onActiv
     const bulleId = productionImageBulleId.current;
     if (!media || !bulleId) return;
     if (media.statut === "READY" && media.donnees && media.mime === "image/png") {
-      const imageSrc = \`data:${media.mime};base64,${media.donnees}\`;
+      const imageSrc = `data:${media.mime};base64,${media.donnees}`;
       setFil((f) => f.map((b) => b.id === bulleId ? { ...b, texte: "Votre création est prête à contrôler.", imageSrc, progressive: false } : b));
       setProductionImageId(null);
       productionImageBulleId.current = null;
