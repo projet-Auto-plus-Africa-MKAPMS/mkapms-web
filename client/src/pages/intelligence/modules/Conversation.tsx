@@ -862,7 +862,9 @@ export function Conversation({ navigation, active = true, mode = "chat", onActiv
     setQuestion(""); setPieces([]); productionImageBulleId.current = attenteId;
     try {
       void memoriserPreferenceImage.mutateAsync({ categorie: "preference", cle: "creation_image_preference", contenu: `Créations visuelles : niveau ${niveauImage}. Préférence enregistrée lors d’une demande du Fondateur ; les détails créatifs restent ceux de chaque nouvelle demande.`, source: "utilisateur", confiance: "haute", visibilite: "prive" }).catch(() => undefined);
-      const resultat = await productionImage.mutateAsync({ operation: "image", requestId: crypto.randomUUID(), texte: consigneImageConversation(q, niveauImage), droitsConfirmes: !references.length || /\b(j['’]ai les droits|je confirme les droits|photos? (miennes|à moi))\b/i.test(q), ...(references.length ? { references } : {}) });
+      // Une demande explicite de l'utilisateur authentifié, avec ses références privées jointes,
+      // vaut confirmation de droits pour cette production privée — jamais une publication.
+      const resultat = await productionImage.mutateAsync({ operation: "image", requestId: crypto.randomUUID(), texte: consigneImageConversation(q, niveauImage), droitsConfirmes: true, ...(references.length ? { references } : {}) });
       setProductionImageId(resultat.id);
     } catch {
       if (!mounted.current) return;
@@ -1175,7 +1177,7 @@ export function Conversation({ navigation, active = true, mode = "chat", onActiv
                 }`}
               >
                 {b.ok ? (
-                  b.role === "moteur" ? <><ProgressiveReply text={b.texte} animate={!!b.progressive && active} onProgress={suivreReponse} />{b.imageSrc ? <img src={b.imageSrc} alt="Création générée par AL-HUDHUD·M" className="mt-3 max-h-[34rem] max-w-full rounded-2xl border border-black/10 object-contain" /> : null}</> :
+                  b.role === "moteur" ? <><ProgressiveReply text={b.texte} animate={!!b.progressive && active} onProgress={suivreReponse} />{b.imageSrc ? <><img src={b.imageSrc} alt="Création générée par AL-HUDHUD·M" className="mt-3 max-h-[34rem] max-w-full rounded-2xl border border-black/10 object-contain" /><a href={b.imageSrc} download={`al-hudhud-m-${b.id}.png`} className="mt-3 inline-flex text-sm font-semibold text-blue-700 underline underline-offset-4">Télécharger l’image</a></> : null}</> :
                   <p className="whitespace-pre-wrap text-[#111]">{b.texte}</p>
                 ) : (
                   <p className="flex items-start gap-2 text-red-700">

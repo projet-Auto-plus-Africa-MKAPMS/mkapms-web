@@ -79,7 +79,6 @@ function Dashboard({ onOpen, boutique }: { onOpen: (key: CleModule) => void; bou
   const work = [
     ["Accueil", Home, "Vue d’ensemble", "accueil"],
     ["Menu", Menu, "Navigation et accès", "conversation"],
-    ["Images", ImageIcon, "Créations et références privées", "images"],
     ["Paramètres", Settings, "Configuration et préférences", "parametres"],
     ["Documents", FileText, "Fichiers, ressources et contrôles", "documents"],
     ["Contrôle IA", BrainIcon, "Tests et performances", "outils"],
@@ -165,12 +164,12 @@ export default function MKAPMSIntelligence() {
   };
   const topItems = [
     ["Bibliothèque", Library, "documents"], ["Projets", FolderKanban, "projets"],
-    ["Images", ImageIcon, "images"], ["Plugins", Plug, "integrations"], ["Planifié", Clock3, "automatisations"],
+    ["Plugins", Plug, "integrations"], ["Planifié", Clock3, "automatisations"],
     ["À distance", Laptop, "developpeur"], ["Explorer", Grid2X2, "recherche"],
   ] as const;
   const workItems = [
     ["Accueil", Home, "accueil"], ["Suivi du chantier", BarChart3, "developpeur"],
-    ["Images", ImageIcon, "images"], ["Documents", FileText, "documents"], ["Vérification IA", FileCheck2, "outils"],
+    ["Documents", FileText, "documents"], ["Vérification IA", FileCheck2, "outils"],
     ["Audit", ClipboardCheck, "historique"], ["Coffre secret", KeyRound, "coffre"], ["Paramètres", Settings, "parametres"],
   ] as const;
 
@@ -198,7 +197,6 @@ export default function MKAPMSIntelligence() {
         <button type="button" className={workMode ? "active" : ""} onClick={()=>choose("developpeur")}>Travail</button>
       </div>
       <div className="alhud-header-actions">
-        <button type="button" className="alhud-round-button" onClick={()=>choose("images")} aria-label="Créer une image"><ImageIcon/></button>
         <button type="button" className="alhud-round-button" onClick={()=>choose("recherche")} aria-label="Recherche"><Search/></button>
         <button type="button" className="alhud-round-button" onClick={()=>choose("conversation")} aria-label="Conversation"><MessageCircle/></button>
       </div>
