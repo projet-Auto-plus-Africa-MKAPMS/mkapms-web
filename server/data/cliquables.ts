@@ -776,7 +776,7 @@ export const CLIQUABLES_ANOMALIES: readonly AnomalieCliquable[] = [
   { fichier: "client/src/pages/GestionConducteurs.tsx", ligne: 66, genre: "bouton", libelle: "Ajouter le conducteur", motif: "sans_action" },
   { fichier: "client/src/pages/GestionConducteurs.tsx", ligne: 85, genre: "bouton", libelle: "(sans texte)", motif: "sans_action" },
   { fichier: "client/src/pages/GestionFranchises.tsx", ligne: 89, genre: "bouton", libelle: "Appliquer la franchise", motif: "sans_action" },
-  { fichier: "client/src/pages/intelligence/index.tsx", ligne: 183, genre: "bouton", libelle: "Boutique", motif: "sans_action" },
+  { fichier: "client/src/pages/intelligence/index.tsx", ligne: 185, genre: "bouton", libelle: "Boutique", motif: "sans_action" },
   { fichier: "client/src/pages/LocationLOA.tsx", ligne: 100, genre: "bouton", libelle: "Simulation indisponible", motif: "sans_action" },
   { fichier: "client/src/pages/pieces/AbonnementsProPieces.tsx", ligne: 17, genre: "bouton", libelle: "Choisir", motif: "sans_action" },
   { fichier: "client/src/pages/pieces/MontageGarage.tsx", ligne: 10, genre: "bouton", libelle: "(sans texte)", motif: "sans_action" },
