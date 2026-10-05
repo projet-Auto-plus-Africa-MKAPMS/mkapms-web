@@ -6333,7 +6333,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/admin/intelligences/direction"
         ],
-        "cliquables": 22,
+        "cliquables": 21,
         "parMoteur": 0,
         "sansAction": 0,
         "textes": 198,
