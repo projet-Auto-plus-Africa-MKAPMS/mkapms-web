@@ -230,8 +230,8 @@ test("implémentations : refusent sans compte appelant connu (le coffre n'est li
   }
 });
 
-test("connaissances boutique : 23 entrées copiées + 4 propres à la plateforme, titres uniques et courts, aucun secret, sources datées", () => {
-  assert.equal(CONNAISSANCES_BOUTIQUE.length, 27);
+test("connaissances boutique : 23 entrées copiées + 5 propres à la plateforme, titres uniques et courts, aucun secret, sources datées", () => {
+  assert.equal(CONNAISSANCES_BOUTIQUE.length, 28);
   const titres = CONNAISSANCES_BOUTIQUE.map((c) => `${c.categorie}|${c.titre}`);
   assert.equal(new Set(titres).size, titres.length);
   for (const c of CONNAISSANCES_BOUTIQUE) {
