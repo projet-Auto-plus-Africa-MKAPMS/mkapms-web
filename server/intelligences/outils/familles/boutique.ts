@@ -161,10 +161,32 @@ export const OUTILS_BOUTIQUE: OutilSpec[] = [
   },
   {
     ...ECRITURE,
+    toolId: "boutique.ajouterMediaParLien",
+    name: "boutiqueAjouterMediaParLien",
+    description:
+      "AJOUTE à une fiche de la boutique une photo ou une vidéo DÉJÀ PRÉPARÉE (lien https public : fichier direct, sans identifiant ni secret). La boutique ne retouche, ne recadre et ne remplace rien : le fichier est gardé tel que reçu (photo convertie en WebP). Les originaux du fournisseur ne sont jamais touchés. « principale » = choisir cette photo comme photo principale. Une VIDÉO doit être réelle et autorisée (« reelle » true + « droits » = référence de l'autorisation), 10 secondes minimum, sans texte ; ne jamais présenter une vidéo comme un essai réel si ce n'en est pas un. Droits des photos : ceux enregistrés par le PDG pour le fournisseur. Rien n'est publié.",
+    schemaInput: { type: "object", properties: { produitId: { type: "string" }, url: { type: "string" }, type: { type: "string", enum: ["photo", "video"] }, principale: { type: "boolean" }, reelle: { type: "boolean" }, droits: { type: "string" }, libelle: { type: "string" } }, required: ["produitId", "url", "type"] },
+    schemaOutput: { type: "object", properties: { ok: { type: "boolean" }, mediaId: { type: "string" }, selected: { type: "boolean" }, video: { type: "object" } } },
+    legalBasis: "Ajout d'un fichier déjà préparé par une personne ou un agent, avec un jeton que le PDG a lui-même créé (portée photos.work) ; droits d'image enregistrés par le PDG ; usage journalisé dans le coffre et dans la boutique.",
+    fallback: "Lien refusé (non https, adresse privée, secret dans le lien), fichier du mauvais type ou trop lourd, droits d'image absents, vidéo trop courte, jeton sans la portée ou boutique indisponible : l'outil le dit tel quel — rien n'est ajouté.",
+  },
+  {
+    ...ECRITURE,
+    toolId: "boutique.retirerMediaGalerie",
+    name: "boutiqueRetirerMediaGalerie",
+    description:
+      "Retire une photo de la galerie d'une fiche (aperçu, galerie, vitrine) pour la REMPLACER, ou la remet (« remettre » true). La boutique ne supprime JAMAIS rien : le fichier et les originaux du fournisseur restent conservés. La photo principale ne se retire pas : choisir d'abord une autre photo principale. Une fiche déjà publiée voit sa galerie mise à jour sans republication.",
+    schemaInput: { type: "object", properties: { produitId: { type: "string" }, mediaId: { type: "string" }, remettre: { type: "boolean" } }, required: ["produitId", "mediaId"] },
+    schemaOutput: { type: "object", properties: { ok: { type: "boolean" }, hidden: { type: "boolean" } } },
+    legalBasis: "Retrait réversible d'une photo de la galerie, avec un jeton que le PDG a lui-même créé (portée photos.work) ; aucune suppression ; usage journalisé dans le coffre et dans la boutique.",
+    fallback: "Photo inconnue pour ce produit, photo principale ou jeton sans la portée : l'outil le dit tel quel — la galerie ne change pas.",
+  },
+  {
+    ...ECRITURE,
     toolId: "boutique.lancerPhotos",
     name: "boutiqueLancerPhotos",
     description:
-      "Met en file, dans la boutique, la préparation des photos MKA.P-MS d'une fiche (archivage de l'original, recadrage fidèle sans rien inventer, contrôle de marque). Exige que le PDG ait déjà enregistré les droits d'image du fournisseur dans la boutique ; sinon l'outil le dit et rien ne démarre. Ne publie rien.",
+      "Met en file, dans la boutique, la préparation automatique des photos MKA.P-MS d'une fiche — DÉSACTIVÉE par défaut dans la boutique (le PDG ajoute les photos lui-même ou par un agent : voir boutique.ajouterMediaParLien) (archivage de l'original, recadrage fidèle sans rien inventer, contrôle de marque). Exige que le PDG ait déjà enregistré les droits d'image du fournisseur dans la boutique ; sinon l'outil le dit et rien ne démarre. Ne publie rien.",
     schemaInput: { type: "object", properties: { produitId: { type: "string" } }, required: ["produitId"] },
     schemaOutput: { type: "object", properties: { ok: { type: "boolean" }, detail: { type: "string" } } },
     legalBasis: "Mise en file d'un traitement déjà prévu par la boutique, avec la référence de droits d'image enregistrée par le PDG pour le fournisseur (portée photos.work) ; usage journalisé.",

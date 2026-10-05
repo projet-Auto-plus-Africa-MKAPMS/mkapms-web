@@ -326,6 +326,34 @@ export function recontrolerMarquePhotoBoutique(a: { origine: string; jeton: stri
   return appeler(a, "POST", `/products/${id}/media/${media}/recheck-brand`, {}, f);
 }
 
+/**
+ * AJOUTE une photo ou une vidéo déjà préparée (lien https public) à une fiche de la boutique (portée photos.work). Aucune retouche, aucun
+ * traitement automatique : la boutique garde le fichier tel que reçu (photo convertie en WebP). Une vidéo doit être réelle et autorisée,
+ * 10 secondes au moins, avec la référence de son autorisation ; jamais présentée comme un essai si ce n'en est pas un.
+ */
+export function ajouterMediaParLienBoutique(a: { origine: string; jeton: string }, produitId: unknown, m: { url: unknown; type: unknown; principale?: unknown; reelle?: unknown; droits?: unknown; libelle?: unknown }, f: Fetch = fetch): Promise<ResultatBoutique> {
+  const id = verifierId(produitId);
+  if (!id) return Promise.resolve({ ok: false, detail: "Identifiant de produit invalide (UUID attendu, tel que renvoyé par la liste)." });
+  const url = typeof m.url === "string" ? m.url.trim() : "";
+  if (!/^https:\/\/[^\s]{4,2000}$/i.test(url)) return Promise.resolve({ ok: false, detail: "Le lien doit être une adresse https publique (sans identifiant ni secret) qui renvoie directement le fichier." });
+  if (m.type !== "photo" && m.type !== "video") return Promise.resolve({ ok: false, detail: "Le type est « photo » ou « video »." });
+  if (m.type === "photo") return appeler(a, "POST", `/products/${id}/photos/from-url`, { url, select: m.principale === true }, f);
+  const droits = typeof m.droits === "string" ? m.droits.trim() : "";
+  if (m.reelle === true && droits.length < 3) return Promise.resolve({ ok: false, detail: "Une vidéo réelle exige la référence de son autorisation (qui l'a tournée, pour qui) : jamais supposée." });
+  const corps: Record<string, unknown> = { url, real: m.reelle === true, select: m.principale === true };
+  if (droits) corps.rightsRef = droits.slice(0, 300);
+  if (typeof m.libelle === "string" && m.libelle.trim()) corps.label = m.libelle.trim().slice(0, 160);
+  return appeler(a, "POST", `/products/${id}/videos/from-url`, corps, f);
+}
+
+/** Retire une photo de la galerie d'une fiche (ou la remet) : la boutique ne supprime jamais rien, la photo principale se remplace (portée photos.work). */
+export function retirerMediaGalerieBoutique(a: { origine: string; jeton: string }, produitId: unknown, mediaId: unknown, remettre: unknown, f: Fetch = fetch): Promise<ResultatBoutique> {
+  const id = verifierId(produitId);
+  const media = verifierId(mediaId);
+  if (!id || !media) return Promise.resolve({ ok: false, detail: "Identifiants invalides (UUID attendus : produit et photo, tels que renvoyés par la fiche complète)." });
+  return appeler(a, "POST", `/products/${id}/media/${media}/${remettre === true ? "restore" : "hide"}`, {}, f);
+}
+
 /** Nombre de colis d'un produit, avec la preuve du fournisseur (portée delivery.work). Le panier en déduit seul le prix de 1, 2… colis. */
 export function definirColisBoutique(a: { origine: string; jeton: string }, produitId: unknown, colis: { nombre: unknown; preuve: unknown }, f: Fetch = fetch): Promise<ResultatBoutique> {
   const id = verifierId(produitId);

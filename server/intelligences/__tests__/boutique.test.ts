@@ -19,6 +19,8 @@ import {
   proposerFicheBoutique,
   synchroniserStockBoutique,
   choisirPhotoPrincipaleBoutique,
+  ajouterMediaParLienBoutique,
+  retirerMediaGalerieBoutique,
   traduireFiche,
   detailSynchroStock,
   definirColisBoutique,
@@ -168,8 +170,8 @@ test("défense en profondeur : prix, adresses et secrets retirés de ce qui revi
   assert.deepEqual(propre, { id: ID, title: "Voiture", nested: [{ ok: 1 }] });
 });
 
-test("registre : douze outils, lecture seule ou risque faible, réservés au PDG, aucun outil de modification de prix/TVA/approbation/publication", () => {
-  assert.equal(OUTILS_BOUTIQUE.length, 12);
+test("registre : quatorze outils, lecture seule ou risque faible, réservés au PDG, aucun outil de modification de prix/TVA/approbation/publication", () => {
+  assert.equal(OUTILS_BOUTIQUE.length, 14);
   for (const o of OUTILS_BOUTIQUE) {
     assert.ok(OUTILS.some((x) => x.toolId === o.toolId), `${o.toolId} enregistré`);
     assert.ok(IMPLEMENTATIONS[o.toolId], `${o.toolId} implémenté`);
@@ -179,10 +181,10 @@ test("registre : douze outils, lecture seule ou risque faible, réservés au PDG
     assert.equal(o.category, "boutique");
   }
   const noms = OUTILS_BOUTIQUE.map((o) => o.toolId).sort();
-  assert.deepEqual(noms, ["boutique.capacites", "boutique.choisirPhotoPrincipale", "boutique.definirColis", "boutique.importerGrilleLivraison", "boutique.lancerPhotos", "boutique.lireApercu", "boutique.lireFicheComplete", "boutique.lireProduit", "boutique.listerProduits", "boutique.proposerFiche", "boutique.recontrolerMarquePhoto", "boutique.synchroniserStock"]);
+  assert.deepEqual(noms, ["boutique.ajouterMediaParLien", "boutique.capacites", "boutique.choisirPhotoPrincipale", "boutique.definirColis", "boutique.importerGrilleLivraison", "boutique.lancerPhotos", "boutique.lireApercu", "boutique.lireFicheComplete", "boutique.lireProduit", "boutique.listerProduits", "boutique.proposerFiche", "boutique.recontrolerMarquePhoto", "boutique.retirerMediaGalerie", "boutique.synchroniserStock"]);
   assert.equal(noms.some((n) => /prix|tva|approuver|publier|decision|offre/i.test(n)), false);
   const ecritures = OUTILS_BOUTIQUE.filter((o) => o.requiredPermissions.includes("WRITE")).map((o) => o.toolId).sort();
-  assert.deepEqual(ecritures, ["boutique.choisirPhotoPrincipale", "boutique.definirColis", "boutique.importerGrilleLivraison", "boutique.lancerPhotos", "boutique.proposerFiche", "boutique.recontrolerMarquePhoto", "boutique.synchroniserStock"]);
+  assert.deepEqual(ecritures, ["boutique.ajouterMediaParLien", "boutique.choisirPhotoPrincipale", "boutique.definirColis", "boutique.importerGrilleLivraison", "boutique.lancerPhotos", "boutique.proposerFiche", "boutique.recontrolerMarquePhoto", "boutique.retirerMediaGalerie", "boutique.synchroniserStock"]);
 });
 
 test("livraison : colis avec preuve et grille du fournisseur, jamais supposés ; la requête part vers les bonnes routes", async () => {
@@ -228,8 +230,8 @@ test("implémentations : refusent sans compte appelant connu (le coffre n'est li
   }
 });
 
-test("connaissances boutique : 23 entrées copiées + 4 propres à la plateforme, titres uniques et courts, aucun secret, sources datées", () => {
-  assert.equal(CONNAISSANCES_BOUTIQUE.length, 27);
+test("connaissances boutique : 23 entrées copiées + 5 propres à la plateforme, titres uniques et courts, aucun secret, sources datées", () => {
+  assert.equal(CONNAISSANCES_BOUTIQUE.length, 28);
   const titres = CONNAISSANCES_BOUTIQUE.map((c) => `${c.categorie}|${c.titre}`);
   assert.equal(new Set(titres).size, titres.length);
   for (const c of CONNAISSANCES_BOUTIQUE) {
@@ -406,4 +408,24 @@ test("photo principale : chemin fixe, corps vide, identifiants validés avant l'
   assert.equal((await choisirPhotoPrincipaleBoutique(ACCES, ID, "../x", f2)).ok, false);
   assert.equal((await choisirPhotoPrincipaleBoutique(ACCES, 5, MEDIA, f2)).ok, false);
   assert.equal(a2.length, 0);
+});
+
+test("ajout de photos et vidéos par lien : lien https, vidéo réelle avec autorisation, retrait réversible ; les requêtes partent vers les bonnes routes", async () => {
+  const ID = "11111111-1111-4111-8111-111111111111";
+  const MEDIA = "22222222-2222-4222-8222-222222222222";
+  assert.equal((await ajouterMediaParLienBoutique(ACCES, ID, { url: "http://x.example.org/a.jpg", type: "photo" }, faux([]).f)).ok, false);
+  assert.equal((await ajouterMediaParLienBoutique(ACCES, ID, { url: "https://x.example.org/a.mp4", type: "video", reelle: true }, faux([]).f)).ok, false, "vidéo réelle sans autorisation");
+  assert.equal((await ajouterMediaParLienBoutique(ACCES, "x", { url: "https://x.example.org/a.jpg", type: "photo" }, faux([]).f)).ok, false);
+  assert.equal((await ajouterMediaParLienBoutique(ACCES, ID, { url: "https://x.example.org/a.jpg", type: "gif" }, faux([]).f)).ok, false);
+  const p = faux([{ status: 200, json: { mediaId: MEDIA, published: false } }]);
+  assert.equal((await ajouterMediaParLienBoutique(ACCES, ID, { url: "https://x.example.org/a.jpg", type: "photo", principale: true }, p.f)).ok, true);
+  assert.match(p.appels[0].url, new RegExp(`/api/service/products/${ID}/photos/from-url$`));
+  assert.deepEqual(JSON.parse(String(p.appels[0].init.body)), { url: "https://x.example.org/a.jpg", select: true });
+  const v = faux([{ status: 200, json: { video: { id: "v" } } }]);
+  assert.equal((await ajouterMediaParLienBoutique(ACCES, ID, { url: "https://x.example.org/a.mp4", type: "video", reelle: true, droits: "tournée par MKA.P-MS" }, v.f)).ok, true);
+  assert.match(v.appels[0].url, new RegExp(`/api/service/products/${ID}/videos/from-url$`));
+  assert.equal(JSON.parse(String(v.appels[0].init.body)).real, true);
+  const h = faux([{ status: 200, json: { hidden: true } }, { status: 200, json: { hidden: false } }]);
+  await retirerMediaGalerieBoutique(ACCES, ID, MEDIA, false, h.f);await retirerMediaGalerieBoutique(ACCES, ID, MEDIA, true, h.f);
+  assert.match(h.appels[0].url, /\/media\/[^/]+\/hide$/);assert.match(h.appels[1].url, /\/media\/[^/]+\/restore$/);
 });

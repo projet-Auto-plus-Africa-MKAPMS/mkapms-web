@@ -7,6 +7,8 @@ import type { ImplementationOutil } from "../outils-test.js";
 import {
   accesBoutique,
   choisirPhotoPrincipaleBoutique,
+  ajouterMediaParLienBoutique,
+  retirerMediaGalerieBoutique,
   capacitesBoutique,
   lancerPhotosBoutique,
   listerProduitsBoutique,
@@ -71,6 +73,14 @@ export const IMPLEMENTATIONS: Record<string, ImplementationOutil> = {
   "boutique.importerGrilleLivraison": async (args, contexte) => {
     const a = await accesBoutique(compteAppelant(contexte), "boutique.importerGrilleLivraison", "Enregistrer la grille de livraison du fournisseur d'un produit de la boutique, demandé par le PDG");
     return a.ok ? importerGrilleLivraisonBoutique(a, args.produitId, { grille: args.grille, devise: args.devise, base: args.base, taxe: args.taxe, preuve: args.preuve, valideJusqua: args.valideJusqua, apercu: args.apercu }) : { ok: false, detail: a.detail };
+  },
+  "boutique.ajouterMediaParLien": async (args, contexte) => {
+    const a = await accesBoutique(compteAppelant(contexte), "boutique.ajouterMediaParLien", "Ajouter une photo ou une vidéo (lien) à une fiche de la boutique, demandé par le PDG");
+    return a.ok ? ajouterMediaParLienBoutique(a, args.produitId, { url: args.url, type: args.type, principale: args.principale, reelle: args.reelle, droits: args.droits, libelle: args.libelle }) : { ok: false, detail: a.detail };
+  },
+  "boutique.retirerMediaGalerie": async (args, contexte) => {
+    const a = await accesBoutique(compteAppelant(contexte), "boutique.retirerMediaGalerie", "Retirer (ou remettre) une photo de la galerie d'une fiche de la boutique, demandé par le PDG");
+    return a.ok ? retirerMediaGalerieBoutique(a, args.produitId, args.mediaId, args.remettre) : { ok: false, detail: a.detail };
   },
   "boutique.lancerPhotos": async (args, contexte) => {
     const a = await accesBoutique(compteAppelant(contexte), "boutique.lancerPhotos", "Lancer la préparation des photos d'une fiche de la boutique, demandé par le PDG");
