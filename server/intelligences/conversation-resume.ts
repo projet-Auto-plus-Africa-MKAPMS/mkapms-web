@@ -11,13 +11,15 @@
  * de continuer : `resumerSiNecessaire` avale son échec et journalise sans
  * bloquer `demander()`.
  */
-import { and, asc, eq, gt } from "drizzle-orm";
+import { and, asc, desc, eq, gt } from "drizzle-orm";
 import { db } from "../db.js";
 import { inConversationResume, inMessages, inSessions } from "./schema.js";
 import { appeler } from "./provider.js";
-import { ecrire as ecrireMemoire } from "./memoire.js";
+import { ecrire as ecrireMemoireUtilisateur } from "./memoire-utilisateur.js";
 
-const SEUIL_MESSAGES = 16;
+// Un échange complet suffit : attendre 16 messages faisait perdre la mémoire de
+// presque toutes les conversations courtes lorsqu'elles étaient rouvertes.
+const SEUIL_MESSAGES = 2;
 const SYSTEME_RESUME =
   "Tu résumes une conversation interne pour la mémoire d'un système. " +
   "Réponds en JSON strict : {\"resume\": string (5 phrases maximum), \"faits\": string[] (5 faits maximum, courts)}. " +
@@ -28,6 +30,55 @@ export interface ResumeConversation {
   faitsImportants: string[];
   couvertJusquauMessageId: number;
   nbMessagesCouverts: number;
+}
+
+type MessageResume = { id: number; role: string; contenu: string };
+
+function construireResumeSecours(messages: readonly MessageResume[], precedent?: ResumeConversation | null): { resume: string; faits: string[] } {
+  const extraits = messages
+    .filter((m) => m.contenu.trim())
+    .slice(-12)
+    .map((m) => `${m.role === "utilisateur" ? "Utilisateur" : "Assistant"} : ${m.contenu.replace(/\s+/g, " ").trim().slice(0, 420)}`);
+  const resume = [precedent?.resume, ...extraits].filter(Boolean).join("\n").slice(-2_000);
+  return { resume: resume || "Conversation sans contenu exploitable.", faits: precedent?.faitsImportants ?? [] };
+}
+
+async function enregistrerMemoirePrivee(input: {
+  sessionId: number;
+  userId: number | null;
+  titre: string;
+  resume: string;
+  faits: string[];
+}): Promise<void> {
+  if (!input.userId) return;
+  await ecrireMemoireUtilisateur({
+    userId: input.userId,
+    categorie: "contexte_metier",
+    cle: `conversation-${input.sessionId}`,
+    contenu: [input.resume, ...(input.faits.length ? [`Faits retenus : ${input.faits.join(" ; ")}`] : [])].join("\n").slice(0, 8_000),
+    source: "deduit",
+    confiance: "moyenne",
+    visibilite: "prive",
+  });
+}
+
+async function enregistrerResume(input: {
+  sessionId: number;
+  userId: number | null;
+  titre: string;
+  resume: string;
+  faits: string[];
+  dernierId: number;
+  nbMessages: number;
+}): Promise<void> {
+  await db
+    .insert(inConversationResume)
+    .values({ sessionId: input.sessionId, resume: input.resume, faitsImportants: input.faits, couvertJusquauMessageId: input.dernierId, nbMessagesCouverts: input.nbMessages, updatedAt: new Date() })
+    .onConflictDoUpdate({
+      target: inConversationResume.sessionId,
+      set: { resume: input.resume, faitsImportants: input.faits, couvertJusquauMessageId: input.dernierId, nbMessagesCouverts: input.nbMessages, updatedAt: new Date() },
+    });
+  await enregistrerMemoirePrivee(input);
 }
 
 export async function resumeActif(sessionId: number): Promise<ResumeConversation | null> {
@@ -57,6 +108,8 @@ export async function resumerSiNecessaire(sessionId: number, traceId: string): P
       .limit(200);
     const nonCouverts = nouveaux.filter((m) => m.contenu.trim().length > 0);
     if (nonCouverts.length < SEUIL_MESSAGES) return;
+    const [session] = await db.select({ titre: inSessions.titre, userId: inSessions.userId }).from(inSessions).where(eq(inSessions.id, sessionId)).limit(1);
+    if (!session) return;
 
     const texteEchange = nonCouverts.map((m) => `${m.role} : ${m.contenu.slice(0, 800)}`).join("\n");
     const message = existant
@@ -72,46 +125,75 @@ export async function resumerSiNecessaire(sessionId: number, traceId: string): P
       confidentialite: "interne",
       maxTokens: 400,
     });
-    if (!r.ok) return; // Échec fournisseur : la conversation continue avec la seule fenêtre brute, sans résumé mis à jour.
-
-    let resume = existant?.resume ?? "";
-    let faits = existant?.faitsImportants ?? [];
-    try {
-      const parsed = JSON.parse(r.texte) as { resume?: string; faits?: string[] };
-      if (typeof parsed.resume === "string" && parsed.resume.trim()) resume = parsed.resume.trim().slice(0, 2000);
-      if (Array.isArray(parsed.faits)) faits = parsed.faits.filter((f) => typeof f === "string").slice(0, 5).map((f) => f.slice(0, 300));
-    } catch {
-      // Réponse non-JSON : on garde le texte brut comme résumé plutôt que de tout perdre.
-      resume = r.texte.slice(0, 2000);
+    const secours = construireResumeSecours(nonCouverts, existant);
+    let resume = secours.resume;
+    let faits = secours.faits;
+    if (r.ok) {
+      try {
+        const parsed = JSON.parse(r.texte) as { resume?: string; faits?: string[] };
+        if (typeof parsed.resume === "string" && parsed.resume.trim()) resume = parsed.resume.trim().slice(0, 2000);
+        if (Array.isArray(parsed.faits)) faits = parsed.faits.filter((f) => typeof f === "string").slice(0, 5).map((f) => f.slice(0, 300));
+      } catch {
+        resume = r.texte.trim().slice(0, 2000) || secours.resume;
+      }
     }
 
     const dernierId = nonCouverts[nonCouverts.length - 1]?.id ?? depuisId;
     const nbTotal = (existant?.nbMessagesCouverts ?? 0) + nonCouverts.length;
-    await db
-      .insert(inConversationResume)
-      .values({ sessionId, resume, faitsImportants: faits, couvertJusquauMessageId: dernierId, nbMessagesCouverts: nbTotal, updatedAt: new Date() })
-      .onConflictDoUpdate({
-        target: inConversationResume.sessionId,
-        set: { resume, faitsImportants: faits, couvertJusquauMessageId: dernierId, nbMessagesCouverts: nbTotal, updatedAt: new Date() },
-      });
-
-    // Additif au résumé propre à cette session : le même résumé est aussi
-    // versé dans la mémoire globale (catégorie "conversations"), pour qu'une
-    // AUTRE conversation, plus tard, le retrouve via contexteMemoire()
-    // (rechercherGlobale sur inMemoire) — sans quoi l'apprentissage restait
-    // enfermé dans la session qui l'a produit et ne "grossissait" jamais la
-    // connaissance générale du moteur, demande explicite du PDG.
-    const [session] = await db.select({ titre: inSessions.titre }).from(inSessions).where(eq(inSessions.id, sessionId)).limit(1);
-    await ecrireMemoire({
-      categorie: "conversations",
-      cle: `conversation-${sessionId}`,
-      titre: session?.titre || `Conversation #${sessionId}`,
-      contenu: [resume, ...(faits.length ? [`Faits retenus : ${faits.join(" ; ")}`] : [])].filter(Boolean).join("\n"),
-      source: "conversation-resume",
-    });
+    await enregistrerResume({ sessionId, userId: session.userId, titre: session.titre || `Conversation #${sessionId}`, resume, faits, dernierId, nbMessages: nbTotal });
   } catch {
     // Un résumé qui échoue ne doit jamais faire échouer la conversation elle-même.
   }
+}
+
+/** Indexe les conversations existantes du compte dans sa mémoire privée. */
+export async function synchroniserConversationsUtilisateur(userId: number, limit = 80): Promise<void> {
+  const sessions = await db
+    .select({ id: inSessions.id, titre: inSessions.titre, userId: inSessions.userId })
+    .from(inSessions)
+    .where(and(eq(inSessions.userId, userId), eq(inSessions.cote, "direction")))
+    .orderBy(desc(inSessions.dernierAt))
+    .limit(limit);
+  for (const session of sessions) {
+    const existant = await resumeActif(session.id);
+    if (existant) {
+      await enregistrerMemoirePrivee({ sessionId: session.id, userId: session.userId, titre: session.titre, resume: existant.resume, faits: existant.faitsImportants });
+      continue;
+    }
+    const messages = await db
+      .select({ id: inMessages.id, role: inMessages.role, contenu: inMessages.contenu })
+      .from(inMessages)
+      .where(eq(inMessages.sessionId, session.id))
+      .orderBy(desc(inMessages.id))
+      .limit(80);
+    const ordre = messages.reverse().filter((m) => m.contenu.trim());
+    if (!ordre.length) continue;
+    const secours = construireResumeSecours(ordre);
+    await enregistrerResume({
+      sessionId: session.id,
+      userId: session.userId,
+      titre: session.titre || `Conversation #${session.id}`,
+      resume: secours.resume,
+      faits: secours.faits,
+      dernierId: ordre[ordre.length - 1].id,
+      nbMessages: ordre.length,
+    });
+  }
+}
+
+/** Les derniers sujets du même compte restent disponibles même si la question est courte ou vague. */
+export async function souvenirsRecentsUtilisateur(userId: number, sessionId: number, limit = 4): Promise<string[]> {
+  const sessions = await db
+    .select({ id: inSessions.id, titre: inSessions.titre, resume: inConversationResume.resume })
+    .from(inSessions)
+    .innerJoin(inConversationResume, eq(inConversationResume.sessionId, inSessions.id))
+    .where(and(eq(inSessions.userId, userId), eq(inSessions.cote, "direction")))
+    .orderBy(desc(inSessions.dernierAt))
+    .limit(limit + 1);
+  return sessions
+    .filter((s) => s.id !== sessionId && s.resume.trim())
+    .slice(0, limit)
+    .map((s) => `Conversation « ${s.titre || `#${s.id}`} » : ${s.resume.slice(0, 650)}`);
 }
 
 /** Ligne de contexte injectable, additive à la fenêtre brute existante. */
