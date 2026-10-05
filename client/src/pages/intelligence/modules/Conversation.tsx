@@ -104,7 +104,19 @@ const CONSIGNES_IMAGE: Record<NiveauImageConversation, string> = {
 };
 
 function consigneImageConversation(texte: string, niveau: NiveauImageConversation): string {
-  return \`${CONSIGNES_IMAGE[niveau]}\\n\\nDemande du Fondateur :\\n${texte.trim()}\\n\\nContraintes : si des photos sont jointes, elles sont des références visuelles privées. Aucun watermark, aucun texte ajouté, aucun logo ajouté sans instruction explicite.\`;
+  return `${CONSIGNES_IMAGE[niveau]}\n\nDemande du Fondateur :\n${texte.trim()}\n\nContraintes : si des photos sont jointes, elles sont des références visuelles privées. Aucun watermark, aucun texte ajouté, aucun logo ajouté sans instruction explicite.`;
+}
+
+/** Une demande écrite normalement suffit : aucun nouveau bouton ni écran intermédiaire. */
+function estDemandeImage(texte: string): boolean {
+  const t = texte.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+  return /\b(cree|cree-moi|genere|fais|fabrique|dessine|transforme|realise)\b[\s\S]{0,90}\b(image|visuel|logo|illustration|affiche|banniere|photo)\b/.test(t) || /\b(image|visuel|logo|illustration|affiche|banniere)\b[\s\S]{0,60}\b(normal|premium|pro)\b/.test(t);
+}
+function niveauImageDepuisTexte(texte: string): NiveauImageConversation {
+  const t = texte.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+  if (/\b(mode |niveau )?normal\b/.test(t)) return "normal";
+  if (/\b(mode |niveau )?pro\b/.test(t)) return "pro";
+  return "premium";
 }
 
 type PieceConversation =
@@ -236,9 +248,6 @@ export function Conversation({ navigation, active = true, mode = "chat", onActiv
   const sessionIdRef = useRef<number | null>(null);
   const [menuPiecesOuvert, setMenuPiecesOuvert] = useState(false);
   const [pieces, setPieces] = useState<PieceConversation[]>([]);
-  const [creationImageActive, setCreationImageActive] = useState(false);
-  const [niveauImage, setNiveauImage] = useState<NiveauImageConversation>("premium");
-  const [droitsImage, setDroitsImage] = useState(false);
   const [productionImageId, setProductionImageId] = useState<string | null>(null);
   const productionImageBulleId = useRef<string | null>(null);
   const cameraInput = useRef<HTMLInputElement>(null);
@@ -803,8 +812,8 @@ export function Conversation({ navigation, active = true, mode = "chat", onActiv
   function envoyer(texte?: string, action: "composer" | "regenerate" = "composer", vocal = false) {
     const q = (texte ?? question).trim();
     if (q.length < 2 || busy || historyUnavailable || !active || !mounted.current) return;
-    if (creationImageActive && action === "composer" && !vocal) {
-      void genererImageDansLeFil(q);
+    if (action === "composer" && !vocal && estDemandeImage(q)) {
+      void genererImageDansLeFil(q, niveauImageDepuisTexte(q));
       return;
     }
     if (!vocal && conversationVocaleRef.current) arreterConversationVocale();
@@ -845,17 +854,15 @@ export function Conversation({ navigation, active = true, mode = "chat", onActiv
     }
   }
 
-  /** Création réellement exécutée sans quitter Chat ou Travail. Les références restent privées et ne déclenchent jamais de publication. */
-  async function genererImageDansLeFil(q: string) {
-    if (!droitsImage) { setNotice("Confirmez d’abord les droits sur les photos et contenus envoyés."); return; }
+  /** Création réellement exécutée sans quitter Chat ou Travail. */
+  async function genererImageDansLeFil(q: string, niveauImage: NiveauImageConversation) {
     const references = pieces.filter((p): p is Extract<PieceConversation, { type: "image" }> => p.type === "image").map((p) => p.donnees);
-    const attenteId = idBulle();
-    suitLeFil.current = true; setRetourAuBas(false); setNotice("");
-    setFil((f) => [...f, { id: idBulle(), role: "moi", texte: \`Création d’image (${niveauImage}) : ${q}\`, ok: true, motif: "", outils: [] }, { id: attenteId, role: "moteur", texte: "Création de votre image privée en cours…", ok: true, motif: "", outils: [], progressive: false }]);
+    const attenteId = idBulle(); suitLeFil.current = true; setRetourAuBas(false); setNotice("");
+    setFil((f) => [...f, { id: idBulle(), role: "moi", texte: `Création d’image (${niveauImage}) : ${q}`, ok: true, motif: "", outils: [] }, { id: attenteId, role: "moteur", texte: "Création de votre image privée en cours…", ok: true, motif: "", outils: [], progressive: false }]);
     setQuestion(""); setPieces([]); productionImageBulleId.current = attenteId;
     try {
-      void memoriserPreferenceImage.mutateAsync({ categorie: "preference", cle: "creation_image_preference", contenu: \`Créations visuelles : niveau ${niveauImage}. Préférence enregistrée lors d’une demande du Fondateur ; les détails créatifs restent ceux de chaque nouvelle demande.\`, source: "utilisateur", confiance: "haute", visibilite: "prive" }).catch(() => undefined);
-      const resultat = await productionImage.mutateAsync({ operation: "image", requestId: crypto.randomUUID(), texte: consigneImageConversation(q, niveauImage), droitsConfirmes: true, ...(references.length ? { references } : {}) });
+      void memoriserPreferenceImage.mutateAsync({ categorie: "preference", cle: "creation_image_preference", contenu: `Créations visuelles : niveau ${niveauImage}. Préférence enregistrée lors d’une demande du Fondateur ; les détails créatifs restent ceux de chaque nouvelle demande.`, source: "utilisateur", confiance: "haute", visibilite: "prive" }).catch(() => undefined);
+      const resultat = await productionImage.mutateAsync({ operation: "image", requestId: crypto.randomUUID(), texte: consigneImageConversation(q, niveauImage), droitsConfirmes: !references.length || /\b(j['’]ai les droits|je confirme les droits|photos? (miennes|à moi))\b/i.test(q), ...(references.length ? { references } : {}) });
       setProductionImageId(resultat.id);
     } catch {
       if (!mounted.current) return;
@@ -1265,7 +1272,6 @@ export function Conversation({ navigation, active = true, mode = "chat", onActiv
 
         {retourAuBas ? <button type="button" className="alhud-scroll-bottom" onClick={allerAuBas} aria-label="Aller à la dernière réponse"><ArrowDown className="h-4 w-4" /></button> : null}
         <div className="alhud-composer-wrap border-t border-black/5 p-3">
-          {creationImageActive ? <div className="mb-2 rounded-2xl border border-[#1683ef]/25 bg-[#eaf4ff] p-3 text-sm text-[#124a82]"><div className="flex flex-wrap items-center justify-between gap-2"><span className="font-black"><ImageIcon className="mr-1 inline h-4 w-4" />Création d’image privée dans {mode === "travail" ? "Travail" : "Chat"}</span><button type="button" onClick={() => setCreationImageActive(false)} className="font-bold underline">Revenir au message</button></div><div className="mt-2 flex flex-wrap gap-2" role="radiogroup" aria-label="Niveau de finition de l’image">{(["normal", "premium", "pro"] as NiveauImageConversation[]).map((niveau) => <button key={niveau} type="button" role="radio" aria-checked={niveauImage === niveau} onClick={() => setNiveauImage(niveau)} className={\`rounded-full px-3 py-1 text-xs font-black ${niveauImage === niveau ? "bg-[#1683ef] text-white" : "bg-white text-[#124a82]"}\`}>{niveau === "normal" ? "Normal" : niveau === "premium" ? "Premium" : "Pro"}</button>)}</div><label className="mt-2 flex items-start gap-2 text-xs leading-5"><input className="mt-1" type="checkbox" checked={droitsImage} onChange={(e) => setDroitsImage(e.target.checked)} />Je confirme avoir les droits nécessaires sur les photos et contenus envoyés.</label></div> : null}
           {pieces.length > 0 ? <div className="alhud-attachment-chips" aria-label="Pièces jointes prêtes à envoyer">
             {pieces.map((piece) => <span key={piece.cle}>
               {piece.type === "image" ? <ImageIcon className="h-3.5 w-3.5" /> : <FileText className="h-3.5 w-3.5" />}
@@ -1297,7 +1303,7 @@ export function Conversation({ navigation, active = true, mode = "chat", onActiv
                   <button type="button" role="menuitem" onClick={() => fichiersInput.current?.click()} disabled={deposerFichier.isPending}><FileText />Fichiers</button>
                   <button type="button" role="menuitem" onClick={telechargerConversation} disabled={!fil.length}><Download />Télécharger la conversation</button>
                   <button type="button" role="menuitem" onClick={() => ouvrirModule("documents")}><Library />Bibliothèque</button>
-                  <button type="button" role="menuitem" onClick={() => { setMenuPiecesOuvert(false); setCreationImageActive(true); zoneSaisie.current?.focus(); }}><ImageIcon />Créer une image ici</button>
+                  <button type="button" role="menuitem" onClick={() => ouvrirModule("images")}><ImageIcon />Créer une image</button>
                   <button type="button" role="menuitem" onClick={() => ouvrirModule("code")}><Code2 />Dépôts & code</button>
                   <button type="button" role="menuitem" onClick={() => ouvrirModule("projets")}><FolderKanban />Projets</button>
                   <button type="button" role="menuitem" onClick={() => ouvrirModule("outils")}><Wrench />Outils</button>
@@ -1323,7 +1329,7 @@ export function Conversation({ navigation, active = true, mode = "chat", onActiv
               }}
               rows={ecoute ? 2 : 4}
               maxLength={8000}
-              placeholder={creationImageActive ? "Décrivez l’image : format, couleurs, style, détails et texte éventuel…" : mode === "travail" ? "Donner un ordre à l’Agent développeur" : "Demander à AL-HUDHUD·M"}
+              placeholder={mode === "travail" ? "Donner un ordre à l’Agent développeur" : "Demander à AL-HUDHUD·M"}
               className="alhud-composer-input flex-1 rounded-xl border-0 p-2 text-sm outline-none"
             />
             {ecoute ? (
@@ -1348,7 +1354,6 @@ export function Conversation({ navigation, active = true, mode = "chat", onActiv
               </>
             ) : (
               <>
-                <button type="button" className={\`alhud-composer-action ${creationImageActive ? "bg-[#1683ef] text-white" : ""}\`} onClick={() => { setCreationImageActive((v) => !v); setMenuPiecesOuvert(false); }} aria-pressed={creationImageActive} aria-label="Créer une image dans cette conversation" title="Créer une image ici"><ImageIcon className="h-5 w-5" /></button>
                 <button
                   type="button"
                   className="alhud-composer-action"
@@ -1430,8 +1435,8 @@ export function Conversation({ navigation, active = true, mode = "chat", onActiv
                 <button
                   type="button"
                   onClick={() => envoyer()}
-                  disabled={busy || historyUnavailable || productionImage.isPending || question.trim().length < 2 || (creationImageActive && !droitsImage)}
-                  aria-label={creationImageActive ? "Générer l’image" : mode === "travail" ? "Envoyer l’ordre à l’Agent développeur" : "Envoyer le message"}
+                  disabled={busy || historyUnavailable || productionImage.isPending || question.trim().length < 2}
+                  aria-label={mode === "travail" ? "Envoyer l’ordre à l’Agent développeur" : "Envoyer le message"}
                   className="alhud-composer-send grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-[#111] text-white disabled:opacity-40"
                 >
                   <ArrowUp className="h-4 w-4" />
