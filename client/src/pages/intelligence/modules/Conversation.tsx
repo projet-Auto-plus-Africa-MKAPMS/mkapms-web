@@ -1231,6 +1231,7 @@ export function Conversation({ navigation, active = true, mode = "chat", onActiv
                   <button type="button" role="menuitem" onClick={() => fichiersInput.current?.click()} disabled={deposerFichier.isPending}><FileText />Fichiers</button>
                   <button type="button" role="menuitem" onClick={telechargerConversation} disabled={!fil.length}><Download />Télécharger la conversation</button>
                   <button type="button" role="menuitem" onClick={() => ouvrirModule("documents")}><Library />Bibliothèque</button>
+                  <button type="button" role="menuitem" onClick={() => ouvrirModule("images")}><ImageIcon />Créer une image</button>
                   <button type="button" role="menuitem" onClick={() => ouvrirModule("code")}><Code2 />Dépôts & code</button>
                   <button type="button" role="menuitem" onClick={() => ouvrirModule("projets")}><FolderKanban />Projets</button>
                   <button type="button" role="menuitem" onClick={() => ouvrirModule("outils")}><Wrench />Outils</button>
