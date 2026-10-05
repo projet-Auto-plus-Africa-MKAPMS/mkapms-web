@@ -34,7 +34,7 @@ import { emitSafe } from "../event-bus/service.js";
 import { executerAvecOutils, type AppelOutilEnDirect } from "./outils/boucle.js";
 import { listerActifsPourMode } from "./outils/registre.js";
 import { randomUUID } from "node:crypto";
-import { resumerSiNecessaire } from "./conversation-resume.js";
+import { resumerSiNecessaire, souvenirsRecentsUtilisateur, synchroniserConversationsUtilisateur } from "./conversation-resume.js";
 import { memoriserTravail } from "./apprentissage-travail.js";
 import { nommerSiPremierEchange, titreProvisoire } from "./conversation-titre.js";
 import { rechercherGlobale } from "./recherche-globale.js";
@@ -135,20 +135,24 @@ async function contexteMemoire(input: {
 }): Promise<string[]> {
   if (!input.userId) return [];
   try {
-    const resultats = await rechercherGlobale(input.question, input.userId, {
-      // "conversation" (messages passés, texte intégral, tous fils du même
-      // compte) et "memoire_entreprise" (résumés/faits versés automatiquement
-      // par conversation-resume.ts après chaque échange direction) : sans ces
-      // deux sources, un sujet déjà discuté dans un AUTRE fil ne remontait
-      // jamais ici — demande explicite du PDG que le moteur « enregistre tout »
-      // et fasse grandir sa connaissance d'une conversation à l'autre.
-      sources: ["memoire", "memoire_entreprise", "conversation", "fichier", "connaissance"],
+    // Les résumés d'anciens fils sont indexés au compte (et non dans une
+    // mémoire globale) avant le retrieval. Ainsi une conversation rouverte ou
+    // un nouveau fil peut rappeler un sujet même avec une question très courte.
+    await synchroniserConversationsUtilisateur(input.userId);
+    const [sujetsRecents, resultats] = await Promise.all([
+      souvenirsRecentsUtilisateur(input.userId, input.sessionId),
+      rechercherGlobale(input.question, input.userId, {
+      // Pas de mémoire d'entreprise ici : les conversations et préférences
+      // sont strictement privées au compte connecté.
+      sources: ["memoire", "conversation", "fichier", "connaissance"],
       visibiliteConnaissance: ["interne", "pdg_uniquement"],
       sessionId: input.sessionId,
       limit: 4,
-    });
-    if (resultats.length === 0) return [];
+      }),
+    ]);
+    if (resultats.length === 0 && sujetsRecents.length === 0) return [];
     return [
+      ...(sujetsRecents.length ? ["Sujets mémorisés dans les conversations antérieures de ce compte :", ...sujetsRecents.map((s) => `- ${s}`)] : []),
       "Mémoire et connaissances pertinentes (retrieval lexical, sources existantes uniquement) :",
       ...resultats.slice(0, 8).map((r) => `- [${r.source}:${r.id}] ${r.titre} — ${r.extrait}`),
     ];
