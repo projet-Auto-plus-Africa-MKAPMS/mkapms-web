@@ -139,6 +139,28 @@ export const OUTILS_BOUTIQUE: OutilSpec[] = [
   },
   {
     ...ECRITURE,
+    toolId: "boutique.remplirFicheDepuisFournisseur",
+    name: "boutiqueRemplirFicheDepuisFournisseur",
+    description:
+      "Reprend dans la fiche d'un produit les CARACTÉRISTIQUES que le fournisseur a lui-même données (âge minimum, charge maximale de l'enfant, batterie, moteurs, vitesse, télécommande, démarrage progressif, siège, ceinture, suspension, éclairage, audio/MP3, USB, Bluetooth, dimensions…), chacune avec sa source. Jamais d'écrasement d'une valeur déjà saisie, jamais d'invention (âge maximum jamais déduit) ; pays d'origine et autres données fournisseur restent internes. Une fiche publiée n'est pas touchée. La fiche reste « à relire ». Exige la portée drafts.propose. Ne touche ni prix, ni stock, ni publication.",
+    schemaInput: { type: "object", properties: { produitId: { type: "string" } }, required: ["produitId"] },
+    schemaOutput: { type: "object", properties: { ok: { type: "boolean" }, filled: { type: "integer" }, results: { type: "array" } } },
+    legalBasis: "Reprise des seules données du fournisseur dans la fiche privée, avec un jeton que le PDG a lui-même créé (portée drafts.propose) ; usage journalisé dans le coffre et dans la boutique.",
+    fallback: "Aucun attribut reconnu, fiche publiée ou jeton sans la portée : l'outil le dit tel quel — la fiche ne change pas.",
+  },
+  {
+    ...ECRITURE,
+    toolId: "boutique.appliquerColisFournisseur",
+    name: "boutiqueAppliquerColisFournisseur",
+    description:
+      "Applique à un produit le NOMBRE DE COLIS lu dans l'attribut « Shipment » du fournisseur (« Regular shipment » = 1 colis, « 2x regular shipping » = 2 colis). Palette ou texte inconnu : aucun nombre inventé, la fiche reste « à confirmer ». Pour un nombre confirmé par le PDG sans attribut, utiliser boutique.definirColis avec sa preuve. Le panier compte ensuite 1 ou 2 frais de colis. Exige la portée delivery.work. Ne touche ni prix, ni stock, ni publication.",
+    schemaInput: { type: "object", properties: { produitId: { type: "string" } }, required: ["produitId"] },
+    schemaOutput: { type: "object", properties: { ok: { type: "boolean" }, applied: { type: "array" }, missing: { type: "array" }, pallet: { type: "array" } } },
+    legalBasis: "Application du nombre de colis indiqué par le fournisseur lui-même, avec un jeton que le PDG a lui-même créé avec la portée delivery.work ; usage journalisé dans le coffre et dans la boutique.",
+    fallback: "Attribut absent, palette, texte inconnu ou jeton sans la portée : l'outil le dit tel quel — le nombre de colis ne change pas.",
+  },
+  {
+    ...ECRITURE,
     toolId: "boutique.importerGrilleLivraison",
     name: "boutiqueImporterGrilleLivraison",
     description:

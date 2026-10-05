@@ -17,6 +17,8 @@ import {
   proposerFicheBoutique,
   synchroniserStockBoutique,
   definirColisBoutique,
+  remplirFicheDepuisFournisseurBoutique,
+  appliquerColisFournisseurBoutique,
   lireApercuBoutique,
   recontrolerMarquePhotoBoutique,
   importerGrilleLivraisonBoutique,
@@ -69,6 +71,14 @@ export const IMPLEMENTATIONS: Record<string, ImplementationOutil> = {
   "boutique.definirColis": async (args, contexte) => {
     const a = await accesBoutique(compteAppelant(contexte), "boutique.definirColis", "Enregistrer le nombre de colis d'un produit de la boutique, demandé par le PDG");
     return a.ok ? definirColisBoutique(a, args.produitId, { nombre: args.nombre, preuve: args.preuve }) : { ok: false, detail: a.detail };
+  },
+  "boutique.remplirFicheDepuisFournisseur": async (args, contexte) => {
+    const a = await accesBoutique(compteAppelant(contexte), "boutique.remplirFicheDepuisFournisseur", "Reprendre dans une fiche de la boutique les caractéristiques données par le fournisseur, demandé par le PDG");
+    return a.ok ? remplirFicheDepuisFournisseurBoutique(a, args.produitId) : { ok: false, detail: a.detail };
+  },
+  "boutique.appliquerColisFournisseur": async (args, contexte) => {
+    const a = await accesBoutique(compteAppelant(contexte), "boutique.appliquerColisFournisseur", "Appliquer le nombre de colis indiqué par le fournisseur à un produit de la boutique, demandé par le PDG");
+    return a.ok ? appliquerColisFournisseurBoutique(a, args.produitId) : { ok: false, detail: a.detail };
   },
   "boutique.importerGrilleLivraison": async (args, contexte) => {
     const a = await accesBoutique(compteAppelant(contexte), "boutique.importerGrilleLivraison", "Enregistrer la grille de livraison du fournisseur d'un produit de la boutique, demandé par le PDG");
