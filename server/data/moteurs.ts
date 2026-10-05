@@ -295,7 +295,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/compta-dirigeant"
         ],
-        "cliquables": 22,
+        "cliquables": 21,
         "parMoteur": 0,
         "sansAction": 0,
         "textes": 81,
@@ -10064,7 +10064,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/parametres"
         ],
-        "cliquables": 22,
+        "cliquables": 21,
         "parMoteur": 0,
         "sansAction": 0,
         "textes": 95,
@@ -10917,7 +10917,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
           "/admin/intelligences",
           "/intelligence"
         ],
-        "cliquables": 22,
+        "cliquables": 21,
         "parMoteur": 0,
         "sansAction": 1,
         "textes": 55,
@@ -11141,7 +11141,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "manques": [
       {
         "genre": "bouton_sans_action",
-        "detail": "« Boutique » client/src/pages/intelligence/index.tsx:186"
+        "detail": "« Boutique » client/src/pages/intelligence/index.tsx:183"
       },
       {
         "genre": "dependance_non_declaree",
@@ -23376,7 +23376,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/acheter/depot-annonce"
         ],
-        "cliquables": 22,
+        "cliquables": 21,
         "parMoteur": 0,
         "sansAction": 0,
         "textes": 118,
