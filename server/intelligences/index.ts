@@ -248,7 +248,8 @@ async function indicateursAccueil(ownerId: number): Promise<{
     })(),
   ]);
 
-  const shopUrl = (process.env.SHOP_PUBLIC_URL ?? "").trim();
+  // URL publique vérifiée de la Boutique ; la variable d'environnement reste prioritaire pour un futur domaine personnalisé.
+  const shopUrl = (process.env.SHOP_PUBLIC_URL ?? "https://shop-app-production-5b8b.up.railway.app/").trim();
   const boutique = /^https:\/\/[a-z0-9.-]+(\/[^\s]*)?$/i.test(shopUrl) ? shopUrl : null;
 
   return { ia, documents, moteurs, securite, boutique, observeLe: new Date().toISOString() };
