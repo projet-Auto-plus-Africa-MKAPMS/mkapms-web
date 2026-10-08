@@ -99,7 +99,7 @@ export interface PerimetreMoteur {
   readonly manques: readonly ManqueMoteur[];
 }
 
-export const MOTEURS_TOTAL = 95;
+export const MOTEURS_TOTAL = 96;
 export const MANQUES_TOTAL = 521;
 export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
   "dependance_non_declaree": 62,
@@ -6239,6 +6239,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "event_bus",
       "finance",
       "financial_intelligence",
+      "frontier_os",
       "garage",
       "identity",
       "importafrica",
@@ -8878,6 +8879,119 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     ]
   },
   {
+    "moteur": "frontier_os",
+    "label": "Centre Cyber-Électrique MKA.P-MS / Frontier OS",
+    "categorie": "transversal",
+    "etatDeclare": "active",
+    "dossiers": [
+      "frontier-os"
+    ],
+    "routeurs": [
+      "frontierOs"
+    ],
+    "fichiersServeur": 5,
+    "dependancesDeclarees": [
+      "core",
+      "identity",
+      "shop_link"
+    ],
+    "dependancesDetectees": [
+      "core",
+      "identity",
+      "shop_link"
+    ],
+    "dependances": [
+      "core",
+      "identity",
+      "shop_link"
+    ],
+    "integrationsTechniques": [
+      "identity"
+    ],
+    "preuvesDependances": {
+      "core": [
+        "frontier-os/index.ts importe db.ts",
+        "frontier-os/index.ts importe trpc.ts",
+        "frontier-os/service.ts importe db.ts"
+      ],
+      "identity": [
+        "frontier-os/index.ts importe identity-os/contract.ts",
+        "frontier-os/index.ts exige une session Identity (procédure protégée)"
+      ],
+      "shop_link": [
+        "frontier-os/service.ts importe shop-link/contrats.ts",
+        "frontier-os/service.ts importe shop-link/service.ts",
+        "frontier-os/shop-inventory.ts importe shop-link/contrats.ts"
+      ]
+    },
+    "dependants": [],
+    "evenementsPublies": [],
+    "evenementsConsommes": [],
+    "abonnements": [],
+    "sourcesEmission": [],
+    "boutons": [],
+    "routes": [
+      "/admin/centre-cyber-electrique"
+    ],
+    "ecrans": [
+      {
+        "fichier": "client/src/pages/CentreCyberElectrique.tsx",
+        "routes": [
+          "/admin/centre-cyber-electrique"
+        ],
+        "cliquables": 17,
+        "parMoteur": 0,
+        "sansAction": 0,
+        "textes": 86,
+        "mots": 401
+      }
+    ],
+    "ecransHotes": [],
+    "procedures": [
+      "accueil",
+      "annulerReparation",
+      "appuyer",
+      "atelier",
+      "boutons",
+      "comptage",
+      "controlCenterFeed",
+      "fondation",
+      "groupes",
+      "healthStatus",
+      "integrite",
+      "interrupteur",
+      "journal",
+      "lignes",
+      "memoire",
+      "meta",
+      "moteur",
+      "moteurs",
+      "salles"
+    ],
+    "tables": [
+      "fo_audit_logs",
+      "fo_buttons",
+      "fo_connection_lines",
+      "fo_control_groups",
+      "fo_engine_pairs",
+      "fo_engines",
+      "fo_memory_blocks",
+      "fo_platforms",
+      "fo_pointages",
+      "fo_repair_workshop",
+      "fo_security_zones",
+      "fo_switches"
+    ],
+    "acces": [
+      "pdg",
+      "public"
+    ],
+    "textes": 86,
+    "mots": 401,
+    "battement": "pont_os",
+    "manques": []
+  },
+  {
     "moteur": "garage",
     "label": "Garage Engine",
     "categorie": "univers",
@@ -9921,6 +10035,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "document",
       "document_engine",
       "finance",
+      "frontier_os",
       "garage",
       "importafrica",
       "intelligences",
@@ -20847,7 +20962,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "shop-link/index.ts importe intelligences/boutique.ts"
       ]
     },
-    "dependants": [],
+    "dependants": [
+      "frontier_os"
+    ],
     "evenementsPublies": [],
     "evenementsConsommes": [],
     "abonnements": [],

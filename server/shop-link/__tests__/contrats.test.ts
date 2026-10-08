@@ -167,6 +167,12 @@ function cleDeTest() {
   return { privateKey, clePublique: der.toString("base64url"), empreinte: lue.ok ? lue.empreinte : "" };
 }
 
+/** Change un caractère du MILIEU de la signature (les derniers caractères portent des bits de bourrage : les remplacer ne change parfois rien). */
+function alterer(signature: string): string {
+  const i = 20;
+  return signature.slice(0, i) + (signature[i] === "A" ? "B" : "A") + signature.slice(i + 1);
+}
+
 function signer(cle: ReturnType<typeof cleDeTest>, methode: string, chemin: string, corps: unknown, options: { temps?: number; nonce?: string } = {}) {
   const temps = String(options.temps ?? Date.now());
   const nonce = options.nonce ?? "a".repeat(32);
@@ -190,7 +196,7 @@ test("signature : valide, puis refusée si le corps, le chemin, la méthode, l'h
   assert.equal(verifierSignature({ ...base, maintenant: Number(e.temps) - FENETRE_HORLOGE_MS - 1 }).ok, false, "message du futur");
   assert.equal(verifierSignature({ ...base, cles: [{ id: 9, clePublique: autre.clePublique, empreinte: autre.empreinte }] }).ok, false, "autre clé");
   assert.equal(verifierSignature({ ...base, cles: [] }).ok, false, "aucune clé active");
-  assert.equal(verifierSignature({ ...base, entetes: { ...e, signature: e.signature.slice(0, -2) + "AA" } }).ok, false, "signature altérée");
+  assert.equal(verifierSignature({ ...base, entetes: { ...e, signature: alterer(e.signature) } }).ok, false, "signature altérée");
   assert.equal(verifierSignature({ ...base, entetes: { ...e, nonce: "b".repeat(32) } }).ok, false, "nonce changé");
 });
 

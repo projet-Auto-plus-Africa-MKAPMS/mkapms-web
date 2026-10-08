@@ -862,4 +862,12 @@ export const ENGINE_CATALOG: EngineSeed[] = [
     description: "Câble entre la plateforme et la Boutique : canaux coupables, contrats, clés signées, journal, boîte d'échange des IA.",
     state: "active",
   },
+  {
+    name: "frontier_os",
+    label: "Centre Cyber-Électrique MKA.P-MS / Frontier OS",
+    category: "transversal",
+    dependencies: ["core","identity","shop_link"],
+    description: "Centre de contrôle, sécurité, réparation et pilotage entre plateformes : lignes, interrupteurs, pointages, paires de contrôle, atelier, mémoire, journal.",
+    state: "active",
+  },
 ];

@@ -197,6 +197,13 @@ const OS_ENGINES: OsEngineBinding[] = [
     dependencies: ["core", "identity", "intelligences"],
     loadFeed: async () => (await import("../shop-link/index.js")).controlCenterFeed(),
   },
+  {
+    name: "frontier_os",
+    label: "Centre Cyber-Électrique MKA.P-MS / Frontier OS",
+    category: "transversal",
+    dependencies: ["core", "identity", "shop_link"],
+    loadFeed: async () => (await import("../frontier-os/index.js")).controlCenterFeed(),
+  },
 ];
 
 async function bridgeOne(binding: OsEngineBinding): Promise<void> {
