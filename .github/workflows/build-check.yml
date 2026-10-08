@@ -109,6 +109,13 @@ jobs:
         env:
           SHOP_KNOWLEDGE_TEST_DB: postgresql://core_ai_test:disposable_ci_fixture@localhost:5432/core_ai_test
 
+      - name: Frontier OS cyber-electric center (rules, database invariants, simulation, workshop, PDG router)
+        run: |
+          node --import tsx --test server/frontier-os/__tests__/rules.test.ts
+          node --import tsx --test server/frontier-os/__tests__/frontier-os.integration.test.ts
+        env:
+          SHOP_KNOWLEDGE_TEST_DB: postgresql://core_ai_test:disposable_ci_fixture@localhost:5432/core_ai_test
+
       - name: Work mode output budget (reasoning exhausts max tokens)
         run: node --import tsx --test server/intelligences/__tests__/budget-relance.test.ts server/intelligences/__tests__/conversation-continue-travail.test.ts
 

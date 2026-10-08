@@ -584,6 +584,12 @@ export const PERIMETRES: PerimetreDeclare[] = [
     routes: ["/admin/boutique-cable"],
   },
   {
+    moteur: "frontier_os",
+    dossiers: ["frontier-os"],
+    routeurs: ["frontierOs"],
+    routes: ["/admin/centre-cyber-electrique"],
+  },
+  {
     moteur: "marketing",
     dossiers: ["modules/marketing.ts", "routers/marketing.ts"],
     routeurs: ["marketing", "loyalty"],
