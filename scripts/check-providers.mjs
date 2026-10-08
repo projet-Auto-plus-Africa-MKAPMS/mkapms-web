@@ -60,6 +60,9 @@ const AUTORISES = new Set([
   // (via globalThis.fetch, monkey-patché puis restauré), jamais un appel
   // réseau réel.
   join("server", "intelligences", "__tests__", "verifier-acces.test.ts"),
+  // Conversation vocale : texte de transcription borné et erreur nommant le champ refusé. Pose une clé factice
+  // pour exercer creerAppelVocalTempsReel ; fetch toujours injecté, jamais un appel réseau réel.
+  join("server", "intelligences", "__tests__", "dictee-vocabulaire.test.ts"),
 ]);
 
 const INTERDITS = [
