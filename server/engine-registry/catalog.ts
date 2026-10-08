@@ -854,4 +854,12 @@ export const ENGINE_CATALOG: EngineSeed[] = [
     description: "Coût total d'acquisition assemblé à partir des moteurs existants.",
     state: "active",
   },
+  {
+    name: "shop_link",
+    label: "Moteur intermédiaire Boutique",
+    category: "transversal",
+    dependencies: ["core","identity","intelligences"],
+    description: "Câble entre la plateforme et la Boutique : canaux coupables, contrats, clés signées, journal, boîte d'échange des IA.",
+    state: "active",
+  },
 ];

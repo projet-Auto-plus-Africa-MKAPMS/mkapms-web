@@ -41,6 +41,7 @@ import { domainMiddleware, domainHandler, domainsListHandler } from "./domain.js
 import { publicWriteGate } from "./resilience/gate.js";
 import { apiV1 } from "./intelligences/api-v1.js";
 import { logisticsApi } from "./logistics-engine/api.js";
+import { shopLinkApi } from "./shop-link/entrant.js";
 import { env, isProd } from "./env.js";
 import { readFile } from "node:fs/promises";
 import { readFileSync } from "node:fs";
@@ -282,6 +283,9 @@ app.get("/api/health/db", async (_req, res) => {
 // Point 127 — API interne versionnée des capacités MKA.P-MS AI.
 // Les moteurs et les applications demandent une capacité, jamais un fournisseur.
 app.use("/api/v1", publicWriteGate, apiV1);
+
+// Moteur intermédiaire Boutique — seul point d'entrée des messages de la Boutique (signés, soumis au câble que le PDG peut couper).
+app.use("/api/shop-link", publicWriteGate, shopLinkApi);
 
 // Connexion Google des applications Android (navigateur du téléphone → retour par le schéma de l'application).
 app.use("/api/auth/google/app", googleApplicationRouter);

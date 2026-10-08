@@ -99,7 +99,7 @@ export interface PerimetreMoteur {
   readonly manques: readonly ManqueMoteur[];
 }
 
-export const MOTEURS_TOTAL = 94;
+export const MOTEURS_TOTAL = 95;
 export const MANQUES_TOTAL = 521;
 export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
   "dependance_non_declaree": 62,
@@ -6279,6 +6279,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "scheduler",
       "search",
       "seo",
+      "shop_link",
       "smart",
       "smart_audit",
       "supplier_engine",
@@ -9941,6 +9942,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "resilience",
       "scheduler",
       "search",
+      "shop_link",
       "smart",
       "supplier_engine",
       "support",
@@ -10875,6 +10877,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "event_bus",
       "identity",
       "investment",
+      "shop_link",
       "vo_engine"
     ],
     "evenementsPublies": [
@@ -20796,6 +20799,111 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "textes": 79,
     "mots": 427,
     "battement": "sonde",
+    "manques": []
+  },
+  {
+    "moteur": "shop_link",
+    "label": "Moteur intermédiaire Boutique",
+    "categorie": "transversal",
+    "etatDeclare": "active",
+    "dossiers": [
+      "shop-link"
+    ],
+    "routeurs": [
+      "shopLink"
+    ],
+    "fichiersServeur": 7,
+    "dependancesDeclarees": [
+      "core",
+      "identity",
+      "intelligences"
+    ],
+    "dependancesDetectees": [
+      "core",
+      "identity",
+      "intelligences"
+    ],
+    "dependances": [
+      "core",
+      "identity",
+      "intelligences"
+    ],
+    "integrationsTechniques": [
+      "identity"
+    ],
+    "preuvesDependances": {
+      "core": [
+        "shop-link/boite.ts importe db.ts",
+        "shop-link/entrant.ts importe db.ts",
+        "shop-link/index.ts importe db.ts"
+      ],
+      "identity": [
+        "shop-link/index.ts importe identity-os/contract.ts",
+        "shop-link/index.ts exige une session Identity (procédure protégée)"
+      ],
+      "intelligences": [
+        "shop-link/boite.ts importe intelligences/connaissance.ts",
+        "shop-link/boite.ts importe intelligences/schema.ts",
+        "shop-link/index.ts importe intelligences/boutique.ts"
+      ]
+    },
+    "dependants": [],
+    "evenementsPublies": [],
+    "evenementsConsommes": [],
+    "abonnements": [],
+    "sourcesEmission": [],
+    "boutons": [],
+    "routes": [
+      "/admin/boutique-cable"
+    ],
+    "ecrans": [
+      {
+        "fichier": "client/src/pages/intelligence/modules/CableBoutique.tsx",
+        "routes": [
+          "/admin/boutique-cable"
+        ],
+        "cliquables": 11,
+        "parMoteur": 0,
+        "sansAction": 0,
+        "textes": 40,
+        "mots": 238
+      }
+    ],
+    "ecransHotes": [],
+    "procedures": [
+      "boite",
+      "cles",
+      "controlCenterFeed",
+      "creerSortant",
+      "creerSortantDepuisConnaissance",
+      "dashboard",
+      "decider",
+      "enregistrerCle",
+      "etat",
+      "healthStatus",
+      "journal",
+      "meta",
+      "regler",
+      "revoquerCle",
+      "tester",
+      "toutCouper"
+    ],
+    "tables": [
+      "shop_link_cables",
+      "shop_link_cles",
+      "shop_link_documents",
+      "shop_link_etat_boutique",
+      "shop_link_ia_boite",
+      "shop_link_journal",
+      "shop_link_rejeu"
+    ],
+    "acces": [
+      "pdg",
+      "public"
+    ],
+    "textes": 40,
+    "mots": 238,
+    "battement": "pont_os",
     "manques": []
   },
   {

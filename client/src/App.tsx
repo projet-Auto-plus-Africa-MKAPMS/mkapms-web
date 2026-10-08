@@ -198,6 +198,7 @@ const CentreActions = lazy(() => import("./pages/CentreActions"));
 const CentreConnaissance = lazy(() => import("./pages/CentreConnaissance"));
 const CentreReglesPays = lazy(() => import("./pages/CentreReglesPays"));
 const CentreResilience = lazy(() => import("./pages/CentreResilience"));
+const CableBoutique = lazy(() => import("./pages/intelligence/modules/CableBoutique"));
 const CentreCommandes = lazy(() => import("./pages/CentreCommandes"));
 const LaboRD = lazy(() => import("./pages/LaboRD"));
 const CentreIA = lazy(() => import("./pages/CentreIA"));
@@ -1257,6 +1258,7 @@ export default function App() {
             <Route path="/admin/connaissance" element={<U name="Mémoire automobile"><CentreConnaissance /></U>} />
             <Route path="/admin/regles-pays" element={<U name="Règles par pays"><CentreReglesPays /></U>} />
             <Route path="/admin/resilience" element={<U name="Centre de Résilience"><CentreResilience /></U>} />
+            <Route path="/admin/boutique-cable" element={<U name="Câble Boutique"><CableBoutique /></U>} />
             <Route path="/admin/commandes" element={<U name="Centre de Commandes"><CentreCommandes /></U>} />
             <Route path="/admin/labo-rd" element={<U name="Laboratoire R&D"><LaboRD /></U>} />
             <Route path="/admin/ia-couts" element={<U name="Centre Intelligence & Coûts"><CentreIA /></U>} />

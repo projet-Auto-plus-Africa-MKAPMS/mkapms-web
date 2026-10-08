@@ -76,6 +76,7 @@ import { searchOsRouter } from "./search-os/index.js";
 import { monitoringOsRouter } from "./monitoring-os/index.js";
 // Scheduler OS — registre central des tâches planifiées (règle MOS #15)
 import { schedulerOsRouter } from "./scheduler-os/index.js";
+import { shopLinkRouter } from "./shop-link/index.js";
 // Media OS — optimisation/dédoublonnage des médias (règle MOS #15)
 import { mediaOsRouter } from "./media-os/index.js";
 // Backup & Recovery OS — sauvegardes + restauration contrôlée (règle MOS #15)
@@ -259,6 +260,7 @@ export const appRouter = router({
   customerJourneyOs: customerJourneyOsRouter,
   searchOs: searchOsRouter,
   schedulerOs: schedulerOsRouter,
+  shopLink: shopLinkRouter,
   mediaOs: mediaOsRouter,
   monitoringOs: monitoringOsRouter,
   auditOs: auditOsRouter,

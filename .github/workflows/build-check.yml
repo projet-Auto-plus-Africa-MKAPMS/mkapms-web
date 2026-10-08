@@ -104,6 +104,11 @@ jobs:
         env:
           SHOP_KNOWLEDGE_TEST_DB: postgresql://core_ai_test:disposable_ci_fixture@localhost:5432/core_ai_test
 
+      - name: Shop link engine (cable, signed messages, exchange box, PDG router)
+        run: node --import tsx --test server/shop-link/__tests__/contrats.test.ts server/shop-link/__tests__/shop-link.integration.test.ts
+        env:
+          SHOP_KNOWLEDGE_TEST_DB: postgresql://core_ai_test:disposable_ci_fixture@localhost:5432/core_ai_test
+
       - name: Work mode output budget (reasoning exhausts max tokens)
         run: node --import tsx --test server/intelligences/__tests__/budget-relance.test.ts server/intelligences/__tests__/conversation-continue-travail.test.ts
 

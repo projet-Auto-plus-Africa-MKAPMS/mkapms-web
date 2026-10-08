@@ -596,6 +596,24 @@ export default function Admin() {
       </section>
       )}
 
+      {/* Câble Boutique — moteur intermédiaire entre la plateforme et la Boutique (PDG) */}
+      {user?.role === "super_admin" && (
+      <section className="mt-10">
+        <h2 className="text-lg font-bold text-slate-800">C&acirc;ble Boutique</h2>
+        <p className="text-xs text-slate-500">Couper ou rebrancher la liaison avec la Boutique, canal par canal, et voir ce qui passe</p>
+        <Link to="/admin/boutique-cable" className="mt-3 flex items-center gap-4 rounded-xl border-2 border-[#D4AF37] bg-gradient-to-r from-[#111] to-[#1a1a1a] p-5 shadow-lg hover:shadow-xl transition group">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#D4AF37]/20">
+            <span className="text-2xl">&#x1F50C;</span>
+          </div>
+          <div className="flex-1">
+            <p className="text-base font-bold text-[#D4AF37]">Moteur interm&eacute;diaire Boutique</p>
+            <p className="text-xs text-white/60">Canaux, cl&eacute;s sign&eacute;es, journal, bo&icirc;te d&apos;&eacute;change des IA</p>
+          </div>
+          <ChevronDown size={18} className="text-[#D4AF37] -rotate-90" />
+        </Link>
+      </section>
+      )}
+
       {/* Mémoire technique du code (points 116-118) */}
       {(user?.role === "super_admin" || user?.role === "admin") && (
       <section className="mt-10">
