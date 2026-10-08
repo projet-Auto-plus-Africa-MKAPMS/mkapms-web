@@ -578,6 +578,12 @@ export const PERIMETRES: PerimetreDeclare[] = [
     routes: [],
   },
   {
+    moteur: "shop_link",
+    dossiers: ["shop-link"],
+    routeurs: ["shopLink"],
+    routes: ["/admin/boutique-cable"],
+  },
+  {
     moteur: "marketing",
     dossiers: ["modules/marketing.ts", "routers/marketing.ts"],
     routeurs: ["marketing", "loyalty"],

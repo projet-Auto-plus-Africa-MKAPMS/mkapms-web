@@ -190,6 +190,13 @@ const OS_ENGINES: OsEngineBinding[] = [
     dependencies: ["core", "seo", "smart"],
     loadFeed: async () => (await import("../visibility-os/index.js")).controlCenterFeed(),
   },
+  {
+    name: "shop_link",
+    label: "Moteur intermédiaire Boutique",
+    category: "transversal",
+    dependencies: ["core", "identity", "intelligences"],
+    loadFeed: async () => (await import("../shop-link/index.js")).controlCenterFeed(),
+  },
 ];
 
 async function bridgeOne(binding: OsEngineBinding): Promise<void> {
