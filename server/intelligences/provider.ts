@@ -1232,6 +1232,12 @@ const LANGUES_REPONSE_VOCALE: Record<string, string> = {
 
 /** Longueur maximale du vocabulaire ajouté à la consigne de transcription. */
 export const VOCABULAIRE_MAX_CARACTERES = 700;
+/**
+ * Longueur maximale du texte d'aide à la transcription envoyé à OpenAI (session vocale temps réel). Le fournisseur refuse
+ * (400 « string_above_max_length ») un texte de plus de 1 024 caractères : on reste à 1 000, vocabulaire de la mémoire compris,
+ * pour que l'ouverture de la conversation vocale ne dépende jamais de la taille de la mémoire du locuteur.
+ */
+export const TRANSCRIPTION_PROMPT_MAX_CARACTERES = 1000;
 
 /**
  * Consigne donnée au modèle de transcription : marques, formules arabes courantes et, quand il y en a, les mots
@@ -1242,17 +1248,18 @@ export function consigneTranscription(langue: string | undefined, vocabulaire: r
     ? "AL-HUDHUD·M, MKA.P-MS. Ponctuation naturelle et transcription fidèle. Le locuteur parle français et emploie parfois des formules arabes courantes, à écrire en lettres latines sans les traduire : salam alaikum, assalamou alaykoum, wa alaykoum salam, bismillah, inchallah, machallah, hamdoulilah, barakallahou fik, jazakallah khayran."
     : "AL-HUDHUD·M, MKA.P-MS. Ponctuation naturelle et transcription fidèle, dans la langue parlée, sans traduire ni reformuler.";
   const retenus: string[] = [];
+  const introduction = `${base} Mots et expressions du locuteur, à écrire exactement ainsi quand ils sont prononcés : `;
+  // Le budget du vocabulaire est le plus petit de deux plafonds : celui du vocabulaire seul, et ce qui reste sous la limite du fournisseur.
+  const budget = Math.min(VOCABULAIRE_MAX_CARACTERES, TRANSCRIPTION_PROMPT_MAX_CARACTERES - introduction.length - 1);
   let longueur = 0;
   for (const brut of vocabulaire) {
     const terme = brut.replace(/[\u0000-\u001f"]/g, " ").replace(/\s+/g, " ").trim();
     if (!terme || retenus.includes(terme)) continue;
-    if (longueur + terme.length + 2 > VOCABULAIRE_MAX_CARACTERES) break;
+    if (longueur + terme.length + 2 > budget) break;
     retenus.push(terme);
     longueur += terme.length + 2;
   }
-  return retenus.length
-    ? `${base} Mots et expressions du locuteur, à écrire exactement ainsi quand ils sont prononcés : ${retenus.join(", ")}.`
-    : base;
+  return retenus.length ? `${introduction}${retenus.join(", ")}.` : base;
 }
 
 /**
@@ -1351,8 +1358,11 @@ export async function creerAppelVocalTempsReel(
     // et le code d'erreur public renvoyé par l'API.
     let code = "unknown";
     try {
-      const erreur = JSON.parse(corps) as { error?: { code?: unknown; type?: unknown } };
+      const erreur = JSON.parse(corps) as { error?: { code?: unknown; type?: unknown; param?: unknown } };
       code = String(erreur.error?.code ?? erreur.error?.type ?? "unknown").replace(/[^A-Za-z0-9._-]/g, "").slice(0, 80) || "unknown";
+      // Le champ refusé par le fournisseur (ex. « session.audio.input.transcription.prompt ») : sans lui, une erreur de longueur ne dit pas laquelle.
+      const champ = typeof erreur.error?.param === "string" ? erreur.error.param.replace(/[^A-Za-z0-9._-]/g, "").slice(0, 80) : "";
+      if (champ) code = `${code}@${champ}`;
     } catch {
       // Une réponse non JSON ne doit jamais être recopiée dans les journaux.
     }
