@@ -79,7 +79,7 @@ Dossier [`preuves/captures/`](preuves/captures/) : `01-accueil-bureau` (aiguille
 | Gouvernance des deux voies existantes (API de connaissance / d'analyse de la Boutique, bouton Boutique) | **Manquant** — dit dans la salle Cybersécurité, décision du PDG |
 | Clés d'accès, API externes, accès employés, souscriptions | **Préparé, inactif** |
 | Map, IA Al-Houdoud M., Boutique Bijoux, futures plateformes | **Réserves vides** « À venir » ; Map non inventoriée (à vérifier) ; IA : rattachement à confirmer |
-| Identité de « MKH Shop », « MKPMS Shop », « boutique principale » | **À vérifier** par le PDG (non trouvés dans le code, aucune fusion) |
+| Identité de « MKH Shop », « MKPMS Shop », « boutique principale » | Précisé par le PDG le 9 oct. 2026 : pas une boutique à part, le centre est installé dans la plateforme principale (MKAPMS Web) ; noms toujours absents du code, rien n'est fusionné |
 | Température, capacité doublée | **Non mesurées / non prouvées** : aucune source, aucun facteur annoncé |
 
 ## 9. Démarrage et retour arrière

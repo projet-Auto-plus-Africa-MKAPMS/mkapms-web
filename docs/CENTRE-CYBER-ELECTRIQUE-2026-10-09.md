@@ -24,7 +24,7 @@ Définitions : *incomplet* = déclaré sans liaison d'exécution, ou bloqué par
 
 Ce que l'inventaire a établi sur les intermédiaires : la Boutique a préparé **six** moteurs intermédiaires, mais **cinq ne sont que des contrats déclarés** (lignes de `shop_strategy.connection_contracts`, migration 0057) ; un seul est du code exécutable (l'accès de service, `server/service-access.mjs`, testé). Le registre de la Boutique affirme lui-même `mainPlatformConnection: 'FORBIDDEN'` et sa règle interdit à la Boutique d'appeler la plateforme : les trois contrats « Boutique → plateforme » n'ont **aucun émetteur** côté Boutique. Deux moteurs nommés par des contrats (`access.entry`, `seo.campaign`) n'existent pas dans son registre. L'audit propre de la Boutique compte 105 exigences, 285 critères partiels, 870 manquants, **0 complet**.
 
-Noms exacts : « MKA.P-MS SHOP » / « MKA.P-MS Shop » (dépôt `mkapms-shop`), « MKAPMS Shop » (une fois), « plateforme principale ». **« MKH Shop », « MKPMS Shop » et « boutique principale » n'existent dans aucun des deux dépôts** : ils sont enregistrés comme *non trouvés*, rattachés à aucune plateforme, rien n'est fusionné. Les dépôts `mkapms-carte` (Map) et `mkapms-deployment` ne sont pas inventoriés dans ce lot : **à vérifier**.
+Noms exacts : « MKA.P-MS SHOP » / « MKA.P-MS Shop » (dépôt `mkapms-shop`), « MKAPMS Shop » (une fois), « plateforme principale ». **« MKH Shop », « MKPMS Shop » et « boutique principale » n'existent dans aucun des deux dépôts** : ils sont enregistrés comme *non trouvés*, rattachés à aucune plateforme, rien n'est fusionné. **Précision du PDG (9 oct. 2026)** : ce n'est pas une boutique à part ; le système est installé dans la plateforme principale (MKAPMS Web), ce que fait ce lot. Les dépôts `mkapms-carte` (Map) et `mkapms-deployment` ne sont pas inventoriés dans ce lot : **à vérifier**.
 
 ## 2. La base indépendante (point 2)
 
@@ -77,4 +77,4 @@ L'entrée ouvre l'**accueil et le tableau de bord général**. Dix salles : accu
 
 ## 8. Ce qui reste (dit sans détour)
 
-Branchement réel (audit final décidé par le PDG), clés d'accès et API externes, interrupteurs locaux côté plateformes (aujourd'hui simulés par le centre), émetteurs côté Boutique pour les contrats « Boutique → plateforme », canaux Map / IA Al-Houdoud M. / Bijoux, inventaire de Map, base physiquement séparée, gouvernance des deux voies existantes non couvertes, identité de « MKH Shop » / « MKPMS Shop » / « boutique principale ». Le centre n'est **pas** déclaré autonome ni terminé à 100 %.
+Branchement réel (audit final décidé par le PDG), clés d'accès et API externes, interrupteurs locaux côté plateformes (aujourd'hui simulés par le centre), émetteurs côté Boutique pour les contrats « Boutique → plateforme », canaux Map / IA Al-Houdoud M. / Bijoux, inventaire de Map, base physiquement séparée, gouvernance des deux voies existantes non couvertes. Le centre n'est **pas** déclaré autonome ni terminé à 100 %.

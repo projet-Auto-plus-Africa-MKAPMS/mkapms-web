@@ -9,8 +9,8 @@ import type { InventairePlateforme } from "./types.js";
 export const INVENTAIRE_PLATEFORME: InventairePlateforme = {
  "source": {
   "depot": "projet-Auto-plus-Africa-MKAPMS/mkapms-web",
-  "commit": "07ca5b8b0bf55d03ebc5de0ee362b9a2e475ea7e",
-  "dateCommit": "2026-10-08T23:14:10+00:00",
+  "commit": "03fffde3b76450ade43d25e4fa17451bbe6a7909",
+  "dateCommit": "2026-10-09T00:13:38+00:00",
   "genereLe": "2026-10-09",
   "fichiersLus": [
    "server/data/moteurs.ts",

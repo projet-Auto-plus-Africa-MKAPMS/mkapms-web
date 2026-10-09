@@ -48,9 +48,9 @@ const ALIAS = [
   { name: "MKA.P-MS SHOP", platformCode: "shop", status: "found", evidence: "Nom du propriétaire dans le système intelligent de la Boutique (server/shop-intelligent-system.mjs).", note: "" },
   { name: "MKA.P-MS Shop", platformCode: "shop", status: "found", evidence: "Documentation de la Boutique et de la plateforme.", note: "" },
   { name: "MKAPMS Shop", platformCode: "shop", status: "found", evidence: "Une occurrence : docs/SHOP-LIVING-PANELS-2026-10-08.md de la Boutique.", note: "" },
-  { name: "boutique principale", platformCode: null, status: "not_found", evidence: "Absent des deux dépôts.", note: "Peut-être la Boutique mkapms-shop, peut-être une autre : à confirmer par le PDG. Aucune fusion." },
-  { name: "MKH Shop", platformCode: null, status: "not_found", evidence: "Absent des deux dépôts.", note: "Autre boutique ou autre nom de la Boutique ? À confirmer par le PDG. Aucune fusion." },
-  { name: "MKPMS Shop", platformCode: null, status: "not_found", evidence: "Absent des deux dépôts.", note: "Autre boutique ou autre nom de la Boutique ? À confirmer par le PDG. Aucune fusion." },
+  { name: "boutique principale", platformCode: null, status: "not_found", evidence: "Absent des deux dépôts.", note: "Précision du PDG (9 oct. 2026) : ce n'est pas une boutique à part, le centre est installé dans la plateforme principale (MKAPMS Web). Nom absent du code, rien n'est fusionné." },
+  { name: "MKH Shop", platformCode: null, status: "not_found", evidence: "Absent des deux dépôts.", note: "Précision du PDG (9 oct. 2026) : ce n'est pas une boutique à part, le centre est installé dans la plateforme principale (MKAPMS Web). Nom absent du code, rien n'est fusionné." },
+  { name: "MKPMS Shop", platformCode: null, status: "not_found", evidence: "Absent des deux dépôts.", note: "Précision du PDG (9 oct. 2026) : ce n'est pas une boutique à part, le centre est installé dans la plateforme principale (MKAPMS Web). Nom absent du code, rien n'est fusionné." },
 ] as const;
 
 export const SALLES = [
