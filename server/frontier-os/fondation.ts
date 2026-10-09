@@ -36,7 +36,7 @@ const DEPOT_MAP = "projet-Auto-plus-Africa-MKAPMS/mkapms-carte";
 const PLATEFORMES = [
   { code: "frontier", name: "Centre Cyber-Électrique MKA.P-MS / Frontier OS", kind: "center", repository: DEPOT_WEB, exactNames: ["Centre Cyber-Électrique MKA.P-MS", "Frontier OS"], identityStatus: "verified", identityNote: "Le centre vit dans le dépôt de la plateforme principale (server/frontier-os).", status: "active", securityLevel: 5 },
   { code: "main", name: "Plateforme principale MKA.P-MS", kind: "main", repository: DEPOT_WEB, exactNames: ["plateforme principale", "MKA.P-MS"], identityStatus: "verified", identityNote: "Nom employé par le registre et les contrats de la Boutique.", status: "active", securityLevel: 5 },
-  { code: "shop", name: "Boutique MKA.P-MS SHOP", kind: "shop", repository: DEPOT_SHOP, exactNames: ["MKA.P-MS SHOP", "MKA.P-MS Shop", "MKAPMS Shop"], identityStatus: "verified", identityNote: "Un seul dépôt de boutique est accessible (mkapms-shop). Les noms « boutique principale », « MKH Shop » et « MKPMS Shop » n'y figurent pas : voir les alias, rien n'est fusionné.", status: "active", securityLevel: 4 },
+  { code: "shop", name: "MKAPMS Shop", kind: "shop", repository: DEPOT_SHOP, exactNames: ["MKA.P-MS SHOP", "MKA.P-MS Shop", "MKAPMS Shop"], identityStatus: "verified", identityNote: "Nom officiel retenu par le PDG le 9 octobre 2026. Un seul dépôt de boutique est accessible (mkapms-shop). Les noms « boutique principale », « MKH Shop » et « MKPMS Shop » n'y figurent pas : voir les alias, rien n'est fusionné.", status: "active", securityLevel: 4 },
   { code: "map", name: "Map", kind: "map", repository: DEPOT_MAP, exactNames: [], identityStatus: "to_verify", identityNote: "Le dépôt mkapms-carte existe dans l'organisation mais n'a pas été inventorié dans ce lot (consigne : la Boutique puis la plateforme principale).", status: "to_verify", securityLevel: 3 },
   { code: "ia-alhoudoud", name: "IA Al-Houdoud M.", kind: "ai", repository: "", exactNames: ["AL-HUDHUD·M"], identityStatus: "to_verify", identityNote: "Aujourd'hui l'IA est un moteur de la plateforme principale (« intelligences ») : son rattachement comme plateforme distincte est à confirmer par le PDG.", status: "to_verify", securityLevel: 4 },
   { code: "bijoux", name: "Boutique Bijoux (future)", kind: "jewelry", repository: "", exactNames: [], identityStatus: "to_verify", identityNote: "Future boutique : aucun dépôt, aucun moteur.", status: "future", securityLevel: 3 },
@@ -124,6 +124,9 @@ async function pose(tx: Tx): Promise<{ reservesAjoutees: number }> {
   // 1. Entreprise, plateformes, noms exacts.
   await tx.insert(companies).values({ code: "mkapms", name: "MKA.P-MS", role: "center_owner", status: "active", note: "Entreprise propriétaire du centre et de toutes les plateformes actuelles." }).onConflictDoNothing();
   await tx.insert(platforms).values(PLATEFORMES.map((p) => ({ ...p, exactNames: [...p.exactNames], companyCode: "mkapms" }))).onConflictDoNothing();
+  // Renommage demandé par le PDG le 9 octobre 2026 : nom officiel « MKAPMS Shop ». onConflictDoNothing ci-dessus ne touche jamais
+  // une ligne déjà posée avant ce lot ; cette mise à jour explicite s'applique donc aussi à une base déjà peuplée.
+  await tx.update(platforms).set({ name: "MKAPMS Shop", identityNote: PLATEFORMES.find((p) => p.code === "shop")!.identityNote }).where(eq(platforms.code, "shop"));
   await tx.insert(platformAliases).values(ALIAS.map((a) => ({ ...a }))).onConflictDoNothing();
 
   // 2. Salles et boutons.

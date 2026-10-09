@@ -18,7 +18,9 @@ export type CoteCoupure = "remote" | "center" | "main";
 export type EtatDemande = "none" | "activate" | "deactivate";
 export type EtatObserve = "connected" | "disconnected" | "unknown";
 export type Avancement = "idle" | "pending" | "in_progress" | "confirmed" | "failed";
-export type KindMoteur = "real" | "intermediary" | "command" | "verification" | "transport" | "monitor" | "switch_element" | "contact_element";
+export type KindMoteur = "real" | "intermediary" | "command" | "verification" | "transport" | "monitor" | "switch_element" | "contact_element" | "declared";
+/** États propres aux moteurs déclarés du Centre (migration 0005) — distincts des états d'inventaire externe ci-dessus, mêmes colonne. */
+export type EtatMoteurCentre = "vide" | "prepare" | "teste" | "actif" | "bloque" | "erreur";
 
 export const companies = frontier.table("companies", {
   code: text("code").primaryKey(),
@@ -63,7 +65,7 @@ export const engines = frontier.table(
     function: text("function").notNull().default(""),
     kind: text("kind").$type<KindMoteur>().notNull(),
     origin: text("origin").$type<"inventory" | "center">().notNull(),
-    inventoryState: text("inventory_state").$type<"incomplet" | "prepare" | "installe" | "teste" | "connecte" | "a_verifier">(),
+    inventoryState: text("inventory_state").$type<"incomplet" | "prepare" | "installe" | "teste" | "connecte" | "a_verifier" | EtatMoteurCentre>(),
     evidenceLevel: text("evidence_level").$type<"declare" | "liaison" | "tests" | "mesure">(),
     declaredOnly: boolean("declared_only").notNull().default(true),
     codeLocation: text("code_location").array().notNull().default([]),
@@ -77,10 +79,19 @@ export const engines = frontier.table(
     healthCheckedAt: t("health_checked_at"),
     details: jsonb("details").$type<Record<string, unknown>>().notNull().default({}),
     version: text("version").notNull().default(""),
+    /** Migration 0005 — registre étendu des moteurs déclarés du Centre (salle propriétaire, ensemble de connecteur, interrupteur manuel). */
+    roomCode: text("room_code"),
+    connectorSet: text("connector_set"),
+    manualSwitch: boolean("manual_switch").notNull().default(false),
     createdAt: t("created_at").notNull().defaultNow(),
     updatedAt: t("updated_at").notNull().defaultNow(),
   },
-  (x) => [index("engines_platform_idx").on(x.platformCode, x.kind), index("engines_kind_idx").on(x.kind, x.running)],
+  (x) => [
+    index("engines_platform_idx").on(x.platformCode, x.kind),
+    index("engines_kind_idx").on(x.kind, x.running),
+    index("engines_room_idx").on(x.roomCode),
+    index("engines_connector_set_idx").on(x.connectorSet),
+  ],
 );
 
 export const engineVersions = frontier.table(
