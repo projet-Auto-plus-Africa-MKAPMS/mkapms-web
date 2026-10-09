@@ -22,6 +22,7 @@ import { seedConnaissancesPublication } from "../intelligences/connaissances-pub
 import { seedConnaissancesBoutique } from "../intelligences/connaissances-boutique.js";
 import { seedConnaissancesTravaux } from "../intelligences/connaissances-travaux.js";
 import { seedSouvenirsTravaux } from "../intelligences/fondations-travaux.js";
+import { seedSouvenirsCentreCyberElectrique } from "../intelligences/souvenirs-centre-cyber-electrique.js";
 import { seedReferentielAutomobile } from "../knowledge-engine/referentiel-seed.js";
 import { synchroniserNhtsaSiNecessaire } from "../knowledge-engine/nhtsa.js";
 import { initialiserBaremes } from "../vehicle-delivery/service.js";
@@ -557,6 +558,19 @@ export async function bootstrapEngines(): Promise<void> {
   } catch (err) {
     console.error(
       "[MKA.P-MS] pose des souvenirs des travaux échouée:",
+      (err as Error).message,
+    );
+  }
+
+  // Centre Cyber-Électrique / Frontier OS et règles permanentes de l'engagement (demande du PDG du 9 octobre 2026 : tout intégrer en mémoire) : posés une fois.
+  try {
+    const r = await seedSouvenirsCentreCyberElectrique();
+    if (r.nouveaux > 0) {
+      console.log(`[MKA.P-MS] Intelligences : ${r.nouveaux} souvenir(s) du Centre Cyber-Électrique posé(s) (règles permanentes, périmètre décliné, projet, leçons).`);
+    }
+  } catch (err) {
+    console.error(
+      "[MKA.P-MS] pose des souvenirs du Centre Cyber-Électrique échouée:",
       (err as Error).message,
     );
   }
