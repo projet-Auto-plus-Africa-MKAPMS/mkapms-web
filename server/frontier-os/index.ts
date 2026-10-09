@@ -1,25 +1,37 @@
 /**
  * Centre Cyber-Électrique MKA.P-MS / Frontier OS — point d'entrée du moteur « frontier_os » (plateforme principale).
  *
- * Le centre de contrôle, de sécurité, de réparation et de pilotage entre plateformes : Boutique à gauche, plateforme principale à droite,
- * entre les deux des moteurs intermédiaires, des interrupteurs, des lignes et un grand pointage rouge. Réservé au PDG (super_admin),
- * aucune clé d'accès ni API externe pour le moment, SIMULATION uniquement : rien de réel n'est branché ni débranché d'ici.
+ * Centre de contrôle, de sécurité, de réparation et de pilotage entre plateformes, avec sa PROPRE base (schéma « frontier », migrateur et
+ * journal propres). Réservé au PDG (super_admin). Aucune clé d'accès ni API externe : tous les moteurs sont internes. SIMULATION seulement :
+ * rien de réel n'est branché ni débranché d'ici ; la gouvernance du câble réel de la Boutique est facultative et armée par le PDG.
  */
+import { TRPCError } from "@trpc/server";
 import { count, gt, sql } from "drizzle-orm";
 import { z } from "zod";
-import { db } from "../db.js";
+import { dbFrontier } from "./base/connexion.js";
+import { assurerBase, etatBase } from "./base/demarrage.js";
+import { auditLog, platforms } from "./base/schema.js";
 import { pdgProcedure, publicProcedure, router } from "../trpc.js";
 import type { ControlCenterFeed, MaturityLevel } from "../identity-os/contract.js";
-import { foAuditLogs, foPlatforms } from "./schema.js";
-import { ACTION_REELLE_ACTIVEE, MODE } from "./rules.js";
+import { ACTION_REELLE_ACTIVEE, MODE } from "./regles.js";
+import { annulerReparation, appliquerReparation, cloreIncident, lancerDiagnostic, proposerReparation, testerReparation } from "./atelier.js";
+import { commanderCoupure, commanderGeneral, commanderGroupe, commanderLigne, definirLigneActivee, deverrouillerLigne, verrouillerLigne } from "./commandes.js";
+import { demarrerCentre } from "./demarrage-centre.js";
+import { ajouterGroupe, importerInventaire, VERSION_CENTRE } from "./fondation.js";
+import { armerGouvernance, desarmerGouvernance } from "./gouvernance.js";
+import type { Acteur } from "./journal.js";
+import { echantillonnerCentre, mesurerCapacites } from "./mesures.js";
+import { lancerProtocoleCoupures, lancerProtocolePannes } from "./protocole.js";
+import { arreterMoteur, demarrerMoteur, verifierSanteMoteurs } from "./sante.js";
+import { enregistrerResultatExterne, envoyer as envoyerEchange, rejouer } from "./transport.js";
 import {
-  accueil, actionnerInterrupteur, annulerReparation, appuyerBouton, assurerFondationUneFois, atelierListe, boutonsListe, comptageBoutique, ecartsPlateformeBoutique, groupesVue, journalListe, journaliser,
-  lignesVue, memoireListe, moteurDetail, moteursListe, sallesListe, verifierIntegrite, type Acteur,
-} from "./service.js";
+  accueil, atelierVue, auditVue, commandeDetail, commandesVue, echangesVue, employesVue, futuresVue, groupesVue, incidentsVue, inventaireResume, lignesVue, memoireVue, mesuresVue, moteurDetail,
+  moteursListe, salleBoutique, sallesListe, securiteVue, sessionsVue,
+} from "./vues.js";
+import { envoyer as envoyerBus } from "./bus.js";
+import { MOTEURS_INTERNES } from "./moteurs-internes.js";
 
-export { assurerFondation, assurerFondationUneFois } from "./service.js";
-
-const V = "1.0.0";
+const V = VERSION_CENTRE;
 const M: MaturityLevel = "sprint_1_minimal";
 export const FRONTIER_OS_META = {
   name: "frontier_os" as const,
@@ -36,33 +48,37 @@ export async function healthStatus() {
   let status: "ok" | "degraded" | "down" = "ok";
   let plateformes = 0;
   try {
-    plateformes = Number((await db.select({ c: count() }).from(foPlatforms))[0]?.c ?? 0);
+    const base = await assurerBase();
+    if (!base.prete) status = "degraded";
+    else plateformes = Number((await dbFrontier().select({ c: count() }).from(platforms))[0]?.c ?? 0);
   } catch {
     status = "degraded";
   }
-  return { engine: FRONTIER_OS_META.name, version: V, status, checkedAt: new Date().toISOString(), metrics: { plateformes, mode: MODE, responseMs: Date.now() - debut } };
+  return { engine: FRONTIER_OS_META.name, version: V, status, checkedAt: new Date().toISOString(), metrics: { plateformes, mode: MODE, baseSeparee: etatBase().separee, responseMs: Date.now() - debut } };
 }
 
-/** Flux du centre de contrôle : lecture seule, ne pose jamais la fondation (c'est le premier accès du PDG qui la pose). */
+/** Flux du centre de contrôle de la plateforme : lecture seule, ne pose jamais la fondation. */
 export async function controlCenterFeed(): Promise<ControlCenterFeed> {
   const debut = Date.now();
   const h = await healthStatus();
   let evenements24h = 0;
   let recents = 0;
   let erreurs = 0;
-  try {
-    const j = await db
-      .select({ resultat: foAuditLogs.result, n: sql<number>`count(*)::int`, r5: sql<number>`count(*) filter (where ${foAuditLogs.createdAt} > now() - interval '5 minutes')::int` })
-      .from(foAuditLogs)
-      .where(gt(foAuditLogs.createdAt, sql`now() - interval '24 hours'`))
-      .groupBy(foAuditLogs.result);
-    for (const l of j) {
-      evenements24h += Number(l.n);
-      recents += Number(l.r5);
-      if (l.resultat === "error") erreurs += Number(l.n);
+  if (etatBase().prete) {
+    try {
+      const j = await dbFrontier()
+        .select({ resultat: auditLog.result, n: sql<number>`count(*)::int`, r5: sql<number>`count(*) filter (where ${auditLog.at} > now() - interval '5 minutes')::int` })
+        .from(auditLog)
+        .where(gt(auditLog.at, sql`now() - interval '24 hours'`))
+        .groupBy(auditLog.result);
+      for (const l of j) {
+        evenements24h += Number(l.n);
+        recents += Number(l.r5);
+        if (l.resultat === "error") erreurs += Number(l.n);
+      }
+    } catch {
+      /* santé déjà dégradée si la base répond mal */
     }
-  } catch {
-    /* santé déjà dégradée si la base répond mal */
   }
   return {
     engine: FRONTIER_OS_META.name, label: FRONTIER_OS_META.label, version: V, maturityLevel: M, health: h.status,
@@ -71,93 +87,213 @@ export async function controlCenterFeed(): Promise<ControlCenterFeed> {
   };
 }
 
-const pret = () => assurerFondationUneFois();
+const pret = async () => {
+  try {
+    await demarrerCentre();
+  } catch (e) {
+    throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: `La base du centre n'est pas prête : ${(e as Error).message}` });
+  }
+};
 const acteurPdg = (uid: number): Acteur => ({ type: "pdg", id: uid });
+const id = z.number().int().positive();
+const voulu = z.enum(["activate", "deactivate"]);
 
 export const frontierOsRouter = router({
   meta: publicProcedure.query(() => FRONTIER_OS_META),
   healthStatus: pdgProcedure.query(() => healthStatus()),
   controlCenterFeed: pdgProcedure.query(() => controlCenterFeed()),
 
-  /** Pose (ou complète) la fondation : plateformes, groupes, moteurs, paires, boutons, zones, lignes réelles et réserve de lignes futures. */
-  fondation: pdgProcedure.mutation(async () => pret()),
+  /** État de la base du centre, lisible même si elle n'est pas prête (pour dire pourquoi). */
+  base: pdgProcedure.query(async () => ({ ...(await assurerBase()), schema: "frontier" })),
 
   accueil: pdgProcedure.query(async () => {
     await pret();
     return accueil();
   }),
-  groupes: pdgProcedure.query(async () => {
-    await pret();
-    return groupesVue();
-  }),
-  lignes: pdgProcedure.input(z.object({ groupId: z.number().int().positive().optional() }).optional()).query(async ({ input }) => {
-    await pret();
-    return lignesVue(input?.groupId);
-  }),
-  moteurs: pdgProcedure
-    .input(z.object({ plateforme: z.string().max(40).optional(), type: z.string().max(32).optional(), statut: z.string().max(16).optional(), q: z.string().max(80).optional(), limite: z.number().int().min(1).max(1000).optional() }).optional())
-    .query(async ({ input }) => {
-      await pret();
-      return moteursListe(input ?? {});
-    }),
-  moteur: pdgProcedure.input(z.object({ id: z.number().int().positive() })).query(async ({ input }) => {
-    await pret();
-    return moteurDetail(input.id);
-  }),
   salles: pdgProcedure.query(async () => {
     await pret();
     return sallesListe();
   }),
-  boutons: pdgProcedure.query(async () => {
+  groupes: pdgProcedure.query(async () => {
     await pret();
-    return boutonsListe();
+    return groupesVue();
   }),
-
-  /** Seul point d'entrée des boutons : deux moteurs distincts requis, confirmation pour les actions critiques, tout journalisé. */
-  appuyer: pdgProcedure
-    .input(z.object({ boutonId: z.number().int().positive(), ligneId: z.number().int().positive().optional(), reparationId: z.number().int().positive().optional(), confirme: z.boolean().default(false) }))
-    .mutation(async ({ ctx, input }) => {
+  lignes: pdgProcedure.input(z.object({ groupe: z.string().max(40).optional() }).optional()).query(async ({ input }) => {
+    await pret();
+    return lignesVue(input?.groupe);
+  }),
+  moteurs: pdgProcedure
+    .input(z.object({ plateforme: z.string().max(40).optional(), kind: z.string().max(32).optional(), etat: z.string().max(16).optional(), q: z.string().max(80).optional(), declareSeulement: z.boolean().optional(), limite: z.number().int().min(1).max(1000).optional() }).optional())
+    .query(async ({ input }) => {
       await pret();
-      return appuyerBouton({ ...input, acteur: acteurPdg(ctx.user.uid) });
+      return moteursListe(input ?? {});
     }),
-  interrupteur: pdgProcedure
-    .input(z.object({ id: z.number().int().positive(), etat: z.enum(["ON", "OFF"]), confirme: z.boolean().default(false) }))
-    .mutation(async ({ ctx, input }) => {
-      await pret();
-      const acteur = acteurPdg(ctx.user.uid);
-      if (input.etat === "ON" && !input.confirme) {
-        await journaliser({ acteur, action: "switch_on", cible: "switch", cibleId: input.id, resultat: "refused", erreur: "CONFIRMATION_REQUISE" });
-        return { ok: false, code: "CONFIRMATION_REQUISE" as const, detail: "Mettre un interrupteur sur ON est une action critique : confirmation requise." };
-      }
-      return actionnerInterrupteur(input.id, input.etat, acteur);
-    }),
-
+  moteur: pdgProcedure.input(z.object({ code: z.string().min(2).max(120) })).query(async ({ input }) => {
+    await pret();
+    return moteurDetail(input.code);
+  }),
+  salleBoutique: pdgProcedure.input(z.object({ plateforme: z.string().min(2).max(40) })).query(async ({ input }) => {
+    await pret();
+    return salleBoutique(input.plateforme);
+  }),
+  inventaire: pdgProcedure.query(async () => inventaireResume()),
+  securite: pdgProcedure.query(async () => {
+    await pret();
+    return securiteVue();
+  }),
   atelier: pdgProcedure.query(async () => {
     await pret();
-    return atelierListe();
+    return atelierVue();
   }),
-  annulerReparation: pdgProcedure.input(z.object({ id: z.number().int().positive(), confirme: z.boolean().default(false) })).mutation(async ({ ctx, input }) => {
+  incidents: pdgProcedure.input(z.object({ limite: z.number().int().min(1).max(500).default(100) }).optional()).query(async ({ input }) => {
     await pret();
-    const acteur = acteurPdg(ctx.user.uid);
-    if (!input.confirme) {
-      await journaliser({ acteur, action: "rollback", cible: "repair", cibleId: input.id, resultat: "refused", erreur: "CONFIRMATION_REQUISE" });
-      return { ok: false, code: "CONFIRMATION_REQUISE" as const, detail: "Annuler une réparation est une action critique : confirmation requise." };
-    }
-    return annulerReparation(input.id, acteur);
+    return incidentsVue(input?.limite ?? 100);
   }),
-  journal: pdgProcedure.input(z.object({ limite: z.number().int().min(1).max(500).default(100), resultat: z.enum(["ok", "refused", "error"]).optional() }).optional()).query(async ({ input }) => {
+  audit: pdgProcedure.input(z.object({ limite: z.number().int().min(1).max(500).default(100), resultat: z.enum(["ok", "refused", "error"]).optional() }).optional()).query(async ({ input }) => {
     await pret();
-    return journalListe(input?.limite ?? 100, input?.resultat);
+    return auditVue(input?.limite ?? 100, input?.resultat);
+  }),
+  commandes: pdgProcedure.query(async () => {
+    await pret();
+    return commandesVue();
+  }),
+  commande: pdgProcedure.input(z.object({ id })).query(async ({ input }) => {
+    await pret();
+    return commandeDetail(input.id);
+  }),
+  sessions: pdgProcedure.query(async () => {
+    await pret();
+    return sessionsVue();
   }),
   memoire: pdgProcedure.query(async () => {
     await pret();
-    return memoireListe();
+    return memoireVue();
   }),
-  /** Le comptage des moteurs intermédiaires de la Boutique, avec ses preuves, et les écarts avec la plateforme. */
-  comptage: pdgProcedure.query(async () => ({ ...comptageBoutique(), ecarts: await ecartsPlateformeBoutique() })),
-  integrite: pdgProcedure.query(async () => {
+  employes: pdgProcedure.query(async () => {
     await pret();
-    return { violations: await verifierIntegrite() };
+    return employesVue();
+  }),
+  futures: pdgProcedure.query(async () => {
+    await pret();
+    return futuresVue();
+  }),
+  echanges: pdgProcedure.input(z.object({ ligneId: id.optional() }).optional()).query(async ({ input }) => {
+    await pret();
+    return echangesVue(input?.ligneId);
+  }),
+  mesures: pdgProcedure.query(async () => {
+    await pret();
+    return mesuresVue();
+  }),
+
+  // ── Commandes : trois coupures, grand contact du groupe, interrupteur général ──
+  coupure: pdgProcedure.input(z.object({ coupureId: id, voulu, confirme: z.boolean().default(false) })).mutation(async ({ ctx, input }) => {
+    await pret();
+    return commanderCoupure(input.coupureId, input.voulu, { acteur: acteurPdg(ctx.user.uid), confirme: input.confirme });
+  }),
+  ligne: pdgProcedure.input(z.object({ ligneId: id, voulu, confirme: z.boolean().default(false) })).mutation(async ({ ctx, input }) => {
+    await pret();
+    return commanderLigne(input.ligneId, input.voulu, { acteur: acteurPdg(ctx.user.uid), confirme: input.confirme });
+  }),
+  groupe: pdgProcedure.input(z.object({ groupe: z.string().min(2).max(40), voulu, confirme: z.boolean().default(false) })).mutation(async ({ ctx, input }) => {
+    await pret();
+    return commanderGroupe(input.groupe, input.voulu, { acteur: acteurPdg(ctx.user.uid), confirme: input.confirme });
+  }),
+  general: pdgProcedure.input(z.object({ voulu, confirme: z.boolean().default(false) })).mutation(async ({ ctx, input }) => {
+    await pret();
+    return commanderGeneral(input.voulu, { acteur: acteurPdg(ctx.user.uid), confirme: input.confirme });
+  }),
+  verrouiller: pdgProcedure.input(z.object({ ligneId: id, confirme: z.boolean().default(false) })).mutation(async ({ ctx, input }) => {
+    await pret();
+    return verrouillerLigne(input.ligneId, { acteur: acteurPdg(ctx.user.uid), confirme: input.confirme });
+  }),
+  deverrouiller: pdgProcedure.input(z.object({ ligneId: id, confirme: z.boolean().default(false) })).mutation(async ({ ctx, input }) => {
+    await pret();
+    return deverrouillerLigne(input.ligneId, { acteur: acteurPdg(ctx.user.uid), confirme: input.confirme });
+  }),
+  activerLigne: pdgProcedure.input(z.object({ ligneId: id, activee: z.boolean(), confirme: z.boolean().default(false) })).mutation(async ({ ctx, input }) => {
+    await pret();
+    return definirLigneActivee(input.ligneId, input.activee, { acteur: acteurPdg(ctx.user.uid), confirme: input.confirme });
+  }),
+  ajouterGroupe: pdgProcedure.input(z.object({ code: z.string().min(2).max(40), nom: z.string().min(2).max(160), plateforme: z.string().max(40).nullable().default(null) })).mutation(async ({ ctx, input }) => {
+    await pret();
+    return ajouterGroupe(input.code, input.nom, input.plateforme, acteurPdg(ctx.user.uid));
+  }),
+
+  // ── Tests ──
+  protocole: pdgProcedure.input(z.object({ ligneId: id, type: z.enum(["coupures", "pannes"]).default("coupures") })).mutation(async ({ ctx, input }) => {
+    await pret();
+    return input.type === "pannes" ? lancerProtocolePannes(input.ligneId, acteurPdg(ctx.user.uid)) : lancerProtocoleCoupures(input.ligneId, acteurPdg(ctx.user.uid));
+  }),
+  echangeEssai: pdgProcedure.input(z.object({ ligneId: id, sens: z.enum(["remote_to_main", "main_to_remote"]).default("remote_to_main"), nature: z.enum(["message", "task", "payment_external"]).default("message") })).mutation(async ({ input }) => {
+    await pret();
+    const r = await envoyerEchange({ ligneId: input.ligneId, direction: input.sens, kind: input.nature, payloadRef: "essai:vitrine" });
+    return { livre: r.livre, etat: r.echange.state, refus: r.refus ?? null, echangeId: r.echange.id };
+  }),
+  rejouerEchange: pdgProcedure.input(z.object({ id })).mutation(async ({ ctx, input }) => {
+    await pret();
+    return { ok: await rejouer(input.id, acteurPdg(ctx.user.uid)) };
+  }),
+  resultatExterne: pdgProcedure.input(z.object({ id, reference: z.string().min(1).max(160) })).mutation(async ({ input }) => {
+    await pret();
+    return { ok: await enregistrerResultatExterne(input.id, input.reference) };
+  }),
+
+  // ── Moteurs internes et mesures ──
+  sante: pdgProcedure.mutation(async ({ ctx }) => {
+    await pret();
+    return verifierSanteMoteurs(acteurPdg(ctx.user.uid));
+  }),
+  moteurArreter: pdgProcedure.input(z.object({ code: z.string().min(2).max(120), confirme: z.boolean().default(false) })).mutation(async ({ ctx, input }) => {
+    await pret();
+    return arreterMoteur(input.code, acteurPdg(ctx.user.uid), input.confirme);
+  }),
+  moteurDemarrer: pdgProcedure.input(z.object({ code: z.string().min(2).max(120), confirme: z.boolean().default(false) })).mutation(async ({ ctx, input }) => {
+    await pret();
+    return demarrerMoteur(input.code, acteurPdg(ctx.user.uid), input.confirme);
+  }),
+  mesurer: pdgProcedure.mutation(async () => {
+    await pret();
+    await echantillonnerCentre();
+    const sonder = async () => {
+      await envoyerBus({ de: "center:monitor", vers: "center:ver.cut.center", type: "sante.verifier", contenu: {} });
+    };
+    const paires = MOTEURS_INTERNES.filter((m) => m.kind === "command" || m.kind === "verification").map((m) => m.code);
+    const b = await mesurerCapacites(sonder, paires);
+    return { ...b, note: "Le facteur mesuré est le gain de débit à deux sondes en parallèle, dans le même processus et la même base. Il ne prouve PAS une redondance : si le processus ou la base tombent, les deux moteurs tombent avec eux." };
+  }),
+  gouvernance: pdgProcedure.input(z.object({ armer: z.boolean(), confirme: z.boolean().default(false) })).mutation(async ({ ctx, input }) => {
+    await pret();
+    return input.armer ? armerGouvernance(acteurPdg(ctx.user.uid), input.confirme) : desarmerGouvernance(acteurPdg(ctx.user.uid), input.confirme);
+  }),
+  importerInventaire: pdgProcedure.mutation(async ({ ctx }) => {
+    await pret();
+    return importerInventaire(acteurPdg(ctx.user.uid));
+  }),
+
+  // ── Atelier ──
+  diagnostic: pdgProcedure.mutation(async ({ ctx }) => {
+    await pret();
+    return lancerDiagnostic(acteurPdg(ctx.user.uid));
+  }),
+  proposer: pdgProcedure.input(z.object({ incidentId: id })).mutation(async ({ ctx, input }) => {
+    await pret();
+    return proposerReparation(input.incidentId, acteurPdg(ctx.user.uid));
+  }),
+  tester: pdgProcedure.input(z.object({ reparationId: id })).mutation(async ({ ctx, input }) => {
+    await pret();
+    return testerReparation(input.reparationId, acteurPdg(ctx.user.uid));
+  }),
+  appliquer: pdgProcedure.input(z.object({ reparationId: id, confirme: z.boolean().default(false) })).mutation(async ({ ctx, input }) => {
+    await pret();
+    return appliquerReparation(input.reparationId, acteurPdg(ctx.user.uid), input.confirme);
+  }),
+  annuler: pdgProcedure.input(z.object({ reparationId: id, confirme: z.boolean().default(false) })).mutation(async ({ ctx, input }) => {
+    await pret();
+    return annulerReparation(input.reparationId, acteurPdg(ctx.user.uid), input.confirme);
+  }),
+  cloreIncident: pdgProcedure.input(z.object({ incidentId: id, raison: z.string().min(3).max(200) })).mutation(async ({ ctx, input }) => {
+    await pret();
+    return cloreIncident(input.incidentId, acteurPdg(ctx.user.uid), input.raison);
   }),
 });
-

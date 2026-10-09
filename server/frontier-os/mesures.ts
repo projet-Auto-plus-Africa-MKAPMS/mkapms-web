@@ -102,8 +102,9 @@ export async function lireJauges(base: BaseFrontier = dbFrontier()): Promise<Jau
 }
 
 /**
- * Banc d'essai : mesure le débit d'un moteur de sonde seul, puis de deux sondes en parallèle, et enregistre le FACTEUR de capacité obtenu.
- * Deux moteurs logiciels dans un même processus ne doublent pas la capacité : le facteur mesuré le montrera, et c'est lui qui fait foi.
+ * Banc d'essai : mesure le débit d'une sonde seule, puis de deux sondes en parallèle, et enregistre le FACTEUR obtenu.
+ * Ce facteur est un gain de débit dans un MÊME processus et une MÊME base : il ne prouve aucune redondance (si l'un tombe, l'autre aussi).
+ * Seule une mesure fait foi, jamais le nombre de moteurs.
  */
 export async function mesurerCapacites(sonder: () => Promise<void>, codes: readonly string[], essais = 60, base: BaseFrontier = dbFrontier()): Promise<{ seul: number; parallele: number; facteur: number }> {
   const chrono = async (n: number, largeur: number) => {

@@ -9,9 +9,9 @@ import type { InventairePlateforme } from "./types.js";
 export const INVENTAIRE_PLATEFORME: InventairePlateforme = {
  "source": {
   "depot": "projet-Auto-plus-Africa-MKAPMS/mkapms-web",
-  "commit": "6932713091d53bedf4228ad1d15c701bbf4a2031",
-  "dateCommit": "2026-10-08T22:15:27+00:00",
-  "genereLe": "2026-10-08",
+  "commit": "07ca5b8b0bf55d03ebc5de0ee362b9a2e475ea7e",
+  "dateCommit": "2026-10-08T23:14:10+00:00",
+  "genereLe": "2026-10-09",
   "fichiersLus": [
    "server/data/moteurs.ts",
    "server/engine-registry/catalog.ts",
@@ -1863,29 +1863,29 @@ export const INVENTAIRE_PLATEFORME: InventairePlateforme = {
    "entrees": [
     "frontierOs"
    ],
-   "entreesTrouvees": 19,
-   "tables": [
-    "fo_audit_logs",
-    "fo_buttons",
-    "fo_connection_lines",
-    "fo_control_groups",
-    "fo_engine_pairs",
-    "fo_engines",
-    "fo_memory_blocks",
-    "fo_platforms",
-    "fo_pointages",
-    "fo_repair_workshop",
-    "fo_security_zones",
-    "fo_switches"
-   ],
+   "entreesTrouvees": 48,
+   "tables": [],
    "dependances": [
     "core",
+    "document",
     "identity",
+    "payment",
+    "permission",
+    "scheduler",
     "shop_link"
    ],
    "tests": [
-    "server/frontier-os/__tests__/frontier-os.integration.test.ts",
-    "server/frontier-os/__tests__/rules.test.ts"
+    "server/frontier-os/__tests__/atelier.integration.test.ts",
+    "server/frontier-os/__tests__/base.integration.test.ts",
+    "server/frontier-os/__tests__/chaine.integration.test.ts",
+    "server/frontier-os/__tests__/fondation.integration.test.ts",
+    "server/frontier-os/__tests__/gouvernance.integration.test.ts",
+    "server/frontier-os/__tests__/inventaire.test.ts",
+    "server/frontier-os/__tests__/pannes.integration.test.ts",
+    "server/frontier-os/__tests__/protocole.integration.test.ts",
+    "server/frontier-os/__tests__/regles.test.ts",
+    "server/frontier-os/__tests__/routeur.integration.test.ts",
+    "server/frontier-os/__tests__/transport.integration.test.ts"
    ],
    "etat": "teste",
    "preuve": "tests",
@@ -1895,7 +1895,9 @@ export const INVENTAIRE_PLATEFORME: InventairePlateforme = {
     "lit le câble de shop_link et le registre central (lecture seule)"
    ],
    "connexionsAConstruire": [],
-   "manques": [],
+   "manques": [
+    "dependance_non_declaree ×4"
+   ],
    "doublons": [],
    "aVerifier": []
   },
@@ -2197,6 +2199,7 @@ export const INVENTAIRE_PLATEFORME: InventairePlateforme = {
     "product_engine",
     "resilience",
     "risque_import",
+    "shop_link",
     "smart",
     "support",
     "vo_engine"
@@ -2259,7 +2262,7 @@ export const INVENTAIRE_PLATEFORME: InventairePlateforme = {
    "connexionsAConstruire": [],
    "manques": [
     "bouton_sans_action ×1",
-    "dependance_non_declaree ×9",
+    "dependance_non_declaree ×10",
     "dependance_sans_preuve ×2"
    ],
    "doublons": [],

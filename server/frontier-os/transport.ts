@@ -212,3 +212,24 @@ export async function regulariserEchangesEnVol(acteur: Acteur = SYSTEME, base: B
   if (n > 0) await journaliser({ acteur, action: "exchanges_restart_rule", cible: "center", resultat: "ok", detail: { n } }, base);
   return n;
 }
+
+/**
+ * Essai de la liaison entre les deux moteurs intermédiaires dans l'ENVIRONNEMENT ISOLÉ : les deux intermédiaires (simulés, en mémoire)
+ * échangent un aller-retour à travers le SEUL contact central. Il faut que ce contact soit confirmé connecté ; les côtés locaux ne sont pas
+ * consultés (ils sont testés à part). Rien ne sort du processus.
+ */
+export async function essaiIntermediaires(ligneId: number, base: BaseFrontier = dbFrontier()): Promise<{ ok: boolean; detail: string; echangeId: number }> {
+  const c = await chargerLigne(ligneId, base);
+  const centre = c?.coupures.find((x) => x.side === "center");
+  if (!c || !centre) return { ok: false, detail: "Ligne ou contact central inconnu.", echangeId: 0 };
+  const conduit = (await continuite(centre.id, base)) === true;
+  const confirme = centre.requested === "activate" && centre.progress === "confirmed" && centre.observed === "connected";
+  const passe = conduit && confirme;
+  const echo = (de: string, msg: string) => `${de}:${msg}`; // les deux intermédiaires simulés se contentent de renvoyer ce qu'ils reçoivent
+  const aller = echo("principal", echo("distant", "bonjour"));
+  const [e] = await base
+    .insert(exchanges)
+    .values({ lineId: ligneId, direction: "remote_to_main", kind: "probe", route: "primary", state: passe ? "delivered" : "refused", attempts: passe ? 1 : 0, payloadRef: "essai:intermediaires", resultRef: passe ? aller : null, note: passe ? "Aller-retour entre les deux intermédiaires (isolé) à travers le contact central." : "Contact central non connecté : l'aller-retour est refusé.", finishedAt: new Date() })
+    .returning({ id: exchanges.id });
+  return { ok: passe, detail: passe ? "Aller-retour réussi entre les deux intermédiaires (environnement isolé)." : "Refusé : le contact central n'est pas connecté et confirmé.", echangeId: e!.id };
+}

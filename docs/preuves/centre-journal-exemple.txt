@@ -1,0 +1,60 @@
+Journal d'exemple — extrait de la base du centre après l'essai de bout en bout (navigateur réel, serveur construit, base jetable locale).
+Commande de LIGNE n° 78 « activer » (ligne « Références de documents de la Boutique ») : ordre demandé, puis les trois coupures, puis les accusés des DEUX moteurs distincts à chaque phase.
+
+== Commande parente
+commande 78 | line | activate | statut confirmed | commande=center:cmd.line | vérification=center:ver.line | 00:01:48.311
+
+== Accusés de la commande parente (chef de ligne / contrôle de bout en bout)
+00:01:48.316 | precheck | command | center:cmd.line | ok | plan des trois coupures prêt | 3 ms
+00:01:48.319 | precheck | verification | center:ver.line | ok | conditions remplies | 1 ms
+00:01:48.371 | execute | command | center:cmd.line | ok | bilan côté commande : confirmed | 0 ms
+00:01:48.376 | postcheck | verification | center:ver.line | ok | ligne recomptée : connected, cohérente | 4 ms
+
+== Commandes enfants (les trois coupures, dans l'ordre : côtés locaux d'abord, contact central en dernier) et leurs accusés
+-- commande 79 | coupure remote (élément el:shop-documents-only:remote) | demandé activate | statut confirmed | commande=center:cmd.cut.remote | vérification=center:ver.cut.remote
+   00:01:48.324 | precheck | command | center:cmd.cut.remote | ok | établir la continuité du contact | 1 ms
+   00:01:48.327 | precheck | verification | center:ver.cut.remote | ok | conditions remplies | 2 ms
+   00:01:48.332 | execute | command | center:cmd.cut.remote | ok | appliqué | 2 ms
+   00:01:48.338 | postcheck | verification | center:ver.cut.remote | ok | continuité présente | 1 ms
+-- commande 80 | coupure main (élément el:shop-documents-only:main) | demandé activate | statut confirmed | commande=center:cmd.cut.main | vérification=center:ver.cut.main
+   00:01:48.345 | precheck | command | center:cmd.cut.main | ok | établir la continuité du contact | 1 ms
+   00:01:48.347 | precheck | verification | center:ver.cut.main | ok | conditions remplies | 2 ms
+   00:01:48.351 | execute | command | center:cmd.cut.main | ok | appliqué | 1 ms
+   00:01:48.353 | postcheck | verification | center:ver.cut.main | ok | continuité présente | 1 ms
+-- commande 81 | coupure center (élément el:shop-documents-only:center) | demandé activate | statut confirmed | commande=center:cmd.cut.center | vérification=center:ver.cut.center
+   00:01:48.358 | precheck | command | center:cmd.cut.center | ok | établir la continuité du contact | 1 ms
+   00:01:48.361 | precheck | verification | center:ver.cut.center | ok | conditions remplies | 2 ms
+   00:01:48.366 | execute | command | center:cmd.cut.center | ok | appliqué | 2 ms
+   00:01:48.368 | postcheck | verification | center:ver.cut.center | ok | continuité présente | 0 ms
+
+== État final des trois coupures de cette ligne (demandé / observé / avancement / preuve)
+remote | demandé activate | observé connected | confirmed | mode simulation | preuve commande:79
+center | demandé activate | observé connected | confirmed | mode simulation | preuve commande:81
+main | demandé activate | observé connected | confirmed | mode simulation | preuve commande:80
+
+== Journal d'audit (en ajout seul) : 25 dernières lignes
+00:01:51 | system | health_sweep | center  | ok
+00:01:48 | pdg:25 | line_activate | line 4 | ok
+00:01:48 | pdg:25 | cut_activate | cut 11 | ok
+00:01:48 | pdg:25 | cut_activate | cut 12 | ok
+00:01:48 | pdg:25 | cut_activate | cut 10 | ok
+00:01:48 | pdg:25 | line_unlock | line 4 | ok
+00:01:47 | pdg:25 | group_added | group joaillerie-2 | ok
+00:01:46 | pdg:25 | workshop_diagnostic | center  | error
+00:01:44 | pdg:25 | general_deactivate | general * | ok
+00:01:44 | pdg:25 | line_deactivate | line 5 | ok
+00:01:44 | pdg:25 | cut_deactivate | cut 15 | ok
+00:01:44 | pdg:25 | cut_deactivate | cut 13 | ok
+00:01:44 | pdg:25 | cut_deactivate | cut 14 | ok
+00:01:44 | pdg:25 | line_deactivate | line 2 | ok
+00:01:44 | pdg:25 | cut_deactivate | cut 6 | ok
+00:01:44 | pdg:25 | cut_deactivate | cut 4 | ok
+00:01:44 | pdg:25 | cut_deactivate | cut 5 | ok
+00:01:44 | pdg:25 | line_deactivate | line 1 | ok
+00:01:44 | pdg:25 | cut_deactivate | cut 3 | ok
+00:01:44 | pdg:25 | cut_deactivate | cut 1 | ok
+00:01:44 | pdg:25 | cut_deactivate | cut 2 | ok
+00:01:44 | pdg:25 | line_deactivate | line 4 | ok
+00:01:44 | pdg:25 | cut_deactivate | cut 12 | ok
+00:01:44 | pdg:25 | cut_deactivate | cut 10 | ok
+00:01:44 | pdg:25 | cut_deactivate | cut 11 | ok

@@ -1,0 +1,80 @@
+# Centre Cyber-Électrique MKA.P-MS / Frontier OS — base indépendante, chaîne à trois coupures, vitrine (9 octobre 2026)
+
+Ce lot remplace la première base du centre (tables `fo_*`, merge du 8 octobre) par une base **propre au centre**, construit la chaîne à sept éléments avec ses trois coupures indépendantes, les commandes à deux moteurs distincts, la coupure appliquée par le service de transport, l'atelier de réparation, et la vitrine à dix salles. Tout est en **simulation** : rien de réel n'est branché ni débranché d'ici.
+
+Accès : back-office → onglet « Administrateur / Directeur » → carte **Portail Frontier OS** (sous « Système Intelligent MKA.P-MS »), page `/admin/centre-cyber-electrique`, rôle `super_admin` seulement.
+
+Preuves chiffrées, journaux, captures et liste simulé / réel / manquant / bloqué : [`CENTRE-PREUVES-2026-10-09.md`](CENTRE-PREUVES-2026-10-09.md). Inventaire complet des moteurs : [`CENTRE-INVENTAIRE-2026-10-09.md`](CENTRE-INVENTAIRE-2026-10-09.md).
+
+## 1. L'inventaire d'abord (point 1 de la consigne)
+
+Relevé **en lecture seule**, daté, au commit exact, par `scripts/gen-frontier-inventaire.ts` (la Boutique n'est ni modifiée ni appelée). Chaque moteur reçoit : identifiant, nom, fonction, références fichier avec ligne, service d'exécution, points d'entrée réellement trouvés dans le code, tests existants, état **prouvé par le code**, intermédiaire prévu, connexions existantes et à construire, manques, doublons, points à vérifier.
+
+| | Boutique (`mkapms-shop`) | Plateforme principale (`mkapms-web`) |
+| --- | ---: | ---: |
+| Moteurs relevés | 83 | 96 |
+| Incomplets | 33 | 10 |
+| Préparés | 1 | 0 |
+| Installés | 34 | 58 |
+| Testés | 15 | 28 |
+| **Connectés** | **0** | **0** |
+| « Déclarés seulement » (aucune liaison d'exécution) | 34 | 10 |
+
+Définitions : *incomplet* = déclaré sans liaison d'exécution, ou bloqué par un accès externe ; *préparé* = contrat prêt sans exécution ; *installé* = une route ou une procédure existe dans le code ; *testé* = installé et un fichier de test existe (non exécuté par l'inventaire) ; *connecté* = liaison observée et vérifiée par le centre — **aucun moteur ne l'est**, le centre n'a encore observé aucune liaison réelle.
+
+Ce que l'inventaire a établi sur les intermédiaires : la Boutique a préparé **six** moteurs intermédiaires, mais **cinq ne sont que des contrats déclarés** (lignes de `shop_strategy.connection_contracts`, migration 0057) ; un seul est du code exécutable (l'accès de service, `server/service-access.mjs`, testé). Le registre de la Boutique affirme lui-même `mainPlatformConnection: 'FORBIDDEN'` et sa règle interdit à la Boutique d'appeler la plateforme : les trois contrats « Boutique → plateforme » n'ont **aucun émetteur** côté Boutique. Deux moteurs nommés par des contrats (`access.entry`, `seo.campaign`) n'existent pas dans son registre. L'audit propre de la Boutique compte 105 exigences, 285 critères partiels, 870 manquants, **0 complet**.
+
+Noms exacts : « MKA.P-MS SHOP » / « MKA.P-MS Shop » (dépôt `mkapms-shop`), « MKAPMS Shop » (une fois), « plateforme principale ». **« MKH Shop », « MKPMS Shop » et « boutique principale » n'existent dans aucun des deux dépôts** : ils sont enregistrés comme *non trouvés*, rattachés à aucune plateforme, rien n'est fusionné. Les dépôts `mkapms-carte` (Map) et `mkapms-deployment` ne sont pas inventoriés dans ce lot : **à vérifier**.
+
+## 2. La base indépendante (point 2)
+
+- **Schéma `frontier`**, son propre pool (`server/frontier-os/base/connexion.ts`), son propre migrateur (`migrateur.ts`) et son propre journal (`frontier.migrations`, somme de contrôle par fichier, refus en cas de dérive), ses fichiers dans `server/frontier-os/base/migrations/` — jamais le dossier `drizzle/` ni le migrateur de la plateforme.
+- Le centre n'écrit que dans cette base ; ce qu'il lit de la plateforme (registre des moteurs, câble de la Boutique) reste en **lecture seule**.
+- **Honnêteté sur « sa propre base »** : si la variable `FRONTIER_DATABASE_URL` est définie, la base du centre est une base *physiquement séparée*. Tant qu'elle ne l'est pas (état actuel), le schéma `frontier` vit dans le serveur Postgres de la plateforme : séparé en droit (schéma, pool, migrateur, journal, tables), **pas encore en matériel**. L'écran d'accueil l'affiche. Pour la séparer il suffit de créer un Postgres Railway dédié et de poser cette variable : les migrations s'y appliquent au démarrage.
+- **Démarrage non bloquant** : la plateforme lance le centre en arrière-plan (`demarrage-centre.ts`) ; une erreur est journalisée et affichée dans le centre, la plateforme démarre quand même (elle ne dépend pas du centre).
+- **29 tables** (+ `migrations`), 37 clés étrangères, 117 contraintes : entreprises propriétaires, plateformes (noms exacts, identité vérifiée ou à vérifier), alias demandés, **registre des moteurs + versions par commit**, **capacités annoncées et mesurées**, liaisons commande / vérification, références de secrets, emplacements d'API et d'abonnements (inactifs), accès, groupes, lignes, coupures, portes, **commandes + accusés**, échanges, **sessions et étapes de test**, **incidents, réparations, retours arrière**, configuration + **historique des changements**, mémoire extensible, mesures, salles, boutons, journal d'audit **en ajout seul** (verrou en base).
+- **Toute donnée a un propriétaire explicite** : `owner_kind` ∈ {centre, entreprise, plateforme} + `owner_code` sur chaque table de données ; un propriétaire « centre » ne peut pas porter un autre code. Prêt pour de futures souscriptions.
+- **Règles d'or inscrites en base** (contraintes et déclencheurs, vérifiées par tests) : une cible commandable a deux moteurs internes **distincts**, l'un de commande, l'autre de vérification ; une réserve est « À venir », vide, désactivée, sans moteur ni coupure ; une ligne réelle a toujours ses trois éléments de coupure ; une ligne n'est « valide » qu'avec ses sept éléments ; un moteur « connecté » exige une mesure ; une API ou un abonnement ne sont jamais actifs ; un secret n'est qu'une **référence** (nom de variable en majuscules, chemin de coffre `vault:…`), jamais une valeur ; un bouton de danger ≥ 3 exige une confirmation.
+- Les tables `fo_*` de la migration 0157 restent dans la base de la plateforme, **inutilisées** : elles ne sont pas supprimées (aucune suppression destructive sans décision). À retirer plus tard par migration explicite.
+
+## 3. La chaîne et ses trois coupures (points 3 à 7)
+
+Une ligne, de gauche à droite : **1** moteur réel distant · **2** interrupteur local distant · **3** moteur intermédiaire distant · **4 contact central** · **5** moteur intermédiaire principal · **6** interrupteur local principal · **7** moteur réel principal. Trois coupures indépendantes : côté distant (2), centre (4), côté principal (6). Les interrupteurs 2 et 6 sont, dans cette version, **simulés par le centre** (à construire côté plateformes pour le réel).
+
+- **Le grand contact rouge d'un groupe** commande les contacts **centraux** de ses lignes admissibles (jamais les petits interrupteurs) ; **l'interrupteur général** demande l'activation de toutes les lignes admissibles (côtés locaux d'abord, centre en dernier) et **jamais** celle d'une ligne verrouillée, en erreur, vide ou non validée : chaque ligne écartée est nommée avec sa raison. Une ligne n'est jamais laissée à moitié branchée (ce que la commande a établi est défait en cas d'échec). Un verrou coupe d'abord, ne bloque jamais une coupure, et son retrait ne rebranche rien.
+- **Deux moteurs distincts par commande** (bouton, interrupteur, moteur externe pris en charge, ligne, groupe, général) : un moteur de **commande** (prépare et exécute : `center:cmd.*`) et un moteur de **vérification** (contrôle les conditions, puis **sonde** la continuité réelle : `center:ver.*`). Codes de moteurs différents, code différent (`moteurs-commande.ts` / `moteurs-verification.ts`), échanges uniquement par le **bus interne** documenté (`bus.ts`). Indisponible, muet (délai) ou en contradiction : l'**activation est bloquée et un incident est enregistré**. Une **coupure**, elle, n'attend jamais un moteur en panne : elle est prise en compte par le transport.
+- **Ordre demandé ≠ résultat observé**, par coupure : demandé (activer / couper), observé (connecté / déconnecté / inconnu), avancement (au repos / en attente / en cours / confirmé / échec), date et preuve de la dernière vérification, mode (simulation / réel). Une activation n'est « confirmée » que si la sonde mesure la continuité ; une coupure demandée refuse le passage **à l'instant** et n'est « confirmée » que si la sonde le dit, sinon « **coupure non confirmée** » + incident critique. Une animation n'est jamais une preuve.
+- **Coupure réelle dans le chemin d'exécution** (`transport.ts`) : tout échange traverse la frontière par un seul chemin, avec la **même décision de passage** (continuité du contact ET permission confirmée sur les trois coupures) à chaque envoi direct, chaque tâche en file, chaque reprise automatique et chaque voie secondaire. Règle des échanges en vol, appliquée dès que la coupure est demandée : tâche en attente → **suspendue** (elle ne rétablit jamais la liaison ; seul le PDG peut la rejouer) ; message ou tâche en cours → **annulé de façon contrôlée**, résultat écarté ; **paiement déjà transmis à un prestataire → jamais annulé automatiquement : suivi**, son résultat est enregistré et affiché, rien ne repasse la coupure.
+- **Réserves** : au moins **cinq lignes « À venir » par ligne réelle** (6 réelles → **30** réserves pour la Boutique, soit 36 lignes), cinq au départ pour chaque groupe sans ligne réelle (Map, IA Al-Houdoud M., Boutique Bijoux future, futures plateformes). Vides, désactivées, **non comptées parmi les moteurs installés**, jamais activables (ni par le code, ni par la base). Les groupes s'ajoutent sans limite fixe.
+- **Redémarrage** : une commande interrompue est close en échec, une porte d'activation interrompue est refermée, rien n'est rebranché ; une connexion coupée reste coupée, une réserve reste désactivée, une connexion confirmée reste confirmée (éprouvé par tests et dans le navigateur avec un vrai redémarrage du serveur).
+
+### Gouvernance du câble réel de la Boutique — facultative, armée par le PDG
+
+Par défaut **aucun changement de comportement**. Si le PDG **arme** la gouvernance (salle Cybersécurité, confirmation), le centre devient un portier supplémentaire sur les voies qui existent déjà vers la Boutique : une voie ne passe que si le **câble** l'autorise **et** si la **ligne correspondante est connectée** sur ses trois coupures dans le centre. Le centre ne peut que **restreindre**, jamais ouvrir. Centre indisponible alors qu'il est armé : fermé par sécurité. Voies couvertes : les outils de l'IA de la plateforme (`server/intelligences/boutique.ts`), le canal catalogue sortant et les canaux entrants du moteur intermédiaire `shop_link`. Les canaux « ia-mémoire » n'ont pas de ligne : armée, la gouvernance les ferme.
+
+**Deux voies existantes ne sont PAS gouvernées**, et la vitrine le dit : les API de connaissance et d'analyse isolées de la Boutique (`/api/v1/intelligences/shop/knowledge`, `/api/v1/shop/analyse`, de la Boutique vers la plateforme, hors des six lignes) et le bouton « Boutique » (simple lien du navigateur, pas un échange entre moteurs). Les gouverner demande une décision du PDG (créer une ligne, ou retirer la voie).
+
+## 4. Les moteurs internes (points 4 et 9)
+
+Seize moteurs internes, chacun avec fonction précise, entrées, sorties, **santé mesurée** (message `sante.verifier` par le bus, latence enregistrée), **mécanisme d'arrêt** (décision du PDG avec confirmation : le bus ne lui livre plus rien, les commandes qui en dépendent sont bloquées, les lignes qui en dépendent cessent d'être valides) : trois actionneurs de coupure, trois sondes, chef de ligne, contrôle de ligne, grand contact et contrôle de groupe, interrupteur général et contrôle général, commande et vérification de l'atelier, transport, mesures. Aucune API externe n'est nécessaire pour démarrer. Les emplacements d'API, de souscriptions et d'accès employés sont **préparés et inactifs**.
+
+**Capacité** : deux moteurs logiciels dans un même processus ne prouvent **pas** une capacité doublée. Les capacités sont mesurées (banc d'essai : débit seul, puis à deux en parallèle) et affichées « annoncée / mesurée » ; aucune capacité doublée n'est annoncée ; le facteur mesuré est un gain de débit dans un même processus et une même base, **pas une redondance**.
+
+**Mesures** : latence des messages du bus, mémoire et charge du processus, profondeur de la file, débit des échanges livrés, erreurs comptées. Une donnée absente est **« non mesurée »**. **La température n'a aucune source : elle est « non mesurée »**. Une aiguille n'est verte que si une vérification a réussi.
+
+## 5. Atelier de réparation (point 10)
+
+Enregistrer l'incident (automatique pour toute panne, contradiction ou coupure non confirmée, sans doublons), **diagnostiquer** (moteur arrêté ou en panne, coupure en erreur ou bloquée, réserve entamée, paire manquante, porte incohérente, ligne non validée), **proposer** une réparation parmi quatre opérations sûres et réversibles, la **tester dans l'environnement isolé** (appliquée dans une transaction toujours annulée, avec contrôle des invariants avant/après : seules les violations *nouvelles* sont imputées à la réparation), **préparer le retour arrière**, **appliquer sur confirmation** (un invariant cassé annule tout), **retour arrière exact** (une porte n'est jamais rouverte). Conservés : version avant, modification proposée, résultat du test, retour arrière. **Droits** : le centre répare ses propres données ; une intervention sur une plateforme réelle exige un droit actif accordé (`access_grants`) — aucun n'existe, la réparation est refusée avec le motif.
+
+## 6. La vitrine (point 8)
+
+L'entrée ouvre l'**accueil et le tableau de bord général**. Dix salles : accueil et aiguilles mesurées · plateforme principale · boutiques (une salle par boutique) · connexions et activation · cybersécurité · atelier de réparation · mémoire · incidents et audit · employés et permissions · futures plateformes. La salle des connexions suit le modèle validé : plateformes distantes à **gauche**, plateforme principale à **droite**, contacts rouges au **centre**, fils visibles et petits moteurs, groupes qui s'étendent vers le **bas**. **Ordinateur** : le plan s'ajuste à la largeur disponible et la page défile à la verticale. **Téléphone et tablette** : le plan se déplace au doigt et se zoome (pincement, boutons Zoomer / Dézoomer / Ajuster toujours accessibles). **Chaque moteur est cliquable** : inventaire, état prouvé et sa définition, tests, versions, capacités, liaisons, derniers accusés. La vitrine n'affiche que des états **confirmés** : un contact « approche » (pointillés, « en cours ») tant que la sonde ne l'a pas confirmé.
+
+## 7. Démarrage et retour arrière
+
+- **Démarrage** : automatique au boot de la plateforme (en arrière-plan) ; migrations du centre appliquées ; rien à configurer. Pour une base séparée : poser `FRONTIER_DATABASE_URL`.
+- **Retour arrière** : revenir sur le merge de la PR. Le schéma `frontier` reste en base, inoffensif ; pour l'effacer à la main : `DROP SCHEMA frontier CASCADE;` (le centre seul le contient). Aucune table de la plateforme n'est modifiée par ce lot ; `shop-link` et le client de la Boutique ne reçoivent qu'un point d'accroche (`shop-link/portier.ts`) sans effet tant que la gouvernance n'est pas armée.
+
+## 8. Ce qui reste (dit sans détour)
+
+Branchement réel (audit final décidé par le PDG), clés d'accès et API externes, interrupteurs locaux côté plateformes (aujourd'hui simulés par le centre), émetteurs côté Boutique pour les contrats « Boutique → plateforme », canaux Map / IA Al-Houdoud M. / Bijoux, inventaire de Map, base physiquement séparée, gouvernance des deux voies existantes non couvertes, identité de « MKH Shop » / « MKPMS Shop » / « boutique principale ». Le centre n'est **pas** déclaré autonome ni terminé à 100 %.

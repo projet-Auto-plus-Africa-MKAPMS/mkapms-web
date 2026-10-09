@@ -7,7 +7,7 @@
  * fichiers `*.generated.ts` plus un document sont écrits dans CE dépôt. Chaque fait écrit vient d'un fichier relevé, avec sa référence
  * (chemin:ligne) et le commit exact. Rien n'est inventé : ce que le code ne prouve pas reste « déclaré seulement » ou « à vérifier ».
  *
- * Méthode (voir aussi docs/CENTRE-INVENTAIRE-2026-10-08.md, section « Limites de la méthode ») :
+ * Méthode (voir aussi docs/CENTRE-INVENTAIRE-2026-10-09.md, section « Limites de la méthode ») :
  *  - Boutique : registre `ENGINE_REGISTRY` + `ENGINE_DETAILS` (server/shop-intelligent-system.mjs), liaisons d'exécution `ENGINE_BINDINGS`
  *    (server/engine-runtime.mjs), routes réellement déclarées dans server/*.mjs, audit des exigences (server/gap-inventory.json), contrats
  *    de connexion (migrations/0057) et accès de service (server/service-access.mjs).
@@ -219,7 +219,7 @@ const lignesBoutique: LigneInventaire[] = REGISTRE.map((e) => {
     id: e.id, nom: e.label, fonction: d.mission ?? e.label, domaine: e.area, niveauDeclare: e.level,
     code: [...new Set(refs)], serviceExecution: lieAuRuntime ? "mkapms-shop · serveur Express (server/start.mjs → server/app.mjs) · porte HTTP engine-runtime" : "aucun service d'exécution relevé",
     entrees: patterns.map((p) => p.source), entreesTrouvees: entrees.length, tables: e.tables ?? [], dependances: e.deps ?? [], tests,
-    etat, preuve: tests.length ? "tests" : lieAuRuntime ? "liaison" : "declare", declareSeulement: !lieAuRuntime,
+    etat, preuve: lieAuRuntime ? (tests.length ? "tests" : "liaison") : "declare", declareSeulement: !lieAuRuntime,
     intermediairePrevu: inter?.id ?? null, connexionsExistantes, connexionsAConstruire, manques, doublons, aVerifier,
   };
 });
@@ -344,7 +344,7 @@ const lignesPlateforme: LigneInventaire[] = MOTEURS.map((m) => {
     code: [...m.dossiers.map((d) => `server/${d}/`), ...m.routeurs.map((r) => `server/router.ts (routeur « ${r} »)`)],
     serviceExecution: aDuCode ? "plateforme principale · serveur Node unique (dist/server.js) · tRPC /api/trpc" : "aucun service d'exécution relevé",
     entrees: [...m.routeurs], entreesTrouvees: m.procedures.length, tables: [...m.tables], dependances: [...m.dependances], tests,
-    etat, preuve: tests.length ? "tests" : aDuCode ? "liaison" : "declare", declareSeulement: !aDuCode,
+    etat, preuve: aDuCode ? (tests.length ? "tests" : "liaison") : "declare", declareSeulement: !aDuCode,
     intermediairePrevu: liens[0]?.id ?? (estIntermediaire ? "shop_link" : null), connexionsExistantes, connexionsAConstruire, manques, doublons, aVerifier,
   };
 });
@@ -478,7 +478,7 @@ Aucun doublon n'est fusionné ni supprimé ici : le centre les signale.
 - Aucun test n'est exécuté, aucune mesure n'est prise en direct : l'état de chaque moteur dans l'application réellement déployée reste **non observé** tant que le centre n'a pas de liaison contrôlée.
 - Les statuts des contrats sont ceux de la migration 0057 ; la base réelle de la Boutique peut les avoir modifiés depuis.
 `;
-writeFileSync(path.join(RACINE, "docs/CENTRE-INVENTAIRE-2026-10-08.md"), doc);
+writeFileSync(path.join(RACINE, "docs/CENTRE-INVENTAIRE-2026-10-09.md"), doc);
 
 console.log(`Boutique ${lignesBoutique.length} moteurs`, cb, `| liaisons ${Object.keys(BINDINGS).length}, routes ${routesPossibles.size}, tests ${testsBoutique.size}`);
 console.log(`Plateforme ${lignesPlateforme.length} moteurs`, cp);

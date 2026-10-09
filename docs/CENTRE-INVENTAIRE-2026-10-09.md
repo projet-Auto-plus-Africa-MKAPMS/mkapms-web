@@ -1,13 +1,13 @@
 # Inventaire réel des moteurs — Centre Cyber-Électrique MKA.P-MS / Frontier OS
 
-Fichier **généré** par `scripts/gen-frontier-inventaire.ts` le 2026-10-08. Lecture seule : la Boutique n'a été ni modifiée ni appelée. Les données complètes (fonction, références fichier avec ligne, tests, manques, doublons) sont dans `server/frontier-os/inventaire/*.generated.ts`, affichées dans le centre, salle « Moteurs ».
+Fichier **généré** par `scripts/gen-frontier-inventaire.ts` le 2026-10-09. Lecture seule : la Boutique n'a été ni modifiée ni appelée. Les données complètes (fonction, références fichier avec ligne, tests, manques, doublons) sont dans `server/frontier-os/inventaire/*.generated.ts`, affichées dans le centre, salle « Moteurs ».
 
 ## Sources relevées
 
 | Dépôt | Commit | Date du commit |
 | --- | --- | --- |
 | Boutique (`mkapms-shop`) | `3f5022921c898ca56a48e4a534be264bd74e6458` | 2026-10-09T00:23:19+02:00 |
-| Plateforme principale (`mkapms-web`) | `6932713091d53bedf4228ad1d15c701bbf4a2031` | 2026-10-08T22:15:27+00:00 |
+| Plateforme principale (`mkapms-web`) | `07ca5b8b0bf55d03ebc5de0ee362b9a2e475ea7e` | 2026-10-08T23:14:10+00:00 |
 
 ## Noms exacts et identités
 
@@ -31,8 +31,8 @@ Audit propre de la Boutique (`server/gap-inventory.json`, commit audité `449e4f
 
 | Moteur | Nom | État | Preuve | Entrées trouvées | Tests | Intermédiaire prévu | Manques principaux |
 | --- | --- | --- | --- | ---: | ---: | --- | --- |
-| `shop.engine` | Shop Engine | incomplet | tests | 0 | 3 | — | aucune liaison d'exécution dans server/engine-runtime.mjs (« une table n'est pas un moteur », selon l'audit de la Boutique) ; audit de la Boutique : critères manquants — schema, events |
-| `commerce.kernel` | Commerce Kernel | incomplet | tests | 0 | 2 | — | aucune liaison d'exécution dans server/engine-runtime.mjs (« une table n'est pas un moteur », selon l'audit de la Boutique) ; audit de la Boutique : critères manquants — events, health, dashboard, integration |
+| `shop.engine` | Shop Engine | incomplet | declare | 0 | 3 | — | aucune liaison d'exécution dans server/engine-runtime.mjs (« une table n'est pas un moteur », selon l'audit de la Boutique) ; audit de la Boutique : critères manquants — schema, events |
+| `commerce.kernel` | Commerce Kernel | incomplet | declare | 0 | 2 | — | aucune liaison d'exécution dans server/engine-runtime.mjs (« une table n'est pas un moteur », selon l'audit de la Boutique) ; audit de la Boutique : critères manquants — events, health, dashboard, integration |
 | `product` | Product Engine | teste | tests | 26 | 1 | — | audit de la Boutique : critères manquants — events, health, dashboard, integration |
 | `catalogue` | Catalogue Engine | teste | tests | 1 | 1 | service-access | audit de la Boutique : critères manquants — events, health, dashboard, integration |
 | `offer` | Offer Engine | teste | tests | 1 | 1 | — | audit de la Boutique : critères manquants — events, health, dashboard, integration |
@@ -70,7 +70,7 @@ Audit propre de la Boutique (`server/gap-inventory.json`, commit audité `449e4f
 | `ledger` | Internal Ledger Engine | teste | tests | 1 | 2 | — | audit de la Boutique : critères manquants — events, health, dashboard, integration |
 | `payout` | Payout Engine | incomplet | declare | 0 | 0 | — | aucune liaison d'exécution dans server/engine-runtime.mjs (« une table n'est pas un moteur », selon l'audit de la Boutique) ; accès externe requis : Stripe payout access required. |
 | `documents` | Document Engine | installe | liaison | 59 | 0 | shop-documents-only | aucun fichier de test existant relevé pour ce moteur ; audit de la Boutique : critères manquants — schema, service, api, permissions, audit, events, health, dashboard, tests, integration |
-| `invoice` | Invoice Engine | incomplet | tests | 0 | 2 | — | aucune liaison d'exécution dans server/engine-runtime.mjs (« une table n'est pas un moteur », selon l'audit de la Boutique) ; audit de la Boutique : critères manquants — events, health, dashboard, integration |
+| `invoice` | Invoice Engine | incomplet | declare | 0 | 2 | — | aucune liaison d'exécution dans server/engine-runtime.mjs (« une table n'est pas un moteur », selon l'audit de la Boutique) ; audit de la Boutique : critères manquants — events, health, dashboard, integration |
 | `inventory` | Inventory Engine | teste | tests | 1 | 1 | — | audit de la Boutique : critères manquants — events, health, dashboard, integration |
 | `warehouse` | Warehouse Engine | incomplet | declare | 0 | 0 | — | aucune liaison d'exécution dans server/engine-runtime.mjs (« une table n'est pas un moteur », selon l'audit de la Boutique) ; aucun fichier de test existant relevé pour ce moteur |
 | `supplier` | Supplier Engine | teste | tests | 5 | 1 | — | audit de la Boutique : critères manquants — events, health, dashboard, integration |
@@ -81,8 +81,8 @@ Audit propre de la Boutique (`server/gap-inventory.json`, commit audité `449e4f
 | `customs` | Customs Engine | installe | liaison | 2 | 0 | — | aucun fichier de test existant relevé pour ce moteur ; audit de la Boutique : critères manquants — contract, schema, service, api, permissions, audit, events, health, dashboard, tests, integration |
 | `carrier` | Carrier Adapter Engine | incomplet | declare | 0 | 0 | — | aucune liaison d'exécution dans server/engine-runtime.mjs (« une table n'est pas un moteur », selon l'audit de la Boutique) ; accès externe requis : Carrier contract/API required. |
 | `routing` | Routing Engine | incomplet | declare | 0 | 0 | — | aucune liaison d'exécution dans server/engine-runtime.mjs (« une table n'est pas un moteur », selon l'audit de la Boutique) ; aucune exigence du plan d'ensemble de la Boutique n'est rattachée à ce moteur (correspondance non établie, donc aucun test relevé) |
-| `return` | Return Engine | incomplet | tests | 0 | 2 | — | aucune liaison d'exécution dans server/engine-runtime.mjs (« une table n'est pas un moteur », selon l'audit de la Boutique) ; audit de la Boutique : critères manquants — events, health, dashboard, integration |
-| `refund` | Refund Engine | incomplet | tests | 0 | 2 | — | aucune liaison d'exécution dans server/engine-runtime.mjs (« une table n'est pas un moteur », selon l'audit de la Boutique) ; audit de la Boutique : critères manquants — events, health, dashboard, integration |
+| `return` | Return Engine | incomplet | declare | 0 | 2 | — | aucune liaison d'exécution dans server/engine-runtime.mjs (« une table n'est pas un moteur », selon l'audit de la Boutique) ; audit de la Boutique : critères manquants — events, health, dashboard, integration |
+| `refund` | Refund Engine | incomplet | declare | 0 | 2 | — | aucune liaison d'exécution dans server/engine-runtime.mjs (« une table n'est pas un moteur », selon l'audit de la Boutique) ; audit de la Boutique : critères manquants — events, health, dashboard, integration |
 | `after_sales` | After-sales Engine | teste | tests | 1 | 2 | — | audit de la Boutique : critères manquants — events, health, dashboard, integration |
 | `customer` | Customer Engine | teste | tests | 3 | 2 | — | — |
 | `seller` | Seller/Pro Engine | installe | liaison | 4 | 0 | — | aucun fichier de test existant relevé pour ce moteur ; audit de la Boutique : critères manquants — contract, schema, service, api, permissions, audit, events, health, dashboard, tests, integration |
@@ -100,9 +100,9 @@ Audit propre de la Boutique (`server/gap-inventory.json`, commit audité `449e4f
 | `analytics` | Analytics Engine | incomplet | declare | 0 | 0 | — | aucune liaison d'exécution dans server/engine-runtime.mjs (« une table n'est pas un moteur », selon l'audit de la Boutique) ; aucun fichier de test existant relevé pour ce moteur |
 | `business_intelligence` | Business Intelligence Engine | incomplet | declare | 0 | 0 | — | aucune liaison d'exécution dans server/engine-runtime.mjs (« une table n'est pas un moteur », selon l'audit de la Boutique) ; aucun fichier de test existant relevé pour ce moteur |
 | `smart.system` | Système intelligent boutique | prepare | declare | 0 | 0 | shop-intelligence-isolated | aucune liaison d'exécution dans server/engine-runtime.mjs (« une table n'est pas un moteur », selon l'audit de la Boutique) ; aucune exigence du plan d'ensemble de la Boutique n'est rattachée à ce moteur (correspondance non établie, donc aucun test relevé) |
-| `developer.agent` | Developer Agent Engine | incomplet | tests | 0 | 1 | — | aucune liaison d'exécution dans server/engine-runtime.mjs (« une table n'est pas un moteur », selon l'audit de la Boutique) ; audit de la Boutique : critères manquants — schema, service, api, permissions, audit, events, health, dashboard, integration |
+| `developer.agent` | Developer Agent Engine | incomplet | declare | 0 | 1 | — | aucune liaison d'exécution dans server/engine-runtime.mjs (« une table n'est pas un moteur », selon l'audit de la Boutique) ; audit de la Boutique : critères manquants — schema, service, api, permissions, audit, events, health, dashboard, integration |
 | `vault` | Integration Vault Engine | installe | liaison | 121 | 0 | — | aucune exigence du plan d'ensemble de la Boutique n'est rattachée à ce moteur (correspondance non établie, donc aucun test relevé) |
-| `audit` | Audit Engine | incomplet | tests | 0 | 2 | — | aucune liaison d'exécution dans server/engine-runtime.mjs (« une table n'est pas un moteur », selon l'audit de la Boutique) ; audit de la Boutique : critères manquants — events, health, dashboard, integration |
+| `audit` | Audit Engine | incomplet | declare | 0 | 2 | — | aucune liaison d'exécution dans server/engine-runtime.mjs (« une table n'est pas un moteur », selon l'audit de la Boutique) ; audit de la Boutique : critères manquants — events, health, dashboard, integration |
 | `privacy` | Privacy/Consent Engine | installe | liaison | 2 | 0 | — | aucun fichier de test existant relevé pour ce moteur ; audit de la Boutique : critères manquants — contract, schema, service, api, permissions, audit, events, health, dashboard, tests, integration |
 | `legal.content` | Legal Content Engine | installe | liaison | 2 | 0 | — | aucune exigence du plan d'ensemble de la Boutique n'est rattachée à ce moteur (correspondance non établie, donc aucun test relevé) |
 | `faq` | FAQ Engine | installe | liaison | 2 | 0 | — | aucune exigence du plan d'ensemble de la Boutique n'est rattachée à ce moteur (correspondance non établie, donc aucun test relevé) |
@@ -247,12 +247,12 @@ Répartition : incomplets 10 · préparés 0 · installés 58 · testés 28 · c
 | `event_bus` | Bus d'événements central | installe | liaison | 7 | 0 | — | emission_dynamique ×1 ; dependance_non_declaree ×4 |
 | `finance` | Financement Engine | installe | liaison | 5 | 0 | — | ecran_sans_contenu ×1 ; bouton_sans_action ×1 |
 | `financial_intelligence` | Financial Intelligence Engine | installe | liaison | 5 | 0 | — | dependance_sans_preuve ×2 ; sans_ecran ×1 |
-| `frontier_os` | Centre Cyber-Électrique MKA.P-MS / Frontier OS | teste | tests | 19 | 2 | — | — |
+| `frontier_os` | Centre Cyber-Électrique MKA.P-MS / Frontier OS | teste | tests | 48 | 11 | — | dependance_non_declaree ×4 |
 | `garage` | Garage Engine | installe | liaison | 12 | 0 | — | bouton_sans_action ×8 ; ecran_sans_contenu ×4 |
 | `identity` | Identity OS | teste | tests | 42 | 4 | — | ecran_sans_contenu ×6 ; bouton_sans_action ×1 |
 | `importafrica` | Import Afrique Engine | installe | liaison | 6 | 0 | — | dependance_sans_preuve ×3 ; aucun fichier de test dans les dossiers du moteur |
 | `indexation` | Moniteur d'indexation | installe | liaison | 10 | 0 | — | aucun fichier de test dans les dossiers du moteur |
-| `intelligences` | MKA.P-MS AI | teste | tests | 123 | 46 | service-access | bouton_sans_action ×1 ; dependance_non_declaree ×9 |
+| `intelligences` | MKA.P-MS AI | teste | tests | 123 | 46 | service-access | bouton_sans_action ×1 ; dependance_non_declaree ×10 |
 | `investment` | Investment Engine | teste | tests | 22 | 2 | — | — |
 | `journey` | Customer Journey OS | installe | liaison | 6 | 0 | — | aucun fichier de test dans les dossiers du moteur |
 | `knowledge` | Knowledge Engine | incomplet | declare | 0 | 0 | — | ecran_sans_contenu ×12 ; dependance_sans_preuve ×3 |

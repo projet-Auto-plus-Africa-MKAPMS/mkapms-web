@@ -14,6 +14,7 @@
  * suivie, délai borné, taille de réponse bornée, et le jeton n'est jamais renvoyé ni journalisé. Les clés qui
  * ressemblent à un prix, une adresse ou un secret sont retirées de ce qui revient (défense en profondeur).
  */
+import { interrogerPortier } from "../shop-link/portier.js";
 import { lireSecretPourOutil } from "./coffre.js";
 
 /** Noms exacts attendus dans le coffre (mêmes noms que le catalogue « Connecter les outils »). */
@@ -126,6 +127,9 @@ async function appeler(
   fetchImpl: Fetch,
   ficheComplete = false,
 ): Promise<ResultatBoutique> {
+  // Gouvernance du Centre Cyber-Électrique (voie directe des outils de l'IA) : sans effet tant que le PDG ne l'a pas armée ; armée, elle ne fait que refuser.
+  const centre = await interrogerPortier("catalogue", "sortant");
+  if (!centre.autorise) return { ok: false, code: "GOUVERNANCE_CENTRE", detail: `Le Centre Cyber-Électrique a coupé la ligne vers la Boutique : ${centre.raison}` };
   let reponse: Response;
   try {
     reponse = await fetchImpl(`${acces.origine}/api/service${chemin}`, {

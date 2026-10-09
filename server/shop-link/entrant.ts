@@ -122,7 +122,7 @@ function declarer<T>(porte: Porte<T>): void {
       if (!auth.ok) return await refuser(401, "UNAUTHORIZED", "refus_signature");
 
       const cables = await lireCables();
-      const passage = porte.canal ? await etatEffectif(porte.canal) : { passe: cables.maitre.etat === "connecte", raison: "MAITRE_COUPE" as const };
+      const passage = porte.canal ? await etatEffectif(porte.canal, "entrant") : { passe: cables.maitre.etat === "connecte", raison: "MAITRE_COUPE" as const };
       if (!passage.passe) return await refuser(503, "CABLE_COUPE", "refus_cable", passage.raison, { raison: passage.raison, detail: messageCoupure(passage.raison) });
 
       const rejeu = await reserverMessage(quotaCle, auth.nonce, parMinute);

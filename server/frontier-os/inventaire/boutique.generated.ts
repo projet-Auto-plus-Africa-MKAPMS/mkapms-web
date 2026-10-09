@@ -11,7 +11,7 @@ export const INVENTAIRE_BOUTIQUE: InventaireBoutique = {
   "depot": "projet-Auto-plus-Africa-MKAPMS/mkapms-shop",
   "commit": "3f5022921c898ca56a48e4a534be264bd74e6458",
   "dateCommit": "2026-10-09T00:23:19+02:00",
-  "genereLe": "2026-10-08",
+  "genereLe": "2026-10-09",
   "fichiersLus": [
    "server/shop-intelligent-system.mjs",
    "server/engine-runtime.mjs",
@@ -62,7 +62,7 @@ export const INVENTAIRE_BOUTIQUE: InventaireBoutique = {
     "tests/smart-system.test.ts"
    ],
    "etat": "incomplet",
-   "preuve": "tests",
+   "preuve": "declare",
    "declareSeulement": true,
    "intermediairePrevu": null,
    "connexionsExistantes": [],
@@ -103,7 +103,7 @@ export const INVENTAIRE_BOUTIQUE: InventaireBoutique = {
     "tests/order-engine.test.ts"
    ],
    "etat": "incomplet",
-   "preuve": "tests",
+   "preuve": "declare",
    "declareSeulement": true,
    "intermediairePrevu": null,
    "connexionsExistantes": [],
@@ -1585,7 +1585,7 @@ export const INVENTAIRE_BOUTIQUE: InventaireBoutique = {
     "tests/order-engine.test.ts"
    ],
    "etat": "incomplet",
-   "preuve": "tests",
+   "preuve": "declare",
    "declareSeulement": true,
    "intermediairePrevu": null,
    "connexionsExistantes": [],
@@ -2002,7 +2002,7 @@ export const INVENTAIRE_BOUTIQUE: InventaireBoutique = {
     "tests/order-engine.test.ts"
    ],
    "etat": "incomplet",
-   "preuve": "tests",
+   "preuve": "declare",
    "declareSeulement": true,
    "intermediairePrevu": null,
    "connexionsExistantes": [],
@@ -2041,7 +2041,7 @@ export const INVENTAIRE_BOUTIQUE: InventaireBoutique = {
     "tests/order-engine.test.ts"
    ],
    "etat": "incomplet",
-   "preuve": "tests",
+   "preuve": "declare",
    "declareSeulement": true,
    "intermediairePrevu": null,
    "connexionsExistantes": [],
@@ -2698,7 +2698,7 @@ export const INVENTAIRE_BOUTIQUE: InventaireBoutique = {
     "tests/developer-agent.test.ts"
    ],
    "etat": "incomplet",
-   "preuve": "tests",
+   "preuve": "declare",
    "declareSeulement": true,
    "intermediairePrevu": null,
    "connexionsExistantes": [],
@@ -2776,7 +2776,7 @@ export const INVENTAIRE_BOUTIQUE: InventaireBoutique = {
     "tests/security.test.mjs"
    ],
    "etat": "incomplet",
-   "preuve": "tests",
+   "preuve": "declare",
    "declareSeulement": true,
    "intermediairePrevu": null,
    "connexionsExistantes": [],
