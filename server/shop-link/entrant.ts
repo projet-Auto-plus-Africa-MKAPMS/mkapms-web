@@ -14,6 +14,7 @@ import { desc, sql } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "../db.js";
 import { accuserReception, deposerEntrant, sortantsAPrendre, TYPES_ECHANGE, verifierElements } from "./boite.js";
+import { ordresEnAttente, recevoirAccuses } from "./commutation.js";
 import { CANAUX, inspecter, type CanalId } from "./contrats.js";
 import { shopLinkDocuments, shopLinkEtatBoutique } from "./schema.js";
 import { authentifier, etatEffectif, journaliser, journaliserAnonyme, lireCables, messageCoupure, reserverMessage } from "./service.js";
@@ -76,6 +77,26 @@ export const schemaDepotIa = z
 
 export const schemaAccuse = z.object({ version: z.literal(1), ids: z.array(z.number().int().positive()).min(1).max(50) }).strict();
 
+/** Accusés et rapports de l'interrupteur local de la Boutique (commutation). L'état est celui que la Boutique OBSERVE elle-même. */
+export const schemaAccuseCommutation = z
+  .object({
+    version: z.literal(1),
+    accuses: z
+      .array(
+        z
+          .object({
+            ordre: z.number().int().positive().nullable(),
+            ligne: z.string().regex(/^[a-z0-9][a-z0-9-]{1,59}$/),
+            etat: z.enum(["connected", "disconnected"]),
+            observeLe: z.string().datetime({ offset: true }),
+          })
+          .strict(),
+      )
+      .min(1)
+      .max(20),
+  })
+  .strict();
+
 interface Contexte {
   cleId: number;
 }
@@ -87,6 +108,10 @@ interface Reponse {
 interface Porte<T> {
   /** Canal gouverné ; null = simple lecture de l'état du câble (soumise seulement au commutateur général). */
   canal: CanalId | null;
+  /** Plan de commande du centre (commutation) : clé de quota propre et plafonds propres ; jamais soumis au portier du centre. */
+  quota?: string;
+  parMinute?: number;
+  tailleMax?: number;
   methode: "get" | "post";
   chemin: string;
   schema?: z.ZodType<T>;
@@ -98,9 +123,9 @@ interface Porte<T> {
 const reponse = (res: Response, statut: number, corps: Record<string, unknown>) => res.status(statut).json(corps);
 
 function declarer<T>(porte: Porte<T>): void {
-  const quotaCle = porte.canal ?? "maitre";
-  const tailleMax = porte.canal ? CANAUX[porte.canal].tailleMax : 1024;
-  const parMinute = porte.canal ? CANAUX[porte.canal].parMinute : 30;
+  const quotaCle = porte.quota ?? porte.canal ?? "maitre";
+  const tailleMax = porte.tailleMax ?? (porte.canal ? CANAUX[porte.canal].tailleMax : 1024);
+  const parMinute = porte.parMinute ?? (porte.canal ? CANAUX[porte.canal].parMinute : 30);
   const journalCanal = porte.canal ?? "maitre";
   shopLinkApi[porte.methode](porte.chemin, async (req: Request, res: Response) => {
     const debut = Date.now();
@@ -216,6 +241,37 @@ declarer({
   chemin: "/v1/ia/accuse",
   schema: schemaAccuse,
   traiter: async (d) => ({ corps: { status: "ACCUSE", accuses: await accuserReception(d.ids) } }),
+});
+
+// ── Commutation de l'interrupteur local de la Boutique (plan de commande du centre) ─────────────────────────────
+// La Boutique VIENT chercher les ordres (elle n'est jamais appelée) puis renvoie un accusé signé avec l'état qu'elle observe. Ces deux routes ne portent
+// aucune donnée de la Boutique et ne sont soumises qu'au commutateur général : elles sont le plan de commande, pas une voie de données.
+declarer({
+  canal: null,
+  quota: "commutation",
+  parMinute: 120,
+  tailleMax: 4096,
+  methode: "get",
+  chemin: "/v1/commutation/ordres",
+  traiter: async () => {
+    const r = await ordresEnAttente();
+    return { corps: { version: 1, disponible: r.disponible, ordres: r.ordres } };
+  },
+});
+
+declarer({
+  canal: null,
+  quota: "commutation",
+  parMinute: 120,
+  tailleMax: 4096,
+  methode: "post",
+  chemin: "/v1/commutation/accuse",
+  schema: schemaAccuseCommutation,
+  traiter: async (d, { cleId }) => {
+    const bilan = await recevoirAccuses(d.accuses, cleId);
+    if (!bilan) throw new Error("centre indisponible : aucun accusé n'est accepté");
+    return { corps: { status: "RECU", acceptes: bilan.acceptes, refuses: bilan.refuses } };
+  },
 });
 
 /** Dernier état reçu de la Boutique (pour l'écran du PDG). */

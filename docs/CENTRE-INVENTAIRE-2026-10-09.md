@@ -6,8 +6,8 @@ Fichier **généré** par `scripts/gen-frontier-inventaire.ts` le 2026-10-09. Le
 
 | Dépôt | Commit | Date du commit |
 | --- | --- | --- |
-| Boutique (`mkapms-shop`) | `3f5022921c898ca56a48e4a534be264bd74e6458` | 2026-10-09T00:23:19+02:00 |
-| Plateforme principale (`mkapms-web`) | `03fffde3b76450ade43d25e4fa17451bbe6a7909` | 2026-10-09T00:13:38+00:00 |
+| Boutique (`mkapms-shop`) | `c82fc74a30fa95d89c27115fc788c1fa09dbab6c` | 2026-10-09T07:56:10+02:00 |
+| Plateforme principale (`mkapms-web`) | `80c0df6b1ff8349d02e29ca2f5844742a859897f` | 2026-10-09T06:49:06+02:00 |
 
 ## Noms exacts et identités
 
@@ -43,7 +43,7 @@ Audit propre de la Boutique (`server/gap-inventory.json`, commit audité `449e4f
 | `keyword` | Keyword Demand Engine | installe | liaison | 2 | 0 | — | aucune exigence du plan d'ensemble de la Boutique n'est rattachée à ce moteur (correspondance non établie, donc aucun test relevé) |
 | `filter` | Filter Engine | incomplet | declare | 0 | 0 | — | aucune liaison d'exécution dans server/engine-runtime.mjs (« une table n'est pas un moteur », selon l'audit de la Boutique) ; aucun fichier de test existant relevé pour ce moteur |
 | `recommendation` | Recommendation Engine | incomplet | declare | 0 | 0 | — | aucune liaison d'exécution dans server/engine-runtime.mjs (« une table n'est pas un moteur », selon l'audit de la Boutique) ; aucun fichier de test existant relevé pour ce moteur |
-| `publisher` | Publisher Engine | installe | liaison | 5 | 0 | — | aucune exigence du plan d'ensemble de la Boutique n'est rattachée à ce moteur (correspondance non établie, donc aucun test relevé) |
+| `publisher` | Publisher Engine | installe | liaison | 6 | 0 | — | aucune exigence du plan d'ensemble de la Boutique n'est rattachée à ce moteur (correspondance non établie, donc aucun test relevé) |
 | `seller.publication` | Seller Publication Engine | installe | liaison | 6 | 0 | — | aucune exigence du plan d'ensemble de la Boutique n'est rattachée à ce moteur (correspondance non établie, donc aucun test relevé) |
 | `feed` | Feed Engine | incomplet | declare | 0 | 0 | — | aucune liaison d'exécution dans server/engine-runtime.mjs (« une table n'est pas un moteur », selon l'audit de la Boutique) ; aucun fichier de test existant relevé pour ce moteur |
 | `seo` | SEO Engine | installe | liaison | 3 | 0 | — | aucun fichier de test existant relevé pour ce moteur ; audit de la Boutique : critères manquants — contract, schema, service, api, permissions, audit, events, health, dashboard, tests, integration |
@@ -93,7 +93,7 @@ Audit propre de la Boutique (`server/gap-inventory.json`, commit audité `449e4f
 | `trust` | Trust Engine | incomplet | declare | 0 | 0 | — | aucune liaison d'exécution dans server/engine-runtime.mjs (« une table n'est pas un moteur », selon l'audit de la Boutique) ; aucun fichier de test existant relevé pour ce moteur |
 | `fraud` | Fraud Engine | incomplet | declare | 0 | 0 | — | aucune liaison d'exécution dans server/engine-runtime.mjs (« une table n'est pas un moteur », selon l'audit de la Boutique) ; aucun fichier de test existant relevé pour ce moteur |
 | `moderation` | Moderation Engine | incomplet | declare | 0 | 0 | — | aucune liaison d'exécution dans server/engine-runtime.mjs (« une table n'est pas un moteur », selon l'audit de la Boutique) ; aucun fichier de test existant relevé pour ce moteur |
-| `product.policy` | Forbidden Product Control Engine | teste | tests | 11 | 1 | — | audit de la Boutique : critères manquants — schema, service, api, permissions, audit, events, health, dashboard, integration |
+| `product.policy` | Forbidden Product Control Engine | teste | tests | 12 | 1 | — | audit de la Boutique : critères manquants — schema, service, api, permissions, audit, events, health, dashboard, integration |
 | `media` | Media Engine | installe | liaison | 240 | 0 | — | aucun fichier de test existant relevé pour ce moteur ; audit de la Boutique : critères manquants — contract, service, permissions, audit, events, health, dashboard, tests, integration |
 | `image.processing` | Image Processing Engine | installe | liaison | 65 | 0 | — | aucun fichier de test existant relevé pour ce moteur ; audit de la Boutique : critères manquants — contract, schema, service, api, permissions, audit, events, health, dashboard, tests, integration |
 | `video.publisher` | YouTube/Video Publisher Adapter | installe | liaison | 62 | 0 | — | accès externe requis : YouTube account/API required; no direct plugin installed. ; aucune exigence du plan d'ensemble de la Boutique n'est rattachée à ce moteur (correspondance non établie, donc aucun test relevé) |
@@ -191,6 +191,20 @@ Cinq sont des **contrats déclarés** (lignes de `shop_strategy.connection_contr
 | `shop-intelligence-isolated` | État technique agrégé du système intelligent de la Boutique | prepare | declare | 0 | 0 | shop-intelligence-isolated | contrat déclaré dans la base de la Boutique : aucun code d'exécution ne le porte ; aucun émetteur vers la plateforme dans la Boutique (sa règle AGENTS.md : la Boutique n'appelle jamais la plateforme) |
 | `service-access` | Accès de service (jeton, portées, routes /api/service) | teste | tests | 60 | 1 | service-access | — |
 
+## Boutique — moteur de stock propre (famille séparée du registre)
+
+Lot de la Boutique « moteurs de stock indépendants » (`migrations/0077_stock_engine_preparation.sql:2`, document `docs/SHOP-STOCK-ENGINES-2026-10-09.md`). Ce n'est **pas** un des 83 moteurs du registre : il est compté ici seulement, une fois. Il est **préparé et désactivé** (contrainte `enabled = false` dans la migration : présente sur les trois tables) ; aucune quantité ni source externe n'est connectée.
+
+| Moteur | Nom | État | Preuve | Entrées trouvées | Tests | Intermédiaire prévu | Manques principaux |
+| --- | --- | --- | --- | ---: | ---: | --- | --- |
+| `stock.mka_own.inventory` | Moteur de stock propre MKA.P-MS SHOP | teste | tests | 4 | 3 | stock.mka_own.intermediary | désactivé par la base elle-même : `enabled = false` imposé par contrainte CHECK dans la migration 0077 ; aucune quantité réelle ni source externe connectée (quantités inconnues = null, « non connectées ») ; aucune observation n'est appliquée au stock réel dans ce lot (applied:false) ; le raccordement aux comptes existants est une étape ultérieure annoncée par la Boutique |
+| `stock.mka_own.intermediary` | Moteur intermédiaire de stock MKA.P-MS SHOP | prepare | declare | 0 | 3 | — | désactivé par la base elle-même : `enabled = false` imposé par contrainte CHECK dans la migration 0077 ; aucune quantité réelle ni source externe connectée (quantités inconnues = null, « non connectées ») ; aucune observation n'est appliquée au stock réel dans ce lot (applied:false) ; le raccordement aux comptes existants est une étape ultérieure annoncée par la Boutique |
+
+- Compte posé par la migration : « Stock propre MKA.P-MS SHOP » (`mkapms-shop-own`, type MKA_OWN, canal INTERNAL). Aucun autre compte n'existe tant que le Fondateur n'en crée pas.
+- 10 modèles de comptes préparés (désactivés, pas des commerces réels) : Stock propre MKA.P-MS · Professionnels · Fabricants · Particuliers · Grossistes · Distributeurs · Fournisseurs · Fournisseurs dropshipping · Entrepôts et opérateurs logistiques · Autres types de comptes.
+- 7 canaux préparés (tous désactivés, sans identifiant d'accès) : MKA.P-MS · Amazon · stock vendeur · Amazon · stock logistique FBA · Alibaba · fournisseur B2B — API non validée · Shopify · article et emplacement · Flux fournisseur existant · Autre canal à préciser.
+- Contrôles de non-duplication : tables : 7 tables shop_inventory.*, aucune n'est portée par le registre des 83 moteurs ; identifiants : « stock.* » absent du registre (aucun doublon) ; 10 modèles de comptes = 10 types déclarés dans le code (concordance vérifiée), un seul compte réel : « mkapms-shop-own » ; intermédiaire de stock ≠ intermédiaires de la migration 0057 : aucun identifiant commun.
+
 ## Plateforme principale — canaux du moteur intermédiaire shop_link (6)
 
 | Moteur | Nom | État | Preuve | Entrées trouvées | Tests | Intermédiaire prévu | Manques principaux |
@@ -247,7 +261,7 @@ Répartition : incomplets 10 · préparés 0 · installés 58 · testés 28 · c
 | `event_bus` | Bus d'événements central | installe | liaison | 7 | 0 | — | emission_dynamique ×1 ; dependance_non_declaree ×4 |
 | `finance` | Financement Engine | installe | liaison | 5 | 0 | — | ecran_sans_contenu ×1 ; bouton_sans_action ×1 |
 | `financial_intelligence` | Financial Intelligence Engine | installe | liaison | 5 | 0 | — | dependance_sans_preuve ×2 ; sans_ecran ×1 |
-| `frontier_os` | Centre Cyber-Électrique MKA.P-MS / Frontier OS | teste | tests | 48 | 11 | — | dependance_non_declaree ×4 |
+| `frontier_os` | Centre Cyber-Électrique MKA.P-MS / Frontier OS | teste | tests | 53 | 13 | — | dependance_non_declaree ×4 |
 | `garage` | Garage Engine | installe | liaison | 12 | 0 | — | bouton_sans_action ×8 ; ecran_sans_contenu ×4 |
 | `identity` | Identity OS | teste | tests | 42 | 4 | — | ecran_sans_contenu ×6 ; bouton_sans_action ×1 |
 | `importafrica` | Import Afrique Engine | installe | liaison | 6 | 0 | — | dependance_sans_preuve ×3 ; aucun fichier de test dans les dossiers du moteur |

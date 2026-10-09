@@ -39,6 +39,10 @@ export const PDG = { type: "pdg", id: 1 } as const;
 export async function remiseAZero(): Promise<void> {
   const p = poolFrontier();
   await p.query(`
+    DELETE FROM frontier.remote_reports;
+    DELETE FROM frontier.remote_orders;
+    DELETE FROM frontier.config WHERE key = 'reel_arme';
+    UPDATE frontier.cuts SET mode = 'simulation';
     UPDATE frontier.cuts SET requested = 'none', observed = 'unknown', progress = 'idle', error = NULL, last_proof = NULL, last_checked_at = NULL, last_command_id = NULL;
     UPDATE frontier.gates SET open = false, changed_by = NULL;
     UPDATE frontier.lines SET locked = false, enabled = true WHERE kind = 'real';

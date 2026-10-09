@@ -13,6 +13,8 @@ import { spawn } from "node:child_process";
 import { createRequire } from "node:module";
 import assert from "node:assert/strict";
 import { mkdirSync } from "node:fs";
+import { createHash, generateKeyPairSync } from "node:crypto";
+import { cycle as cycleBoutique } from "./boutique-emetteur-reference.mjs";
 
 const RACINE = process.cwd();
 const require = createRequire(`${RACINE}/package.json`);
@@ -39,8 +41,8 @@ const jeton = (uid, role, email) => jwt.sign({ uid, role, email }, SECRET, { exp
 
 let serveur;
 let journalServeur = "";
-async function demarrer() {
-  const env = { PATH: process.env.PATH, HOME: process.env.HOME, NODE_ENV: "production", PORT: String(PORT), DATABASE_URL: DB, JWT_SECRET: SECRET, PUBLIC_URL: BASE };
+async function demarrer(extraEnv = {}) {
+  const env = { PATH: process.env.PATH, HOME: process.env.HOME, NODE_ENV: "production", PORT: String(PORT), DATABASE_URL: DB, JWT_SECRET: SECRET, PUBLIC_URL: BASE, ...extraEnv };
   serveur = spawn("node", ["dist/server.js"], { cwd: RACINE, env, stdio: ["ignore", "pipe", "pipe"] });
   serveur.stdout.on("data", (d) => (journalServeur += d));
   serveur.stderr.on("data", (d) => (journalServeur += d));
@@ -111,7 +113,8 @@ try {
   assert.equal(await page.locator('figure[data-jauge="temperature"]').getAttribute("data-mesuree"), "false");
   await page.getByText("Noms demandés : aucune fusion").waitFor();
   assert.ok(await page.getByText("« MKH Shop » — NON TROUVÉ dans le code").count() >= 1);
-  assert.ok(await page.getByText("pas encore en matériel").count() >= 1, "la base partage encore le serveur Postgres");
+  assert.equal(await page.getByTestId("separation-resume").getAttribute("data-niveau"), "schema_partage", "le niveau de séparation est MESURÉ : la base partage encore le serveur Postgres");
+  assert.ok((await page.getByTestId("separation-resume").innerText()).includes("pas en matériel"));
   await page.screenshot({ path: `${SORTIE}/01-accueil-bureau.png`, fullPage: true });
 
   // Santé des moteurs et banc d'essai : valeurs mesurées.
@@ -133,10 +136,32 @@ try {
   assert.equal(await page.locator('article[data-ligne="shop-documents-only"] [data-cote]').count(), 3, "trois coupures par ligne");
   assert.equal(await page.locator('article[data-ligne="shop-documents-only"] button[role="switch"]').count(), 2, "deux petits interrupteurs");
   assert.equal(await page.locator('article[data-validite="invalid"]').count(), 3);
+  // Comparaison avec le modèle large ordinateur : Boutique (distant) à GAUCHE, plateforme principale à DROITE, contacts rouges au CENTRE, six fils visibles par ligne,
+  // groupes qui s'étendent vers le BAS. Mesurée sur les positions réelles des éléments dans le navigateur.
+  {
+    const boite = async (sel) => (await page.locator(sel).first().boundingBox());
+    const L = 'article[data-ligne="shop-documents-only"]';
+    const [a, e1, e4, e7] = await Promise.all([boite(L), boite(`${L} [data-element="1"]`), boite(`${L} [data-element="4"][data-cote="center"]`), boite(`${L} [data-element="7"]`)]);
+    assert.ok(e1.x < e4.x && e4.x < e7.x, "moteur réel distant à gauche, contact central au milieu, moteur réel principal à droite");
+    assert.ok(Math.abs(e4.x + e4.width / 2 - (a.x + a.width / 2)) < 0.12 * a.width, "le contact rouge est au centre de la ligne");
+    assert.equal(await page.locator(`${L} [data-fil]`).count(), 6, "six fils visibles entre les sept éléments");
+    const groupes = await page.locator("[data-groupe]:not([data-reserve]):not(article)").evaluateAll((els) => els.filter((e) => e.getAttribute("data-groupe") && e.tagName === "DIV" && e.classList.contains("rounded-xl")).map((e) => ({ g: e.getAttribute("data-groupe"), y: e.getBoundingClientRect().y })));
+    assert.deepEqual(groupes.map((x) => x.g).slice(0, 5), ["boutique", "map", "ia-alhoudoud", "bijoux", "futures"], "groupes dans l'ordre : Boutique, Map, IA Al-Houdoud M., Bijoux, futures");
+    assert.ok(groupes.every((x, i) => i === 0 || x.y > groupes[i - 1].y), "les groupes s'étendent vers le bas");
+    assert.equal(await page.locator("p", { hasText: "Plateformes distantes" }).count() >= 1 && (await page.locator("p", { hasText: "Plateforme principale ▶" }).count()) >= 1, true, "colonnes nommées : distant à gauche, plateforme principale à droite");
+  }
   assert.ok(await page.getByText("Élément 5 absent").count() >= 1, "l'entrée n'a pas d'intermédiaire côté plateforme");
-  await page.getByRole("button", { name: /Déplier les 30 lignes « À venir »/ }).click();
+  // Les réserves sont VISIBLES et désactivées : cinq par groupe d'emblée, les autres derrière un bouton ; aucune commande possible dessus.
+  assert.equal(await page.locator('[data-testid="reserves-boutique"] [data-reserve]').count(), 5, "cinq réserves visibles d'emblée");
+  assert.equal(await page.locator('[data-reserve] button').count(), 0, "une réserve ne porte aucun bouton : elle est inerte");
+  assert.equal(await page.locator('[data-reserve][aria-disabled="true"]').count() >= 5, true);
+  await page.getByRole("button", { name: /Voir les 25 autres lignes « À venir »/ }).click();
   assert.equal(await page.locator('[data-testid="reserves-boutique"] [data-reserve]').count(), 30, "trente réserves vides");
-  await page.getByRole("button", { name: /Replier les 30 lignes/ }).click();
+  await page.getByRole("button", { name: /Replier : n'afficher que 5 lignes/ }).click();
+  assert.equal(await page.locator('[data-testid="reserves-boutique"] [data-reserve]').count(), 5);
+  // Fils et leviers : au repos (jamais commandé) rien ne circule ; les contacts sont ouverts.
+  assert.equal(await page.locator('article[data-ligne="shop-documents-only"] [data-fil="connecte"]').count(), 0, "aucun courant sur une ligne jamais commandée");
+  assert.equal(await page.locator('article[data-ligne="shop-documents-only"] [data-element="4"] [data-levier="ouvert"]').count(), 1, "levier du contact central relevé");
   await page.screenshot({ path: `${SORTIE}/02-connexions-repos-bureau.png`, fullPage: true });
 
   // Un moteur est cliquable : inventaire, état, tests, historique.
@@ -160,7 +185,7 @@ try {
   await docs.getByText("les échanges PASSENT").waitFor();
   assert.equal(await docs.locator('[data-cote="center"]').getAttribute("data-etat"), "connecte");
   await page.screenshot({ path: `${SORTIE}/04-ligne-connectee-bureau.png`, fullPage: true });
-  await page.locator('[data-groupe="boutique"]').screenshot({ path: `${SORTIE}/04b-plan-groupe-boutique-bureau.png` });
+  await page.locator('[data-groupe="boutique"]:not([data-reserve])').screenshot({ path: `${SORTIE}/04b-plan-groupe-boutique-bureau.png` });
 
   // Échange d'essai : livré ; puis un petit interrupteur coupé → rien ne passe.
   await docs.getByRole("button", { name: "Échange d'essai" }).click();
@@ -203,7 +228,7 @@ try {
   await page.getByRole("button", { name: "Couper tout", exact: true }).click();
   await page.getByRole("alertdialog").getByRole("button", { name: "Confirmer" }).click();
   await page.getByTestId("resultat-commande").getByText(/Interrupteur général — CONFIRMÉ/).waitFor();
-  await page.locator('[data-groupe="boutique"]').screenshot({ path: `${SORTIE}/07b-plan-groupe-boutique-bureau.png` });
+  await page.locator('[data-groupe="boutique"]:not([data-reserve])').screenshot({ path: `${SORTIE}/07b-plan-groupe-boutique-bureau.png` });
 
   // Autres salles.
   const nav = page.getByRole("navigation", { name: "Salles du centre" });
@@ -220,8 +245,14 @@ try {
   await page.getByRole("button", { name: "Fermer la fiche" }).click();
   await page.screenshot({ path: `${SORTIE}/09-boutiques-bureau.png`, fullPage: true });
   await nav.getByRole("button", { name: "Cybersécurité", exact: true }).click();
-  await page.getByText("Voies existantes entre la plateforme et la Boutique").waitFor();
-  assert.equal(await page.locator('[data-gouvernee="false"]').count(), 2, "deux voies existantes NON gouvernées, dites telles quelles");
+  await page.getByText("Voies de DONNÉES entre la plateforme et la Boutique (échanges)").waitFor();
+  assert.equal(await page.locator('[data-type="echange"]').count(), 5, "cinq voies de données");
+  assert.equal(await page.locator('[data-type="echange"][data-gouvernee="true"]').count(), 5, "toutes consultées par le portier du centre");
+  assert.equal(await page.locator('[data-type="navigation"]').count(), 1, "le bouton Boutique est de la navigation");
+  assert.equal(await page.locator('[data-type="navigation"]').getAttribute("data-gouvernee"), "false");
+  assert.equal(await page.getByTestId("separation-niveau").getAttribute("data-niveau"), "schema_partage");
+  assert.equal(await page.getByTestId("reel-autorise").getAttribute("data-autorise"), "false", "le mode réel n'est pas permis par défaut");
+  assert.equal(await page.getByRole("button", { name: "Armer le mode réel" }).isDisabled(), true, "armer exige la phrase de confirmation");
   await page.screenshot({ path: `${SORTIE}/10-cybersecurite-bureau.png`, fullPage: true });
   await nav.getByRole("button", { name: "Atelier", exact: true }).click();
   await page.getByRole("button", { name: "Lancer le diagnostic" }).click();
@@ -278,6 +309,93 @@ try {
   }
   assert.equal((await pool.query("SELECT count(*)::int n FROM frontier.lines WHERE kind = 'reserve' AND enabled")).rows[0].n, 0, "les réserves restent désactivées");
   assert.equal((await pool.query("SELECT count(*)::int n FROM frontier.lines WHERE kind = 'reserve'")).rows[0].n, 55, "50 réserves + 5 du groupe ajouté");
+
+  // 3b. MODE RÉEL de bout en bout : variable posée sur le service, armement par le PDG dans l'écran, ligne passée en réel, activation avec la Boutique de référence
+  // (requêtes signées contre le vrai serveur), VRAI câble de shop_link, puis coupure. Tout est local ; aucune Boutique réelle n'est appelée.
+  await arreter();
+  journalServeur = "";
+  await demarrer({ FRONTIER_MODE_REEL: "oui", FRONTIER_ATTENTE_ACCUSE_MS: "8000" });
+  await new Promise((r) => setTimeout(r, 4000));
+  const paire = generateKeyPairSync("ed25519");
+  const der = paire.publicKey.export({ type: "spki", format: "der" });
+  await pool.query("DELETE FROM shop_link_cles");
+  await pool.query("INSERT INTO shop_link_cles (libelle, cle_publique, empreinte) VALUES ('Boutique de référence (essai)', $1, $2)", [der.toString("base64url"), createHash("sha256").update(der).digest("hex")]);
+  const interrupteursBoutique = new Map([["shop-intelligence-isolated", "disconnected"]]);
+  const boutique = setInterval(() => {
+    cycleBoutique({ base: BASE, clePrivee: paire.privateKey, interrupteurs: { lecture: (l) => interrupteursBoutique.get(l) ?? null, ecriture: (l, e) => interrupteursBoutique.set(l, e) } }).catch(() => undefined);
+  }, 900);
+  try {
+    const cr = await contexte({ width: 1440, height: 1000 });
+    const pr = await cr.newPage();
+    const errsReel = [];
+    pr.on("pageerror", (e) => errsReel.push(e.message));
+    pr.setDefaultTimeout(40000);
+    const navr = pr.getByRole("navigation", { name: "Salles du centre" });
+    await pr.goto(`${BASE}/admin/centre-cyber-electrique`);
+    await navr.getByRole("button", { name: "Cybersécurité", exact: true }).click();
+    await pr.getByTestId("mode-reel").waitFor();
+    assert.ok((await pr.locator('[data-cle="environnement"]').innerText()).includes("posée sur le service"), "clé 1 : la variable est posée");
+    assert.equal(await pr.getByTestId("reel-autorise").getAttribute("data-autorise"), "false", "une seule clé ne suffit pas");
+    await pr.getByLabel("Phrase de confirmation").fill("armer");
+    assert.equal(await pr.getByRole("button", { name: "Armer le mode réel" }).isDisabled(), true, "phrase incorrecte : bouton inactif");
+    await pr.getByLabel("Phrase de confirmation").fill("ARMER LE MODE REEL");
+    await pr.getByRole("button", { name: "Armer le mode réel" }).click();
+    await pr.getByText(/Mode réel armé/).waitFor();
+    await pr.waitForFunction(() => document.querySelector('[data-testid="reel-autorise"]')?.getAttribute("data-autorise") === "true");
+    const ligneReel = pr.locator('[data-reel-ligne="shop-intelligence-isolated"]');
+    assert.equal(await ligneReel.getAttribute("data-regime"), "simulation");
+    assert.equal(await pr.locator('[data-reel-ligne="shared-stripe-account"] button').isDisabled(), true, "paiement : aucune liaison réelle, impossible de passer en réel");
+    await ligneReel.getByRole("button", { name: "Passer en réel" }).click();
+    await pr.getByRole("alertdialog").getByRole("button", { name: "Confirmer" }).click();
+    await pr.waitForFunction(() => document.querySelector('[data-reel-ligne="shop-intelligence-isolated"]')?.getAttribute("data-regime") === "reel");
+    assert.equal(await ligneReel.locator('[data-nature^="remote:real"], [data-nature^="main:real"], [data-nature^="center:real"]').count(), 3);
+    await pr.screenshot({ path: `${SORTIE}/30-mode-reel-arme-bureau.png`, fullPage: true });
+
+    await navr.getByRole("button", { name: "Connexions", exact: true }).click();
+    const art = pr.locator('article[data-ligne="shop-intelligence-isolated"]');
+    await art.waitFor();
+    assert.equal(await art.locator('[data-nature="reel"]').count(), 3, "les trois coupures sont étiquetées RÉELLES");
+    assert.equal(await art.locator('[data-fil="connecte"]').count(), 0, "aucun courant avant l'activation");
+    await art.getByRole("button", { name: "Activer la ligne" }).click();
+    await pr.getByRole("alertdialog").getByRole("button", { name: "Confirmer" }).click();
+    await pr.waitForFunction(() => document.querySelector('article[data-ligne="shop-intelligence-isolated"]')?.getAttribute("data-etat-ligne") === "connected", null, { timeout: 60000 });
+    assert.equal((await pool.query("SELECT etat FROM shop_link_cables WHERE canal = 'etat'")).rows[0]?.etat, "connecte", "le VRAI câble de shop_link du canal « état » est fermé");
+    assert.equal(interrupteursBoutique.get("shop-intelligence-isolated"), "connected", "la Boutique de référence a fermé son interrupteur local");
+    assert.ok((await art.locator('[data-fil="connecte"]').count()) >= 4, "le courant circule sur les fils des trois coupures confirmées");
+    assert.equal(await art.locator('[data-element="4"] [data-levier="ferme"]').count(), 1, "le levier du contact central est fermé");
+    await pr.screenshot({ path: `${SORTIE}/31-mode-reel-connecte-bureau.png`, fullPage: true });
+    // Un VRAI message signé de la Boutique traverse le câble fermé, puis plus rien ne passe une fois la ligne coupée.
+    const etatMsg = { version: 1, observeLe: new Date().toISOString(), moteurs: [{ id: "smart.system", etat: "ok", completude: null }], alertes: 0, compteurs: {} };
+    const envoyer = async () => {
+      const { entetesSignes } = await import("./boutique-emetteur-reference.mjs");
+      const r = await fetch(`${BASE}/api/shop-link/v1/etat`, { method: "POST", headers: entetesSignes({ methode: "POST", chemin: "/api/shop-link/v1/etat", corps: etatMsg, clePrivee: paire.privateKey }), body: JSON.stringify(etatMsg) });
+      return r.status;
+    };
+    assert.equal(await envoyer(), 200, "message signé accepté ligne connectée");
+    await art.getByRole("button", { name: "Couper la ligne" }).click();
+    await pr.waitForFunction(() => document.querySelector('article[data-ligne="shop-intelligence-isolated"]')?.getAttribute("data-etat-ligne") === "disconnected", null, { timeout: 60000 });
+    assert.equal((await pool.query("SELECT etat FROM shop_link_cables WHERE canal = 'etat'")).rows[0]?.etat, "coupe", "le câble réel est coupé");
+    assert.equal(interrupteursBoutique.get("shop-intelligence-isolated"), "disconnected", "la Boutique a ouvert son interrupteur local");
+    assert.equal(await envoyer(), 503, "ligne coupée : le même message est refusé");
+    assert.equal(await art.locator('[data-fil="connecte"]').count(), 0, "plus aucun courant");
+    await pr.screenshot({ path: `${SORTIE}/32-mode-reel-coupe-bureau.png`, fullPage: true });
+
+    // Désarmer : la clé est retirée, la ligne revient en simulation.
+    await navr.getByRole("button", { name: "Cybersécurité", exact: true }).click();
+    await pr.getByRole("button", { name: /Désarmer \(coupe d'abord\)/ }).click();
+    await pr.getByRole("alertdialog").getByRole("button", { name: "Confirmer" }).click();
+    await pr.getByText(/Mode réel désarmé/).waitFor();
+    await pr.waitForFunction(() => document.querySelector('[data-reel-ligne="shop-intelligence-isolated"]')?.getAttribute("data-regime") === "simulation");
+    assert.equal(await pr.getByTestId("reel-autorise").getAttribute("data-autorise"), "false");
+    assert.deepEqual(errsReel, [], "erreurs de page (mode réel)");
+    await cr.close();
+  } finally {
+    clearInterval(boutique);
+  }
+  await arreter();
+  journalServeur = "";
+  await demarrer();
+  await new Promise((r) => setTimeout(r, 3000));
 
   // 4. Téléphone et tablette : le plan se déplace et se zoome ; les commandes restent accessibles ; pas de défilement horizontal de la page.
   for (const [nom, viewport] of [["telephone", { width: 390, height: 844 }], ["tablette", { width: 820, height: 1180 }]]) {

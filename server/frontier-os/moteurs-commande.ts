@@ -8,6 +8,8 @@ import { dbFrontier } from "./base/connexion.js";
 import { cuts, gates, groups, lines } from "./base/schema.js";
 import { enregistrer, RefusMoteur } from "./bus.js";
 import { chargerCoupures, coupuresLite, ligneLite } from "./chaine.js";
+import { adaptateurDe } from "./liaisons-reelles.js";
+import { reelAutorise } from "./reel-etat.js";
 import { ligneAdmissible, ORDRE_ACTIVATION, ORDRE_DESACTIVATION } from "./regles.js";
 import { continuite } from "./transport.js";
 import type { CoteCoupure } from "./base/schema.js";
@@ -16,6 +18,8 @@ export interface ContenuCoupure {
   coupureId: number;
   voulu: "activate" | "deactivate";
   commandeId?: number;
+  /** Qui commande (pour tracer le câble réel) ; absent : le système. */
+  acteurId?: number | string | null;
 }
 
 const COTES: readonly CoteCoupure[] = ["remote", "center", "main"];
@@ -38,8 +42,25 @@ function brancherActionneur(cote: CoteCoupure): void {
     const but = c.voulu === "activate";
     // Contact bloqué (simulation) : l'actionneur croit avoir agi et le dit ; la sonde dira autre chose.
     if (ctx.defaut === "bloque") return { applique: true, continuite: await continuite(cut.id), note: "contact bloqué (panne simulée)" };
-    await dbFrontier().update(gates).set({ open: but, changedAt: new Date(), changedBy: c.commandeId ?? null }).where(eq(gates.cutId, cut.id));
-    return { applique: true, continuite: but };
+    const ecrirePorte = () => dbFrontier().update(gates).set({ open: but, changedAt: new Date(), changedBy: c.commandeId ?? null }).where(eq(gates.cutId, cut.id));
+    if (cut.mode !== "real") {
+      await ecrirePorte();
+      return { applique: true, continuite: but };
+    }
+    // Coupure RÉELLE : on n'ouvre jamais la porte avant que la liaison réelle ait dit oui ; on la FERME toujours avant d'agir sur la liaison.
+    if (but && !(await reelAutorise())) throw new RefusMoteur("MODE_REEL_NON_ACTIVE", "Le mode réel n'est pas permis (variable d'environnement et armement du PDG requis) : l'activation est refusée.");
+    const [ligne] = await dbFrontier().select().from(lines).where(eq(lines.id, cut.lineId)).limit(1);
+    const adaptateur = adaptateurDe(cut, ligne!);
+    if (but && !adaptateur.disponible) throw new RefusMoteur("LIAISON_ABSENTE", adaptateur.raison ?? "Aucune liaison réelle pour cette coupure.");
+    if (!but) await ecrirePorte();
+    let detailLiaison = "porte du centre";
+    if (adaptateur.liaison) {
+      const r = await adaptateur.liaison.appliquer(c.voulu, { commandeId: c.commandeId ?? null, acteurId: c.acteurId ?? null });
+      detailLiaison = r.detail;
+      if (!r.ok && but) throw new RefusMoteur("LIAISON_REELLE", r.detail);
+    }
+    if (but) await ecrirePorte();
+    return { applique: true, continuite: but, reel: true, note: detailLiaison };
   });
   enregistrer(code, "sante.verifier", async () => {
     await dbFrontier().select({ id: gates.cutId }).from(gates).limit(1);

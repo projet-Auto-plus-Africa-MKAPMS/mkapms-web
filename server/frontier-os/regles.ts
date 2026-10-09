@@ -4,7 +4,12 @@
  */
 import type { Avancement, CoteCoupure, EtatDemande, EtatEchange, EtatObserve, Mode } from "./base/schema.js";
 
-/** Le centre ne pilote QUE la simulation. Passer au réel exige un changement de code et l'audit final décidé par le PDG. */
+/**
+ * Mode par défaut de toute commande : la simulation. `ACTION_REELLE_ACTIVEE` est le réglage de CODE (faux) : une commande qui DEMANDE explicitement le mode réel
+ * est toujours refusée. Les liaisons réelles passent par un autre chemin, décidé coupure par coupure : la ligne est passée en réel par le PDG
+ * (`reel.ts`), ce qui exige à la fois la variable d'environnement FRONTIER_MODE_REEL=oui ET l'armement par le PDG avec sa phrase de confirmation.
+ * Sans les deux, une coupure « réelle » ne laisse rien passer (fermé par sécurité).
+ */
 export const MODE: Mode = "simulation";
 export const ACTION_REELLE_ACTIVEE = false;
 
@@ -135,7 +140,8 @@ export interface DecisionPassage {
  * les trois coupures. Une demande de désactivation refuse le passage à l'instant, avant même que la coupure soit confirmée ; une demande
  * d'activation ne l'ouvre qu'une fois la coupure confirmée par le moteur de vérification : un contact qui « approche » ne laisse rien passer.
  */
-export function decisionPassage(l: LigneLite, coupures: readonly CoupureLite[]): DecisionPassage {
+export function decisionPassage(l: LigneLite, coupures: readonly CoupureLite[], options: { reelAutorise?: boolean } = {}): DecisionPassage {
+  const reelAutorise = options.reelAutorise ?? ACTION_REELLE_ACTIVEE;
   if (l.kind !== "real") return { autorise: false, raison: "LIGNE_VIDE", detail: "Ligne de réserve : rien ne peut passer." };
   if (!l.enabled) return { autorise: false, raison: "LIGNE_DESACTIVEE", detail: "Ligne désactivée." };
   if (l.locked) return { autorise: false, raison: "LIGNE_VERROUILLEE", detail: "Ligne verrouillée." };
@@ -144,7 +150,7 @@ export function decisionPassage(l: LigneLite, coupures: readonly CoupureLite[]):
   if (cotes.size !== 3) return { autorise: false, raison: "COUPURES_INCOMPLETES", detail: "Les trois coupures de la ligne ne sont pas toutes enregistrées." };
   for (const side of ["remote", "center", "main"] as const) {
     const c = coupures.find((x) => x.side === side)!;
-    if (c.mode === "real" && !ACTION_REELLE_ACTIVEE) return { autorise: false, raison: "MODE_REEL_NON_ACTIVE", coupure: side, detail: "Le mode réel n'est pas activé." };
+    if (c.mode === "real" && !reelAutorise) return { autorise: false, raison: "MODE_REEL_NON_ACTIVE", coupure: side, detail: "Le mode réel n'est pas activé (variable d'environnement et armement du PDG requis) : fermé par sécurité." };
     if (c.requested !== "activate") return { autorise: false, raison: "COUPURE_NON_DEMANDEE", coupure: side, detail: c.requested === "deactivate" ? "Coupure demandée : rien ne passe." : "Jamais activée." };
     if (c.progress !== "confirmed" || c.observed !== "connected") return { autorise: false, raison: "COUPURE_NON_CONFIRMEE", coupure: side, detail: "Activation demandée mais non confirmée par la vérification." };
     if (!c.porteOuverte) return { autorise: false, raison: "CONTACT_OUVERT", coupure: side, detail: "Le contact est ouvert." };

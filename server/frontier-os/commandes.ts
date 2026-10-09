@@ -20,6 +20,8 @@ import { enregistrerMesure } from "./mesures.js";
 import { brancherMoteursDeCommande, planDeGroupe, planDeLigne, planGeneral, type PlanGeneral, type PlanGroupe, type PlanLigne } from "./moteurs-commande.js";
 import { brancherMoteursDeVerification } from "./moteurs-verification.js";
 import { ACTION_REELLE_ACTIVEE, MODE } from "./regles.js";
+import { ATTENTE_ACCUSE_MS } from "./liaisons-reelles.js";
+import { reelAutorise } from "./reel-etat.js";
 import { appliquerCoupure, regulariserEchangesEnVol } from "./transport.js";
 
 brancherMoteursDeCommande();
@@ -165,6 +167,10 @@ export async function commanderCoupure(coupureId: number, voulu: Voulu, o: Optio
   if (voulu === "activate" && o.confirme !== true) return refuserSansCommande(o, action, "cut", coupureId, "CONFIRMATION_REQUISE", "Activer un contact est une action critique : confirmation requise.", voulu);
   const binding = await paire("switch", cut.elementCode);
   if (!binding) return refuserSansCommande(o, action, "cut", coupureId, "AUCUNE_PAIRE", `Aucune paire de moteurs internes (commande, vérification) pour ${cut.elementCode}.`, voulu);
+  // Une coupure en mode RÉEL ne s'active que si l'environnement le permet ET si le PDG a armé. Une COUPURE, elle, passe toujours.
+  if (voulu === "activate" && cut.mode === "real" && !(await reelAutorise())) return refuserSansCommande(o, action, "cut", coupureId, "MODE_REEL_NON_ACTIVE", "Cette coupure est en mode réel mais le mode réel n'est pas permis (variable d'environnement FRONTIER_MODE_REEL et armement du PDG requis) : activation refusée, fermé par sécurité.", voulu);
+  // L'interrupteur distant attend l'accusé signé de la Boutique : le moteur de commande a besoin de plus de temps que le délai du bus interne.
+  if (cut.mode === "real" && cut.side === "remote") o = { ...o, delaiMs: Math.max(o.delaiMs ?? 0, ATTENTE_ACCUSE_MS() + 3_000) };
 
   const commandeId = await creerCommande("cut", "cut", String(coupureId), voulu, { ...o, mode }, binding.commande, binding.verification);
   const etapes: Etape[] = [];
@@ -204,11 +210,11 @@ export async function commanderCoupure(coupureId: number, voulu: Voulu, o: Optio
 
   // 3. Exécution (moteur de commande).
   await dbFrontier().update(cuts).set({ progress: "in_progress", updatedAt: new Date() }).where(eq(cuts.id, coupureId));
-  const exec = await parler(commandeId, { phase: "execute", role: "command", de: "center:pipeline", vers: binding.commande, type: "commande.appliquer", contenu: { coupureId, voulu, commandeId }, resume: (r) => (((r.contenu as { applique?: boolean }).applique ? "appliqué" : "non appliqué") + ((r.contenu as { note?: string }).note ? ` (${(r.contenu as { note?: string }).note})` : "")) }, { ...o, mode });
+  const exec = await parler(commandeId, { phase: "execute", role: "command", de: "center:pipeline", vers: binding.commande, type: "commande.appliquer", contenu: { coupureId, voulu, commandeId, acteurId: o.acteur.id ?? null }, resume: (r) => (((r.contenu as { applique?: boolean }).applique ? "appliqué" : "non appliqué") + ((r.contenu as { note?: string }).note ? ` (${(r.contenu as { note?: string }).note})` : "")) }, { ...o, mode });
   etapes.push(exec.etape);
 
   // 4. Vérification finale (moteur de vérification) — toujours, même si l'exécution a échoué : on ne devine pas l'état réel.
-  const sonde = await parler<{ passe: boolean }>(commandeId, { phase: "postcheck", role: "verification", de: "center:pipeline", vers: binding.verification, type: "verification.sonder", contenu: { coupureId }, resume: (r) => `continuité ${r.contenu?.passe ? "présente" : "absente"}` }, { ...o, mode });
+  const sonde = await parler<{ passe: boolean }>(commandeId, { phase: "postcheck", role: "verification", de: "center:pipeline", vers: binding.verification, type: "verification.sonder", contenu: { coupureId, voulu }, resume: (r) => `continuité ${r.contenu?.passe ? "présente" : "absente"}` }, { ...o, mode });
   etapes.push(sonde.etape);
 
   const attendu: EtatObserve = voulu === "activate" ? "connected" : "disconnected";
@@ -243,7 +249,7 @@ export async function commanderCoupure(coupureId: number, voulu: Voulu, o: Optio
   }
   // Activation en échec : on ne laisse jamais un contact ouvert derrière un échec (meilleur effort, sans écraser le constat).
   if (voulu === "activate") {
-    await envoyerBus({ de: "center:pipeline", vers: binding.commande, type: "commande.appliquer", contenu: { coupureId, voulu: "deactivate", commandeId } }, { delaiMs: o.delaiMs, mode }).catch(() => undefined);
+    await envoyerBus({ de: "center:pipeline", vers: binding.commande, type: "commande.appliquer", contenu: { coupureId, voulu: "deactivate", commandeId, acteurId: o.acteur.id ?? null } }, { delaiMs: o.delaiMs, mode }).catch(() => undefined);
   }
   await dbFrontier().update(cuts).set({ progress: "failed", observed: observe ?? "unknown", error: tronquer(detail, 300), lastCheckedAt: observe ? new Date() : null, lastProof: `commande:${commandeId}`, updatedAt: new Date() }).where(eq(cuts.id, coupureId));
   const incidentId = incidentSecours ?? await ouvrirIncident({ severite, kind: kindIncident, resume: voulu === "deactivate" ? `Coupure non confirmée sur la ligne ${cut.lineId} (${cut.side}) : ${detail}` : `Activation non confirmée sur la ligne ${cut.lineId} (${cut.side}) : ${detail}`, ligneId: cut.lineId, coupureId, moteur: code === "ECHEC_VERIFICATION" ? binding.verification : binding.commande, commandeId, detail: { attendu, observe, code } });
