@@ -93,7 +93,9 @@ test("paires : chaque cible commandable a deux moteurs internes distincts, de r�
 test("inventaire importé avec versions ; un moteur « déclaré seulement » reste distingué d'un moteur qui fonctionne", async () => {
   const db = dbFrontier();
   const boutique = await db.select().from(engines).where(and(eq(engines.platformCode, "shop"), eq(engines.kind, "real")));
-  assert.equal(boutique.length, 83);
+  const stock = boutique.filter((e) => (e.details as { domaine?: string }).domaine === "stock propre");
+  assert.equal(boutique.length - stock.length, 83, "le registre de la Boutique compte 83 moteurs, la famille « stock propre » est comptée à part");
+  assert.deepEqual(stock.map((e) => e.code), ["shop:stock.mka_own.inventory"]);
   assert.ok(boutique.some((e) => e.declaredOnly) && boutique.some((e) => !e.declaredOnly));
   assert.ok(boutique.every((e) => e.inventoryState !== "connecte"));
   const principal = await db.select().from(engines).where(and(eq(engines.platformCode, "main"), eq(engines.kind, "real")));

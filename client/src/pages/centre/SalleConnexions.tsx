@@ -6,11 +6,13 @@
  * Trois coupures indépendantes (côté distant, centre, côté principal). Rien n'est « connecté » sur la foi d'une animation ni d'un ordre :
  * un contact qui approche est dit « en cours », et il n'est fermé qu'une fois la coupure CONFIRMÉE par la sonde du moteur de vérification.
  */
-import { useState } from "react";
+import { useState, type CSSProperties } from "react";
 import { trpc } from "../../lib/trpc";
 import { Carte, LIBELLE_AVANCEMENT, LIBELLE_COTE, LIBELLE_DEMANDE, LIBELLE_ETAT_LIGNE, LIBELLE_OBSERVE, Pastille, Toile, Vide, bouton, boutonDanger, heure, useConfirmation, type GroupeVue, type LigneReelle, type LigneVue } from "./commun";
 
 const LARGEUR_PLAN = 1010;
+/** Les lignes « À venir » restent visibles (désactivées) : cinq par groupe d'emblée, les autres derrière un bouton. */
+const RESERVES_VISIBLES = 5;
 type Cote = "remote" | "center" | "main";
 type Coupure = LigneReelle["coupures"][number];
 type Visuel = { etat: "connecte" | "coupe" | "approche" | "echec" | "inconnu"; libelle: string };
@@ -27,16 +29,57 @@ export function visuelCoupure(c: Coupure | undefined): Visuel {
 }
 const COULEUR_FIL = { connecte: "#22d3ee", coupe: "#334155", approche: "#fbbf24", echec: "#ef4444", inconnu: "#334155" } as const;
 
+/**
+ * Animations du plan. Elles ne sont JAMAIS une preuve : le courant ne circule sur un fil que si la coupure est CONFIRMÉE connectée, le levier d'un
+ * contact ne se ferme que sur le résultat observé, et « en cours » balance sans jamais se fermer. Désactivées si la personne demande moins de mouvement.
+ */
+const STYLE_ANIMATIONS = `
+@keyframes centre-courant { from { background-position: 0 0 } to { background-position: 12px 0 } }
+@keyframes centre-bascule { 0%,100% { transform: rotate(-34deg) } 50% { transform: rotate(-6deg) } }
+@keyframes centre-halo { 0%,100% { box-shadow: 0 0 8px #ef444455 } 50% { box-shadow: 0 0 24px #ef4444 } }
+@keyframes centre-alerte { 0%,100% { opacity: 1 } 50% { opacity: .3 } }
+@media (prefers-reduced-motion: reduce) { .centre-anim { animation: none !important } }
+`;
+
+function styleFil(v: Visuel): CSSProperties {
+  const base: CSSProperties = { height: 4, width: "100%", borderRadius: 2 };
+  if (v.etat === "connecte") return { ...base, backgroundImage: "repeating-linear-gradient(90deg,#67e8f9 0 7px,#0e7490 7px 12px)", backgroundSize: "12px 100%", boxShadow: "0 0 8px #22d3ee", animation: "centre-courant 0.7s linear infinite" };
+  if (v.etat === "approche") return { ...base, backgroundImage: "repeating-linear-gradient(90deg,#fbbf24 0 5px,transparent 5px 12px)", backgroundSize: "12px 100%", animation: "centre-courant 0.35s linear infinite" };
+  if (v.etat === "echec") return { ...base, background: "#ef4444", animation: "centre-alerte 1s ease-in-out infinite" };
+  return { ...base, background: "#334155" };
+}
+
+/** Un fil entre deux éléments : lumineux et animé (courant) seulement si la coupure est confirmée connectée. */
 function Fil({ v, largeur }: { v: Visuel; largeur: number }) {
-  const anime = v.etat === "approche";
   return (
-    <div className="flex items-center" style={{ width: largeur }} aria-hidden="true">
-      <div
-        className={anime ? "animate-pulse" : ""}
-        style={{ height: 3, width: "100%", borderRadius: 2, background: v.etat === "approche" ? "repeating-linear-gradient(90deg,#fbbf24 0 6px,transparent 6px 10px)" : COULEUR_FIL[v.etat], boxShadow: v.etat === "connecte" ? "0 0 8px #22d3ee" : "none" }}
-      />
+    <div className="flex items-center" style={{ width: largeur }} aria-hidden="true" data-fil={v.etat}>
+      <div className="centre-anim" style={styleFil(v)} />
     </div>
   );
+}
+
+/** Levier d'un contact : fermé (à plat) seulement quand la coupure est confirmée ; en cours il balance sans se fermer ; ouvert il est relevé. */
+function Bascule({ etat, largeur }: { etat: Visuel["etat"]; largeur: number }) {
+  const ferme = etat === "connecte";
+  const angle = ferme ? 0 : etat === "echec" ? -14 : etat === "approche" ? -20 : -34;
+  const couleur = ferme ? "#fecaca" : etat === "echec" ? "#fca5a5" : etat === "approche" ? "#fde68a" : "#94a3b8";
+  const borne = ferme ? "#ef4444" : etat === "approche" ? "#fbbf24" : "#475569";
+  return (
+    <svg width={largeur} height={largeur * 0.55} viewBox="0 0 100 55" aria-hidden="true" data-levier={ferme ? "ferme" : etat === "approche" ? "balance" : "ouvert"}>
+      <circle cx="12" cy="40" r="7" fill={borne} />
+      <circle cx="88" cy="40" r="7" fill={borne} />
+      <g className={etat === "approche" ? "centre-anim" : ""} style={{ transformOrigin: "12px 40px", transform: `rotate(${angle}deg)`, transition: "transform .6s ease", animation: etat === "approche" ? "centre-bascule 1.1s ease-in-out infinite" : undefined }}>
+        <line x1="12" y1="40" x2="86" y2="40" stroke={couleur} strokeWidth="7" strokeLinecap="round" />
+      </g>
+    </svg>
+  );
+}
+
+/** Ce que la coupure commande VRAIMENT : une liaison réelle (étiquette rouge) ou une liaison JOUÉE par le centre (simulée). Jamais l'un pour l'autre. */
+function NatureCoupure({ c }: { c: Coupure | undefined }) {
+  if (!c) return null;
+  const reel = c.mode === "real";
+  return <span data-nature={reel ? "reel" : "simule"} className={`rounded px-1 text-[8px] font-black uppercase leading-tight ${reel ? "bg-red-900 text-red-100" : "bg-slate-800 text-slate-400"}`} title={reel ? "Cette coupure commande une liaison réelle et son état est relu sur cette liaison." : "Cette coupure est SIMULÉE : le centre joue la liaison, rien de réel n'est commandé."}>{reel ? "réel" : "simulé"}</span>;
 }
 
 type Element = LigneReelle["chaine"][number];
@@ -78,12 +121,13 @@ function Interrupteur({ el, c, intermediaire, onBasculer, onOuvrir }: { el: Elem
         <span className={`block h-5 w-5 rounded-full transition-all ${v.etat === "approche" ? "animate-pulse" : ""}`} style={{ marginLeft: on || v.etat === "approche" ? "1.25rem" : 0, background: v.etat === "echec" ? "#ef4444" : v.etat === "approche" ? "#fbbf24" : on ? "#34d399" : "#64748b" }} />
       </button>
       <button type="button" onClick={() => el.code && onOuvrir(el.code)} className="mt-0.5 text-[9px] leading-tight text-slate-400 hover:text-cyan-200" title="Ouvrir la fiche de l'interrupteur">{c ? (c.side === "remote" ? "distant" : "principal") : "—"}</button>
+      <NatureCoupure c={c} />
       <span className="text-center text-[9px] leading-tight" style={{ color: COULEUR_FIL[v.etat] }}>{v.libelle}</span>
     </div>
   );
 }
 
-/** Le contact rouge central de la ligne. Fermé (lumineux) seulement quand la coupure est confirmée ; « approche » pendant l'exécution. */
+/** Le contact rouge central de la ligne. Fermé (levier à plat, halo) seulement quand la coupure est confirmée ; le levier balance pendant l'exécution. */
 function ContactRouge({ c, intermediaire, onBasculer, onOuvrir, code }: { c: Coupure | undefined; intermediaire: string; onBasculer: (c: Coupure) => void; onOuvrir: (code: string) => void; code: string | null }) {
   const v = visuelCoupure(c);
   const ferme = v.etat === "connecte";
@@ -95,26 +139,39 @@ function ContactRouge({ c, intermediaire, onBasculer, onOuvrir, code }: { c: Cou
         disabled={!c}
         aria-label={`Contact central : ${v.libelle}`}
         aria-pressed={ferme}
-        className={`flex h-[58px] w-[58px] flex-col items-center justify-center rounded-full border-4 text-center ${v.etat === "approche" ? "animate-pulse" : ""}`}
-        style={{ borderColor: v.etat === "echec" ? "#fca5a5" : "#ef4444", background: ferme ? "#991b1b" : v.etat === "approche" ? "#78350f" : "#1f0a0a", boxShadow: ferme ? "0 0 20px #ef4444" : v.etat === "approche" ? "0 0 12px #fbbf24" : "none" }}
+        className={`centre-anim flex h-[50px] w-[84px] flex-col items-center justify-center rounded-xl border-4 text-center ${v.etat === "echec" ? "" : ""}`}
+        style={{ borderColor: v.etat === "echec" ? "#fca5a5" : "#ef4444", background: ferme ? "#7f1d1d" : v.etat === "approche" ? "#451a03" : "#1f0a0a", animation: ferme ? "centre-halo 2.2s ease-in-out infinite" : v.etat === "echec" ? "centre-alerte 1s ease-in-out infinite" : undefined, boxShadow: v.etat === "approche" ? "0 0 12px #fbbf24" : undefined }}
         title={c ? `Contact central — demandé : ${LIBELLE_DEMANDE[c.requested]} · observé : ${LIBELLE_OBSERVE[c.observed]} · ${LIBELLE_AVANCEMENT[c.progress]}${c.lastCheckedAt ? ` · vérifié à ${heure(c.lastCheckedAt)}` : ""}` : "absent"}
       >
-        <span className="text-[8px] font-black uppercase leading-tight text-red-100">{ferme ? "fermé" : v.etat === "approche" ? "approche" : v.etat === "echec" ? "alerte" : "ouvert"}</span>
+        <Bascule etat={v.etat} largeur={62} />
+        <span className="-mt-0.5 text-[8px] font-black uppercase leading-none text-red-100">{ferme ? "fermé" : v.etat === "approche" ? "en cours" : v.etat === "echec" ? "alerte" : "ouvert"}</span>
       </button>
-      <button type="button" onClick={() => code && onOuvrir(code)} className="text-[9px] text-slate-400 hover:text-cyan-200">contact central</button>
+      <button type="button" onClick={() => code && onOuvrir(code)} className="mt-0.5 text-[9px] text-slate-400 hover:text-cyan-200">contact central</button>
+      <NatureCoupure c={c} />
       <span className="text-center text-[9px] leading-tight" style={{ color: v.etat === "inconnu" || v.etat === "coupe" ? "#94a3b8" : COULEUR_FIL[v.etat] }}>{v.libelle}</span>
     </div>
   );
 }
 
+/** Ligne de réserve « À venir » : visible, vide et DÉSACTIVÉE — ni interrupteur actif, ni contact actif, aucun moteur, jamais comptée parmi les installés. */
 function Reserve({ l }: { l: LigneVue }) {
+  const gris = "#334155";
   return (
-    <div className="flex items-center gap-2 rounded-lg border border-dashed border-slate-700 px-2 py-1 opacity-70" data-reserve="true" data-groupe={l.groupe} aria-label="Ligne de réserve À venir : vide et désactivée">
-      <span className="w-14 text-[10px] font-black uppercase text-slate-500">À venir</span>
+    <div className="flex items-center gap-1 rounded-lg border border-dashed border-slate-700 bg-[#0a0f1a] px-2 py-1 opacity-75" data-reserve="true" data-groupe={l.groupe} data-position={l.position} aria-disabled="true" aria-label="Ligne de réserve À venir : vide et désactivée, aucune commande possible">
+      <span className="w-12 shrink-0 text-[9px] font-black uppercase leading-tight text-slate-500">À venir</span>
       {Array.from({ length: 7 }, (_, i) => (
-        <span key={i} className="flex items-center gap-1"><span className="inline-block h-6 w-[110px] rounded border border-dashed border-slate-700" />{i < 6 && <span className="h-[2px] w-4 bg-slate-800" />}</span>
+        <span key={i} className="flex items-center">
+          {i === 1 || i === 5 ? (
+            <span className="flex h-6 w-[64px] items-center justify-center" aria-hidden="true"><span className="relative block h-3.5 w-8 rounded-full border border-slate-700 bg-[#0f172a]"><span className="absolute left-0.5 top-0.5 block h-2 w-2 rounded-full bg-slate-600" /></span></span>
+          ) : i === 3 ? (
+            <span className="flex h-6 w-[84px] items-center justify-center" aria-hidden="true"><span className="flex h-6 w-14 items-center justify-center rounded-lg border-2 border-red-900/60 bg-[#12090a]"><span className="text-[8px] font-black uppercase text-red-900">ouvert</span></span></span>
+          ) : (
+            <span className="inline-block h-6 w-[96px] rounded border border-dashed border-slate-700" aria-hidden="true" />
+          )}
+          {i < 6 && <span className="h-[3px] w-3 rounded" style={{ background: gris }} aria-hidden="true" />}
+        </span>
       ))}
-      <span className="ml-auto text-[10px] text-slate-500">vide · désactivée · non installée</span>
+      <span className="ml-auto shrink-0 text-[9px] leading-tight text-slate-500">vide · désactivée<br />non installée</span>
     </div>
   );
 }
@@ -187,6 +244,7 @@ export default function SalleConnexions({ onOuvrirMoteur, onMessage }: { onOuvri
       {lignes.isLoading && <p className="text-sm text-slate-300">Lecture des lignes…</p>}
       {lignes.error && <p className="text-sm text-red-300">{lignes.error.message}</p>}
 
+      <style>{STYLE_ANIMATIONS}</style>
       <Toile largeur={LARGEUR_PLAN}>
         <div className="space-y-6 p-2" data-plan="connexions">
           <div className="grid items-end text-center" style={{ gridTemplateColumns: "1fr 120px 1fr" }}>
@@ -211,9 +269,11 @@ export default function SalleConnexions({ onOuvrirMoteur, onMessage }: { onOuvri
                       {g.plateforme && g.plateforme.identityStatus === "to_verify" ? " · identité À VÉRIFIER" : ""}
                     </p>
                   </div>
-                  <button type="button" className={`${bouton} ml-auto`} onClick={() => setReservesOuvertes((s) => ({ ...s, [g.code]: !ouvert }))} aria-expanded={ouvert}>
-                    {ouvert ? "Replier" : "Déplier"} les {g.reserves} lignes « À venir »
-                  </button>
+                  {reserves.length > RESERVES_VISIBLES && (
+                    <button type="button" className={`${bouton} ml-auto`} onClick={() => setReservesOuvertes((s) => ({ ...s, [g.code]: !ouvert }))} aria-expanded={ouvert}>
+                      {ouvert ? `Replier : n'afficher que ${RESERVES_VISIBLES} lignes « À venir »` : `Voir les ${reserves.length - RESERVES_VISIBLES} autres lignes « À venir »`}
+                    </button>
+                  )}
                 </div>
                 {reelles.length === 0 && <Vide>Aucune ligne réelle dans ce groupe : aucun moteur n'est encore inventorié ni installé. Les lignes « À venir » attendent le premier.</Vide>}
                 <div className="space-y-3">
@@ -231,6 +291,10 @@ export default function SalleConnexions({ onOuvrirMoteur, onMessage }: { onOuvri
                           <h4 className="text-xs font-black text-white">{l.label}</h4>
                           <span className={`rounded px-1.5 text-[10px] font-bold ${l.validity === "valid" ? "bg-emerald-950 text-emerald-300" : "bg-red-950 text-red-300"}`}>{l.validity === "valid" ? "ligne validée" : "non valide"}</span>
                           <span className="rounded bg-slate-800 px-1.5 text-[10px] text-slate-200" data-testid="etat-ligne">{LIBELLE_ETAT_LIGNE[l.etat]}</span>
+                          {(() => {
+                            const reels = l.coupures.filter((x) => x.mode === "real").length;
+                            return <span className={`rounded px-1.5 text-[10px] font-bold ${reels === 0 ? "bg-slate-800 text-slate-300" : "bg-red-950 text-red-200"}`} data-testid="regime-ligne" data-regime={reels === 0 ? "simulation" : reels === l.coupures.length ? "reel" : "mixte"}>{reels === 0 ? "simulation" : reels === l.coupures.length ? "RÉEL" : "MIXTE"}</span>;
+                          })()}
                           {l.locked && <span className="rounded bg-amber-950 px-1.5 text-[10px] font-bold text-amber-300">verrouillée</span>}
                           <span className={`rounded px-1.5 text-[10px] ${l.passage.autorise ? "bg-cyan-950 text-cyan-200" : "bg-slate-800 text-slate-300"}`} title={"detail" in l.passage ? String((l.passage as { detail?: string }).detail ?? "") : ""}>
                             {l.passage.autorise ? "les échanges PASSENT" : `rien ne passe${"coupure" in l.passage && l.passage.coupure ? ` (${LIBELLE_COTE[l.passage.coupure]})` : ""}`}
@@ -272,9 +336,9 @@ export default function SalleConnexions({ onOuvrirMoteur, onMessage }: { onOuvri
                     );
                   })}
                 </div>
-                {ouvert && (
+                {reserves.length > 0 && (
                   <div className="mt-3 space-y-1" data-testid={`reserves-${g.code}`}>
-                    {reserves.map((r) => <Reserve key={r.id} l={r} />)}
+                    {(ouvert ? reserves : reserves.slice(0, RESERVES_VISIBLES)).map((r) => <Reserve key={r.id} l={r} />)}
                   </div>
                 )}
               </div>
@@ -318,11 +382,19 @@ function PanneauResultat({ titre, r, onFermer }: { titre: string; r: ResultatAff
 
 function GrandContact({ g, attente, onActiver, onCouper }: { g: GroupeVue; attente: boolean; onActiver: () => void; onCouper: () => void }) {
   const ferme = g.contact === "connected";
+  const partiel = g.contact === "partial";
   const libelle = g.contact === "connected" ? "contacts centraux fermés" : g.contact === "disconnected" ? "contacts centraux ouverts" : g.contact === "partial" ? "PARTIEL" : "jamais commandé";
+  const etat: Visuel["etat"] = ferme ? "connecte" : partiel ? "approche" : "coupe";
   return (
     <div className="flex items-center gap-2" data-grand-contact={g.code} data-contact={g.contact}>
-      <div className="flex h-14 w-14 items-center justify-center rounded-full border-4 border-red-500 text-center" style={{ background: ferme ? "#991b1b" : "#1f0a0a", boxShadow: ferme ? "0 0 22px #ef4444" : "none" }} title={`Grand contact rouge du groupe « ${g.name} » : ${libelle}`}>
-        <span className="text-[8px] font-black uppercase leading-tight text-red-100">grand<br />contact</span>
+      <div
+        className="centre-anim flex h-16 w-[104px] flex-col items-center justify-center rounded-2xl border-4 border-red-500 text-center"
+        style={{ background: ferme ? "#7f1d1d" : "#1f0a0a", animation: ferme ? "centre-halo 2.2s ease-in-out infinite" : undefined, boxShadow: partiel ? "0 0 12px #fbbf24" : undefined }}
+        title={`Grand contact rouge du groupe « ${g.name} » : ${libelle}`}
+        data-testid={`grand-contact-${g.code}`}
+      >
+        <Bascule etat={etat} largeur={74} />
+        <span className="-mt-0.5 text-[8px] font-black uppercase leading-none text-red-100">grand contact</span>
       </div>
       <div className="flex flex-col gap-1">
         <button type="button" disabled={attente || g.valides === 0} className={bouton} onClick={onActiver}>Fermer les contacts</button>

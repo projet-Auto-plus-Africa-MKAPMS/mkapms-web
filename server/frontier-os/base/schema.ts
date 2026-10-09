@@ -485,3 +485,39 @@ export type Incident = typeof incidents.$inferSelect;
 export type Repair = typeof repairs.$inferSelect;
 export type Group = typeof groups.$inferSelect;
 export type Platform = typeof platforms.$inferSelect;
+
+// ───────────────────────── Liaisons réelles (migration 0003) ─────────────────────────
+export type StatutOrdreDistant = "pending" | "delivered" | "acked" | "expired" | "cancelled";
+
+export const remoteOrders = frontier.table(
+  "remote_orders",
+  {
+    id: bigserial("id", { mode: "number" }).primaryKey(),
+    lineId: integer("line_id").notNull(),
+    cutId: integer("cut_id").notNull(),
+    wanted: text("wanted").$type<"activate" | "deactivate">().notNull(),
+    commandId: bigint("command_id", { mode: "number" }),
+    status: text("status").$type<StatutOrdreDistant>().notNull().default("pending"),
+    createdAt: t("created_at").notNull().defaultNow(),
+    expiresAt: t("expires_at").notNull(),
+    deliveredAt: t("delivered_at"),
+    ackedAt: t("acked_at"),
+    ackState: text("ack_state").$type<"connected" | "disconnected">(),
+    ackObservedAt: t("ack_observed_at"),
+    ackKeyId: integer("ack_key_id"),
+    ownerKind: text("owner_kind").$type<ProprietaireKind>().notNull().default("platform"),
+    ownerCode: text("owner_code").notNull().default("shop"),
+  },
+  (x) => [index("remote_orders_open_idx").on(x.lineId, x.status, x.createdAt)],
+);
+
+export const remoteReports = frontier.table("remote_reports", {
+  lineId: integer("line_id").primaryKey(),
+  state: text("state").$type<"connected" | "disconnected">().notNull(),
+  observedAt: t("observed_at").notNull(),
+  receivedAt: t("received_at").notNull().defaultNow(),
+  keyId: integer("key_id"),
+  orderId: bigint("order_id", { mode: "number" }),
+  ownerKind: text("owner_kind").$type<ProprietaireKind>().notNull().default("platform"),
+  ownerCode: text("owner_code").notNull().default("shop"),
+});

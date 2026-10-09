@@ -5,6 +5,7 @@
  */
 import { useState } from "react";
 import { trpc } from "../../lib/trpc";
+import { CarteModeReel } from "./ModeReel";
 import { Aiguille, Carte, ETAT_INVENTAIRE, Pastille, Vide, bouton, boutonDanger, date, heure, useConfirmation } from "./commun";
 
 type Props = { onMessage: (m: string) => void; onOuvrirMoteur: (code: string) => void };
@@ -34,7 +35,7 @@ export function SalleAccueil({ onMessage }: Pick<Props, "onMessage">) {
       <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
         <Carte titre="Base indépendante du centre">
           <p className="text-xs text-slate-200">Schéma <b>{d.base.schema}</b> · migrateur et journal propres · {d.base.migrationsConnues} migration(s) appliquée(s).</p>
-          <p className={`mt-1 text-xs font-bold ${d.base.separee ? "text-emerald-300" : "text-amber-200"}`}>{d.base.separee ? "Base physiquement séparée de celle de la plateforme." : "Séparée en droit (schéma, pool, migrateur, journal propres), pas encore en matériel : elle partage le serveur Postgres de la plateforme. Une variable FRONTIER_DATABASE_URL la déplacera vers sa propre base."}</p>
+          <p className={`mt-1 text-xs font-bold ${d.base.separee ? "text-emerald-300" : "text-amber-200"}`} data-testid="separation-resume" data-niveau={d.base.separation.niveau}>{d.base.separation.libelle}. <span className="font-normal">{d.base.separation.detail}</span></p>
         </Carte>
         <Carte titre="Lignes">
           <p className="text-xs text-slate-200"><b>{d.lignes.reelles}</b> réelles ({d.lignes.valides} validées) · <b>{d.lignes.reserves}</b> réserves « À venir ».</p>
@@ -122,6 +123,31 @@ export function SallePlateforme({ code, titre, onOuvrirMoteur }: { code: string;
         </Carte>
       )}
 
+      {d.stock && (
+        <Carte titre="Moteur de stock propre de la Boutique (famille séparée du registre)">
+          <p className="text-xs text-slate-200" data-testid="stock-propre-resume">
+            Compte « {d.stock.comptePropre.nom} » · canal {d.stock.comptePropre.canal} · {d.stock.modeles.length} modèles de comptes et {d.stock.canaux.length} canaux préparés ·{" "}
+            <b className={d.stock.desactiveParLaBase ? "text-amber-200" : "text-red-300"}>{d.stock.desactiveParLaBase ? "désactivé par la base elle-même" : "désactivation non retrouvée dans la migration"}</b>. Aucune quantité réelle n'est connectée.
+          </p>
+          <div className="mt-2 grid gap-2 md:grid-cols-2">
+            {d.stock.moteurs.map((m) => (
+              <button key={m.code} type="button" onClick={() => onOuvrirMoteur(m.code)} className="rounded-lg border border-slate-700 bg-[#0b1220] p-2 text-left hover:bg-[#13203a]" data-moteur-stock={m.code}>
+                <p className="text-xs font-black text-white">{m.name}</p>
+                <Pastille etat={m.etat} />
+                {m.manques.length > 0 && <p className="mt-1 text-[11px] text-amber-200">{m.manques[0]}</p>}
+                {m.doublons.length > 0 && <p className="text-[11px] text-slate-400">Recouvrement signalé, rien de fusionné : {m.doublons[0]}</p>}
+              </button>
+            ))}
+          </div>
+          <details className="mt-1 text-[11px] text-slate-300"><summary className="cursor-pointer">Contrôles de non-duplication ({d.stock.controlesDoublons.length}) · modèles et canaux préparés</summary>
+            <ul className="list-disc pl-4">{d.stock.controlesDoublons.map((c) => <li key={c}>{c}</li>)}</ul>
+            <p className="mt-1">Modèles : {d.stock.modeles.map((m) => m.libelle).join(" · ")}.</p>
+            <p>Canaux : {d.stock.canaux.map((c) => c.libelle + (c.apiValidee === false ? " (API non validée)" : "")).join(" · ")}.</p>
+            <p className="text-slate-400">Relevé dans {d.stock.migration} de la Boutique.</p>
+          </details>
+        </Carte>
+      )}
+
       <Carte titre="Lignes de cette plateforme vers la plateforme principale">
         {d.lignes.filter((l) => l.kind === "real").length === 0 ? <Vide>Aucune ligne réelle.</Vide> : (
           <ul className="text-xs text-slate-200">{d.lignes.filter((l) => l.kind === "real").map((l) => <li key={l.id}>{l.label} — {l.kind === "real" && l.validity === "valid" ? "validée" : "non valide"} — état {l.kind === "real" ? l.etat : ""}</li>)}</ul>
@@ -186,10 +212,32 @@ export function SalleSecurite({ onMessage, onOuvrirMoteur }: Props) {
         </div>
       </Carte>
 
-      <Carte titre="Voies existantes entre la plateforme et la Boutique">
-        <div className="overflow-x-auto"><table className="w-full text-left text-xs"><thead className="text-slate-400"><tr><th>Voie</th><th>Code</th><th>Gouvernée par le centre</th></tr></thead><tbody>
-          {d.voies.map((v) => <tr key={v.voie} className="align-top border-t border-slate-800" data-gouvernee={v.gouvernee}><td className="py-1 text-slate-100">{v.voie}</td><td className="text-slate-400">{v.fichier}</td><td className={v.gouvernee ? "text-emerald-300" : "text-amber-300"}>{v.gouvernee ? "oui" : "NON"} — <span className="text-slate-300">{v.note}</span></td></tr>)}
+      <CarteModeReel onMessage={onMessage} />
+
+      <Carte titre="Séparation physique de la base du centre (niveau mesuré)">
+        <p className={`text-sm font-black ${d.separation.separeeMateriellement ? "text-emerald-300" : "text-amber-200"}`} data-testid="separation-niveau" data-niveau={d.separation.niveau}>{d.separation.libelle}</p>
+        <p className="mt-1 text-xs text-slate-200">{d.separation.detail}</p>
+        <p className="mt-1 text-[11px] text-slate-400">
+          Mesure : base du centre « {d.separation.centre?.base ?? "—"} » · base de la plateforme « {d.separation.plateforme?.base ?? "non mesurée"} » · même serveur : {d.separation.memeServeur === null ? "non établi" : d.separation.memeServeur ? "oui" : "non"} · variable FRONTIER_DATABASE_URL : {d.separation.variableFournie ? "posée" : "absente"}. Aucune adresse ni aucun identifiant n'est lu ou affiché.
+        </p>
+        <p className="mt-1 text-xs text-slate-200" data-testid="derniere-sauvegarde">
+          Dernière sauvegarde : {d.separation.derniereSauvegarde ? `${date(d.separation.derniereSauvegarde.le)} — ${d.separation.derniereSauvegarde.tables} tables, ${d.separation.derniereSauvegarde.lignes} lignes, empreinte ${d.separation.derniereSauvegarde.empreinte}…` : "aucune consignée (la sauvegarde se fait par le script ci-dessous ; ce centre n'en lance aucune tout seul)"}.
+        </p>
+        <details className="mt-1 text-[11px] text-slate-300"><summary className="cursor-pointer">Marche à suivre pour passer à un serveur distinct (6 étapes) et outils</summary>
+          <ol className="list-decimal pl-5">{d.separation.etapes.map((e) => <li key={e}>{e}</li>)}</ol>
+          <ul className="mt-1 list-disc pl-5 font-mono">{d.separation.outils.map((o) => <li key={o}>{o}</li>)}</ul>
+          <p className="mt-1 text-slate-400">La restauration n'écrit que dans une base vide et ne valide qu&apos;après avoir relu, table par table, la même empreinte que la sauvegarde. Elle ne rebranche aucune connexion.</p>
+        </details>
+      </Carte>
+
+      <Carte titre="Voies de DONNÉES entre la plateforme et la Boutique (échanges)">
+        <div className="overflow-x-auto"><table className="w-full text-left text-xs"><thead className="text-slate-400"><tr><th>Voie</th><th>Code</th><th>Consultée par le portier du centre</th></tr></thead><tbody>
+          {d.voies.filter((v) => v.type === "echange").map((v) => <tr key={v.voie} className="align-top border-t border-slate-800" data-gouvernee={v.gouvernee} data-type="echange"><td className="py-1 text-slate-100">{v.voie}</td><td className="text-slate-400">{v.fichier}</td><td className={v.gouvernee ? "text-emerald-300" : "text-amber-300"}>{v.gouvernee ? "oui (si la gouvernance est armée)" : "NON"} — <span className="text-slate-300">{v.note}</span></td></tr>)}
         </tbody></table></div>
+      </Carte>
+
+      <Carte titre="Navigation (pas un échange de données)">
+        <ul className="text-xs text-slate-200">{d.voies.filter((v) => v.type === "navigation").map((v) => <li key={v.voie} data-type="navigation" data-gouvernee={v.gouvernee}><b>{v.voie}</b> — <span className="text-slate-300">{v.note}</span></li>)}</ul>
       </Carte>
 
       <Carte titre="Moteurs internes : fonction, entrées, sorties, santé, arrêt">

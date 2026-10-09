@@ -8890,7 +8890,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "routeurs": [
       "frontierOs"
     ],
-    "fichiersServeur": 26,
+    "fichiersServeur": 31,
     "dependancesDeclarees": [
       "core",
       "identity",
@@ -8919,7 +8919,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     ],
     "preuvesDependances": {
       "core": [
-        "frontier-os/index.ts importe trpc.ts"
+        "frontier-os/index.ts importe trpc.ts",
+        "frontier-os/vues.ts charge db.ts"
       ],
       "document": [
         "frontier-os/inventaire/plateforme.generated.ts produit un document via Document OS"
@@ -8939,7 +8940,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       ],
       "shop_link": [
         "frontier-os/gouvernance.ts importe shop-link/portier.ts",
-        "frontier-os/shop-inventory.ts importe shop-link/contrats.ts"
+        "frontier-os/liaisons-reelles.ts importe shop-link/contrats.ts",
+        "frontier-os/liaisons-reelles.ts importe shop-link/commutation.ts"
       ]
     },
     "dependants": [],
@@ -8971,6 +8973,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "ajouterGroupe",
       "annuler",
       "appliquer",
+      "armerReel",
       "atelier",
       "audit",
       "base",
@@ -8979,6 +8982,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "commandes",
       "controlCenterFeed",
       "coupure",
+      "desarmerReel",
       "deverrouiller",
       "diagnostic",
       "echangeEssai",
@@ -8999,12 +9003,15 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "mesurer",
       "mesures",
       "meta",
+      "modeLigne",
       "moteur",
       "moteurArreter",
       "moteurDemarrer",
       "moteurs",
       "proposer",
       "protocole",
+      "reconcilier",
+      "reel",
       "rejouerEchange",
       "resultatExterne",
       "salleBoutique",
@@ -11025,6 +11032,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "estimate-gateway/gateway.ts importe import-risk/service.ts"
       ],
       "shop_link": [
+        "intelligences/api-v1.ts importe shop-link/portier.ts",
         "intelligences/boutique.ts importe shop-link/portier.ts"
       ],
       "smart": [
@@ -11351,7 +11359,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       },
       {
         "genre": "dependance_non_declaree",
-        "detail": "shop_link — intelligences/boutique.ts importe shop-link/portier.ts"
+        "detail": "shop_link — intelligences/api-v1.ts importe shop-link/portier.ts"
       },
       {
         "genre": "dependance_non_declaree",
@@ -20990,7 +20998,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "routeurs": [
       "shopLink"
     ],
-    "fichiersServeur": 8,
+    "fichiersServeur": 9,
     "dependancesDeclarees": [
       "core",
       "identity",

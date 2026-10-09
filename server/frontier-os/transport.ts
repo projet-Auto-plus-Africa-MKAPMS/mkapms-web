@@ -14,12 +14,13 @@ import { dbFrontier, type BaseFrontier } from "./base/connexion.js";
 import { exchanges, gates, type Exchange } from "./base/schema.js";
 import { chargerLigne, coupuresLite, ligneLite } from "./chaine.js";
 import { journaliser, SYSTEME, tronquer, type Acteur } from "./journal.js";
+import { reelAutorise } from "./reel-etat.js";
 import { decisionPassage, regleEnVol, type DecisionPassage, type KindEchange } from "./regles.js";
 
 export async function evaluerPassage(ligneId: number, base: BaseFrontier = dbFrontier()): Promise<DecisionPassage> {
   const c = await chargerLigne(ligneId, base);
   if (!c) return { autorise: false, raison: "LIGNE_VIDE", detail: "Ligne inconnue." };
-  return decisionPassage(ligneLite(c.ligne), coupuresLite(c.coupures));
+  return decisionPassage(ligneLite(c.ligne), coupuresLite(c.coupures), { reelAutorise: await reelAutorise() });
 }
 
 /** Continuité PHYSIQUE d'un contact (la porte) : ce que lit la sonde. Ne dit rien de la permission. */

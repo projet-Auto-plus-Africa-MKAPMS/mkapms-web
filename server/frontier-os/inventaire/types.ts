@@ -70,8 +70,34 @@ export interface ExigenceBoutique {
   readonly observe: string;
 }
 
+/** Modèle de compte de stock préparé par la Boutique (désactivé, jamais un moteur ni un commerce réel). */
+export interface ModeleStock {
+  readonly type: string;
+  readonly libelle: string;
+  readonly role: string;
+}
+
+/**
+ * Moteur de stock propre de la Boutique (migration 0077, `shop_inventory`). Famille SÉPARÉE du registre de 83 moteurs : ses tables, ses routes et
+ * ses modules sont distincts de `inventory` / `warehouse`. Elle n'est comptée qu'ici, jamais deux fois.
+ */
+export interface StockBoutique {
+  readonly migration: string;
+  readonly modeles: readonly ModeleStock[];
+  readonly canaux: readonly { readonly id: string; readonly libelle: string; readonly statut: string; readonly apiValidee: boolean | null }[];
+  /** Le compte posé par la migration elle-même (stock propre MKA.P-MS SHOP). */
+  readonly comptePropre: { readonly type: string; readonly reference: string; readonly nom: string; readonly canal: string };
+  /** Vrai si les trois tables (moteurs, canaux, modèles) portent la contrainte `enabled = false` dans la migration. */
+  readonly desactiveParLaBase: boolean;
+  readonly moteurs: readonly LigneInventaire[];
+  readonly intermediaires: readonly LigneInventaire[];
+  /** Contrôles de non-duplication faits par le générateur (tables, identifiants, noms). */
+  readonly controlesDoublons: readonly string[];
+}
+
 export interface InventaireBoutique {
   readonly source: SourceInventaire;
+  readonly stock: StockBoutique;
   readonly auditExigences: { readonly commitAudite: string; readonly total: number; readonly criteres: Readonly<Record<string, number>>; readonly planCompletDansLeDepot: boolean };
   readonly moteurs: readonly LigneInventaire[];
   /** Les moteurs intermédiaires déjà préparés par la Boutique (contrats de la migration 0057 + accès de service). */

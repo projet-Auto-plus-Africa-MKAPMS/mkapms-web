@@ -21,3 +21,4 @@ mobile/dist/
 
 # Artefact généré au build (point 117 — Code Knowledge Graph)
 server/data/code-graph.json
+sauvegardes-centre/

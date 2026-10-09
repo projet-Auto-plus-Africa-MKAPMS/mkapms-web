@@ -120,7 +120,8 @@ test("commandes par le routeur : confirmation obligatoire, résultat observé af
 test("moteurs : filtres par plateforme et état, détail avec versions, liaisons et accusés ; moteur interne avec entrées, sorties, arrêt", async () => {
   const c = pdg();
   const boutique = await c.moteurs({ plateforme: "shop", kind: "real", limite: 1000 });
-  assert.equal(boutique.length, 83);
+  assert.equal(boutique.length, 84, "83 moteurs du registre + le moteur de stock propre (famille séparée, comptée une seule fois)");
+  assert.equal(new Set(boutique.map((m) => m.code)).size, boutique.length, "aucun code en double");
   const declares = await c.moteurs({ plateforme: "shop", kind: "real", declareSeulement: true, limite: 1000 });
   assert.ok(declares.length > 0 && declares.length < 83);
   assert.ok(declares.every((m) => m.preuve === "declare"));
@@ -138,13 +139,19 @@ test("moteurs : filtres par plateforme et état, détail avec versions, liaisons
   assert.ok(interne!.liaisonsCommeMoteur.total >= 1);
   assert.equal(await c.moteur({ code: "inconnu:x" }), null);
   const salle = await c.salleBoutique({ plateforme: "shop" });
-  assert.equal(salle!.intermediaires.length, 6);
+  assert.equal(salle!.intermediaires.length, 6, "les six intermédiaires Boutique ↔ plateforme ; le pont de stock est présenté à part");
+  assert.deepEqual(salle!.stock!.moteurs.map((m) => m.code).sort(), ["shop:int:stock.mka_own.intermediary", "shop:stock.mka_own.inventory"]);
+  assert.equal(salle!.stock!.modeles.length, 10);
+  assert.equal(salle!.stock!.desactiveParLaBase, true);
+  assert.ok(salle!.stock!.moteurs.every((m) => m.etat !== "connecte"));
+  assert.equal((await c.salleBoutique({ plateforme: "main" }))!.stock, null);
   assert.equal(salle!.audit!.planComplet, false);
   assert.equal(salle!.inventaire!.commit.length, 40);
   const inv = await c.inventaire();
   assert.equal(inv.boutique.total, 83);
   assert.equal(inv.boutique.parEtat.connecte, 0);
   assert.equal(inv.boutique.intermediaires.length, 6);
+  assert.deepEqual([inv.boutique.stockPropre.moteurs, inv.boutique.stockPropre.intermediaires, inv.boutique.stockPropre.modeles, inv.boutique.stockPropre.canaux], [1, 1, 10, 7]);
 });
 
 test("mesures : latence mesurée par le bus après des commandes, mémoire et charge échantillonnées, banc d'essai honnête", async () => {
@@ -171,18 +178,32 @@ test("mesures : latence mesurée par le bus après des commandes, mémoire et ch
   assert.ok(fausses.every((m) => Number.isFinite(m.value)));
 });
 
-test("sécurité : secrets en références seulement, moteurs internes avec mécanisme d'arrêt, accès actuels, voies existantes dont une NON gouvernée", async () => {
+test("sécurité : secrets en références seulement, moteurs internes avec mécanisme d'arrêt, accès actuels, voies de données toutes consultées par le portier, navigation distinguée", async () => {
   const s = await pdg().securite();
   assert.ok(s.secrets.length >= 3);
+  // Séparation de la base : niveau MESURÉ, jamais une adresse ; la marche à suivre et les outils sont donnés.
+  assert.ok(["schema_partage", "base_distincte", "serveur_distinct", "identique", "inconnu"].includes(s.separation.niveau));
+  assert.equal(s.separation.separeeMateriellement, s.separation.niveau === "serveur_distinct");
+  assert.ok(s.separation.etapes.length >= 6 && s.separation.outils.length === 4);
+  assert.doesNotMatch(JSON.stringify(s.separation), /postgres(ql)?:\/\/|localtest|password/i, "aucune adresse ni identifiant dans la vue");
+  assert.equal(s.separation.derniereSauvegarde, null, "aucune sauvegarde consignée dans une base neuve");
+  const a = await pdg().accueil();
+  assert.equal(a.base.separation.niveau, s.separation.niveau);
   for (const x of s.secrets) assert.ok(/^[A-Z][A-Z0-9_]{2,63}$|^vault:|^none$/.test(x.ref), x.ref);
   assert.ok(!JSON.stringify(s).match(/shopsvc_[A-Za-z0-9_-]{30,}|sk_live|sk-[A-Za-z0-9]{20}/), "aucune valeur de secret dans la vitrine");
   assert.equal(s.moteursInternes.length, MOTEURS_INTERNES.length);
   assert.ok(s.moteursInternes.every((m) => m.arret.length > 20 && m.fonction.length > 20 && m.entrees.length > 5 && m.sorties.length > 5));
   assert.deepEqual(s.acces.filter((a) => a.status === "active").map((a) => a.subjectKind), ["pdg"]);
   assert.ok(s.api.every((a) => a.status === "inactive"));
-  const nonGouvernees = s.voies.filter((v) => !v.gouvernee);
-  assert.equal(nonGouvernees.length, 2);
-  assert.ok(s.voies.filter((v) => v.gouvernee).length >= 3);
+  // Toutes les voies de DONNÉES sont désormais consultées par le portier (opt-in) ; le bouton « Boutique » est de la NAVIGATION, pas un échange.
+  const echanges = s.voies.filter((v) => v.type === "echange");
+  assert.equal(echanges.length, 5);
+  assert.ok(echanges.every((v) => v.gouvernee), "plus aucune voie de données hors du portier");
+  const navigation = s.voies.filter((v) => v.type === "navigation");
+  assert.equal(navigation.length, 1);
+  assert.equal(navigation[0]!.gouvernee, false);
+  assert.match(navigation[0]!.note, /pas un échange de données/i);
+  assert.ok(echanges.some((v) => /connaissance/.test(v.voie)) && echanges.some((v) => /analyse/.test(v.voie)));
 });
 
 test("arrêt d'un moteur interne : confirmation, effet sur les lignes (invalides), redémarrage et santé mesurée", async () => {
@@ -230,5 +251,5 @@ test("base : l'état de la base indépendante est lisible", async () => {
   const b = await pdg().base();
   assert.equal(b.prete, true);
   assert.equal(b.schema, "frontier");
-  assert.ok(b.migrations && b.migrations.dejaAppliquees.length + b.migrations.appliquees.length === 2);
+  assert.ok(b.migrations && b.migrations.dejaAppliquees.length + b.migrations.appliquees.length === 3);
 });

@@ -22,7 +22,7 @@ import { ENGINE_CATALOG } from "../server/engine-registry/catalog.js";
 import { MOTEURS } from "../server/data/moteurs.js";
 import { INTERMEDIAIRES_BOUTIQUE } from "../server/frontier-os/shop-inventory.js";
 import { CANAUX, CANAUX_IDS, type CanalId } from "../server/shop-link/contrats.js";
-import type { ExigenceBoutique, InventaireBoutique, InventairePlateforme, LigneInventaire, SourceInventaire } from "../server/frontier-os/inventaire/types.js";
+import type { ExigenceBoutique, InventaireBoutique, InventairePlateforme, LigneInventaire, SourceInventaire, StockBoutique } from "../server/frontier-os/inventaire/types.js";
 
 const RACINE = process.cwd();
 const argShop = process.argv.indexOf("--shop");
@@ -256,6 +256,98 @@ const intermediairesBoutique: LigneInventaire[] = INTERMEDIAIRES_BOUTIQUE.map((i
   };
 });
 
+// ───────────────────────── Moteur de stock propre de la Boutique (migration 0077, schéma shop_inventory) ─────────────────────────
+// Famille SÉPARÉE du registre de 83 moteurs : lue ici une seule fois, jamais mêlée aux lignes du registre (pas de doublon).
+const FICHIER_STOCK_SQL = "migrations/0077_stock_engine_preparation.sql";
+const FICHIER_STOCK_POLITIQUE = "server/stock-engine-policy.mjs";
+const FICHIER_STOCK_MOTEUR = "server/stock-engines.mjs";
+const FICHIER_STOCK_DOC = "docs/SHOP-STOCK-ENGINES-2026-10-09.md";
+for (const f of [FICHIER_STOCK_SQL, FICHIER_STOCK_POLITIQUE, FICHIER_STOCK_MOTEUR]) {
+  if (!existsSync(path.join(SHOP, f))) throw new Error(`Moteur de stock de la Boutique introuvable : ${f} (la Boutique n'a pas ce lot : relire le bon commit)`);
+}
+const sqlStock = lire(SHOP, FICHIER_STOCK_SQL);
+const srcStockPolitique = lire(SHOP, FICHIER_STOCK_POLITIQUE);
+const srcStockMoteur = lire(SHOP, FICHIER_STOCK_MOTEUR);
+const srcAppBoutique = lire(SHOP, "server/app.mjs");
+const typesStock = litteral(srcStockPolitique, "export const stockEngineTypes=") as { id: string; label: string; role: string }[];
+const canauxStock = litteral(srcStockPolitique, "export const stockChannels=") as { id: string; label: string; status: string; apiValidated?: boolean }[];
+const modelesSql = /INSERT INTO shop_inventory\.engine_blueprints\(owner_type\)\s*SELECT unnest\(ARRAY\[([^\]]+)\]\)/.exec(sqlStock);
+const compteSql = /INSERT INTO shop_inventory\.owners\(owner_type,account_ref,display_name,channel\)\s*VALUES \('([^']+)','([^']+)','([^']+)','([^']+)'\)/.exec(sqlStock);
+if (!modelesSql || !compteSql) throw new Error("Migration 0077 : forme inattendue (modèles ou compte propre introuvables) — le générateur n'invente rien");
+const modelesIds = [...modelesSql[1]!.matchAll(/'([A-Z_]+)'/g)].map((m) => m[1]!);
+if (modelesIds.length !== typesStock.length || modelesIds.some((id) => !typesStock.some((t) => t.id === id))) throw new Error("Les modèles de la migration 0077 ne correspondent pas aux types déclarés dans stock-engine-policy.mjs");
+const desactiveParLaBase = (sqlStock.match(/enabled boolean NOT NULL DEFAULT false CHECK\(enabled=false\)/g) ?? []).length >= 3;
+const routesStock = [...routesPossibles].filter((r) => r.startsWith("/api/stock-engines")).sort();
+const montageStock = numeroLigne(srcAppBoutique, /stockEngineRoutes\(app,pool\)/);
+if (!routesStock.length || !montageStock) throw new Error("Routes du moteur de stock non montées dans server/app.mjs : l'état ne serait pas « installé »");
+const testsStock = [...testsBoutique].filter((f) => /stock-engines\./.test(f)).sort();
+const specStock = existsSync(path.join(SHOP, "tests/browser/stock-engines.spec.mjs")) ? ["tests/browser/stock-engines.spec.mjs"] : [];
+const ligneSql = (motif: RegExp) => numeroLigne(sqlStock, motif);
+const tablesStock = [...sqlStock.matchAll(/CREATE TABLE (shop_inventory\.[a-z_]+)/g)].map((m) => m[1]!);
+const tablesRegistre = new Set(REGISTRE.flatMap((e) => e.tables ?? []));
+const tablesCommunes = tablesStock.filter((t) => tablesRegistre.has(t));
+if (tablesCommunes.length) throw new Error(`Tables du stock propre déjà portées par le registre : ${tablesCommunes.join(", ")} — doublon à traiter`);
+const voisinsFonction = REGISTRE.filter((e) => e.area === "stock").map((e) => e.id);
+
+const MODULES = "deux modules distincts : commande (prépare une observation sourcée) et vérification (contrôle indépendant du propriétaire, du moteur et de la cohérence des quantités)";
+const manquesStock = [
+  "désactivé par la base elle-même : `enabled = false` imposé par contrainte CHECK dans la migration 0077 ; aucune quantité réelle ni source externe connectée (quantités inconnues = null, « non connectées »)",
+  "aucune observation n'est appliquée au stock réel dans ce lot (applied:false) ; le raccordement aux comptes existants est une étape ultérieure annoncée par la Boutique",
+  "les identifiants des deux modules sont générés à l'exécution dans la base de la Boutique (gen_random_uuid) : non relevables dans le code, à vérifier en production",
+  "migration 0077 non vérifiée comme appliquée dans la base déployée de la Boutique",
+];
+const refsStock = (extra: string[]) => [
+  `${FICHIER_STOCK_SQL}:${ligneSql(/INSERT INTO shop_inventory\.engines\(owner_id,role\)/)}`,
+  `${FICHIER_STOCK_MOTEUR}:${numeroLigne(srcStockMoteur, /export async function prepareStockAccount/)}`,
+  `${FICHIER_STOCK_POLITIQUE}:${numeroLigne(srcStockPolitique, /export function prepareStockObservation/)}`,
+  `server/app.mjs:${montageStock}`,
+  ...extra, FICHIER_STOCK_DOC,
+];
+const baseStock = { niveauDeclare: "PREPARED (désactivé)", domaine: "stock propre", tables: tablesStock, tests: [...testsStock, ...specStock], entrees: routesStock, entreesTrouvees: routesStock.length, serviceExecution: "mkapms-shop · serveur Express (server/app.mjs) · routes /api/stock-engines/* (page privée Fondateur #/stocks)" } as const;
+const etatStock = (testsStock.length ? "teste" : "installe") as LigneInventaire["etat"];
+const preuveStock = (testsStock.length ? "tests" : "liaison") as LigneInventaire["preuve"];
+const moteurStock: LigneInventaire = {
+  ...baseStock, id: "stock.mka_own.inventory", nom: "Moteur de stock propre MKA.P-MS SHOP",
+  fonction: `Stock propre de la Boutique (compte « ${compteSql[3]} », canal ${compteSql[4]}) : prépare des observations de quantités sourcées (en stock, engagé, réservé, endommagé, quarantaine, sécurité, contrôle qualité, entrant) et calcule le disponible projeté — ${MODULES}. Il ne remplace ni ne modifie le moteur « inventory » du registre.`,
+  code: refsStock([`${FICHIER_STOCK_POLITIQUE}:${numeroLigne(srcStockPolitique, /export function verifyStockObservation/)}`]),
+  dependances: ["stock.mka_own.intermediary"], etat: etatStock, preuve: preuveStock, declareSeulement: false, intermediairePrevu: "stock.mka_own.intermediary",
+  connexionsExistantes: ["compte « stock propre » posé par la migration 0077 ; tableau de bord réservé au Fondateur (#/stocks)"],
+  connexionsAConstruire: ["aucune ligne vers la plateforme principale n'est prévue par la Boutique pour ce moteur : à décider avec le PDG avant toute connexion", "quantités réelles à raccorder (étape ultérieure annoncée par la Boutique)"],
+  manques: manquesStock,
+  doublons: [`recouvrement de fonction possible avec ${voisinsFonction.map((v) => `« ${v} »`).join(" et ")} (aire « stock » du registre) : tables différentes (shop_inventory.* contre ${REGISTRE.filter((e) => voisinsFonction.includes(e.id)).flatMap((e) => e.tables ?? []).join(", ")}) ; la Boutique déclare ne migrer ni modifier ses stocks fournisseurs existants — aucune fusion, à confirmer avec le PDG`],
+  aVerifier: ["identifiants des modules commande / vérification (propres à la base déployée de la Boutique)", "état réel de la migration 0077 en production"],
+};
+const intermediaireStock: LigneInventaire = {
+  ...baseStock, id: "stock.mka_own.intermediary", nom: "Moteur intermédiaire de stock MKA.P-MS SHOP",
+  fonction: `Pont entre le moteur de stock propre et son canal (interne SHOP aujourd'hui ; Amazon vendeur, Amazon FBA, Alibaba B2B, Shopify, flux fournisseur et autre sont préparés) — ${MODULES.replace("prépare une observation sourcée", "prépare la passerelle")}. Tous les canaux sont désactivés, sans identifiant d'accès ni appel externe.`,
+  code: [`${FICHIER_STOCK_SQL}:${ligneSql(/CREATE TABLE shop_inventory\.connection_slots/)}`, `${FICHIER_STOCK_POLITIQUE}:${numeroLigne(srcStockPolitique, /export function bridgeReadiness/)}`, `server/app.mjs:${montageStock}`, FICHIER_STOCK_DOC],
+  entrees: [], entreesTrouvees: 0,
+  dependances: ["stock.mka_own.inventory"], etat: "prepare", preuve: "declare", declareSeulement: true, intermediairePrevu: null,
+  connexionsExistantes: [`emplacement de connexion du canal « ${compteSql[4]} » posé par la migration 0077 (désactivé)`],
+  connexionsAConstruire: ["ne pas confondre avec les six intermédiaires Boutique ↔ plateforme : celui-ci relie le stock à ses canaux de stock, pas à la plateforme principale", "canaux externes : accès et validation d'API à obtenir (Alibaba : apiValidated:false explicite)"],
+  manques: [...manquesStock, "aucun pont réel : bridgeReadiness répond toujours « CONNECTION_NOT_INSTALLED » et les tests de la Boutique ne vérifient que cette réponse"],
+  doublons: ["distinct des intermédiaires de la migration 0057 (contrats Boutique ↔ plateforme) : aucun identifiant ni table en commun"],
+  aVerifier: ["identifiants des modules du pont (propres à la base déployée de la Boutique)"],
+};
+const controlesDoublons = [
+  `tables : ${tablesStock.length} tables shop_inventory.*, aucune n'est portée par le registre des 83 moteurs`,
+  `identifiants : « stock.* » absent du registre (${REGISTRE.some((e) => e.id.startsWith("stock.")) ? "PRÉSENT — doublon" : "aucun doublon"})`,
+  `${typesStock.length} modèles de comptes = ${typesStock.length} types déclarés dans le code (concordance vérifiée), un seul compte réel : « ${compteSql[2]} »`,
+  `intermédiaire de stock ≠ intermédiaires de la migration 0057 : ${INTERMEDIAIRES_BOUTIQUE.some((i) => i.id.startsWith("stock.")) ? "COLLISION" : "aucun identifiant commun"}`,
+];
+if (REGISTRE.some((e) => e.id.startsWith("stock.")) || INTERMEDIAIRES_BOUTIQUE.some((i) => i.id.startsWith("stock."))) throw new Error("Doublon : un identifiant « stock.* » existe déjà dans le registre");
+const stockBoutique: StockBoutique = {
+  migration: `${FICHIER_STOCK_SQL}:${ligneSql(/CREATE SCHEMA IF NOT EXISTS shop_inventory/)}`,
+  modeles: typesStock.map((t) => ({ type: t.id, libelle: t.label, role: t.role })),
+  canaux: canauxStock.map((c) => ({ id: c.id, libelle: c.label, statut: c.status, apiValidee: c.apiValidated === undefined ? null : c.apiValidated })),
+  comptePropre: { type: compteSql[1]!, reference: compteSql[2]!, nom: compteSql[3]!, canal: compteSql[4]! },
+  desactiveParLaBase, moteurs: [moteurStock], intermediaires: [intermediaireStock], controlesDoublons,
+};
+{
+  const tous = [...lignesBoutique, ...intermediairesBoutique, moteurStock, intermediaireStock].map((l) => l.id);
+  if (new Set(tous).size !== tous.length) throw new Error("Identifiants dupliqués dans l'inventaire de la Boutique");
+}
+
 const exigences: ExigenceBoutique[] = GAP.engines.map((g) => ({
   nom: g.engine,
   critere: Object.fromEntries(Object.entries(g.criteria).map(([k, v]) => [k, v.state])) as ExigenceBoutique["critere"],
@@ -267,11 +359,12 @@ for (const g of GAP.engines) for (const v of Object.values(g.criteria)) critereT
 
 const sourceBoutique: SourceInventaire = {
   depot: "projet-Auto-plus-Africa-MKAPMS/mkapms-shop", commit: shopCommit, dateCommit: shopDate, genereLe: AUJOURDHUI,
-  fichiersLus: ["server/shop-intelligent-system.mjs", "server/engine-runtime.mjs", "server/gap-inventory.json", "migrations/0057_shop_preparation_readiness.sql", "server/service-access.mjs", `server/*.mjs (${fichiersServeur.length} fichiers, routes)`, `tests/ (${testsBoutique.size} fichiers)`, `migrations/ (${migrationsBoutique.length} fichiers)`],
+  fichiersLus: ["server/shop-intelligent-system.mjs", "server/engine-runtime.mjs", "server/gap-inventory.json", "migrations/0057_shop_preparation_readiness.sql", "server/service-access.mjs", FICHIER_STOCK_SQL, FICHIER_STOCK_POLITIQUE, FICHIER_STOCK_MOTEUR, `server/*.mjs (${fichiersServeur.length} fichiers, routes)`, `tests/ (${testsBoutique.size} fichiers)`, `migrations/ (${migrationsBoutique.length} fichiers)`],
 };
 
 const inventaireBoutique: InventaireBoutique = {
   source: sourceBoutique,
+  stock: stockBoutique,
   auditExigences: { commitAudite: GAP.auditedCommit, total: GAP.engines.length, criteres: critereTotaux, planCompletDansLeDepot: GAP.masterPlanCompleteInRepository },
   moteurs: lignesBoutique,
   intermediaires: intermediairesBoutique,
@@ -452,6 +545,17 @@ Cinq sont des **contrats déclarés** (lignes de \`shop_strategy.connection_cont
 ### État de chaque intermédiaire de la Boutique (relevé)
 
 ${tableau(intermediairesBoutique)}
+
+## Boutique — moteur de stock propre (famille séparée du registre)
+
+Lot de la Boutique « moteurs de stock indépendants » (\`${stockBoutique.migration}\`, document \`${FICHIER_STOCK_DOC}\`). Ce n'est **pas** un des ${lignesBoutique.length} moteurs du registre : il est compté ici seulement, une fois. Il est **préparé et désactivé** (contrainte \`enabled = false\` dans la migration : ${stockBoutique.desactiveParLaBase ? "présente sur les trois tables" : "NON retrouvée"}) ; aucune quantité ni source externe n'est connectée.
+
+${tableau([moteurStock, intermediaireStock])}
+
+- Compte posé par la migration : « ${stockBoutique.comptePropre.nom} » (\`${stockBoutique.comptePropre.reference}\`, type ${stockBoutique.comptePropre.type}, canal ${stockBoutique.comptePropre.canal}). Aucun autre compte n'existe tant que le Fondateur n'en crée pas.
+- ${stockBoutique.modeles.length} modèles de comptes préparés (désactivés, pas des commerces réels) : ${stockBoutique.modeles.map((m) => m.libelle).join(" · ")}.
+- ${stockBoutique.canaux.length} canaux préparés (tous désactivés, sans identifiant d'accès) : ${stockBoutique.canaux.map((c) => c.libelle + (c.apiValidee === false ? " — API non validée" : "")).join(" · ")}.
+- Contrôles de non-duplication : ${stockBoutique.controlesDoublons.join(" ; ")}.
 
 ## Plateforme principale — canaux du moteur intermédiaire shop_link (${intermediairesPlateforme.length})
 

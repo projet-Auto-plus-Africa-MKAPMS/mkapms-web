@@ -18,6 +18,7 @@ import { annulerReparation, appliquerReparation, cloreIncident, lancerDiagnostic
 import { commanderCoupure, commanderGeneral, commanderGroupe, commanderLigne, definirLigneActivee, deverrouillerLigne, verrouillerLigne } from "./commandes.js";
 import { demarrerCentre } from "./demarrage-centre.js";
 import { ajouterGroupe, importerInventaire, VERSION_CENTRE } from "./fondation.js";
+import { armerReel, definirModeLigne, desarmerReel, reconcilierLiaisonsReelles, reelVue } from "./reel.js";
 import { armerGouvernance, desarmerGouvernance } from "./gouvernance.js";
 import type { Acteur } from "./journal.js";
 import { echantillonnerCentre, mesurerCapacites } from "./mesures.js";
@@ -265,6 +266,27 @@ export const frontierOsRouter = router({
   gouvernance: pdgProcedure.input(z.object({ armer: z.boolean(), confirme: z.boolean().default(false) })).mutation(async ({ ctx, input }) => {
     await pret();
     return input.armer ? armerGouvernance(acteurPdg(ctx.user.uid), input.confirme) : desarmerGouvernance(acteurPdg(ctx.user.uid), input.confirme);
+  }),
+  // ── Mode réel : deux clés (environnement + armement du PDG), ligne par ligne, jamais rebranché tout seul ──
+  reel: pdgProcedure.query(async ({ ctx }) => {
+    await pret();
+    return reelVue(ctx.user.uid);
+  }),
+  armerReel: pdgProcedure.input(z.object({ phrase: z.string().max(80) })).mutation(async ({ ctx, input }) => {
+    await pret();
+    return armerReel(acteurPdg(ctx.user.uid), input.phrase);
+  }),
+  desarmerReel: pdgProcedure.input(z.object({ confirme: z.literal(true) })).mutation(async ({ ctx }) => {
+    await pret();
+    return desarmerReel(acteurPdg(ctx.user.uid));
+  }),
+  modeLigne: pdgProcedure.input(z.object({ ligneId: id, mode: z.enum(["simulation", "real"]), confirme: z.literal(true) })).mutation(async ({ ctx, input }) => {
+    await pret();
+    return definirModeLigne(input.ligneId, input.mode, acteurPdg(ctx.user.uid));
+  }),
+  reconcilier: pdgProcedure.mutation(async ({ ctx }) => {
+    await pret();
+    return reconcilierLiaisonsReelles(acteurPdg(ctx.user.uid));
   }),
   importerInventaire: pdgProcedure.mutation(async ({ ctx }) => {
     await pret();

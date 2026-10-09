@@ -10,7 +10,7 @@ import { INVENTAIRE_PLATEFORME as P } from "../inventaire/plateforme.generated.j
 import { ETATS_INVENTAIRE, type LigneInventaire } from "../inventaire/types.js";
 import { INTERMEDIAIRES_BOUTIQUE } from "../shop-inventory.js";
 
-const toutes = (): LigneInventaire[] => [...B.moteurs, ...B.intermediaires, ...P.moteurs, ...P.intermediaires];
+const toutes = (): LigneInventaire[] => [...B.moteurs, ...B.intermediaires, ...B.stock.moteurs, ...B.stock.intermediaires, ...P.moteurs, ...P.intermediaires];
 
 test("sources : commits exacts et dates", () => {
   for (const s of [B.source, P.source]) {
@@ -53,7 +53,7 @@ test("aucun état ne s'affirme sans sa preuve", () => {
       assert.ok(m.manques.length > 0, `${m.id} : ${m.etat} doit dire ce qui manque`);
       if (m.etat === "prepare") assert.equal(m.declareSeulement, true);
     }
-    for (const t of m.tests) assert.match(t, /\.(test|integration)\./, t);
+    for (const t of m.tests) assert.match(t, /\.(test|integration|spec)\./, t);
   }
 });
 
@@ -97,4 +97,30 @@ test("plateforme : chaque moteur d'un intermédiaire existe dans le relevé, les
 test("noms non établis : jamais inventés comme plateformes", () => {
   const texte = JSON.stringify([B.moteurs.map((m) => [m.id, m.nom]), P.moteurs.map((m) => [m.id, m.nom])]);
   for (const nom of ["MKH Shop", "MKPMS Shop", "boutique principale"]) assert.ok(!texte.includes(nom), `${nom} ne doit pas apparaître comme moteur ou plateforme`);
+});
+
+test("Boutique : le moteur de stock propre est une famille séparée, relevée une fois, sans doublon avec le registre ni les intermédiaires", () => {
+  const registre = new Set([...B.moteurs, ...B.intermediaires].map((m) => m.id));
+  const stock = [...B.stock.moteurs, ...B.stock.intermediaires];
+  assert.deepEqual(stock.map((m) => m.id), ["stock.mka_own.inventory", "stock.mka_own.intermediary"]);
+  for (const m of stock) assert.ok(!registre.has(m.id), `${m.id} ne doit pas figurer deux fois`);
+  const tablesRegistre = new Set(B.moteurs.flatMap((m) => m.tables));
+  for (const t of B.stock.moteurs[0]!.tables) assert.ok(!tablesRegistre.has(t), `table ${t} déjà portée par le registre`);
+  assert.equal(new Set(toutes().map((m) => m.id + "@" + (m.domaine === "stock propre" ? "s" : m.domaine))).size, toutes().length);
+  assert.equal(B.stock.modeles.length, 10);
+  assert.equal(new Set(B.stock.modeles.map((m) => m.type)).size, 10);
+  assert.equal(B.stock.canaux.length, 7);
+  assert.equal(B.stock.comptePropre.type, "MKA_OWN");
+  assert.equal(B.stock.desactiveParLaBase, true, "la migration impose enabled = false : le moteur n'est pas activable");
+  const [moteur, pont] = [B.stock.moteurs[0]!, B.stock.intermediaires[0]!];
+  assert.equal(moteur.intermediairePrevu, pont.id);
+  assert.notEqual(moteur.id, pont.id);
+  assert.ok(moteur.etat === "teste" || moteur.etat === "installe");
+  assert.equal(pont.etat, "prepare", "le pont n'est pas installé : bridgeReadiness répond CONNECTION_NOT_INSTALLED");
+  for (const m of stock) {
+    assert.notEqual(m.etat, "connecte");
+    assert.ok(m.manques.some((x) => /enabled = false/.test(x)), "le fait « désactivé par la base » est dit");
+    assert.ok(m.code.every((c) => /^[\w./:-]+(:\d+)?$/.test(c)));
+  }
+  assert.ok(moteur.doublons.some((d) => /inventory/.test(d)), "le recouvrement de fonction avec « inventory » est signalé, sans fusion");
 });

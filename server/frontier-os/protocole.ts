@@ -16,6 +16,7 @@ import { cuts, incidents, testSessions, testSteps } from "./base/schema.js";
 import { chargerLigne, coupuresLite, ligneLite } from "./chaine.js";
 import { commanderCoupure, commanderGeneral, commanderLigne, reprendreApresRedemarrage, type OptionsCommande, type ResultatCommande } from "./commandes.js";
 import { journaliser, type Acteur } from "./journal.js";
+import { reelAutorise } from "./reel-etat.js";
 import { decisionPassage, etatLigne } from "./regles.js";
 import { essaiIntermediaires, envoyer as envoyerEchange, continuite } from "./transport.js";
 
@@ -40,7 +41,7 @@ const COTES: Cote[] = ["remote", "center", "main"];
 
 async function etatActuel(ligneId: number) {
   const c = (await chargerLigne(ligneId))!;
-  return { ligne: c.ligne, coupures: c.coupures, etat: etatLigne(coupuresLite(c.coupures)), passage: decisionPassage(ligneLite(c.ligne), coupuresLite(c.coupures)) };
+  return { ligne: c.ligne, coupures: c.coupures, etat: etatLigne(coupuresLite(c.coupures)), passage: decisionPassage(ligneLite(c.ligne), coupuresLite(c.coupures), { reelAutorise: await reelAutorise() }) };
 }
 
 class Session {

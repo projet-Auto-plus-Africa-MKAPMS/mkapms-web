@@ -151,3 +151,41 @@ test("le journal garde la trace des refus du portier et de l'armement", async ()
   assert.ok(actions.filter((a) => a === "governance_denied").length >= 1);
   assert.ok(actions.filter((a) => a === "governance_denied").length <= 3, "les refus répétés ne noient pas le journal");
 });
+
+test("les deux voies de DONNÉES de la Boutique restées hors contrôle (connaissance, analyse) consultent désormais le portier : sans effet non armé, REFUSÉES armées faute de ligne", async () => {
+  const { default: express } = await import("express");
+  const { apiV1 } = await import("../../intelligences/api-v1.js");
+  const app = express();
+  app.use(express.json());
+  app.use("/api/v1", apiV1);
+  const serveur = app.listen(0, "127.0.0.1");
+  await new Promise((r) => serveur.once("listening", r));
+  const base = `http://127.0.0.1:${(serveur.address() as import("node:net").AddressInfo).port}/api/v1`;
+  const appel = async (chemin: string) => {
+    const r = await fetch(`${base}${chemin}`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({}) });
+    return { statut: r.status, json: (await r.json().catch(() => ({}))) as { status?: string } };
+  };
+  try {
+    // Non armée : la requête atteint le gestionnaire de la voie (qui la refuse pour son propre motif), PAS le portier du centre.
+    for (const chemin of ["/intelligences/shop/knowledge", "/shop/analyse"]) {
+      const libre = await appel(chemin);
+      assert.notEqual(libre.json.status, "GOUVERNANCE_CENTRE", `${chemin} : le centre ne doit rien changer tant qu'il n'est pas armé`);
+    }
+    assert.deepEqual(await portierCentre("connaissance", "entrant"), { autorise: true, raison: "gouvernance non armée" });
+    // Armée : ces voies n'ont aucune ligne dans le centre, donc elles sont fermées, avec un motif nommé.
+    await armerGouvernance(PDG, true);
+    for (const [chemin, canal] of [["/intelligences/shop/knowledge", "connaissance"], ["/shop/analyse", "analyse"]] as const) {
+      const ferme = await appel(chemin);
+      assert.equal(ferme.statut, 503, chemin);
+      assert.equal(ferme.json.status, "GOUVERNANCE_CENTRE", chemin);
+      assert.match((await portierCentre(canal, "entrant")).raison, /aucune ligne du centre/);
+    }
+    // Les autres chemins de l'API ne sont jamais touchés par ce portier.
+    const autre = await appel("/inconnu");
+    assert.notEqual(autre.json.status, "GOUVERNANCE_CENTRE");
+    await desarmerGouvernance(PDG, true);
+    assert.notEqual((await appel("/shop/analyse")).json.status, "GOUVERNANCE_CENTRE", "désarmée : retour à l'état par défaut");
+  } finally {
+    serveur.close();
+  }
+});

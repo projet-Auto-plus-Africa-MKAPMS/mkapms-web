@@ -13,6 +13,7 @@
 import { Router, type Request, type Response } from "express";
 import { shopAnalysis } from "./shop-analysis.js";
 import { shopKnowledge } from "./shop-knowledge.js";
+import { interrogerPortier } from "../shop-link/portier.js";
 import { verifyToken } from "../auth.js";
 import { CAPACITES, registre, resume, type CodeCapacite } from "./capacites.js";
 import { router as routerCapacite } from "./routeur.js";
@@ -35,6 +36,21 @@ function role(req: Request): { role: string | null; uid: number | null } {
 }
 
 export const apiV1 = Router();
+
+// Les deux voies de données de la Boutique vers la plateforme qui n'avaient AUCUN contrôle du centre : la connaissance isolée et l'analyse isolée.
+// Le Centre Cyber-Électrique les consulte comme toute autre voie (portier), mais SEULEMENT s'il est armé par le PDG : non armé, aucun changement.
+// Armé, une voie sans ligne connectée dans le centre est refusée. Ces deux voies n'ont pas de ligne (elles dépassent le contrat « état agrégé » de la Boutique).
+const VOIES_BOUTIQUE_GOUVERNEES: readonly (readonly [string, string])[] = [
+  ["/intelligences/shop/knowledge", "connaissance"],
+  ["/shop/analyse", "analyse"],
+];
+apiV1.use(async (req, res, next) => {
+  const voie = VOIES_BOUTIQUE_GOUVERNEES.find(([chemin]) => req.path === chemin);
+  if (!voie) return next();
+  const d = await interrogerPortier(voie[1], "entrant");
+  if (d.autorise) return next();
+  return res.status(503).json({ ok: false, status: "GOUVERNANCE_CENTRE" });
+});
 apiV1.use(shopKnowledge);
 apiV1.use(shopAnalysis);
 

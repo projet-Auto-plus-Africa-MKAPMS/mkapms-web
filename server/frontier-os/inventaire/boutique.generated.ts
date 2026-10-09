@@ -9,8 +9,8 @@ import type { InventaireBoutique } from "./types.js";
 export const INVENTAIRE_BOUTIQUE: InventaireBoutique = {
  "source": {
   "depot": "projet-Auto-plus-Africa-MKAPMS/mkapms-shop",
-  "commit": "3f5022921c898ca56a48e4a534be264bd74e6458",
-  "dateCommit": "2026-10-09T00:23:19+02:00",
+  "commit": "c82fc74a30fa95d89c27115fc788c1fa09dbab6c",
+  "dateCommit": "2026-10-09T07:56:10+02:00",
   "genereLe": "2026-10-09",
   "fichiersLus": [
    "server/shop-intelligent-system.mjs",
@@ -18,9 +18,249 @@ export const INVENTAIRE_BOUTIQUE: InventaireBoutique = {
    "server/gap-inventory.json",
    "migrations/0057_shop_preparation_readiness.sql",
    "server/service-access.mjs",
-   "server/*.mjs (83 fichiers, routes)",
-   "tests/ (95 fichiers)",
-   "migrations/ (75 fichiers)"
+   "migrations/0077_stock_engine_preparation.sql",
+   "server/stock-engine-policy.mjs",
+   "server/stock-engines.mjs",
+   "server/*.mjs (86 fichiers, routes)",
+   "tests/ (98 fichiers)",
+   "migrations/ (77 fichiers)"
+  ]
+ },
+ "stock": {
+  "migration": "migrations/0077_stock_engine_preparation.sql:2",
+  "modeles": [
+   {
+    "type": "MKA_OWN",
+    "libelle": "Stock propre MKA.P-MS",
+    "role": "internal"
+   },
+   {
+    "type": "PRO",
+    "libelle": "Professionnels",
+    "role": "seller"
+   },
+   {
+    "type": "MANUFACTURER",
+    "libelle": "Fabricants",
+    "role": "manufacturer"
+   },
+   {
+    "type": "INDIVIDUAL",
+    "libelle": "Particuliers",
+    "role": "seller"
+   },
+   {
+    "type": "WHOLESALER",
+    "libelle": "Grossistes",
+    "role": "seller"
+   },
+   {
+    "type": "DISTRIBUTOR",
+    "libelle": "Distributeurs",
+    "role": "seller"
+   },
+   {
+    "type": "SUPPLIER",
+    "libelle": "Fournisseurs",
+    "role": "supplier"
+   },
+   {
+    "type": "DROPSHIPPER",
+    "libelle": "Fournisseurs dropshipping",
+    "role": "supplier"
+   },
+   {
+    "type": "FULFILLMENT",
+    "libelle": "Entrepôts et opérateurs logistiques",
+    "role": "operator"
+   },
+   {
+    "type": "OTHER",
+    "libelle": "Autres types de comptes",
+    "role": "custom"
+   }
+  ],
+  "canaux": [
+   {
+    "id": "INTERNAL",
+    "libelle": "MKA.P-MS",
+    "statut": "PREPARED",
+    "apiValidee": null
+   },
+   {
+    "id": "AMAZON_SELLER",
+    "libelle": "Amazon · stock vendeur",
+    "statut": "PREPARED",
+    "apiValidee": null
+   },
+   {
+    "id": "AMAZON_FBA",
+    "libelle": "Amazon · stock logistique FBA",
+    "statut": "PREPARED",
+    "apiValidee": null
+   },
+   {
+    "id": "ALIBABA",
+    "libelle": "Alibaba · fournisseur B2B",
+    "statut": "PREPARED",
+    "apiValidee": false
+   },
+   {
+    "id": "SHOPIFY",
+    "libelle": "Shopify · article et emplacement",
+    "statut": "PREPARED",
+    "apiValidee": null
+   },
+   {
+    "id": "SUPPLIER_FEED",
+    "libelle": "Flux fournisseur existant",
+    "statut": "PREPARED",
+    "apiValidee": null
+   },
+   {
+    "id": "OTHER",
+    "libelle": "Autre canal à préciser",
+    "statut": "PREPARED",
+    "apiValidee": null
+   }
+  ],
+  "comptePropre": {
+   "type": "MKA_OWN",
+   "reference": "mkapms-shop-own",
+   "nom": "Stock propre MKA.P-MS SHOP",
+   "canal": "INTERNAL"
+  },
+  "desactiveParLaBase": true,
+  "moteurs": [
+   {
+    "niveauDeclare": "PREPARED (désactivé)",
+    "domaine": "stock propre",
+    "tables": [
+     "shop_inventory.owners",
+     "shop_inventory.engines",
+     "shop_inventory.locations",
+     "shop_inventory.items",
+     "shop_inventory.levels",
+     "shop_inventory.connection_slots",
+     "shop_inventory.engine_blueprints"
+    ],
+    "tests": [
+     "tests/stock-engines.integration.mjs",
+     "tests/stock-engines.test.mjs",
+     "tests/browser/stock-engines.spec.mjs"
+    ],
+    "entrees": [
+     "/api/stock-engines",
+     "/api/stock-engines/accounts",
+     "/api/stock-engines/accounts/x",
+     "/api/stock-engines/accounts/x/observations/prepare"
+    ],
+    "entreesTrouvees": 4,
+    "serviceExecution": "mkapms-shop · serveur Express (server/app.mjs) · routes /api/stock-engines/* (page privée Fondateur #/stocks)",
+    "id": "stock.mka_own.inventory",
+    "nom": "Moteur de stock propre MKA.P-MS SHOP",
+    "fonction": "Stock propre de la Boutique (compte « Stock propre MKA.P-MS SHOP », canal INTERNAL) : prépare des observations de quantités sourcées (en stock, engagé, réservé, endommagé, quarantaine, sécurité, contrôle qualité, entrant) et calcule le disponible projeté — deux modules distincts : commande (prépare une observation sourcée) et vérification (contrôle indépendant du propriétaire, du moteur et de la cohérence des quantités). Il ne remplace ni ne modifie le moteur « inventory » du registre.",
+    "code": [
+     "migrations/0077_stock_engine_preparation.sql:68",
+     "server/stock-engines.mjs:15",
+     "server/stock-engine-policy.mjs:29",
+     "server/app.mjs:213",
+     "server/stock-engine-policy.mjs:36",
+     "docs/SHOP-STOCK-ENGINES-2026-10-09.md"
+    ],
+    "dependances": [
+     "stock.mka_own.intermediary"
+    ],
+    "etat": "teste",
+    "preuve": "tests",
+    "declareSeulement": false,
+    "intermediairePrevu": "stock.mka_own.intermediary",
+    "connexionsExistantes": [
+     "compte « stock propre » posé par la migration 0077 ; tableau de bord réservé au Fondateur (#/stocks)"
+    ],
+    "connexionsAConstruire": [
+     "aucune ligne vers la plateforme principale n'est prévue par la Boutique pour ce moteur : à décider avec le PDG avant toute connexion",
+     "quantités réelles à raccorder (étape ultérieure annoncée par la Boutique)"
+    ],
+    "manques": [
+     "désactivé par la base elle-même : `enabled = false` imposé par contrainte CHECK dans la migration 0077 ; aucune quantité réelle ni source externe connectée (quantités inconnues = null, « non connectées »)",
+     "aucune observation n'est appliquée au stock réel dans ce lot (applied:false) ; le raccordement aux comptes existants est une étape ultérieure annoncée par la Boutique",
+     "les identifiants des deux modules sont générés à l'exécution dans la base de la Boutique (gen_random_uuid) : non relevables dans le code, à vérifier en production",
+     "migration 0077 non vérifiée comme appliquée dans la base déployée de la Boutique"
+    ],
+    "doublons": [
+     "recouvrement de fonction possible avec « inventory » et « warehouse » (aire « stock » du registre) : tables différentes (shop_inventory.* contre shop_commerce.offer_stock_events, shop_commerce.warehouses) ; la Boutique déclare ne migrer ni modifier ses stocks fournisseurs existants — aucune fusion, à confirmer avec le PDG"
+    ],
+    "aVerifier": [
+     "identifiants des modules commande / vérification (propres à la base déployée de la Boutique)",
+     "état réel de la migration 0077 en production"
+    ]
+   }
+  ],
+  "intermediaires": [
+   {
+    "niveauDeclare": "PREPARED (désactivé)",
+    "domaine": "stock propre",
+    "tables": [
+     "shop_inventory.owners",
+     "shop_inventory.engines",
+     "shop_inventory.locations",
+     "shop_inventory.items",
+     "shop_inventory.levels",
+     "shop_inventory.connection_slots",
+     "shop_inventory.engine_blueprints"
+    ],
+    "tests": [
+     "tests/stock-engines.integration.mjs",
+     "tests/stock-engines.test.mjs",
+     "tests/browser/stock-engines.spec.mjs"
+    ],
+    "entrees": [],
+    "entreesTrouvees": 0,
+    "serviceExecution": "mkapms-shop · serveur Express (server/app.mjs) · routes /api/stock-engines/* (page privée Fondateur #/stocks)",
+    "id": "stock.mka_own.intermediary",
+    "nom": "Moteur intermédiaire de stock MKA.P-MS SHOP",
+    "fonction": "Pont entre le moteur de stock propre et son canal (interne SHOP aujourd'hui ; Amazon vendeur, Amazon FBA, Alibaba B2B, Shopify, flux fournisseur et autre sont préparés) — deux modules distincts : commande (prépare la passerelle) et vérification (contrôle indépendant du propriétaire, du moteur et de la cohérence des quantités). Tous les canaux sont désactivés, sans identifiant d'accès ni appel externe.",
+    "code": [
+     "migrations/0077_stock_engine_preparation.sql:43",
+     "server/stock-engine-policy.mjs:41",
+     "server/app.mjs:213",
+     "docs/SHOP-STOCK-ENGINES-2026-10-09.md"
+    ],
+    "dependances": [
+     "stock.mka_own.inventory"
+    ],
+    "etat": "prepare",
+    "preuve": "declare",
+    "declareSeulement": true,
+    "intermediairePrevu": null,
+    "connexionsExistantes": [
+     "emplacement de connexion du canal « INTERNAL » posé par la migration 0077 (désactivé)"
+    ],
+    "connexionsAConstruire": [
+     "ne pas confondre avec les six intermédiaires Boutique ↔ plateforme : celui-ci relie le stock à ses canaux de stock, pas à la plateforme principale",
+     "canaux externes : accès et validation d'API à obtenir (Alibaba : apiValidated:false explicite)"
+    ],
+    "manques": [
+     "désactivé par la base elle-même : `enabled = false` imposé par contrainte CHECK dans la migration 0077 ; aucune quantité réelle ni source externe connectée (quantités inconnues = null, « non connectées »)",
+     "aucune observation n'est appliquée au stock réel dans ce lot (applied:false) ; le raccordement aux comptes existants est une étape ultérieure annoncée par la Boutique",
+     "les identifiants des deux modules sont générés à l'exécution dans la base de la Boutique (gen_random_uuid) : non relevables dans le code, à vérifier en production",
+     "migration 0077 non vérifiée comme appliquée dans la base déployée de la Boutique",
+     "aucun pont réel : bridgeReadiness répond toujours « CONNECTION_NOT_INSTALLED » et les tests de la Boutique ne vérifient que cette réponse"
+    ],
+    "doublons": [
+     "distinct des intermédiaires de la migration 0057 (contrats Boutique ↔ plateforme) : aucun identifiant ni table en commun"
+    ],
+    "aVerifier": [
+     "identifiants des modules du pont (propres à la base déployée de la Boutique)"
+    ]
+   }
+  ],
+  "controlesDoublons": [
+   "tables : 7 tables shop_inventory.*, aucune n'est portée par le registre des 83 moteurs",
+   "identifiants : « stock.* » absent du registre (aucun doublon)",
+   "10 modèles de comptes = 10 types déclarés dans le code (concordance vérifiée), un seul compte réel : « mkapms-shop-own »",
+   "intermédiaire de stock ≠ intermédiaires de la migration 0057 : aucun identifiant commun"
   ]
  },
  "auditExigences": {
@@ -500,7 +740,7 @@ export const INVENTAIRE_BOUTIQUE: InventaireBoutique = {
    "entrees": [
     "^\\/api\\/publication(\\/|$)"
    ],
-   "entreesTrouvees": 5,
+   "entreesTrouvees": 6,
    "tables": [
     "shop_commerce.product_reviews",
     "shop_commerce.publication_checks",
@@ -2427,7 +2667,7 @@ export const INVENTAIRE_BOUTIQUE: InventaireBoutique = {
     "^\\/api\\/publication(\\/|$)",
     "^\\/api\\/seller-engines\\/(dashboard|sellers|publications)(\\/|$)"
    ],
-   "entreesTrouvees": 11,
+   "entreesTrouvees": 12,
    "tables": [
     "shop_security.moderation_queue",
     "shop_commerce.publication_checks"

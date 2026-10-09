@@ -33,19 +33,30 @@ export function resoudreUrl(): { url: string; separee: boolean } | null {
   return plateforme ? { url: plateforme, separee: false } : null;
 }
 
+/** Vrai si une adresse propre au centre est posée (FRONTIER_DATABASE_URL, ou adresse imposée par un test). */
+export function variableFournie(): boolean {
+  return urlForcee !== undefined ? !!urlForcee : !!process.env.FRONTIER_DATABASE_URL;
+}
+
 /** Pour les tests : impose l'URL (ou la retire avec null) et ferme le pool courant. */
 export async function configurerBase(url: string | null | undefined): Promise<void> {
   await fermerBase();
   urlForcee = url;
 }
 
+/** Crée un pool vers l'adresse donnée (mêmes réglages SSL que ceux du centre). Sert au centre lui-même, à la sauvegarde et à la restauration. */
+export function creerPool(url: string, max = 5): pg.Pool {
+  const ssl = /proxy\.rlwy\.net|\.railway\.app|sslmode=require/.test(url) && !/railway\.internal/.test(url);
+  const p = new Pool({ connectionString: url, ssl: ssl ? { rejectUnauthorized: false } : undefined, max, connectionTimeoutMillis: 10_000, idleTimeoutMillis: 30_000, statement_timeout: 20_000 });
+  p.on("error", (e) => console.error("[frontier] erreur de connexion inactive :", e.message));
+  return p;
+}
+
 export function poolFrontier(): pg.Pool {
   if (pool) return pool;
   const r = resoudreUrl();
   if (!r) throw new Error("Base du centre indisponible : ni FRONTIER_DATABASE_URL ni DATABASE_URL.");
-  const ssl = /proxy\.rlwy\.net|\.railway\.app|sslmode=require/.test(r.url) && !/railway\.internal/.test(r.url);
-  pool = new Pool({ connectionString: r.url, ssl: ssl ? { rejectUnauthorized: false } : undefined, max: 5, connectionTimeoutMillis: 10_000, idleTimeoutMillis: 30_000, statement_timeout: 20_000 });
-  pool.on("error", (e) => console.error("[frontier] erreur de connexion inactive :", e.message));
+  pool = creerPool(r.url);
   return pool;
 }
 

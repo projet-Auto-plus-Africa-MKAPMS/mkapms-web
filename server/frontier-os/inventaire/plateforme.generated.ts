@@ -9,8 +9,8 @@ import type { InventairePlateforme } from "./types.js";
 export const INVENTAIRE_PLATEFORME: InventairePlateforme = {
  "source": {
   "depot": "projet-Auto-plus-Africa-MKAPMS/mkapms-web",
-  "commit": "03fffde3b76450ade43d25e4fa17451bbe6a7909",
-  "dateCommit": "2026-10-09T00:13:38+00:00",
+  "commit": "80c0df6b1ff8349d02e29ca2f5844742a859897f",
+  "dateCommit": "2026-10-09T06:49:06+02:00",
   "genereLe": "2026-10-09",
   "fichiersLus": [
    "server/data/moteurs.ts",
@@ -1863,7 +1863,7 @@ export const INVENTAIRE_PLATEFORME: InventairePlateforme = {
    "entrees": [
     "frontierOs"
    ],
-   "entreesTrouvees": 48,
+   "entreesTrouvees": 53,
    "tables": [],
    "dependances": [
     "core",
@@ -1883,8 +1883,10 @@ export const INVENTAIRE_PLATEFORME: InventairePlateforme = {
     "server/frontier-os/__tests__/inventaire.test.ts",
     "server/frontier-os/__tests__/pannes.integration.test.ts",
     "server/frontier-os/__tests__/protocole.integration.test.ts",
+    "server/frontier-os/__tests__/reel.integration.test.ts",
     "server/frontier-os/__tests__/regles.test.ts",
     "server/frontier-os/__tests__/routeur.integration.test.ts",
+    "server/frontier-os/__tests__/sauvegarde.integration.test.ts",
     "server/frontier-os/__tests__/transport.integration.test.ts"
    ],
    "etat": "teste",

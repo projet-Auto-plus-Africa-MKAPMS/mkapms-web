@@ -284,6 +284,9 @@ function importables(): Importable[] {
   return [
     ...INVENTAIRE_BOUTIQUE.moteurs.map((l) => ({ code: codeMoteurBoutique(l.id), plateforme: "shop", kind: "real" as const, ligne: l, depot: b.depot, commit: b.commit })),
     ...INVENTAIRE_BOUTIQUE.intermediaires.map((l) => ({ code: codeIntermediaireBoutique(l.id), plateforme: "shop", kind: "intermediary" as const, ligne: l, depot: b.depot, commit: b.commit })),
+    // Famille « stock propre » de la Boutique : comptée à part du registre de 83 moteurs, importée une seule fois (code unique par moteur).
+    ...INVENTAIRE_BOUTIQUE.stock.moteurs.map((l) => ({ code: codeMoteurBoutique(l.id), plateforme: "shop", kind: "real" as const, ligne: l, depot: b.depot, commit: b.commit })),
+    ...INVENTAIRE_BOUTIQUE.stock.intermediaires.map((l) => ({ code: codeIntermediaireBoutique(l.id), plateforme: "shop", kind: "intermediary" as const, ligne: l, depot: b.depot, commit: b.commit })),
     ...INVENTAIRE_PLATEFORME.moteurs.map((l) => ({ code: codeMoteurPrincipal(l.id), plateforme: "main", kind: "real" as const, ligne: l, depot: p.depot, commit: p.commit })),
     ...INVENTAIRE_PLATEFORME.intermediaires.map((l) => ({ code: codeCanal(l.id.replace(/^shop_link:/, "")), plateforme: "main", kind: "intermediary" as const, ligne: l, depot: p.depot, commit: p.commit })),
   ];

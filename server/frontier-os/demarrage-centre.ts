@@ -8,6 +8,8 @@ import { assurerFondation } from "./fondation.js";
 import { brancherPortierCentre } from "./gouvernance.js";
 import { echantillonnerCentre, elaguerMesures } from "./mesures.js";
 import { reprendreApresRedemarrage } from "./commandes.js";
+import { brancherCommutationCentre } from "./liaisons-reelles.js";
+import { reconcilierLiaisonsReelles } from "./reel.js";
 import { verifierSanteMoteurs } from "./sante.js";
 import { traiterFile } from "./transport.js";
 
@@ -16,10 +18,13 @@ let minuteries: NodeJS.Timeout[] = [];
 
 async function initialiser(): Promise<void> {
   brancherPortierCentre();
+  brancherCommutationCentre();
   const base = await assurerBase();
   if (!base.prete) throw new Error(base.erreur ?? "base du centre indisponible");
   await assurerFondation();
   await reprendreApresRedemarrage();
+  // Aucune liaison réelle n'est rouverte au démarrage : celles trouvées ouvertes contre l'avis du centre sont coupées.
+  await reconcilierLiaisonsReelles().catch((e) => console.error("[frontier] réconciliation des liaisons réelles :", (e as Error).message));
   await verifierSanteMoteurs();
   await echantillonnerCentre();
 }
@@ -46,6 +51,7 @@ export function lancerTachesDeFond(): void {
   minuteries = [
     setInterval(garde(() => traiterFile()), 5_000),
     setInterval(garde(() => echantillonnerCentre()), 60_000),
+    setInterval(garde(() => reconcilierLiaisonsReelles()), 60_000),
     setInterval(garde(() => verifierSanteMoteurs()), 5 * 60_000),
     setInterval(garde(() => elaguerMesures()), 60 * 60_000),
   ];

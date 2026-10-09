@@ -20,13 +20,22 @@ import { MOTEURS_INTERNES } from "./moteurs-internes.js";
 import { ACTION_REELLE_ACTIVEE, ELEMENTS_CHAINE, MODE, RESERVE_PAR_LIGNE_REELLE, decisionPassage, etatContactGroupe, etatLigne, ligneAdmissible } from "./regles.js";
 import { detecterAnomalies, incidentsOuverts, verifierInvariants } from "./atelier.js";
 import { VERSION_CENTRE } from "./fondation.js";
+import { poolFrontier, variableFournie } from "./base/connexion.js";
+import { LIBELLE_SEPARATION, diagnostiquerSeparation } from "./separation.js";
+import { adaptateurDe } from "./liaisons-reelles.js";
+import { reelAutorise } from "./reel-etat.js";
 
 const n = (v: unknown) => Number(v ?? 0);
 
+/** La famille « stock propre » de la Boutique (migration 0077) est comptée à part du registre de 83 moteurs : aucun moteur n'est compté deux fois. */
+export const DOMAINE_STOCK_PROPRE = "stock propre";
+const estStock = sql`coalesce(${engines.details}->>'domaine', '') = ${DOMAINE_STOCK_PROPRE}`;
+const pasStock = sql`coalesce(${engines.details}->>'domaine', '') <> ${DOMAINE_STOCK_PROPRE}`;
+
 export async function accueil() {
   const db = dbFrontier();
-  const [jauges, armee] = await Promise.all([lireJauges(), gouvernanceArmee()]);
-  const moteursParEtat = await db.select({ plateforme: engines.platformCode, etat: engines.inventoryState, k: count() }).from(engines).where(and(eq(engines.origin, "inventory"), eq(engines.kind, "real"))).groupBy(engines.platformCode, engines.inventoryState);
+  const [jauges, armee, sep] = await Promise.all([lireJauges(), gouvernanceArmee(), mesureSeparation(false)]);
+  const moteursParEtat = await db.select({ plateforme: engines.platformCode, etat: engines.inventoryState, k: count() }).from(engines).where(and(eq(engines.origin, "inventory"), eq(engines.kind, "real"), pasStock)).groupBy(engines.platformCode, engines.inventoryState);
   const internes = await db.select({ running: engines.running, health: engines.health, k: count() }).from(engines).where(and(eq(engines.platformCode, "frontier"), inArray(engines.kind, ["command", "verification", "transport", "monitor"]))).groupBy(engines.running, engines.health);
   const reelles = await db.select().from(lines).where(eq(lines.kind, "real"));
   const coup = await chargerCoupures(reelles.map((l) => l.id));
@@ -46,7 +55,7 @@ export async function accueil() {
     mode: MODE,
     actionReelle: ACTION_REELLE_ACTIVEE,
     version: VERSION_CENTRE,
-    base: { ...etatBase(), schema: "frontier", migrationsAppliquees: etatBase().migrations?.appliquees.length ?? 0, migrationsConnues: (etatBase().migrations?.appliquees.length ?? 0) + (etatBase().migrations?.dejaAppliquees.length ?? 0) },
+    base: { ...etatBase(), separee: sep.separeeMateriellement, separation: { niveau: sep.niveau, libelle: LIBELLE_SEPARATION[sep.niveau], detail: sep.detail }, schema: "frontier", migrationsAppliquees: etatBase().migrations?.appliquees.length ?? 0, migrationsConnues: (etatBase().migrations?.appliquees.length ?? 0) + (etatBase().migrations?.dejaAppliquees.length ?? 0) },
     gouvernanceArmee: armee,
     jauges,
     moteursInventories: Object.fromEntries([...eng].map(([p, m]) => [p, m])),
@@ -83,6 +92,7 @@ export async function lignesVue(groupe?: string) {
   const liaisons = codes.size ? await db.select().from(engineBindings).where(inArray(engineBindings.targetCode, [...codes])) : [];
   const parCible = new Map(liaisons.map((b) => [b.targetCode, b]));
   const ech = reelles.length ? await db.select({ ligne: exchanges.lineId, etat: exchanges.state, k: count() }).from(exchanges).where(inArray(exchanges.lineId, reelles.map((l) => l.id))).groupBy(exchanges.lineId, exchanges.state) : [];
+  const reelOk = await reelAutorise();
   return rows.map((l) => {
     if (l.kind === "reserve") return { id: l.id, groupe: l.groupCode, position: l.position, kind: "reserve" as const, label: l.label, enabled: false, locked: false, validity: "invalid" as const, invalidReasons: [] as string[], canal: null, intermediaire: null, chaine: [], coupures: [], etat: "unknown" as const, passage: { autorise: false, raison: "LIGNE_VIDE" as const }, admissible: { ok: false, raison: "VIDE" as const, detail: "Ligne de réserve : vide." }, echanges: {} as Record<string, number> };
     const c = coup.get(l.id) ?? [];
@@ -98,8 +108,13 @@ export async function lignesVue(groupe?: string) {
       }),
       coupures: c.map((x: CoupureComplete) => ({ id: x.id, side: x.side, element: x.elementCode, requested: x.requested, observed: x.observed, progress: x.progress, mode: x.mode, error: x.error, lastCheckedAt: x.lastCheckedAt, lastProof: x.lastProof, porteOuverte: x.porteOuverte, lastCommandId: x.lastCommandId })),
       etat: etatLigne(lite),
-      passage: decisionPassage(ligneLite(l), lite),
+      passage: decisionPassage(ligneLite(l), lite, { reelAutorise: reelOk }),
       admissible: ligneAdmissible(ligneLite(l), lite),
+      // Ce que chaque coupure commande VRAIMENT : sa nature (réel / simulé), la liaison qui l'actionne et pourquoi elle serait indisponible.
+      natures: c.map((x: CoupureComplete) => {
+        const a = adaptateurDe(x, l);
+        return { coupureId: x.id, side: x.side, reelle: x.mode === "real", liaison: a.nom, libelle: a.libelle, disponible: a.disponible, raison: a.raison ?? null };
+      }),
       echanges: Object.fromEntries(ech.filter((e) => e.ligne === l.id).map((e) => [e.etat, n(e.k)])),
     };
   });
@@ -185,9 +200,10 @@ export async function salleBoutique(plateforme: string) {
   const db = dbFrontier();
   const [p] = await db.select().from(platforms).where(eq(platforms.code, plateforme)).limit(1);
   if (!p) return null;
-  const parEtat = await db.select({ etat: engines.inventoryState, kind: engines.kind, k: count() }).from(engines).where(and(eq(engines.platformCode, plateforme), eq(engines.origin, "inventory"))).groupBy(engines.inventoryState, engines.kind);
-  const [declares] = await db.select({ k: count() }).from(engines).where(and(eq(engines.platformCode, plateforme), eq(engines.origin, "inventory"), eq(engines.declaredOnly, true), eq(engines.kind, "real")));
-  const inter = await db.select().from(engines).where(and(eq(engines.platformCode, plateforme), eq(engines.kind, "intermediary"))).orderBy(asc(engines.code));
+  const parEtat = await db.select({ etat: engines.inventoryState, kind: engines.kind, k: count() }).from(engines).where(and(eq(engines.platformCode, plateforme), eq(engines.origin, "inventory"), pasStock)).groupBy(engines.inventoryState, engines.kind);
+  const [declares] = await db.select({ k: count() }).from(engines).where(and(eq(engines.platformCode, plateforme), eq(engines.origin, "inventory"), eq(engines.declaredOnly, true), eq(engines.kind, "real"), pasStock));
+  const inter = await db.select().from(engines).where(and(eq(engines.platformCode, plateforme), eq(engines.kind, "intermediary"), pasStock)).orderBy(asc(engines.code));
+  const stockMoteurs = plateforme === "shop" ? await db.select().from(engines).where(and(eq(engines.platformCode, plateforme), eq(engines.origin, "inventory"), estStock)).orderBy(asc(engines.code)) : [];
   const groupeCode = plateforme === "shop" ? "boutique" : plateforme;
   const lg = await lignesVue(groupeCode);
   const inv = plateforme === "shop" ? INVENTAIRE_BOUTIQUE : plateforme === "main" ? INVENTAIRE_PLATEFORME : null;
@@ -197,6 +213,17 @@ export async function salleBoutique(plateforme: string) {
     declaresSeulement: n(declares?.k),
     intermediaires: inter.map((m) => ({ code: m.code, name: m.name, etat: m.inventoryState, preuve: m.evidenceLevel, fonction: m.function, manques: (m.details as { manques?: string[] }).manques ?? [], aVerifier: (m.details as { aVerifier?: string[] }).aVerifier ?? [] })),
     lignes: lg,
+    stock: plateforme === "shop"
+      ? {
+          moteurs: stockMoteurs.map((m) => ({ code: m.code, name: m.name, kind: m.kind, etat: m.inventoryState, preuve: m.evidenceLevel, fonction: m.function, manques: (m.details as { manques?: string[] }).manques ?? [], aVerifier: (m.details as { aVerifier?: string[] }).aVerifier ?? [], doublons: (m.details as { doublons?: string[] }).doublons ?? [] })),
+          modeles: INVENTAIRE_BOUTIQUE.stock.modeles,
+          canaux: INVENTAIRE_BOUTIQUE.stock.canaux,
+          comptePropre: INVENTAIRE_BOUTIQUE.stock.comptePropre,
+          desactiveParLaBase: INVENTAIRE_BOUTIQUE.stock.desactiveParLaBase,
+          controlesDoublons: INVENTAIRE_BOUTIQUE.stock.controlesDoublons,
+          migration: INVENTAIRE_BOUTIQUE.stock.migration,
+        }
+      : null,
     inventaire: inv ? { commit: inv.source.commit, dateCommit: inv.source.dateCommit, genereLe: inv.source.genereLe, depot: inv.source.depot } : null,
     audit: plateforme === "shop" ? { exigences: INVENTAIRE_BOUTIQUE.auditExigences.total, criteres: INVENTAIRE_BOUTIQUE.auditExigences.criteres, planComplet: INVENTAIRE_BOUTIQUE.auditExigences.planCompletDansLeDepot, exigencesSansMoteur: INVENTAIRE_BOUTIQUE.exigencesSansMoteur } : null,
   };
@@ -207,7 +234,7 @@ export async function inventaireResume() {
   return {
     definitions: DEFINITION_ETAT,
     libelles: LIBELLE_ETAT,
-    boutique: { source: INVENTAIRE_BOUTIQUE.source, total: INVENTAIRE_BOUTIQUE.moteurs.length, parEtat: compte(INVENTAIRE_BOUTIQUE.moteurs), declaresSeulement: INVENTAIRE_BOUTIQUE.moteurs.filter((m) => m.declareSeulement).length, intermediaires: INVENTAIRE_BOUTIQUE.intermediaires.map((i) => ({ id: i.id, nom: i.nom, etat: i.etat, manques: i.manques, aVerifier: i.aVerifier })), contrats: INVENTAIRE_BOUTIQUE.contrats },
+    boutique: { source: INVENTAIRE_BOUTIQUE.source, stockPropre: { moteurs: INVENTAIRE_BOUTIQUE.stock.moteurs.length, intermediaires: INVENTAIRE_BOUTIQUE.stock.intermediaires.length, modeles: INVENTAIRE_BOUTIQUE.stock.modeles.length, canaux: INVENTAIRE_BOUTIQUE.stock.canaux.length, desactiveParLaBase: INVENTAIRE_BOUTIQUE.stock.desactiveParLaBase, etats: compte([...INVENTAIRE_BOUTIQUE.stock.moteurs, ...INVENTAIRE_BOUTIQUE.stock.intermediaires]) }, total: INVENTAIRE_BOUTIQUE.moteurs.length, parEtat: compte(INVENTAIRE_BOUTIQUE.moteurs), declaresSeulement: INVENTAIRE_BOUTIQUE.moteurs.filter((m) => m.declareSeulement).length, intermediaires: INVENTAIRE_BOUTIQUE.intermediaires.map((i) => ({ id: i.id, nom: i.nom, etat: i.etat, manques: i.manques, aVerifier: i.aVerifier })), contrats: INVENTAIRE_BOUTIQUE.contrats },
     plateforme: { source: INVENTAIRE_PLATEFORME.source, total: INVENTAIRE_PLATEFORME.moteurs.length, parEtat: compte(INVENTAIRE_PLATEFORME.moteurs), declaresSeulement: INVENTAIRE_PLATEFORME.moteurs.filter((m) => m.declareSeulement).length, canaux: INVENTAIRE_PLATEFORME.intermediaires.map((i) => ({ id: i.id, nom: i.nom, etat: i.etat, manques: i.manques })) },
     audit: INVENTAIRE_BOUTIQUE.auditExigences,
   };
@@ -216,16 +243,53 @@ export async function inventaireResume() {
 // ───────────────────────── Sécurité, atelier, audit, mémoire, accès, futures ─────────────────────────
 /** Les voies qui relient la plateforme à la Boutique, et celles que la gouvernance du centre couvre — dit sans détour. */
 export const VOIES_EXISTANTES = [
-  { voie: "Outils de l'IA de la plateforme → Boutique (accès de service /api/service)", fichier: "server/intelligences/boutique.ts (appeler)", canal: "catalogue", gouvernee: true, note: "Le portier du centre est consulté à chaque appel (sans effet tant que la gouvernance n'est pas armée)." },
-  { voie: "Moteur intermédiaire shop_link — canal catalogue (sortant)", fichier: "server/shop-link/sortant.ts (viaCable)", canal: "catalogue", gouvernee: true, note: "Câble d'abord, centre ensuite : le centre ne peut que restreindre." },
-  { voie: "Moteur intermédiaire shop_link — canaux entrants (état, documents, ia-mémoire, câble)", fichier: "server/shop-link/entrant.ts", canal: "état · documents · ia-mémoire", gouvernee: true, note: "ia-mémoire n'a pas de ligne dans le centre : armée, la gouvernance la ferme." },
-  { voie: "API de connaissance et d'analyse isolées de la Boutique (/api/v1/intelligences/shop/knowledge, /api/v1/shop/analyse)", fichier: "server/intelligences/shop-knowledge.ts, shop-analysis.ts", canal: "—", gouvernee: false, note: "Voie existante de la Boutique vers la plateforme, hors des six lignes préparées. NON gouvernée : décision du PDG requise (créer une ligne, ou la retirer)." },
-  { voie: "Bouton « Boutique » (lien du navigateur vers l'adresse publique)", fichier: "server/intelligences/index.ts (adresse publique)", canal: "—", gouvernee: false, note: "Ce n'est pas un échange entre moteurs : le navigateur de la personne ouvre le site de la Boutique." },
+  { voie: "Outils de l'IA de la plateforme → Boutique (accès de service /api/service)", fichier: "server/intelligences/boutique.ts (appeler)", canal: "catalogue", type: "echange", gouvernee: true, note: "Le portier du centre est consulté à chaque appel (sans effet tant que la gouvernance n'est pas armée)." },
+  { voie: "Moteur intermédiaire shop_link — canal catalogue (sortant)", fichier: "server/shop-link/sortant.ts (viaCable)", canal: "catalogue", type: "echange", gouvernee: true, note: "Câble d'abord, centre ensuite : le centre ne peut que restreindre." },
+  { voie: "Moteur intermédiaire shop_link — canaux entrants (état, documents, ia-mémoire, câble)", fichier: "server/shop-link/entrant.ts", canal: "état · documents · ia-mémoire", type: "echange", gouvernee: true, note: "ia-mémoire n'a pas de ligne dans le centre : armée, la gouvernance la ferme." },
+  { voie: "API de connaissance isolée de la Boutique (/api/v1/intelligences/shop/knowledge)", fichier: "server/intelligences/api-v1.ts → shop-knowledge.ts", canal: "connaissance", type: "echange", gouvernee: true, note: "Échange de DONNÉES de la Boutique vers la plateforme, hors des six lignes préparées. Désormais consultée par le portier (sans effet tant que la gouvernance n'est pas armée). Armée, elle est REFUSÉE : aucune ligne du centre ne la couvre. Pour la garder ouverte, il faudra créer une ligne (décision du PDG)." },
+  { voie: "API d'analyse isolée de la Boutique (/api/v1/shop/analyse)", fichier: "server/intelligences/api-v1.ts → shop-analysis.ts", canal: "analyse", type: "echange", gouvernee: true, note: "Échange de DONNÉES : la Boutique envoie des données à analyser, la plateforme répond. Désormais consultée par le portier (sans effet tant que la gouvernance n'est pas armée). Armée, elle est REFUSÉE faute de ligne dans le centre (décision du PDG pour en créer une)." },
+  { voie: "Bouton « Boutique » (lien du navigateur vers l'adresse publique)", fichier: "server/intelligences/index.ts (adresse publique)", canal: "—", type: "navigation", gouvernee: false, note: "NAVIGATION, pas un échange de données : le navigateur de la personne ouvre le site de la Boutique, aucune donnée ne passe entre les moteurs. Il n'a donc ni ligne, ni coupure, ni portier, et n'est pas compté parmi les voies de données." },
 ] as const;
+
+/** Pool de la plateforme, utilisé en LECTURE SEULE pour une unique mesure (instance de démarrage) : jamais une écriture, jamais une donnée. */
+async function poolPlateforme() {
+  try {
+    return (await import("../db.js")).pool;
+  } catch {
+    return null;
+  }
+}
+
+let memoSeparation: { le: number; d: Awaited<ReturnType<typeof diagnostiquerSeparation>> } | null = null;
+/** Mesure (mémorisée 60 s sauf demande contraire : l'accueil se rafraîchit souvent, la mesure coûte deux requêtes). */
+async function mesureSeparation(forcer: boolean) {
+  if (!forcer && memoSeparation && Date.now() - memoSeparation.le < 60_000) return memoSeparation.d;
+  const d = await diagnostiquerSeparation(poolFrontier(), await poolPlateforme(), variableFournie());
+  memoSeparation = { le: Date.now(), d };
+  return d;
+}
+export const oublierSeparationPourTests = () => {
+  memoSeparation = null;
+};
+
+/** Niveau de séparation de la base du centre, MESURÉ, avec la dernière sauvegarde consignée au journal. */
+export async function separationVue() {
+  const db = dbFrontier();
+  const d = await mesureSeparation(true);
+  const [derniere] = await db.select().from(auditLog).where(and(eq(auditLog.action, "backup"), eq(auditLog.result, "ok"))).orderBy(desc(auditLog.id)).limit(1);
+  const detail = (derniere?.detail ?? {}) as { tables?: number; lignes?: number; sha256?: string };
+  return {
+    ...d,
+    libelle: LIBELLE_SEPARATION[d.niveau],
+    derniereSauvegarde: derniere ? { le: derniere.at.toISOString(), tables: detail.tables ?? null, lignes: detail.lignes ?? null, empreinte: detail.sha256 ? detail.sha256.slice(0, 16) : null } : null,
+    outils: ["npx tsx scripts/centre-sauvegarde.ts sauvegarder", "npx tsx scripts/centre-sauvegarde.ts verifier --dossier <dossier>", "npx tsx scripts/centre-sauvegarde.ts restaurer --dossier <dossier> --cible <url> --confirme", "npx tsx scripts/centre-sauvegarde.ts comparer --source <url> --cible <url>"],
+  };
+}
 
 export async function securiteVue() {
   const db = dbFrontier();
   return {
+    separation: await separationVue(),
     mode: MODE,
     actionReelle: ACTION_REELLE_ACTIVEE,
     gouvernanceArmee: await gouvernanceArmee(),
