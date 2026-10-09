@@ -6,6 +6,7 @@
 import { assurerBase, etatBase } from "./base/demarrage.js";
 import { assurerFondation } from "./fondation.js";
 import { brancherPortierCentre } from "./gouvernance.js";
+import { seedMoteursDeclares } from "./moteurs-declares.js";
 import { echantillonnerCentre, elaguerMesures } from "./mesures.js";
 import { reprendreApresRedemarrage } from "./commandes.js";
 import { balayerLacunes } from "./developpement.js";
@@ -23,6 +24,7 @@ async function initialiser(): Promise<void> {
   const base = await assurerBase();
   if (!base.prete) throw new Error(base.erreur ?? "base du centre indisponible");
   await assurerFondation();
+  await seedMoteursDeclares().catch((e) => console.error("[frontier] moteurs déclarés :", (e as Error).message));
   await reprendreApresRedemarrage();
   // Aucune liaison réelle n'est rouverte au démarrage : celles trouvées ouvertes contre l'avis du centre sont coupées.
   await reconcilierLiaisonsReelles().catch((e) => console.error("[frontier] réconciliation des liaisons réelles :", (e as Error).message));

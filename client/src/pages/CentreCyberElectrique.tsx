@@ -9,6 +9,7 @@ import { trpc } from "../lib/trpc";
 import FicheMoteur from "./centre/FicheMoteur";
 import SalleConnexions from "./centre/SalleConnexions";
 import { SalleAccueil, SalleAtelier, SalleBoutiques, SalleEmployes, SalleFutures, SalleIncidentsAudit, SalleMemoire, SallePlateforme, SalleSecurite } from "./centre/Salles";
+import { SalleConnecteurA, SalleControleCentrale, SalleMoteursComplets, SalleOutils, SalleReunion, SalleSurveillance, SalleTravailDialogueControle } from "./centre/SallesDeclarees";
 
 const SALLES_PAR_DEFAUT: readonly [string, string][] = [
   ["accueil", "Accueil et tableau de bord"],
@@ -21,8 +22,18 @@ const SALLES_PAR_DEFAUT: readonly [string, string][] = [
   ["incidents-audit", "Incidents et audit"],
   ["employes-permissions", "Employés et permissions"],
   ["plateformes-futures", "Futures plateformes"],
+  ["travail-dialogue-controle", "Travail, dialogue et contrôle"],
+  ["controle-centrale", "Contrôle centrale"],
+  ["surveillance-externe", "Surveillance externe"],
+  ["moteurs-complets", "Salle complète des moteurs"],
+  ["outils-travail", "Outils de travail"],
+  ["salle-reunion", "Salle de réunion (future)"],
+  ["connecteur-intervention", "Connecteur A"],
 ];
-const COURT: Record<string, string> = { accueil: "Accueil", "plateforme-principale": "Plateforme principale", boutiques: "Boutiques", connexions: "Connexions", "cyber-securite": "Cybersécurité", atelier: "Atelier", memoire: "Mémoire", "incidents-audit": "Incidents & audit", "employes-permissions": "Employés", "plateformes-futures": "Futures" };
+const COURT: Record<string, string> = {
+  accueil: "Accueil", "plateforme-principale": "Plateforme principale", boutiques: "Boutiques", connexions: "Connexions", "cyber-securite": "Cybersécurité", atelier: "Atelier", memoire: "Mémoire", "incidents-audit": "Incidents & audit", "employes-permissions": "Employés", "plateformes-futures": "Futures",
+  "travail-dialogue-controle": "Travail & dialogue", "controle-centrale": "Contrôle centrale", "surveillance-externe": "Surveillance", "moteurs-complets": "Moteurs complets", "outils-travail": "Outils", "salle-reunion": "Réunion", "connecteur-intervention": "Connecteur A",
+};
 
 export default function CentreCyberElectrique() {
   const salles = trpc.frontierOs.salles.useQuery(undefined, { retry: false });
@@ -74,6 +85,13 @@ export default function CentreCyberElectrique() {
           {salle === "incidents-audit" && <SalleIncidentsAudit />}
           {salle === "employes-permissions" && <SalleEmployes />}
           {salle === "plateformes-futures" && <SalleFutures onMessage={setMessage} />}
+          {salle === "travail-dialogue-controle" && <SalleTravailDialogueControle onOuvrirMoteur={ouvrir} />}
+          {salle === "controle-centrale" && <SalleControleCentrale onMessage={setMessage} />}
+          {salle === "surveillance-externe" && <SalleSurveillance onOuvrirMoteur={ouvrir} />}
+          {salle === "moteurs-complets" && <SalleMoteursComplets onOuvrirMoteur={ouvrir} />}
+          {salle === "outils-travail" && <SalleOutils onOuvrirMoteur={ouvrir} />}
+          {salle === "salle-reunion" && <SalleReunion onOuvrirMoteur={ouvrir} />}
+          {salle === "connecteur-intervention" && <SalleConnecteurA onOuvrirMoteur={ouvrir} />}
         </main>
       </div>
       {moteurOuvert && <FicheMoteur code={moteurOuvert} onFermer={() => setMoteurOuvert(null)} />}

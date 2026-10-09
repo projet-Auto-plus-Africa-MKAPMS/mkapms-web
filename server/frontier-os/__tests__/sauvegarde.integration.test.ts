@@ -142,7 +142,7 @@ test("sauvegarde : dossier + manifeste + une empreinte par table, relecture conf
   assert.equal(m.tables.length, 32, "toutes les tables du centre sauf le journal des migrations");
   assert.ok(m.tables.every((t) => /^[0-9a-f]{64}$/.test(t.sha256)));
   assert.ok(m.tables.find((t) => t.nom === "commands")!.lignes > 0 && m.tables.find((t) => t.nom === "audit_log")!.lignes > 0);
-  assert.equal(m.migrations.length, 4);
+  assert.equal(m.migrations.length, 5);
   const v = verifierSauvegarde(d);
   assert.equal(v.ok, true, v.erreurs.join(" ; "));
   const tout = m.tables.map((t) => readFileSync(path.join(d, t.fichier), "utf8")).join("\n");

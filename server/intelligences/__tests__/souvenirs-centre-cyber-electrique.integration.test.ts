@@ -36,7 +36,7 @@ test("souvenirs du Centre Cyber-Électrique : clés uniques, catégories propres
     assert.deepEqual(parCat.map((r) => r.categorie), ["apprentissage", "decisions", "projets"]);
 
     // Les faits cités restent vérifiables (PR réellement ouvertes/fusionnées cette session, jamais inventées).
-    const { contenu } = (await pool.query("SELECT contenu FROM in_memoire WHERE source = 'souvenirs-centre-cyber-electrique' AND categorie = 'projets'")).rows[0];
+    const { contenu } = (await pool.query("SELECT contenu FROM in_memoire WHERE source = 'souvenirs-centre-cyber-electrique' AND cle = 'projet-centre-cyber-electrique-frontier-os-09-10-2026'")).rows[0];
     for (const pr of ["594", "595", "596", "288"]) assert.ok(contenu.includes(pr), pr);
   } finally {
     await pool.end();

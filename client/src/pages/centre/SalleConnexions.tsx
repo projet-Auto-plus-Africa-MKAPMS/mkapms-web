@@ -9,6 +9,7 @@
 import { useState, type CSSProperties } from "react";
 import { trpc } from "../../lib/trpc";
 import { Carte, LIBELLE_AVANCEMENT, LIBELLE_COTE, LIBELLE_DEMANDE, LIBELLE_ETAT_LIGNE, LIBELLE_OBSERVE, Pastille, Toile, Vide, bouton, boutonDanger, heure, useConfirmation, type GroupeVue, type LigneReelle, type LigneVue } from "./commun";
+import { CarteConnecteur } from "./SallesDeclarees";
 
 const LARGEUR_PLAN = 1010;
 /** Les lignes « À venir » restent visibles (désactivées) : cinq par groupe d'emblée, les autres derrière un bouton. */
@@ -346,6 +347,7 @@ export default function SalleConnexions({ onOuvrirMoteur, onMessage }: { onOuvri
           })}
         </div>
       </Toile>
+      <CarteConnecteur set="connecteur-b" onOuvrirMoteur={onOuvrirMoteur} />
     </section>
   );
 }

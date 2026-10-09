@@ -30,6 +30,7 @@ import {
   accueil, atelierVue, auditVue, commandeDetail, commandesVue, echangesVue, employesVue, futuresVue, groupesVue, incidentsVue, inventaireResume, lignesVue, memoireVue, mesuresVue, moteurDetail,
   moteursListe, salleBoutique, sallesListe, securiteVue, sessionsVue,
 } from "./vues.js";
+import { connecteurVue, controleCentraleVue, definirIdentiteCentre, identiteVue, moteursDeclaresListe, salleDeclareeVue, surveillanceVue } from "./declares.js";
 import { envoyer as envoyerBus } from "./bus.js";
 import { MOTEURS_INTERNES } from "./moteurs-internes.js";
 
@@ -324,5 +325,35 @@ export const frontierOsRouter = router({
   resoudreLacune: pdgProcedure.input(z.object({ code: z.string().min(1).max(80), note: z.string().min(3).max(2000), confirme: z.literal(true) })).mutation(async ({ ctx, input }) => {
     await pret();
     return resoudreLacune(input.code, acteurPdg(ctx.user.uid), input.note, input.confirme);
+  }),
+
+  // ── Moteurs déclarés (migration 0005) : sept nouvelles salles, Connecteur A, Connecteur B, connecteurs MKAPMS Shop — préparés, jamais actifs par défaut ──
+  moteursDeclares: pdgProcedure.input(z.object({ roomCode: z.string().max(60).optional(), connectorSet: z.string().max(60).optional() }).optional()).query(async ({ input }) => {
+    await pret();
+    return moteursDeclaresListe(input ?? {});
+  }),
+  salleDeclaree: pdgProcedure.input(z.object({ roomCode: z.string().min(2).max(60) })).query(async ({ input }) => {
+    await pret();
+    return salleDeclareeVue(input.roomCode);
+  }),
+  controleCentrale: pdgProcedure.query(async () => {
+    await pret();
+    return controleCentraleVue();
+  }),
+  surveillance: pdgProcedure.query(async () => {
+    await pret();
+    return surveillanceVue();
+  }),
+  connecteur: pdgProcedure.input(z.object({ set: z.string().min(2).max(60) })).query(async ({ input }) => {
+    await pret();
+    return connecteurVue(input.set);
+  }),
+  identiteCentre: pdgProcedure.query(async () => {
+    await pret();
+    return identiteVue();
+  }),
+  definirIdentiteCentre: pdgProcedure.input(z.object({ nom: z.string().min(2).max(120), confirme: z.literal(true) })).mutation(async ({ ctx, input }) => {
+    await pret();
+    return definirIdentiteCentre(input.nom, acteurPdg(ctx.user.uid));
   }),
 });

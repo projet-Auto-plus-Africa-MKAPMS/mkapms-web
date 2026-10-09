@@ -7,6 +7,9 @@ import { useState } from "react";
 import { trpc } from "../../lib/trpc";
 import { CarteModeReel } from "./ModeReel";
 import { Aiguille, Carte, ETAT_INVENTAIRE, Pastille, Vide, bouton, boutonDanger, date, heure, useConfirmation } from "./commun";
+import { CarteConnecteur } from "./SallesDeclarees";
+
+const CONNECTEURS_SHOP = ["shop-woocommerce", "shop-transporteurs", "shop-paiement", "shop-ia-boutique", "shop-autres"] as const;
 
 type Props = { onMessage: (m: string) => void; onOuvrirMoteur: (code: string) => void };
 
@@ -154,6 +157,15 @@ export function SallePlateforme({ code, titre, onOuvrirMoteur }: { code: string;
         )}
         <p className="mt-1 text-[11px] text-slate-400">{d.lignes.filter((l) => l.kind === "reserve").length} lignes « À venir » en réserve. Les commandes se font dans la salle des connexions.</p>
       </Carte>
+
+      {code === "shop" && (
+        <Carte titre="Connecteurs MKAPMS Shop (préparés, non connectés)">
+          <p className="text-xs text-slate-300">Chaque connecteur a un moteur côté Centre, un moteur intermédiaire, un interrupteur local, un interrupteur central, un accusé d'état et un journal. Tous désactivés tant qu'aucun vrai compte, clé ou contrat n'est fourni.</p>
+          <div className="mt-2 grid gap-2 md:grid-cols-2">
+            {CONNECTEURS_SHOP.map((set) => <CarteConnecteur key={set} set={set} onOuvrirMoteur={onOuvrirMoteur} />)}
+          </div>
+        </Carte>
+      )}
 
       <Carte titre="Moteurs inventoriés">
         <div className="mb-2 flex flex-wrap items-center gap-2">

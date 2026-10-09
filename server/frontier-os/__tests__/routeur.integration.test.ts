@@ -244,12 +244,12 @@ test("atelier, incidents, sessions, mémoire, employés, futures : vues complèt
   assert.equal((await c.ajouterGroupe({ code: "joaillerie-2", nom: "Joaillerie 2", plateforme: null })).ok, false);
   assert.equal((await c.groupes()).find((g) => g.code === "joaillerie-2")!.reserves, 5);
   const salles = await c.salles();
-  assert.equal(salles.length, 10);
+  assert.equal(salles.length, 17, "dix salles de fondation.ts + sept nouvelles salles déclarées (migration 0005)");
 });
 
 test("base : l'état de la base indépendante est lisible", async () => {
   const b = await pdg().base();
   assert.equal(b.prete, true);
   assert.equal(b.schema, "frontier");
-  assert.ok(b.migrations && b.migrations.dejaAppliquees.length + b.migrations.appliquees.length === 4);
+  assert.ok(b.migrations && b.migrations.dejaAppliquees.length + b.migrations.appliquees.length === 5);
 });
