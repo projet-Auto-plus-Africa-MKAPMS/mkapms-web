@@ -257,6 +257,10 @@ try {
   await nav.getByRole("button", { name: "Atelier", exact: true }).click();
   await page.getByRole("button", { name: "Lancer le diagnostic" }).click();
   await page.getByText(/anomalie\(s\) constatée\(s\)/).waitFor();
+  // Lacunes de développement : le centre dit honnêtement ce qu'il ne sait pas encore faire (émetteur de la Boutique, pas encore exécuté à ce stade de l'essai — le scénario « mode réel » plus bas l'exécutera et la lacune se résoudra seule au redémarrage suivant).
+  await page.locator('[data-lacune="boutique-emetteur-commutation"]').waitFor();
+  assert.equal(await page.locator('[data-lacune="boutique-emetteur-commutation"]').getAttribute("data-statut"), "declared");
+  await page.getByText(/émetteur de référence/).waitFor();
   await page.screenshot({ path: `${SORTIE}/11-atelier-bureau.png`, fullPage: true });
   await nav.getByRole("button", { name: "Mémoire", exact: true }).click();
   await page.getByText("Mémoire du centre (extensible, sans secret)").waitFor();
@@ -396,6 +400,10 @@ try {
   journalServeur = "";
   await demarrer();
   await new Promise((r) => setTimeout(r, 3000));
+  // La Boutique de référence a réellement rapporté son état pendant le scénario « mode réel » ci-dessus ;
+  // ce redémarrage relance le balayage de démarrage, qui doit avoir résolu seul la lacune (preuve observée, sans le PDG).
+  const { rows: lacuneApresReel } = await pool.query("SELECT status FROM frontier.capability_gaps WHERE code = 'boutique-emetteur-commutation'");
+  assert.equal(lacuneApresReel[0]?.status, "resolved", "la lacune de l'émetteur s'est résolue seule après un vrai rapport signé");
 
   // 4. Téléphone et tablette : le plan se déplace et se zoome ; les commandes restent accessibles ; pas de défilement horizontal de la page.
   for (const [nom, viewport] of [["telephone", { width: 390, height: 844 }], ["tablette", { width: 820, height: 1180 }]]) {

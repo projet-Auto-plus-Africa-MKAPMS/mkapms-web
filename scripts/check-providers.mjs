@@ -63,6 +63,9 @@ const AUTORISES = new Set([
   // Conversation vocale : texte de transcription borné et erreur nommant le champ refusé. Pose une clé factice
   // pour exercer creerAppelVocalTempsReel ; fetch toujours injecté, jamais un appel réseau réel.
   join("server", "intelligences", "__tests__", "dictee-vocabulaire.test.ts"),
+  // Centre Cyber-Électrique — garde d'autonomie : ces motifs sont des INTERDICTIONS que le cœur du centre doit
+  // respecter (le test échoue si un fichier du centre en vient à les contenir). Aucun appel, aucune clé posée.
+  join("server", "frontier-os", "__tests__", "autonomie.test.ts"),
 ]);
 
 const INTERDITS = [

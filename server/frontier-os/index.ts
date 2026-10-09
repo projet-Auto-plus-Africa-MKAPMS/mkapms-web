@@ -19,6 +19,7 @@ import { commanderCoupure, commanderGeneral, commanderGroupe, commanderLigne, de
 import { demarrerCentre } from "./demarrage-centre.js";
 import { ajouterGroupe, importerInventaire, VERSION_CENTRE } from "./fondation.js";
 import { armerReel, definirModeLigne, desarmerReel, reconcilierLiaisonsReelles, reelVue } from "./reel.js";
+import { resoudreLacune } from "./developpement.js";
 import { armerGouvernance, desarmerGouvernance } from "./gouvernance.js";
 import type { Acteur } from "./journal.js";
 import { echantillonnerCentre, mesurerCapacites } from "./mesures.js";
@@ -317,5 +318,11 @@ export const frontierOsRouter = router({
   cloreIncident: pdgProcedure.input(z.object({ incidentId: id, raison: z.string().min(3).max(200) })).mutation(async ({ ctx, input }) => {
     await pret();
     return cloreIncident(input.incidentId, acteurPdg(ctx.user.uid), input.raison);
+  }),
+
+  // ── Lacunes de développement : « je ne peux pas faire ça, il me faut tel développement » ──
+  resoudreLacune: pdgProcedure.input(z.object({ code: z.string().min(1).max(80), note: z.string().min(3).max(2000), confirme: z.literal(true) })).mutation(async ({ ctx, input }) => {
+    await pret();
+    return resoudreLacune(input.code, acteurPdg(ctx.user.uid), input.note, input.confirme);
   }),
 });

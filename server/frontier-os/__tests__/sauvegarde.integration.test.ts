@@ -139,10 +139,10 @@ test("sauvegarde : dossier + manifeste + une empreinte par table, relecture conf
   const d = dossier();
   const m = await sauvegarder(poolFrontier(), d);
   assert.equal(m.format, "frontier-sauvegarde/1");
-  assert.equal(m.tables.length, 31, "toutes les tables du centre sauf le journal des migrations");
+  assert.equal(m.tables.length, 32, "toutes les tables du centre sauf le journal des migrations");
   assert.ok(m.tables.every((t) => /^[0-9a-f]{64}$/.test(t.sha256)));
   assert.ok(m.tables.find((t) => t.nom === "commands")!.lignes > 0 && m.tables.find((t) => t.nom === "audit_log")!.lignes > 0);
-  assert.equal(m.migrations.length, 3);
+  assert.equal(m.migrations.length, 4);
   const v = verifierSauvegarde(d);
   assert.equal(v.ok, true, v.erreurs.join(" ; "));
   const tout = m.tables.map((t) => readFileSync(path.join(d, t.fichier), "utf8")).join("\n");
@@ -181,7 +181,7 @@ test("restauration dans une base vide : tout revient à l'identique (empreinte p
   const r = await restaurer(cible, d);
   assert.equal(r.ok, true, r.erreurs.join(" ; "));
   assert.equal(r.tablesIdentiques, r.tables);
-  assert.equal(r.tables, 31);
+  assert.equal(r.tables, 32);
   const cmp = await comparer(poolFrontier(), cible);
   assert.equal(cmp.identiques, true, cmp.ecarts.join(" ; "));
   // Les portes de passage sont revenues EXACTEMENT comme dans la source (une ligne connectée l'est restée, les autres sont coupées) : rien n'est rebranché.
@@ -254,7 +254,7 @@ test("restauration vers un serveur distinct (si disponible) : même contenu, com
   const r = await restaurer(cible, d);
   assert.equal(r.ok, true, r.erreurs.join(" ; "));
   const e = await empreintes(cible);
-  assert.equal(e.length, 31);
+  assert.equal(e.length, 32);
   assert.equal((await comparer(poolFrontier(), cible)).identiques, true);
   const diag = await diagnostiquerSeparation(cible, pool(urlDeTest()), true);
   assert.equal(diag.niveau, "serveur_distinct");
