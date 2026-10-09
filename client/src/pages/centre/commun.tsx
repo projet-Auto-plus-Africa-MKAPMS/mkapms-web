@@ -23,7 +23,29 @@ export const ETAT_INVENTAIRE: Record<string, { libelle: string; couleur: string 
   teste: { libelle: "Testé", couleur: "#34d399" },
   connecte: { libelle: "Connecté", couleur: "#22d3ee" },
   a_verifier: { libelle: "À vérifier", couleur: "#c084fc" },
+  vide: { libelle: "Vide", couleur: "#64748b" },
+  actif: { libelle: "Actif", couleur: "#22d3ee" },
+  bloque: { libelle: "Bloqué", couleur: "#f87171" },
+  erreur: { libelle: "Erreur", couleur: "#ef4444" },
 };
+
+// ───────────────────────── Alarme standard des salles du centre ─────────────────────────
+export const ALARME: Record<"vert" | "bleu" | "rouge" | "gris", { libelle: string; couleur: string }> = {
+  vert: { libelle: "Normal", couleur: "#34d399" },
+  bleu: { libelle: "Surveillance / information", couleur: "#38bdf8" },
+  rouge: { libelle: "Danger réel", couleur: "#ef4444" },
+  gris: { libelle: "Inactif / non connecté", couleur: "#64748b" },
+};
+export function AlarmeBadge({ alarme }: { alarme: { niveau: "vert" | "bleu" | "rouge" | "gris"; texte: string } | undefined }) {
+  if (!alarme) return null;
+  const a = ALARME[alarme.niveau];
+  return (
+    <span className="inline-flex items-center gap-1.5 rounded-full border px-2 py-1 text-[10px] font-black uppercase" style={{ borderColor: `${a.couleur}88`, background: `${a.couleur}1a`, color: a.couleur }} title={alarme.texte} data-alarme={alarme.niveau}>
+      <span className="inline-block h-2 w-2 rounded-full" style={{ background: a.couleur }} aria-hidden="true" />
+      {a.libelle}
+    </span>
+  );
+}
 export const LIBELLE_DEMANDE: Record<string, string> = { none: "aucune", activate: "activer", deactivate: "couper" };
 export const LIBELLE_OBSERVE: Record<string, string> = { connected: "connecté", disconnected: "déconnecté", unknown: "inconnu" };
 export const LIBELLE_AVANCEMENT: Record<string, string> = { idle: "au repos", pending: "en attente", in_progress: "en cours", confirmed: "confirmé", failed: "ÉCHEC" };
