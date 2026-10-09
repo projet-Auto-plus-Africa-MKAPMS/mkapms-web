@@ -6,6 +6,7 @@
  * Le journal ne garde jamais de contenu : seulement le canal, le sens, le résultat, le statut HTTP, la durée et un détail court
  * dont tout ce qui ressemble à un secret est retiré.
  */
+import { interrogerPortier } from "./portier.js";
 import { createHash, createPublicKey, verify } from "node:crypto";
 import { and, count, desc, eq, gt, sql } from "drizzle-orm";
 import { db } from "../db.js";
@@ -17,7 +18,7 @@ import { shopLinkCables, shopLinkCles, shopLinkJournal, shopLinkRejeu } from "./
 export const MAITRE = "maitre" as const;
 export type CibleCable = CanalId | typeof MAITRE;
 export type EtatCable = "connecte" | "coupe";
-export type RaisonRefus = "MAITRE_COUPE" | "CANAL_COUPE" | "ATTENTE_EXTERNE";
+export type RaisonRefus = "MAITRE_COUPE" | "CANAL_COUPE" | "ATTENTE_EXTERNE" | "GOUVERNANCE_CENTRE";
 
 const masquerSecrets = (texte: string) =>
   texte.replace(/(sk-[A-Za-z0-9_-]{16,}|shopsvc_[A-Za-z0-9_-]{20,}|AKIA[0-9A-Z]{16}|eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]*)/g, "[retiré]");
@@ -113,12 +114,18 @@ export function decider(cables: { maitre: LigneCable; canaux: Record<CanalId, Li
   return { passe: true };
 }
 
-export async function etatEffectif(canal: CanalId): Promise<Passage> {
-  return decider(await lireCables(), canal);
+export async function etatEffectif(canal: CanalId, sens: "sortant" | "entrant" = "sortant"): Promise<Passage> {
+  const cable = decider(await lireCables(), canal);
+  if (!cable.passe) return cable;
+  // Gouvernance du Centre Cyber-Électrique : seulement si le PDG l'a armée, et seulement pour RESTREINDRE (jamais pour ouvrir).
+  const centre = await interrogerPortier(canal, sens);
+  return centre.autorise ? cable : { passe: false, raison: "GOUVERNANCE_CENTRE" };
 }
 
 export const messageCoupure = (raison: RaisonRefus | undefined): string =>
-  raison === "MAITRE_COUPE"
+  raison === "GOUVERNANCE_CENTRE"
+    ? "Le Centre Cyber-Électrique, armé par le PDG, a coupé cette ligne : rien ne passe tant que ses trois coupures ne sont pas confirmées."
+    : raison === "MAITRE_COUPE"
     ? "Le câble Boutique est coupé en entier (commutateur général) : rien ne passe entre la plateforme et la Boutique."
     : raison === "ATTENTE_EXTERNE"
       ? "Ce canal attend une activation externe côté Boutique : il ne peut pas être branché."

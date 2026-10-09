@@ -462,6 +462,15 @@ async function bootstrap() {
     } catch (err) {
       console.error("[MKA.P-MS] échec bootstrap moteurs:", (err as Error).message);
     }
+    // Centre Cyber-Électrique MKA.P-MS : base PROPRE (schéma frontier, migrateur et journal propres), fondation, portier du câble de la
+    // Boutique, tâches de fond. En arrière-plan et sans jamais bloquer ni faire tomber le démarrage : une erreur est journalisée et
+    // affichée dans le centre. Le portier ne fait rien tant que le PDG n'a pas armé la gouvernance.
+    void import("./frontier-os/demarrage-centre.js")
+      .then((m) => {
+        m.lancerTachesDeFond();
+        return m.demarrerCentre();
+      })
+      .catch((err) => console.error("[MKA.P-MS] centre cyber-électrique indisponible:", (err as Error).message));
     // Réconciliation des états des moteurs sur PREUVE : un moteur en `staging`
     // ne devient `active` que si l'audit d'activation l'a classé « opérationnelle »
     // (procédure montée + battement de cœur + données réelles + preuve de test).

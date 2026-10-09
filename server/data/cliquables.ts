@@ -40,7 +40,7 @@ export interface AnomalieCliquable {
   readonly motif: MotifAnomalie;
 }
 
-export const CLIQUABLES_TOTAL = 2762;
+export const CLIQUABLES_TOTAL = 2789;
 
 export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/components/AccessDenied.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
@@ -100,13 +100,17 @@ export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/pages/CarteGrise.tsx", total: 4, moteur: 0, liens: 0, boutonsLocaux: 4, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/CarteMondiale.tsx", total: 1, moteur: 0, liens: 0, boutonsLocaux: 1, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/CatalogueTechnique.tsx", total: 15, moteur: 5, liens: 2, boutonsLocaux: 7, sansAction: 0, zones: 1 },
+  { fichier: "client/src/pages/centre/commun.tsx", total: 6, moteur: 0, liens: 0, boutonsLocaux: 6, sansAction: 0, zones: 0 },
+  { fichier: "client/src/pages/centre/FicheMoteur.tsx", total: 1, moteur: 0, liens: 0, boutonsLocaux: 1, sansAction: 0, zones: 0 },
+  { fichier: "client/src/pages/centre/SalleConnexions.tsx", total: 16, moteur: 0, liens: 0, boutonsLocaux: 16, sansAction: 0, zones: 0 },
+  { fichier: "client/src/pages/centre/Salles.tsx", total: 18, moteur: 0, liens: 0, boutonsLocaux: 16, sansAction: 0, zones: 2 },
   { fichier: "client/src/pages/CentreActions.tsx", total: 8, moteur: 0, liens: 1, boutonsLocaux: 7, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/CentreAutoBranchement.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/CentreBusEvenements.tsx", total: 3, moteur: 0, liens: 1, boutonsLocaux: 2, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/CentreCommandes.tsx", total: 11, moteur: 0, liens: 4, boutonsLocaux: 7, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/CentreConnaissance.tsx", total: 10, moteur: 0, liens: 1, boutonsLocaux: 9, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/CentreControleContinu.tsx", total: 3, moteur: 0, liens: 1, boutonsLocaux: 2, sansAction: 0, zones: 0 },
-  { fichier: "client/src/pages/CentreCyberElectrique.tsx", total: 17, moteur: 0, liens: 2, boutonsLocaux: 14, sansAction: 0, zones: 1 },
+  { fichier: "client/src/pages/CentreCyberElectrique.tsx", total: 3, moteur: 0, liens: 2, boutonsLocaux: 1, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/CentreDocuments.tsx", total: 5, moteur: 0, liens: 4, boutonsLocaux: 1, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/CentreIA.tsx", total: 7, moteur: 0, liens: 1, boutonsLocaux: 6, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/CentreIndexation.tsx", total: 6, moteur: 0, liens: 1, boutonsLocaux: 5, sansAction: 0, zones: 0 },
