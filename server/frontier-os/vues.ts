@@ -20,6 +20,7 @@ import { MOTEURS_INTERNES } from "./moteurs-internes.js";
 import { ACTION_REELLE_ACTIVEE, ELEMENTS_CHAINE, MODE, RESERVE_PAR_LIGNE_REELLE, decisionPassage, etatContactGroupe, etatLigne, ligneAdmissible } from "./regles.js";
 import { detecterAnomalies, incidentsOuverts, verifierInvariants } from "./atelier.js";
 import { VERSION_CENTRE } from "./fondation.js";
+import { lacunesVue } from "./developpement.js";
 import { poolFrontier, variableFournie } from "./base/connexion.js";
 import { LIBELLE_SEPARATION, diagnostiquerSeparation } from "./separation.js";
 import { adaptateurDe } from "./liaisons-reelles.js";
@@ -305,8 +306,8 @@ export async function securiteVue() {
 export async function atelierVue() {
   const db = dbFrontier();
   const reparations = await db.select().from(repairs).orderBy(desc(repairs.id)).limit(60);
-  const [anomalies, invariants, ouverts] = await Promise.all([detecterAnomalies(), verifierInvariants(), incidentsOuverts(100)]);
-  return { reparations, anomalies, invariants, incidentsOuverts: ouverts };
+  const [anomalies, invariants, ouverts, lacunes] = await Promise.all([detecterAnomalies(), verifierInvariants(), incidentsOuverts(100), lacunesVue()]);
+  return { reparations, anomalies, invariants, incidentsOuverts: ouverts, lacunes };
 }
 
 export async function incidentsVue(limite = 100) {

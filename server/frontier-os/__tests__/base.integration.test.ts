@@ -32,12 +32,12 @@ const refuse = async (sql: string, params: unknown[] = [], motif?: RegExp) => {
 
 test("migrations propres : appliquées une fois, journalisées, idempotentes", async () => {
   const r1 = await migrer(p);
-  assert.deepEqual(r1.appliquees, ["0001_identite_et_registre.sql", "0002_chaine_commandes_et_exploitation.sql", "0003_liaisons_reelles.sql"]);
+  assert.deepEqual(r1.appliquees, ["0001_identite_et_registre.sql", "0002_chaine_commandes_et_exploitation.sql", "0003_liaisons_reelles.sql", "0004_lacunes_developpement.sql"]);
   const r2 = await migrer(p);
   assert.deepEqual(r2.appliquees, []);
-  assert.equal(r2.dejaAppliquees.length, 3);
+  assert.equal(r2.dejaAppliquees.length, 4);
   const j = (await p.query("SELECT name, length(checksum) l FROM frontier.migrations ORDER BY name")).rows;
-  assert.equal(j.length, 3);
+  assert.equal(j.length, 4);
   assert.ok(j.every((x) => x.l === 64));
   const tables = (await p.query("SELECT count(*)::int n FROM information_schema.tables WHERE table_schema = 'frontier' AND table_type = 'BASE TABLE'")).rows[0].n;
   assert.ok(tables >= 28, `tables du centre : ${tables}`);

@@ -109,7 +109,7 @@ jobs:
         env:
           SHOP_KNOWLEDGE_TEST_DB: postgresql://core_ai_test:disposable_ci_fixture@localhost:5432/core_ai_test
 
-      - name: Frontier OS cyber-electric center (inventory, independent database, chain, cuts, transport, faults, workshop, governance, PDG router, separation and backup)
+      - name: Frontier OS cyber-electric center (inventory, independent database, chain, cuts, transport, faults, workshop, governance, PDG router, separation, backup, real links, autonomy, development gaps)
         # Un fichier par commande : tous partagent la même base jetable (le schéma « frontier » y est recréé), ils ne peuvent pas tourner en parallèle.
         run: |
           node --import tsx --test server/frontier-os/__tests__/regles.test.ts server/frontier-os/__tests__/inventaire.test.ts
@@ -123,6 +123,9 @@ jobs:
           node --import tsx --test server/frontier-os/__tests__/gouvernance.integration.test.ts
           node --import tsx --test server/frontier-os/__tests__/routeur.integration.test.ts
           node --import tsx --test server/frontier-os/__tests__/sauvegarde.integration.test.ts
+          node --import tsx --test server/frontier-os/__tests__/reel.integration.test.ts
+          node --import tsx --test server/frontier-os/__tests__/autonomie.test.ts
+          node --import tsx --test server/frontier-os/__tests__/developpement.test.ts
         env:
           SHOP_KNOWLEDGE_TEST_DB: postgresql://core_ai_test:disposable_ci_fixture@localhost:5432/core_ai_test
 

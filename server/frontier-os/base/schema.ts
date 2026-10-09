@@ -521,3 +521,27 @@ export const remoteReports = frontier.table("remote_reports", {
   ownerKind: text("owner_kind").$type<ProprietaireKind>().notNull().default("platform"),
   ownerCode: text("owner_code").notNull().default("shop"),
 });
+
+// ───────────────────────── Lacunes de développement (migration 0004) ─────────────────────────
+export type StatutLacune = "declared" | "resolved";
+
+export const capabilityGaps = frontier.table(
+  "capability_gaps",
+  {
+    id: bigserial("id", { mode: "number" }).primaryKey(),
+    code: text("code").notNull(),
+    title: text("title").notNull(),
+    detail: text("detail").notNull(),
+    developmentNeeded: text("development_needed").notNull(),
+    engineCode: text("engine_code"),
+    status: text("status").$type<StatutLacune>().notNull().default("declared"),
+    raisedBy: text("raised_by").notNull().default("center"),
+    ownerKind: text("owner_kind").$type<ProprietaireKind>().notNull().default("center"),
+    ownerCode: text("owner_code").notNull().default("center"),
+    declaredAt: t("declared_at").notNull().defaultNow(),
+    resolvedAt: t("resolved_at"),
+    resolvedBy: text("resolved_by"),
+    resolvedNote: text("resolved_note"),
+  },
+  (x) => [index("capability_gaps_status_idx").on(x.status, x.declaredAt)],
+);

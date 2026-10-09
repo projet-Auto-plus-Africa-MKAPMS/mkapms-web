@@ -282,6 +282,8 @@ export function SalleAtelier({ onMessage }: Pick<Props, "onMessage">) {
   const appliquer = trpc.frontierOs.appliquer.useMutation({ onSuccess: ok, onError: (e) => onMessage(e.message) });
   const annuler = trpc.frontierOs.annuler.useMutation({ onSuccess: ok, onError: (e) => onMessage(e.message) });
   const clore = trpc.frontierOs.cloreIncident.useMutation({ onSuccess: ok, onError: (e) => onMessage(e.message) });
+  const resoudreLacune = trpc.frontierOs.resoudreLacune.useMutation({ onSuccess: ok, onError: (e) => onMessage(e.message) });
+  const [notesLacunes, setNotesLacunes] = useState<Record<string, string>>({});
   const d = a.data;
   if (a.isLoading) return <p className="text-sm">Lecture de l'atelier…</p>;
   if (a.error) return <p role="alert" className="text-sm text-red-300">{a.error.message}</p>;
@@ -324,6 +326,27 @@ export function SalleAtelier({ onMessage }: Pick<Props, "onMessage">) {
                 {r.status === "tested" && <button type="button" className={boutonDanger} onClick={() => demander({ titre: `Appliquer la réparation #${r.id}`, detail: "Un invariant cassé annule tout. Le retour arrière reste possible.", executer: () => appliquer.mutate({ reparationId: r.id, confirme: true }) })}>Appliquer</button>}
                 {r.status === "applied" && <button type="button" className={boutonDanger} onClick={() => demander({ titre: `Retour arrière de la réparation #${r.id}`, detail: "Restaure la version avant l'intervention (une porte n'est jamais rouverte).", executer: () => annuler.mutate({ reparationId: r.id, confirme: true }) })}>Retour arrière</button>}
               </div>
+            </li>
+          ))}</ul>
+        )}
+      </Carte>
+      <Carte titre={`Lacunes de développement (${d.lacunes.declarees} déclarée(s), ${d.lacunes.resolues} résolue(s))`}>
+        <p className="text-xs text-slate-300">Ce que le centre ne sait pas encore faire, dit honnêtement, avec le développement nécessaire — jamais un échec silencieux ni une réussite inventée. Une lacune constatée par le centre lui-même (preuve observée) se résout seule ; les autres attendent votre décision.</p>
+        {d.lacunes.lacunes.length === 0 ? <Vide>Aucune lacune relevée pour l'instant.</Vide> : (
+          <ul className="mt-2 text-xs text-slate-200">{d.lacunes.lacunes.map((l) => (
+            <li key={l.code} className="border-t border-slate-800 py-1.5" data-lacune={l.code} data-statut={l.status}>
+              <b className={l.status === "resolved" ? "text-emerald-300" : "text-amber-300"}>{l.status === "resolved" ? "résolue" : "déclarée"}</b> · <span className="text-white">{l.title}</span>
+              {l.engineCode && <span className="text-slate-500"> ({l.engineCode})</span>}
+              <div className="text-[11px] text-slate-400">{l.detail}</div>
+              <div className="text-[11px] text-cyan-200">Développement nécessaire : {l.developmentNeeded}</div>
+              {l.status === "resolved" ? (
+                <div className="text-[11px] text-slate-500">Résolue par {l.resolvedBy} le {date(l.resolvedAt)} — {l.resolvedNote}</div>
+              ) : (
+                <div className="mt-1 flex flex-wrap items-center gap-2">
+                  <input aria-label={`Note de résolution pour ${l.code}`} value={notesLacunes[l.code] ?? ""} onChange={(e) => setNotesLacunes((s) => ({ ...s, [l.code]: e.target.value }))} placeholder="Comment la lacune a été comblée…" className="w-72 rounded border border-slate-600 bg-[#0b1220] px-2 py-1 text-[11px] text-white" />
+                  <button type="button" className={bouton} disabled={resoudreLacune.isPending || (notesLacunes[l.code] ?? "").trim().length < 3} onClick={() => demander({ titre: `Marquer la lacune « ${l.code} » résolue`, detail: "Indique que le développement nécessaire a été fait (ailleurs, dans une autre session).", executer: () => resoudreLacune.mutate({ code: l.code, note: notesLacunes[l.code]!.trim(), confirme: true }) })}>Marquer résolue</button>
+                </div>
+              )}
             </li>
           ))}</ul>
         )}

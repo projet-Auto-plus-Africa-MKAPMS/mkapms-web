@@ -41,7 +41,7 @@ Relations principales : `companies ← platforms ← groups ← lines` ; `lines 
 
 ## 5. Résultats des tests (exécutés, base locale jetable)
 
-La suite complète du centre a été jouée **trois fois de suite** (journal brut : [`preuves/centre-tests-3-passes.log`](preuves/centre-tests-3-passes.log)) : **118 tests par passe, 0 échec**.
+La suite complète du centre a été jouée **trois fois de suite** (journal brut : [`preuves/centre-tests-3-passes.log`](preuves/centre-tests-3-passes.log)) : **127 tests par passe, 0 échec**.
 
 | Fichier | Tests | Ce qu'il prouve |
 | --- | ---: | --- |
@@ -57,7 +57,9 @@ La suite complète du centre a été jouée **trois fois de suite** (journal bru
 | `routeur.integration.test.ts` | 10 | réservé au PDG (toute procédure, y compris celles du mode réel), accueil mesuré, lignes, commandes, moteurs, mesures, sécurité (niveau de séparation mesuré, aucune adresse ni valeur de secret ; voies de données toutes consultées, navigation distinguée), atelier |
 | `sauvegarde.integration.test.ts` | 8 | **niveau de séparation mesuré** (schéma partagé, base distincte, identique, inconnu, **serveur distinct** sur un second Postgres local) ; sauvegarde par empreintes, altération reconnue, **restauration tout ou rien** (cible vide seulement, migrations identiques, portes restaurées telles quelles, séquences), comparaison avant bascule |
 | `reel.integration.test.ts` | 13 | **liaisons réelles** : deux clés (variable seule ou armement seul ne suffisent pas) ; ligne sans liaison jamais réelle ; activation = **vrai câble** `shop_link` fermé + ordre signé à la Boutique de référence + état relu ; **chaque coupure, seule, referme la voie réelle** (échange réel signé accepté puis refusé) ; Boutique silencieuse ou qui refuse : échec fermé, rien d'ouvert, incident ; câble sans effet : contact refermé ; mode retiré : plus rien ne passe, coupure toujours permise ; réconciliation ; redémarrage ; désarmement ; plan de commande (signature, horodatage, ligne inconnue, accusé plus ancien) |
-| **Total** | **118** | |
+| `autonomie.test.ts` | 3 | **aucun fichier du cœur du centre n'appelle une IA ni une API de fournisseur externe**, aucun n'importe `server/intelligences/` ; les 16 moteurs internes ne nomment aucune IA externe dans leur fonction |
+| `developpement.test.ts` | 6 | **lacunes de développement** : déclaration idempotente, résolution par preuve observée (jamais par une IA), résolution par le PDG (confirmation et note exigées), ré-ouverture honnête, le balayage ne relève que ce qui est réellement vérifiable (l'émetteur de la Boutique) |
+| **Total** | **127** | |
 
 Autres vérifications, **deux passes de suite** : suites existantes touchées — `shop-link` (30 tests), `boutique` (22), coffre (6, dont 1 sauté de longue date), `shop-analysis` (2), `shop-knowledge` (4) — sans régression. `npm run typecheck` sans erreur ; `npm run build` complet sans erreur (contrôles, inventaires générés, vite, esbuild).
 
@@ -88,6 +90,8 @@ Dossier [`preuves/captures/`](preuves/captures/) (jouées sur la version finale)
 | Map, IA Al-Houdoud M., Boutique Bijoux, futures plateformes | **Réserves vides** « À venir » ; Map non inventoriée (à vérifier) |
 | Identité de « MKH Shop », « MKPMS Shop », « boutique principale » | Précisé par le PDG le 9 oct. 2026 : pas une boutique à part, le centre est installé dans la plateforme principale (MKAPMS Web) ; noms toujours absents du code, rien n'est fusionné |
 | Température, capacité doublée | **Non mesurées / non prouvées** : aucune source, aucun facteur annoncé |
+| Lacunes de développement | **Réel et testé** : le centre déclare honnêtement ce qu'il ne sait pas encore faire (aujourd'hui : l'émetteur de la Boutique), avec le développement exact nécessaire ; résolution par preuve observée ou par le PDG, jamais par supposition |
+| Autonomie du cœur du centre | **Testée** : aucun fichier de `server/frontier-os/*.ts` n'appelle une IA ni une API de fournisseur externe (garde statique, `autonomie.test.ts`) |
 | **Preuve en ligne** | **Manquante** : rien n'a été exécuté sur Railway ni contre la vraie Boutique |
 
 ## 9. Démarrage et retour arrière

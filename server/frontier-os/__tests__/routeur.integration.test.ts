@@ -251,5 +251,5 @@ test("base : l'état de la base indépendante est lisible", async () => {
   const b = await pdg().base();
   assert.equal(b.prete, true);
   assert.equal(b.schema, "frontier");
-  assert.ok(b.migrations && b.migrations.dejaAppliquees.length + b.migrations.appliquees.length === 3);
+  assert.ok(b.migrations && b.migrations.dejaAppliquees.length + b.migrations.appliquees.length === 4);
 });
