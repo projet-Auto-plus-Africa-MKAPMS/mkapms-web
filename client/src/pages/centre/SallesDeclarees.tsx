@@ -331,7 +331,15 @@ function ResumeConnecteur({ d, nom, onOuvrirMoteur }: { d: ConnecteurVue; nom: s
   );
 }
 
-export function VitrineFrontiereElectrique({ onOuvrirMoteur }: { onOuvrirMoteur: (c: string) => void }) {
+export function VitrineFrontiereElectrique({ onOuvrirMoteur, onMessage }: { onOuvrirMoteur: (c: string) => void; onMessage?: (m: string) => void }) {
+  const utils = trpc.useUtils();
+  const allumage = trpc.frontierOs.allumageCentral.useMutation({
+    onSuccess: async (r) => {
+      onMessage?.(r.detail);
+      await Promise.all([utils.frontierOs.connecteur.invalidate(), utils.frontierOs.controleCentrale.invalidate(), utils.frontierOs.accueil.invalidate()]);
+    },
+    onError: (e) => onMessage?.(e.message),
+  });
   const connecteurA = trpc.frontierOs.connecteur.useQuery({ set: "connecteur-a" }, { refetchInterval: 20000 });
   const connecteurB = trpc.frontierOs.connecteur.useQuery({ set: "connecteur-b" }, { refetchInterval: 20000 });
   const woo = trpc.frontierOs.connecteur.useQuery({ set: "shop-woocommerce" }, { refetchInterval: 20000 });
@@ -355,7 +363,15 @@ export function VitrineFrontiereElectrique({ onOuvrirMoteur }: { onOuvrirMoteur:
             <span className="font-black uppercase text-emerald-200">Développement sans déconnexion</span>
             <span className="text-slate-300">Ajouts par réserves et moteurs déclarés.</span>
             <span className="text-slate-300">Contacts rouges ouverts par défaut.</span>
-            <span className="text-slate-300">Aucun allumage sans décision PDG.</span>
+            <button
+              type="button"
+              disabled={allumage.isPending}
+              onClick={() => allumage.mutate({ confirme: true })}
+              className={`${bouton} justify-center py-1 text-[10px]`}
+              data-allumage-central
+            >
+              {allumage.isPending ? "Allumage..." : "Allumer A → B → central"}
+            </button>
           </div>
           <div className="grid items-stretch gap-3" style={{ gridTemplateColumns: "360px 1fr 360px" }}>
             <div className="rounded-xl border border-cyan-500/30 bg-cyan-950/10 p-3" data-zone-frontiere="gauche">

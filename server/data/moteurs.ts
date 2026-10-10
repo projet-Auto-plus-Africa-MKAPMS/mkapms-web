@@ -8890,7 +8890,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "routeurs": [
       "frontierOs"
     ],
-    "fichiersServeur": 35,
+    "fichiersServeur": 34,
     "dependancesDeclarees": [
       "core",
       "identity",
@@ -8971,6 +8971,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "accueil",
       "activerLigne",
       "ajouterGroupe",
+      "allumageCentral",
       "annuler",
       "appliquer",
       "armerReel",
@@ -9013,7 +9014,6 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "moteurDemarrer",
       "moteurs",
       "moteursDeclares",
-      "noyau",
       "proposer",
       "protocole",
       "reconcilier",
