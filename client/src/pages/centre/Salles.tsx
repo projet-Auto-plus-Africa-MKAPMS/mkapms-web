@@ -7,7 +7,7 @@ import { useState } from "react";
 import { trpc } from "../../lib/trpc";
 import { CarteModeReel } from "./ModeReel";
 import { Aiguille, Carte, ETAT_INVENTAIRE, Pastille, Vide, bouton, boutonDanger, date, heure, useConfirmation } from "./commun";
-import { CarteConnecteur } from "./SallesDeclarees";
+import { CarteConnecteur, NoyauCentral } from "./SallesDeclarees";
 
 const CONNECTEURS_SHOP = ["shop-woocommerce", "shop-transporteurs", "shop-paiement", "shop-ia-boutique", "shop-autres"] as const;
 
@@ -26,6 +26,7 @@ export function SalleAccueil({ onMessage }: Pick<Props, "onMessage">) {
   const c = d.commandes24h as Record<string, number>;
   return (
     <section aria-label="Accueil" className="space-y-3">
+      <NoyauCentral />
       <Carte titre="Aiguilles : uniquement des mesures">
         <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">{d.jauges.map((j) => <Aiguille key={j.cle} j={j} />)}</div>
         <p className="mt-2 text-[11px] text-slate-400">Une aiguille n'est verte que si une vérification a réussi. Une valeur absente est « non mesurée », jamais un zéro. Il n'existe aucune source de température : elle reste « non mesurée ».</p>

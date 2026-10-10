@@ -122,6 +122,7 @@ jobs:
           node --import tsx --test server/frontier-os/__tests__/fondation.integration.test.ts
           node --import tsx --test server/frontier-os/__tests__/moteurs-declares.integration.test.ts
           node --import tsx --test server/frontier-os/__tests__/declares.integration.test.ts
+          node --import tsx --test server/frontier-os/__tests__/noyau.integration.test.ts
           node --import tsx --test server/frontier-os/__tests__/chaine.integration.test.ts
           node --import tsx --test server/frontier-os/__tests__/transport.integration.test.ts
           node --import tsx --test server/frontier-os/__tests__/pannes.integration.test.ts

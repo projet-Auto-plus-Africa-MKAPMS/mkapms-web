@@ -102,6 +102,11 @@ export const MOTEURS_INTERNES: readonly SpecMoteurInterne[] = [
     fonction: "Mesure le débit, la latence, la mémoire, la charge, les erreurs et la reprise après panne ; ne produit jamais de valeur par défaut.",
     entrees: "événements du bus, état du processus", sorties: "mesures datées avec leur source", arret: ARRET,
   },
+  {
+    code: "center:core.noyau", nom: "Noyau central du Centre", kind: "monitor",
+    fonction: "Bat un signal de vie daté par le bus interne, à intervalle régulier pendant que le processus du Centre tourne. Ne mesure rien d'autre, ne connecte rien à l'extérieur : prouve seulement que le Centre fonctionne par lui-même.",
+    entrees: "minuterie interne du processus (aucune donnée externe)", sorties: "battement daté, compteur de battements propre à ce processus", arret: ARRET,
+  },
 ];
 
 export const CODES_INTERNES = new Set(MOTEURS_INTERNES.map((m) => m.code));
