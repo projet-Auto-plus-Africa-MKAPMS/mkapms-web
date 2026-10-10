@@ -30,8 +30,7 @@ import {
   accueil, atelierVue, auditVue, commandeDetail, commandesVue, echangesVue, employesVue, futuresVue, groupesVue, incidentsVue, inventaireResume, lignesVue, memoireVue, mesuresVue, moteurDetail,
   moteursListe, salleBoutique, sallesListe, securiteVue, sessionsVue,
 } from "./vues.js";
-import { connecteurVue, controleCentraleVue, definirIdentiteCentre, identiteVue, moteursDeclaresListe, salleDeclareeVue, surveillanceVue } from "./declares.js";
-import { etapesDemarrage, etatNoyau } from "./noyau.js";
+import { allumerMoteurCentralApresAetB, connecteurVue, controleCentraleVue, definirIdentiteCentre, identiteVue, moteursDeclaresListe, salleDeclareeVue, surveillanceVue } from "./declares.js";
 import { envoyer as envoyerBus } from "./bus.js";
 import { MOTEURS_INTERNES } from "./moteurs-internes.js";
 
@@ -256,6 +255,10 @@ export const frontierOsRouter = router({
     await pret();
     return demarrerMoteur(input.code, acteurPdg(ctx.user.uid), input.confirme);
   }),
+  allumageCentral: pdgProcedure.input(z.object({ confirme: z.boolean().default(false) })).mutation(async ({ ctx, input }) => {
+    await pret();
+    return allumerMoteurCentralApresAetB(acteurPdg(ctx.user.uid), input.confirme);
+  }),
   mesurer: pdgProcedure.mutation(async () => {
     await pret();
     await echantillonnerCentre();
@@ -356,12 +359,5 @@ export const frontierOsRouter = router({
   definirIdentiteCentre: pdgProcedure.input(z.object({ nom: z.string().min(2).max(120), confirme: z.literal(true) })).mutation(async ({ ctx, input }) => {
     await pret();
     return definirIdentiteCentre(input.nom, acteurPdg(ctx.user.uid));
-  }),
-
-  // ── Noyau central : démarrage visuel honnête, état lu en base, aucun connecteur, aucun accès externe ──
-  noyau: pdgProcedure.query(async () => {
-    await pret();
-    const [etat, etapes] = await Promise.all([etatNoyau(), etapesDemarrage()]);
-    return { etat, etapes };
   }),
 });
