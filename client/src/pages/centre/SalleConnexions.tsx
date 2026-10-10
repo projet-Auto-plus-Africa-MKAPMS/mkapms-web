@@ -9,7 +9,7 @@
 import { useState, type CSSProperties } from "react";
 import { trpc } from "../../lib/trpc";
 import { Carte, LIBELLE_AVANCEMENT, LIBELLE_COTE, LIBELLE_DEMANDE, LIBELLE_ETAT_LIGNE, LIBELLE_OBSERVE, Pastille, Toile, Vide, bouton, boutonDanger, heure, useConfirmation, type GroupeVue, type LigneReelle, type LigneVue } from "./commun";
-import { CarteConnecteur } from "./SallesDeclarees";
+import { CarteConnecteur, VitrineFrontiereElectrique } from "./SallesDeclarees";
 
 const LARGEUR_PLAN = 1010;
 /** Les lignes « À venir » restent visibles (désactivées) : cinq par groupe d'emblée, les autres derrière un bouton. */
@@ -246,6 +246,7 @@ export default function SalleConnexions({ onOuvrirMoteur, onMessage }: { onOuvri
       {lignes.error && <p className="text-sm text-red-300">{lignes.error.message}</p>}
 
       <style>{STYLE_ANIMATIONS}</style>
+      <VitrineFrontiereElectrique onOuvrirMoteur={onOuvrirMoteur} />
       <Toile largeur={LARGEUR_PLAN}>
         <div className="space-y-6 p-2" data-plan="connexions">
           <div className="grid items-end text-center" style={{ gridTemplateColumns: "1fr 120px 1fr" }}>

@@ -255,6 +255,151 @@ export function CarteConnecteur({ set, onOuvrirMoteur }: { set: string; onOuvrir
   );
 }
 
+type ConnecteurVue = {
+  set: string;
+  libelle: string;
+  total: number;
+  pourcentage: number;
+  note: string;
+  moteurs: readonly Moteur[];
+  alarme: { niveau: "vert" | "bleu" | "rouge" | "gris"; texte: string };
+} | undefined;
+const SHOP_CONNECTEURS = [
+  { set: "shop-woocommerce", court: "WooCommerce" },
+  { set: "shop-transporteurs", court: "Transporteurs" },
+  { set: "shop-paiement", court: "Paiement" },
+  { set: "shop-ia-boutique", court: "IA Boutique" },
+  { set: "shop-autres", court: "Autres registres" },
+] as const;
+
+function MiniConnecteur({ d, libelle, onOuvrirMoteur }: { d: ConnecteurVue; libelle: string; onOuvrirMoteur: (c: string) => void }) {
+  const premier = d?.moteurs[0]?.code;
+  return (
+    <button
+      type="button"
+      disabled={!premier}
+      onClick={() => premier && onOuvrirMoteur(premier)}
+      className="min-h-[82px] rounded-lg border border-slate-700 bg-[#0b1220] p-2 text-left hover:bg-[#13203a] disabled:cursor-default disabled:hover:bg-[#0b1220]"
+      data-connecteur-vitrine={d?.set ?? libelle}
+    >
+      <div className="flex items-start justify-between gap-2">
+        <p className="text-xs font-black text-white">{libelle}</p>
+        <AlarmeBadge alarme={d?.alarme} />
+      </div>
+      <p className="mt-1 text-[11px] text-slate-400">{d ? `${d.total} moteur(s) · ${d.pourcentage}%` : "Lecture..."}</p>
+      <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-slate-800">
+        <div className="h-1.5 rounded-full bg-cyan-400" style={{ width: `${d?.pourcentage ?? 0}%` }} />
+      </div>
+      <p className="mt-1 line-clamp-2 text-[10px] leading-tight text-slate-500">{d?.note ?? "Etat non lu."}</p>
+    </button>
+  );
+}
+
+function TraceFrontiere({ actif = false }: { actif?: boolean }) {
+  return (
+    <div className="flex items-center gap-1" aria-hidden="true">
+      <span className={`h-1 flex-1 rounded ${actif ? "bg-cyan-300 shadow-[0_0_10px_#22d3ee]" : "bg-slate-700"}`} />
+      <span className="flex h-12 w-16 items-center justify-center rounded-xl border-4 border-red-500 bg-[#1f0a0a] text-[9px] font-black uppercase text-red-100 shadow-[0_0_14px_#ef444433]">
+        ouvert
+      </span>
+      <span className={`h-1 flex-1 rounded ${actif ? "bg-cyan-300 shadow-[0_0_10px_#22d3ee]" : "bg-slate-700"}`} />
+    </div>
+  );
+}
+
+export function VitrineFrontiereElectrique({ onOuvrirMoteur }: { onOuvrirMoteur: (c: string) => void }) {
+  const connecteurA = trpc.frontierOs.connecteur.useQuery({ set: "connecteur-a" }, { refetchInterval: 20000 });
+  const connecteurB = trpc.frontierOs.connecteur.useQuery({ set: "connecteur-b" }, { refetchInterval: 20000 });
+  const woo = trpc.frontierOs.connecteur.useQuery({ set: "shop-woocommerce" }, { refetchInterval: 20000 });
+  const transporteurs = trpc.frontierOs.connecteur.useQuery({ set: "shop-transporteurs" }, { refetchInterval: 20000 });
+  const paiement = trpc.frontierOs.connecteur.useQuery({ set: "shop-paiement" }, { refetchInterval: 20000 });
+  const iaBoutique = trpc.frontierOs.connecteur.useQuery({ set: "shop-ia-boutique" }, { refetchInterval: 20000 });
+  const autres = trpc.frontierOs.connecteur.useQuery({ set: "shop-autres" }, { refetchInterval: 20000 });
+  const shop = [woo.data, transporteurs.data, paiement.data, iaBoutique.data, autres.data];
+  const shopTotal = shop.reduce((n, d) => n + (d?.total ?? 0), 0);
+  const premierA = connecteurA.data?.moteurs[0]?.code;
+  const premierB = connecteurB.data?.moteurs[0]?.code;
+  return (
+    <Carte titre="Vitrine principale — frontière électrique entre plateformes">
+      <p className="text-xs text-slate-300">
+        Lecture principale demandée par le PDG : plateformes à gauche, frontière rouge au centre, plateforme principale à droite.
+        Tous les contacts sont ouverts par défaut ; cette vitrine ne branche rien et ne remplace pas les moteurs déjà posés.
+      </p>
+      <div className="mt-3 overflow-auto pb-2" data-testid="vitrine-frontiere-electrique">
+        <div className="min-w-[1180px] rounded-2xl border border-slate-700 bg-[#070c14] p-3">
+          <div className="grid items-stretch gap-3" style={{ gridTemplateColumns: "330px 1fr 330px" }}>
+            <div className="rounded-xl border border-cyan-500/30 bg-cyan-950/10 p-3" data-zone-frontiere="gauche">
+              <p className="text-[11px] font-black uppercase tracking-wider text-cyan-200">Côté gauche · plateformes externes</p>
+              <h3 className="mt-1 text-sm font-black text-white">MKAPMS Shop + futures plateformes</h3>
+              <p className="mt-1 text-[11px] text-slate-400">{shopTotal} moteur(s) de connecteurs préparés, tous non connectés.</p>
+              <div className="mt-3 grid gap-2">
+                {SHOP_CONNECTEURS.map((x, i) => <MiniConnecteur key={x.set} d={shop[i]} libelle={x.court} onOuvrirMoteur={onOuvrirMoteur} />)}
+                <div className="rounded-lg border border-dashed border-slate-700 p-2 text-[11px] text-slate-500">
+                  Futures plateformes : emplacements gris, visibles, inertes, extensibles sans connexion automatique.
+                </div>
+              </div>
+            </div>
+
+            <div className="rounded-xl border border-red-500/40 bg-red-950/10 p-3" data-zone-frontiere="centre">
+              <p className="text-center text-[11px] font-black uppercase tracking-widest text-red-200">Frontière électrique · tunnel sécurisé</p>
+              <div className="mt-4 space-y-5">
+                <div>
+                  <div className="mb-1 flex items-center justify-between text-[11px] text-slate-400">
+                    <span>Connecteur B · échange plateforme-à-plateforme</span>
+                    <button type="button" disabled={!premierB} onClick={() => premierB && onOuvrirMoteur(premierB)} className="text-cyan-200 underline disabled:text-slate-600">ouvrir</button>
+                  </div>
+                  <TraceFrontiere />
+                  <p className="mt-1 text-center text-[10px] text-slate-500">{connecteurB.data?.note ?? "Lecture du Connecteur B..."}</p>
+                </div>
+                {SHOP_CONNECTEURS.map((x, i) => (
+                  <div key={x.set}>
+                    <div className="mb-1 flex items-center justify-between text-[11px] text-slate-400">
+                      <span>{x.court}</span>
+                      <span>{shop[i]?.pourcentage ?? 0}%</span>
+                    </div>
+                    <TraceFrontiere />
+                  </div>
+                ))}
+              </div>
+              <p className="mt-4 rounded-lg border border-amber-400/30 bg-amber-950/10 p-2 text-center text-[11px] font-bold text-amber-200">
+                Rien ne passe sans observation confirmée. Les contacts rouges restent ouverts tant qu'aucune connexion réelle n'est autorisée.
+              </p>
+            </div>
+
+            <div className="rounded-xl border border-emerald-500/30 bg-emerald-950/10 p-3" data-zone-frontiere="droite">
+              <p className="text-[11px] font-black uppercase tracking-wider text-emerald-200">Côté droit · PDG</p>
+              <h3 className="mt-1 text-sm font-black text-white">Plateforme principale MKAPMS Web</h3>
+              <p className="mt-1 text-[11px] text-slate-400">Côté principal : lecture, intervention et pilotage restent sous contrôle PDG.</p>
+              <button
+                type="button"
+                disabled={!premierA}
+                onClick={() => premierA && onOuvrirMoteur(premierA)}
+                className="mt-3 w-full rounded-xl border-2 border-amber-400/50 bg-amber-950/20 p-3 text-left hover:bg-amber-950/30 disabled:cursor-default"
+                data-connecteur-a-vitrine
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <p className="text-xs font-black uppercase text-amber-200">Connecteur A · grand connecteur d'intervention</p>
+                    <p className="mt-1 text-[11px] text-slate-300">Zone spéciale, plus grosse, séparée des échanges ordinaires.</p>
+                  </div>
+                  <AlarmeBadge alarme={connecteurA.data?.alarme} />
+                </div>
+                <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-800">
+                  <div className="h-2 rounded-full bg-amber-300" style={{ width: `${connecteurA.data?.pourcentage ?? 0}%` }} />
+                </div>
+                <p className="mt-1 text-[11px] text-slate-400">{connecteurA.data ? `${connecteurA.data.total} moteur(s) · ${connecteurA.data.pourcentage}%` : "Lecture..."}</p>
+              </button>
+              <div className="mt-3 rounded-lg border border-dashed border-slate-700 p-2 text-[11px] text-slate-500">
+                Les listes et salles détaillées restent accessibles, mais la lecture principale reste ce plan gauche-centre-droite.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Carte>
+  );
+}
+
 // ───────────────────────── Identité interne du Centre ─────────────────────────
 export function CarteIdentiteCentre({ onMessage }: { onMessage: (m: string) => void }) {
   const utils = trpc.useUtils();
