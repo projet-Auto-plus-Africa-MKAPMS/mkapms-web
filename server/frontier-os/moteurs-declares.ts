@@ -11,6 +11,7 @@
  * vérité). Le journal des changements d'état d'un moteur déclaré se fait via `config_history` (configHistory.ts /
  * journal.ts), comme pour tout le reste du centre — pas de nouvelle table de journal.
  */
+import { inArray } from "drizzle-orm";
 import { dbFrontier, type BaseFrontier } from "./base/connexion.js";
 import { engines, rooms, type EtatMoteurCentre } from "./base/schema.js";
 
@@ -202,7 +203,9 @@ export const DECLARATIONS_INTERNES: readonly DeclarationMoteur[] = [
 ]; // total : 100
 
 // ───────────────────────── Connecteur A — grand connecteur principal d'intervention (≥40) ─────────────────────────
-const CONNECTEUR_A_OPTS = { connectorSet: CONNECTEUR_A, etat: "vide" as const };
+// Rôles préparés (demande du PDG, 10 octobre 2026) : chaque rôle du Connecteur A passe de « vide » à « préparé » —
+// aucune donnée réelle n'est lue pour autant, aucune connexion n'existe ; seul l'état d'inventaire change.
+const CONNECTEUR_A_OPTS = { connectorSet: CONNECTEUR_A, etat: "prepare" as const };
 const LECTURE_ETAT = famille("intervention.lecture", SALLE_CONNECTEUR_INTERVENTION, [
   ["pages", "Lecture des pages", "Lirait l'état déclaré des pages de la plateforme principale — non connecté aujourd'hui."],
   ["images", "Lecture des images", "Lirait l'état déclaré des images/photos de la plateforme — non connecté aujourd'hui."],
@@ -253,7 +256,7 @@ const REPARATION_DIAGNOSTIC_A = famille("intervention.diag", SALLE_CONNECTEUR_IN
 ], CONNECTEUR_A_OPTS);
 const INTERRUPTEUR_A = famille("intervention.interrupteur", SALLE_CONNECTEUR_INTERVENTION, [
   ["principal", "Interrupteur principal du connecteur A", "Le seul interrupteur qui pourrait un jour armer ce connecteur — verrouillé, actionnable par le PDG seul, jamais par défaut."],
-], { connectorSet: CONNECTEUR_A, etat: "vide" as const, manualSwitch: true });
+], { connectorSet: CONNECTEUR_A, etat: "prepare" as const, manualSwitch: true });
 
 export const DECLARATIONS_CONNECTEUR_A: readonly DeclarationMoteur[] = [
   ...LECTURE_ETAT, ...OPTIMISATION, ...DEVELOPPEMENT, ...INTERVENTION_MODULES, ...AIDE_IA, ...REPARATION_DIAGNOSTIC_A, ...INTERRUPTEUR_A,
@@ -274,17 +277,21 @@ for (const canal of CANAUX_B) {
 DECLARATIONS_CONNECTEUR_B.push(
   { code: "centre:declare.connecteur-b.etat-global", nom: "État global du Connecteur B", fonction: "Agrège l'état mesuré des six canaux existants pour ce connecteur ordinaire.", roomCode: SALLE_CONNEXIONS_EXISTANTE, connectorSet: CONNECTEUR_B, etat: "prepare", manualSwitch: false },
   { code: "centre:declare.connecteur-b.journal-global", nom: "Journal global du Connecteur B", fonction: "Vue consolidée du journal des six canaux.", roomCode: SALLE_CONNEXIONS_EXISTANTE, connectorSet: CONNECTEUR_B, etat: "prepare", manualSwitch: false },
-  { code: "centre:declare.connecteur-b.interrupteur", nom: "Interrupteur principal du Connecteur B", fonction: "Rappel : chaque canal reste gouverné par ses propres coupures à trois éléments déjà existantes ; cet interrupteur n'ajoute aucun pouvoir nouveau.", roomCode: SALLE_CONNEXIONS_EXISTANTE, connectorSet: CONNECTEUR_B, etat: "vide", manualSwitch: true },
+  { code: "centre:declare.connecteur-b.interrupteur", nom: "Interrupteur principal du Connecteur B", fonction: "Rappel : chaque canal reste gouverné par ses propres coupures à trois éléments déjà existantes ; cet interrupteur n'ajoute aucun pouvoir nouveau.", roomCode: SALLE_CONNEXIONS_EXISTANTE, connectorSet: CONNECTEUR_B, etat: "prepare", manualSwitch: true },
   ...reserves("connecteur-b", SALLE_CONNEXIONS_EXISTANTE, 13, { connectorSet: CONNECTEUR_B }),
 ); // 24 + 3 + 13 = 40
 
 // ───────────────────────── Connecteurs MKAPMS Shop (structure 6 par ensemble) ─────────────────────────
+// Moteurs, interrupteurs et accusés MKAPMS Shop préparés mais arrêtés (demande du PDG, 10 octobre 2026) : seul le
+// moteur intermédiaire, les deux interrupteurs et l'accusé d'état passaient encore à « vide » — ils passent à
+// « préparé ». `running` reste false, `manualSwitch` ne change pas : aucun compte/clé/contrat réel n'est fourni,
+// aucune connexion n'est armée, seul l'état d'inventaire déclaratif est complété.
 const structureConnecteurShop = (set: string, libelle: string, couverture: string): DeclarationMoteur[] => [
   { code: `centre:declare.shop.${set}.moteur-centre`, nom: `Moteur côté Centre — ${libelle}`, fonction: `Représente, côté Centre, la préparation du connecteur MKAPMS Shop « ${libelle} » (${couverture}).`, roomCode: SALLE_BOUTIQUES_EXISTANTE, connectorSet: set, etat: "prepare", manualSwitch: false },
-  { code: `centre:declare.shop.${set}.moteur-intermediaire`, nom: `Moteur intermédiaire — ${libelle}`, fonction: `Représente le moteur intermédiaire déclaré côté MKAPMS Shop pour « ${libelle} », sans connexion réelle active.`, roomCode: SALLE_BOUTIQUES_EXISTANTE, connectorSet: set, etat: "vide", manualSwitch: false },
-  { code: `centre:declare.shop.${set}.interrupteur-local`, nom: `Interrupteur local — ${libelle}`, fonction: `Emplacement de l'interrupteur local côté MKAPMS Shop pour « ${libelle} » — désactivé tant qu'aucun vrai compte/clé/contrat n'est fourni.`, roomCode: SALLE_BOUTIQUES_EXISTANTE, connectorSet: set, etat: "vide", manualSwitch: true },
-  { code: `centre:declare.shop.${set}.interrupteur-central`, nom: `Interrupteur central — ${libelle}`, fonction: `Emplacement de l'interrupteur central du Centre pour « ${libelle} » — désactivé par défaut.`, roomCode: SALLE_BOUTIQUES_EXISTANTE, connectorSet: set, etat: "vide", manualSwitch: true },
-  { code: `centre:declare.shop.${set}.accuse-etat`, nom: `Accusé d'état — ${libelle}`, fonction: `Afficherait le dernier accusé d'état observé pour « ${libelle} » — jamais un état inventé tant qu'aucun accusé réel n'existe.`, roomCode: SALLE_BOUTIQUES_EXISTANTE, connectorSet: set, etat: "vide", manualSwitch: false },
+  { code: `centre:declare.shop.${set}.moteur-intermediaire`, nom: `Moteur intermédiaire — ${libelle}`, fonction: `Représente le moteur intermédiaire déclaré côté MKAPMS Shop pour « ${libelle} », préparé mais sans connexion réelle active.`, roomCode: SALLE_BOUTIQUES_EXISTANTE, connectorSet: set, etat: "prepare", manualSwitch: false },
+  { code: `centre:declare.shop.${set}.interrupteur-local`, nom: `Interrupteur local — ${libelle}`, fonction: `Emplacement préparé de l'interrupteur local côté MKAPMS Shop pour « ${libelle} » — désactivé tant qu'aucun vrai compte/clé/contrat n'est fourni.`, roomCode: SALLE_BOUTIQUES_EXISTANTE, connectorSet: set, etat: "prepare", manualSwitch: true },
+  { code: `centre:declare.shop.${set}.interrupteur-central`, nom: `Interrupteur central — ${libelle}`, fonction: `Emplacement préparé de l'interrupteur central du Centre pour « ${libelle} » — désactivé par défaut.`, roomCode: SALLE_BOUTIQUES_EXISTANTE, connectorSet: set, etat: "prepare", manualSwitch: true },
+  { code: `centre:declare.shop.${set}.accuse-etat`, nom: `Accusé d'état — ${libelle}`, fonction: `Afficherait le dernier accusé d'état observé pour « ${libelle} » — jamais un état inventé tant qu'aucun accusé réel n'existe.`, roomCode: SALLE_BOUTIQUES_EXISTANTE, connectorSet: set, etat: "prepare", manualSwitch: false },
   { code: `centre:declare.shop.${set}.journal`, nom: `Journal — ${libelle}`, fonction: `Vue du journal des changements d'état pour « ${libelle} » (config_history).`, roomCode: SALLE_BOUTIQUES_EXISTANTE, connectorSet: set, etat: "prepare", manualSwitch: false },
 ];
 
@@ -297,6 +304,19 @@ export const DECLARATIONS_SHOP: readonly DeclarationMoteur[] = [
 ]; // 5 × 6 = 30
 
 export const TOUTES_DECLARATIONS: readonly DeclarationMoteur[] = [...DECLARATIONS_INTERNES, ...DECLARATIONS_CONNECTEUR_A, ...DECLARATIONS_CONNECTEUR_B, ...DECLARATIONS_SHOP];
+
+/**
+ * Compléter les connecteurs préparés (demande du PDG, 10 octobre 2026) : les codes ci-dessous passaient encore à
+ * « vide » avant ce changement et passent maintenant à « préparé » dans les déclarations plus haut — rôles du
+ * Connecteur A, interrupteur du Connecteur B, moteurs/interrupteurs/accusés MKAPMS Shop. Seules les réserves et les
+ * emplacements futurs restent « vide ». Dérivé directement des déclarations (jamais une liste séparée à entretenir
+ * à la main), pour que l'UPDATE ci-dessous reste exact même si d'autres moteurs sont ajoutés plus tard.
+ */
+const CODES_CONNECTEURS_COMPLETES: readonly string[] = [
+  ...LECTURE_ETAT, ...OPTIMISATION, ...DEVELOPPEMENT, ...INTERVENTION_MODULES, ...AIDE_IA, ...REPARATION_DIAGNOSTIC_A, ...INTERRUPTEUR_A,
+  { code: "centre:declare.connecteur-b.interrupteur" },
+  ...DECLARATIONS_SHOP.filter((d) => d.code.endsWith(".moteur-intermediaire") || d.code.endsWith(".interrupteur-local") || d.code.endsWith(".interrupteur-central") || d.code.endsWith(".accuse-etat")),
+].map((d) => d.code);
 
 /** Pose les moteurs déclarés une fois : une clé déjà posée n'est jamais réécrite (onConflictDoNothing, même principe que fondation.ts). */
 export async function seedMoteursDeclares(base: BaseFrontier = dbFrontier()): Promise<{ nouveaux: number; total: number }> {
@@ -325,5 +345,14 @@ export async function seedMoteursDeclares(base: BaseFrontier = dbFrontier()): Pr
     const inserees = await base.insert(engines).values(lot).onConflictDoNothing().returning({ code: engines.code });
     nouveaux += inserees.length;
   }
+
+  // Corrige les lignes déjà posées par un démarrage précédent : onConflictDoNothing ci-dessus ne réécrit jamais une
+  // ligne déjà posée, donc un centre déjà démarré avant ce changement resterait sur l'ancien état « vide » sans
+  // cette mise à jour explicite (même principe que le renommage de la plateforme Boutique dans fondation.ts).
+  // Ne touche que `inventory_state` ; `running`, `manualSwitch` et le reste restent ceux déjà posés ou déclarés.
+  for (let k = 0; k < CODES_CONNECTEURS_COMPLETES.length; k += 100) {
+    await base.update(engines).set({ inventoryState: "prepare" }).where(inArray(engines.code, CODES_CONNECTEURS_COMPLETES.slice(k, k + 100)));
+  }
+
   return { nouveaux, total: TOUTES_DECLARATIONS.length };
 }
