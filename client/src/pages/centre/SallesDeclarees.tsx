@@ -6,7 +6,7 @@
  */
 import { useState } from "react";
 import { trpc } from "../../lib/trpc";
-import { AlarmeBadge, Carte, Pastille, Vide, bouton, date, heure } from "./commun";
+import { AlarmeBadge, Carte, Pastille, Vide, bouton, date } from "./commun";
 
 type Moteur = { code: string; name: string; fonction: string; etat: string | null; roomCode: string | null; connectorSet: string | null; manualSwitch: boolean; enMarche: boolean; sante: string };
 
@@ -26,58 +26,6 @@ export function ListeMoteursDeclares({ moteurs, onOuvrirMoteur }: { moteurs: rea
         </button>
       ))}
     </div>
-  );
-}
-
-// ───────────────────────── Noyau central : démarrage visuel honnête ─────────────────────────
-const STYLE_NOYAU = `
-@keyframes noyau-pulse { 0% { box-shadow: 0 0 0 0 #22d3ee66; } 70% { box-shadow: 0 0 0 18px #22d3ee00; } 100% { box-shadow: 0 0 0 0 #22d3ee00; } }
-@keyframes noyau-coeur { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.14); } }
-@media (prefers-reduced-motion: reduce) { .noyau-anim { animation: none !important; } }
-`;
-
-/**
- * Le noyau central est un moteur interne réel (center:core.noyau) : l'animation ne tourne QUE si la base confirme
- * running=true et health="ok" — jamais une mise en scène indépendante de l'état réellement écrit. Aucun connecteur,
- * aucun accès externe : ce battement prouve seulement que le processus du Centre tourne par lui-même.
- */
-export function NoyauCentral() {
-  const n = trpc.frontierOs.noyau.useQuery(undefined, { refetchInterval: 5000 });
-  const d = n.data;
-  const vivant = !!(d && d.etat.enMarche && d.etat.sante === "ok");
-  return (
-    <Carte>
-      <style>{STYLE_NOYAU}</style>
-      <div className="flex flex-wrap items-center gap-4">
-        <div className={`flex h-16 w-16 items-center justify-center rounded-full border-2 ${vivant ? "border-cyan-400 noyau-anim" : "border-slate-600"}`} style={vivant ? { animation: "noyau-pulse 1.6s ease-out infinite" } : undefined} role="img" aria-label={vivant ? "Noyau central en marche" : "Noyau central arrêté ou sans battement confirmé"}>
-          <div className={`h-8 w-8 rounded-full ${vivant ? "bg-cyan-400 noyau-anim" : "bg-slate-600"}`} style={vivant ? { animation: "noyau-coeur 1.6s ease-in-out infinite" } : undefined} />
-        </div>
-        <div>
-          <h2 className="text-base font-black text-white">Noyau central du Centre</h2>
-          <p className={`text-xs font-black uppercase ${vivant ? "text-cyan-300" : "text-slate-400"}`} data-testid="noyau-etat">{!d ? "lecture…" : vivant ? "en marche" : d.etat.enMarche ? `santé : ${d.etat.sante}` : "arrêté"}</p>
-          {d && (
-            <p className="text-[11px] text-slate-400">
-              {d.etat.battements} battement(s) depuis le démarrage de ce processus{d.etat.demarreLe ? ` (démarré le ${date(d.etat.demarreLe)})` : ""} · dernier battement : {d.etat.derniereBattementLe ? heure(d.etat.derniereBattementLe) : "jamais"}
-            </p>
-          )}
-        </div>
-      </div>
-      <p className="mt-2 text-[11px] text-slate-500">Un battement réel est écrit en base à chaque vérification (bus interne du Centre, aucune API externe) ; l'animation s'arrête dès que le noyau s'arrête — jamais une mise en scène indépendante de l'état réel.</p>
-      {d && (
-        <div className="mt-3 border-t border-slate-800 pt-2">
-          <p className="text-[11px] font-black uppercase tracking-wide text-slate-400">Séquence de démarrage (recalculée en direct, pas une minuterie)</p>
-          <ul className="mt-1 space-y-1 text-xs">
-            {d.etapes.map((e) => (
-              <li key={e.cle} className="flex flex-wrap items-center gap-2" data-etape={e.cle} data-ok={e.ok}>
-                <span className={`inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-[10px] font-black ${e.ok ? "bg-emerald-500/20 text-emerald-300" : "bg-slate-700 text-slate-400"}`}>{e.ok ? "✓" : "…"}</span>
-                <span className={e.ok ? "text-slate-200" : "text-slate-400"}>{e.libelle}</span>
-                <span className="text-slate-500">— {e.detail}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-    </Carte>
   );
 }
 
@@ -311,6 +259,7 @@ type ConnecteurVue = {
   set: string;
   libelle: string;
   total: number;
+  avecPreuve: number;
   pourcentage: number;
   note: string;
   moteurs: readonly Moteur[];
@@ -359,6 +308,29 @@ function TraceFrontiere({ actif = false }: { actif?: boolean }) {
   );
 }
 
+function ResumeConnecteur({ d, nom, onOuvrirMoteur }: { d: ConnecteurVue; nom: string; onOuvrirMoteur: (c: string) => void }) {
+  const manquants = d?.moteurs.filter((m) => !["actif", "teste", "connecte"].includes(m.etat ?? "")).length ?? 0;
+  const manuels = d?.moteurs.filter((m) => m.manualSwitch).length ?? 0;
+  const moteur = d?.moteurs.find((m) => m.manualSwitch)?.code ?? d?.moteurs[0]?.code;
+  return (
+    <div className="rounded-lg border border-slate-700 bg-[#0b1220] p-2" data-resume-connecteur={d?.set ?? nom}>
+      <div className="flex items-start justify-between gap-2">
+        <div>
+          <p className="text-[11px] font-black text-white">{nom}</p>
+          <p className="text-[10px] text-slate-400">{d ? `${d.total} moteurs · ${manuels} interrupteur(s)` : "Lecture..."}</p>
+        </div>
+        <AlarmeBadge alarme={d?.alarme} />
+      </div>
+      <div className="mt-2 grid grid-cols-3 gap-1 text-center text-[10px]">
+        <span className="rounded border border-slate-700 px-1 py-1 text-slate-300">prêt {d?.avecPreuve ?? 0}</span>
+        <span className="rounded border border-amber-600/50 px-1 py-1 text-amber-200">manque {manquants}</span>
+        <span className="rounded border border-red-700/60 px-1 py-1 text-red-200">ouvert</span>
+      </div>
+      {moteur && <button type="button" onClick={() => onOuvrirMoteur(moteur)} className="mt-2 text-[10px] font-bold text-cyan-200 underline">inspecter</button>}
+    </div>
+  );
+}
+
 export function VitrineFrontiereElectrique({ onOuvrirMoteur }: { onOuvrirMoteur: (c: string) => void }) {
   const connecteurA = trpc.frontierOs.connecteur.useQuery({ set: "connecteur-a" }, { refetchInterval: 20000 });
   const connecteurB = trpc.frontierOs.connecteur.useQuery({ set: "connecteur-b" }, { refetchInterval: 20000 });
@@ -378,8 +350,14 @@ export function VitrineFrontiereElectrique({ onOuvrirMoteur }: { onOuvrirMoteur:
         Tous les contacts sont ouverts par défaut ; cette vitrine ne branche rien et ne remplace pas les moteurs déjà posés.
       </p>
       <div className="mt-3 overflow-auto pb-2" data-testid="vitrine-frontiere-electrique">
-        <div className="min-w-[1180px] rounded-2xl border border-slate-700 bg-[#070c14] p-3">
-          <div className="grid items-stretch gap-3" style={{ gridTemplateColumns: "330px 1fr 330px" }}>
+        <div className="min-w-[1280px] rounded-2xl border border-slate-700 bg-[#070c14] p-3">
+          <div className="mb-3 grid grid-cols-4 gap-2 rounded-xl border border-emerald-500/30 bg-emerald-950/10 p-2 text-[11px]">
+            <span className="font-black uppercase text-emerald-200">Développement sans déconnexion</span>
+            <span className="text-slate-300">Ajouts par réserves et moteurs déclarés.</span>
+            <span className="text-slate-300">Contacts rouges ouverts par défaut.</span>
+            <span className="text-slate-300">Aucun allumage sans décision PDG.</span>
+          </div>
+          <div className="grid items-stretch gap-3" style={{ gridTemplateColumns: "360px 1fr 360px" }}>
             <div className="rounded-xl border border-cyan-500/30 bg-cyan-950/10 p-3" data-zone-frontiere="gauche">
               <p className="text-[11px] font-black uppercase tracking-wider text-cyan-200">Côté gauche · plateformes externes</p>
               <h3 className="mt-1 text-sm font-black text-white">MKAPMS Shop + futures plateformes</h3>
@@ -394,6 +372,14 @@ export function VitrineFrontiereElectrique({ onOuvrirMoteur }: { onOuvrirMoteur:
 
             <div className="rounded-xl border border-red-500/40 bg-red-950/10 p-3" data-zone-frontiere="centre">
               <p className="text-center text-[11px] font-black uppercase tracking-widest text-red-200">Frontière électrique · tunnel sécurisé</p>
+              <div className="mt-3 grid grid-cols-2 gap-2">
+                <ResumeConnecteur d={connecteurB.data} nom="Connecteur B" onOuvrirMoteur={onOuvrirMoteur} />
+                <div className="rounded-lg border border-red-700/60 bg-[#1f0a0a] p-2 text-center">
+                  <p className="text-[10px] font-black uppercase text-red-100">Contact central</p>
+                  <p className="mt-2 text-xl font-black text-red-200">OUVERT</p>
+                  <p className="text-[10px] text-slate-400">aucun passage autorisé</p>
+                </div>
+              </div>
               <div className="mt-4 space-y-5">
                 <div>
                   <div className="mb-1 flex items-center justify-between text-[11px] text-slate-400">
@@ -426,7 +412,7 @@ export function VitrineFrontiereElectrique({ onOuvrirMoteur }: { onOuvrirMoteur:
                 type="button"
                 disabled={!premierA}
                 onClick={() => premierA && onOuvrirMoteur(premierA)}
-                className="mt-3 w-full rounded-xl border-2 border-amber-400/50 bg-amber-950/20 p-3 text-left hover:bg-amber-950/30 disabled:cursor-default"
+                className="mt-3 w-full rounded-2xl border-4 border-amber-400/60 bg-amber-950/20 p-4 text-left shadow-[0_0_24px_#f59e0b22] hover:bg-amber-950/30 disabled:cursor-default"
                 data-connecteur-a-vitrine
               >
                 <div className="flex items-start justify-between gap-2">
@@ -436,8 +422,13 @@ export function VitrineFrontiereElectrique({ onOuvrirMoteur }: { onOuvrirMoteur:
                   </div>
                   <AlarmeBadge alarme={connecteurA.data?.alarme} />
                 </div>
-                <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-800">
-                  <div className="h-2 rounded-full bg-amber-300" style={{ width: `${connecteurA.data?.pourcentage ?? 0}%` }} />
+                <div className="mt-3 grid grid-cols-3 gap-1 text-center text-[10px]">
+                  <span className="rounded border border-amber-400/40 px-1 py-1 text-amber-100">{connecteurA.data?.total ?? 0} moteurs</span>
+                  <span className="rounded border border-slate-700 px-1 py-1 text-slate-300">{connecteurA.data?.avecPreuve ?? 0} prêt</span>
+                  <span className="rounded border border-red-700/60 px-1 py-1 text-red-200">ouvert</span>
+                </div>
+                <div className="mt-3 h-3 overflow-hidden rounded-full bg-slate-800">
+                  <div className="h-3 rounded-full bg-amber-300" style={{ width: `${connecteurA.data?.pourcentage ?? 0}%` }} />
                 </div>
                 <p className="mt-1 text-[11px] text-slate-400">{connecteurA.data ? `${connecteurA.data.total} moteur(s) · ${connecteurA.data.pourcentage}%` : "Lecture..."}</p>
               </button>
