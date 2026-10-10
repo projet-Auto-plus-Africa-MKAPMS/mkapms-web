@@ -64,18 +64,32 @@ test("seed : insertion complète, rien d'actif, interrupteurs seulement là où 
   assert.equal(connecteurA.length, 40);
   assert.equal(connecteurA.filter((e) => e.manualSwitch).length, 1);
   assert.ok(connecteurA.every((e) => !e.running && e.declaredOnly));
+  // Rôles préparés (demande du PDG, 10 octobre 2026) : seules les 3 réserves restent « vide ».
+  const connecteurAVides = connecteurA.filter((e) => e.inventoryState === "vide");
+  assert.equal(connecteurAVides.length, 3, "Connecteur A : seules les réserves restent vides");
+  assert.ok(connecteurAVides.every((e) => e.code.startsWith("centre:declare.reserve.")));
+  assert.ok(connecteurA.filter((e) => !connecteurAVides.includes(e)).every((e) => e.inventoryState === "prepare"));
 
   // Connecteur B : exactement 40, un seul interrupteur.
   const connecteurB = await db.select().from(engines).where(eq(engines.connectorSet, CONNECTEUR_B));
   assert.equal(connecteurB.length, 40);
   assert.equal(connecteurB.filter((e) => e.manualSwitch).length, 1);
+  // Interrupteur préparé (demande du PDG, 10 octobre 2026) : seules les 13 réserves restent « vide ».
+  const interrupteurB = connecteurB.find((e) => e.code === "centre:declare.connecteur-b.interrupteur");
+  assert.equal(interrupteurB?.inventoryState, "prepare", "interrupteur du Connecteur B préparé");
+  const connecteurBVides = connecteurB.filter((e) => e.inventoryState === "vide");
+  assert.equal(connecteurBVides.length, 13, "Connecteur B : seules les réserves restent vides");
+  assert.ok(connecteurBVides.every((e) => e.code.startsWith("centre:declare.reserve.")));
 
   // Boutique MKAPMS Shop : 5 ensembles × 6 moteurs, chacun avec deux interrupteurs (local + central).
+  // Moteurs/interrupteurs/accusés préparés mais arrêtés (demande du PDG, 10 octobre 2026) : les 6 moteurs d'un
+  // ensemble sont tous "prepare" (aucun "vide" restant côté MKAPMS Shop — pas de réserve dans cette structure).
   for (const set of [SHOP_WOOCOMMERCE, SHOP_TRANSPORTEURS, SHOP_PAIEMENT, SHOP_IA_BOUTIQUE, SHOP_AUTRES]) {
     const m = await db.select().from(engines).where(eq(engines.connectorSet, set));
     assert.equal(m.length, 6, set);
     assert.equal(m.filter((e) => e.manualSwitch).length, 2, `${set} : interrupteur local + central`);
     assert.ok(m.every((e) => !e.running), set);
+    assert.ok(m.every((e) => e.inventoryState === "prepare"), `${set} : préparé mais arrêté, plus aucun "vide"`);
   }
 
   // Cyberdéfense / Cyberattaques : aucun interrupteur manuel du tout (pas de mécanisme), état vide.
@@ -91,4 +105,17 @@ test("idempotence : relancer le seed n'ajoute rien de nouveau", async () => {
   assert.equal(r.nouveaux, 0);
   const total = await n(db.select({ n: count() }).from(engines).where(eq(engines.kind, "declared")));
   assert.equal(total, 210);
+});
+
+test("backfill : une ligne déjà posée sur l'ancien état « vide » est corrigée en « préparé » au prochain démarrage", async () => {
+  const db = dbFrontier();
+  const code = "centre:declare.connecteur-b.interrupteur";
+  await db.update(engines).set({ inventoryState: "vide" }).where(eq(engines.code, code));
+  const [avant] = await db.select().from(engines).where(eq(engines.code, code));
+  assert.equal(avant?.inventoryState, "vide", "préparation du scénario : simule une ligne posée avant le changement du PDG");
+
+  await seedMoteursDeclares(db);
+
+  const [apres] = await db.select().from(engines).where(eq(engines.code, code));
+  assert.equal(apres?.inventoryState, "prepare", "un redémarrage corrige l'état d'inventaire, même sans supprimer la base");
 });
