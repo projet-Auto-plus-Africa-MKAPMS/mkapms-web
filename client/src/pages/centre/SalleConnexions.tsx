@@ -246,7 +246,7 @@ export default function SalleConnexions({ onOuvrirMoteur, onMessage }: { onOuvri
       {lignes.error && <p className="text-sm text-red-300">{lignes.error.message}</p>}
 
       <style>{STYLE_ANIMATIONS}</style>
-      <VitrineFrontiereElectrique onOuvrirMoteur={onOuvrirMoteur} />
+      <VitrineFrontiereElectrique onOuvrirMoteur={onOuvrirMoteur} onMessage={onMessage} />
       <Toile largeur={LARGEUR_PLAN}>
         <div className="space-y-6 p-2" data-plan="connexions">
           <div className="grid items-end text-center" style={{ gridTemplateColumns: "1fr 120px 1fr" }}>
