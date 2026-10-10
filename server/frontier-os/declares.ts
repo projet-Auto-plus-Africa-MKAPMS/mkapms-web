@@ -7,7 +7,7 @@
 import { and, asc, count, eq, inArray } from "drizzle-orm";
 import { dbFrontier } from "./base/connexion.js";
 import { engines, rooms } from "./base/schema.js";
-import { ecrireConfig, libelleActeur, lireConfig, type Acteur } from "./journal.js";
+import { ecrireConfig, journaliser, libelleActeur, lireConfig, type Acteur } from "./journal.js";
 import { incidentsOuverts } from "./atelier.js";
 import { CONNECTEUR_A, CONNECTEUR_B, ENSEMBLES_CONNECTEURS, NOUVELLES_SALLES, SALLE_SURVEILLANCE, SHOP_AUTRES, SHOP_IA_BOUTIQUE, SHOP_PAIEMENT, SHOP_TRANSPORTEURS, SHOP_WOOCOMMERCE } from "./moteurs-declares.js";
 
@@ -159,4 +159,35 @@ export async function definirIdentiteCentre(nom: string, acteur: Acteur): Promis
   const nouvelle: IdentiteCentre = { ...actuelle, nomInterne: nom.trim(), definieLe: new Date().toISOString(), definiePar: libelleActeur(acteur) };
   await ecrireConfig(CLE_IDENTITE, nouvelle, acteur);
   return nouvelle;
+}
+
+const SEQUENCE_ALLUMAGE_CENTRAL = [
+  { etape: "A" as const, code: "centre:declare.intervention.interrupteur.principal", label: "Connecteur A" },
+  { etape: "B" as const, code: "centre:declare.connecteur-b.interrupteur", label: "Connecteur B" },
+  { etape: "central" as const, code: "centre:declare.centrale.etat-general", label: "Moteur central de contrôle" },
+];
+
+/**
+ * Allumage préparatoire demandé par le PDG : A puis B puis moteur central. Cela démarre seulement des moteurs déclarés
+ * du Centre ; aucune ligne réelle, aucun câble, aucune coupure et aucun contact rouge n'est fermé ici.
+ */
+export async function allumerMoteurCentralApresAetB(acteur: Acteur, confirme: boolean) {
+  if (!confirme) {
+    await journaliser({ acteur, action: "declared_central_start", cible: "center", resultat: "refused", erreur: "CONFIRMATION_REQUISE" });
+    return { ok: false, detail: "Confirmation requise : l'allumage préparatoire suit l'ordre A, B, puis moteur central.", etapes: SEQUENCE_ALLUMAGE_CENTRAL.map((e) => ({ ...e, statut: "attente" as const })) };
+  }
+  const db = dbFrontier();
+  const etapes = [];
+  for (const e of SEQUENCE_ALLUMAGE_CENTRAL) {
+    const [m] = await db.select().from(engines).where(eq(engines.code, e.code)).limit(1);
+    if (!m || m.kind !== "declared" || m.platformCode !== "frontier") {
+      await journaliser({ acteur, action: "declared_central_start", cible: "engine", cibleId: e.code, resultat: "error", erreur: "MOTEUR_ABSENT" });
+      return { ok: false, detail: `${e.label} absent : allumage arrêté avant l'étape ${e.etape}.`, etapes };
+    }
+    await db.update(engines).set({ running: true, health: "unknown", updatedAt: new Date() }).where(eq(engines.code, e.code));
+    await ecrireConfig(`allumage.${e.etape.toLowerCase()}`, { code: e.code, label: e.label, at: new Date().toISOString(), mode: "preparatoire_sans_connexion" }, acteur);
+    etapes.push({ ...e, statut: "allume" as const });
+  }
+  await journaliser({ acteur, action: "declared_central_start", cible: "center", resultat: "ok", detail: { ordre: SEQUENCE_ALLUMAGE_CENTRAL.map((e) => e.etape), reel: false } });
+  return { ok: true, detail: "Allumage préparatoire terminé : A allumé, B allumé, moteur central allumé. Aucun contact rouge fermé, aucun tunnel réel branché.", etapes };
 }
