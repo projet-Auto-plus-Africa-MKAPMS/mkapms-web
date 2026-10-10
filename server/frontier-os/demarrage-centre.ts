@@ -8,6 +8,7 @@ import { assurerFondation } from "./fondation.js";
 import { brancherPortierCentre } from "./gouvernance.js";
 import { seedMoteursDeclares } from "./moteurs-declares.js";
 import { echantillonnerCentre, elaguerMesures } from "./mesures.js";
+import { pulserNoyau } from "./noyau.js";
 import { reprendreApresRedemarrage } from "./commandes.js";
 import { balayerLacunes } from "./developpement.js";
 import { brancherCommutationCentre } from "./liaisons-reelles.js";
@@ -31,6 +32,8 @@ async function initialiser(): Promise<void> {
   await balayerLacunes().catch((e) => console.error("[frontier] balayage des lacunes de développement :", (e as Error).message));
   await verifierSanteMoteurs();
   await echantillonnerCentre();
+  // Premier battement réel du noyau central : marque honnêtement le démarrage de CE processus (jamais reporté d'un redémarrage précédent).
+  await pulserNoyau().catch((e) => console.error("[frontier] noyau central :", (e as Error).message));
 }
 
 /** Prépare le centre une fois par processus. En cas d'échec, le prochain appel réessaie. */
@@ -53,6 +56,7 @@ export function lancerTachesDeFond(): void {
     f().catch((e) => console.error("[frontier] tâche de fond :", (e as Error).message));
   };
   minuteries = [
+    setInterval(garde(() => pulserNoyau()), 10_000),
     setInterval(garde(() => traiterFile()), 5_000),
     setInterval(garde(() => echantillonnerCentre()), 60_000),
     setInterval(garde(() => reconcilierLiaisonsReelles()), 60_000),

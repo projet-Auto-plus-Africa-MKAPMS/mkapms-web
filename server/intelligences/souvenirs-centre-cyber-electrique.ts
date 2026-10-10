@@ -64,6 +64,14 @@ export const SOUVENIRS_CENTRE: SouvenirCentre[] = [
     liens: { depot: "mkapms-web", branche: "claude/centre-cyber-electrique-independant", doc: "server/frontier-os/declares.ts ; server/frontier-os/moteurs-declares.ts" },
   },
   {
+    categorie: "projets",
+    cle: "projet-centre-cyber-electrique-noyau-central-10-10-2026",
+    titre: "Centre Cyber-Électrique — noyau central et démarrage visuel honnête, 10 octobre 2026",
+    contenu:
+      "Après la fusion de la PR #598 (indépendance architecturale), le PDG a demandé la suite sur une nouvelle branche : un démarrage visuel du moteur central du Centre, un moteur qui tourne visiblement dans la vitrine avec un état lu depuis l'API, toujours aucun connecteur activé, Cyberdéfense/Cyberattaques toujours inactifs, aucun accès externe, aucune sécurité lourde armée — objectif : le Centre démarre et fonctionne seul, affiche ses moteurs, ses salles, sa mémoire et son état, avant toute connexion à MKAPMS Web ou MKAPMS Shop. Réalisé sur claude/centre-noyau-central (depuis main, après fusion #598) : un nouveau moteur interne réel « Noyau central du Centre » (center:core.noyau, kind monitor, même famille que center:monitor/center:transport) qui bat un signal de vie daté par le bus interne existant (aucune API externe, aucun lien avec MKAPMS Web/Shop) — un battement au démarrage réel du processus, puis un battement toutes les 10 secondes tant que le processus tourne. La vitrine (salle Accueil) affiche un cœur animé dont le pouls ne tourne QUE si la base confirme running=true et health=\"ok\" (jamais une mise en scène indépendante de l'état écrit), avec le compteur de battements, l'heure du dernier battement et l'heure de démarrage — tous relus en direct toutes les 5 secondes depuis une nouvelle procédure tRPC (frontierOs.noyau). Une « séquence de démarrage » à cinq étapes (base prête, fondation posée, registre des moteurs déclarés posé, moteurs internes vérifiés, noyau battant) est recalculée en direct depuis l'état réel à chaque appel — jamais une minuterie fictive. Validé en conditions réelles : battements passés de 8 à 9 et horodatage avancé de 10 s pile entre deux captures d'écran prises à 12 s d'intervalle sur l'environnement local, les 210 moteurs déclarés restent à 0 en marche après un démarrage réel (aucun connecteur activé), les 16 moteurs Cyberdéfense/Cyberattaques restent inertes. Testé : suite d'intégration frontier-os (17 fichiers, nouveau noyau.integration.test.ts) trois fois verte, build complet vert, essai navigateur réel avec captures d'écran prouvant le compteur en mouvement.",
+    liens: { depot: "mkapms-web", branche: "claude/centre-noyau-central", pr_precedente: "598", doc: "server/frontier-os/noyau.ts" },
+  },
+  {
     categorie: "apprentissage",
     cle: "lecon-artefacts-dist-perimes-masquent-les-pannes-09-10-2026",
     titre: "Un artefact de build déjà commité peut être périmé ou corrompu avant même qu'on y touche",

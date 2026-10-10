@@ -6,7 +6,7 @@
  */
 import { useState } from "react";
 import { trpc } from "../../lib/trpc";
-import { AlarmeBadge, Carte, Pastille, Vide, bouton, date } from "./commun";
+import { AlarmeBadge, Carte, Pastille, Vide, bouton, date, heure } from "./commun";
 
 type Moteur = { code: string; name: string; fonction: string; etat: string | null; roomCode: string | null; connectorSet: string | null; manualSwitch: boolean; enMarche: boolean; sante: string };
 
@@ -26,6 +26,58 @@ export function ListeMoteursDeclares({ moteurs, onOuvrirMoteur }: { moteurs: rea
         </button>
       ))}
     </div>
+  );
+}
+
+// ───────────────────────── Noyau central : démarrage visuel honnête ─────────────────────────
+const STYLE_NOYAU = `
+@keyframes noyau-pulse { 0% { box-shadow: 0 0 0 0 #22d3ee66; } 70% { box-shadow: 0 0 0 18px #22d3ee00; } 100% { box-shadow: 0 0 0 0 #22d3ee00; } }
+@keyframes noyau-coeur { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.14); } }
+@media (prefers-reduced-motion: reduce) { .noyau-anim { animation: none !important; } }
+`;
+
+/**
+ * Le noyau central est un moteur interne réel (center:core.noyau) : l'animation ne tourne QUE si la base confirme
+ * running=true et health="ok" — jamais une mise en scène indépendante de l'état réellement écrit. Aucun connecteur,
+ * aucun accès externe : ce battement prouve seulement que le processus du Centre tourne par lui-même.
+ */
+export function NoyauCentral() {
+  const n = trpc.frontierOs.noyau.useQuery(undefined, { refetchInterval: 5000 });
+  const d = n.data;
+  const vivant = !!(d && d.etat.enMarche && d.etat.sante === "ok");
+  return (
+    <Carte>
+      <style>{STYLE_NOYAU}</style>
+      <div className="flex flex-wrap items-center gap-4">
+        <div className={`flex h-16 w-16 items-center justify-center rounded-full border-2 ${vivant ? "border-cyan-400 noyau-anim" : "border-slate-600"}`} style={vivant ? { animation: "noyau-pulse 1.6s ease-out infinite" } : undefined} role="img" aria-label={vivant ? "Noyau central en marche" : "Noyau central arrêté ou sans battement confirmé"}>
+          <div className={`h-8 w-8 rounded-full ${vivant ? "bg-cyan-400 noyau-anim" : "bg-slate-600"}`} style={vivant ? { animation: "noyau-coeur 1.6s ease-in-out infinite" } : undefined} />
+        </div>
+        <div>
+          <h2 className="text-base font-black text-white">Noyau central du Centre</h2>
+          <p className={`text-xs font-black uppercase ${vivant ? "text-cyan-300" : "text-slate-400"}`} data-testid="noyau-etat">{!d ? "lecture…" : vivant ? "en marche" : d.etat.enMarche ? `santé : ${d.etat.sante}` : "arrêté"}</p>
+          {d && (
+            <p className="text-[11px] text-slate-400">
+              {d.etat.battements} battement(s) depuis le démarrage de ce processus{d.etat.demarreLe ? ` (démarré le ${date(d.etat.demarreLe)})` : ""} · dernier battement : {d.etat.derniereBattementLe ? heure(d.etat.derniereBattementLe) : "jamais"}
+            </p>
+          )}
+        </div>
+      </div>
+      <p className="mt-2 text-[11px] text-slate-500">Un battement réel est écrit en base à chaque vérification (bus interne du Centre, aucune API externe) ; l'animation s'arrête dès que le noyau s'arrête — jamais une mise en scène indépendante de l'état réel.</p>
+      {d && (
+        <div className="mt-3 border-t border-slate-800 pt-2">
+          <p className="text-[11px] font-black uppercase tracking-wide text-slate-400">Séquence de démarrage (recalculée en direct, pas une minuterie)</p>
+          <ul className="mt-1 space-y-1 text-xs">
+            {d.etapes.map((e) => (
+              <li key={e.cle} className="flex flex-wrap items-center gap-2" data-etape={e.cle} data-ok={e.ok}>
+                <span className={`inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-[10px] font-black ${e.ok ? "bg-emerald-500/20 text-emerald-300" : "bg-slate-700 text-slate-400"}`}>{e.ok ? "✓" : "…"}</span>
+                <span className={e.ok ? "text-slate-200" : "text-slate-400"}>{e.libelle}</span>
+                <span className="text-slate-500">— {e.detail}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </Carte>
   );
 }
 
