@@ -769,7 +769,7 @@ export default function Home() {
                   to={a.to}
                   onClick={a.pending ? (event) => {
                     event.preventDefault();
-                    window.location.assign("https://mkapms.shop");
+                    window.location.assign("https://shop.mkapms.site/");
                   } : undefined}
                   aria-label={a.pending ? "Ouvrir MKA.P-MS SHOP" : a.label}
                   title={a.pending ? "Ouvrir la boutique MKA.P-MS" : undefined}
