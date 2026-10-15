@@ -10,7 +10,7 @@ import {
   Fuel, History, Lock, Hammer, Receipt, Scale, Banknote, CircleDollarSign,
   BookOpen, Cog, Play, Bell, MessageSquare, Wallet, User,
   Facebook, Instagram, Youtube, Linkedin, QrCode, RefreshCw, ThumbsUp,
-  SlidersHorizontal, ChevronUp
+  SlidersHorizontal, ChevronUp, ShoppingBag
 } from "lucide-react";
 import { trpc } from "../lib/trpc";
 import { SmartLink } from "../lib/redirect";
@@ -753,22 +753,30 @@ export default function Home() {
           </section>
 
           {/* ═══════════════════════════════════════════════════════════════
-              SECTION 3 — UNIVERS MKA.P-MS (Acheter, Vendre, Louer, Réparer)
+              SECTION 3 — UNIVERS MKA.P-MS (Acheter, Vendre, Louer, Réparer, Boutique)
               ═══════════════════════════════════════════════════════════════ */}
           <section className="bg-white px-4 py-3 md:py-5">
-            <div className="grid grid-cols-4 gap-2 md:gap-4 max-w-2xl lg:max-w-none mx-auto">
+            <div className="grid grid-cols-5 gap-1.5 md:gap-3 max-w-2xl lg:max-w-none mx-auto">
               {[
-                { icon: Search, label: "ACHETER", sub: "Un véhicule", to: "/acheter" },
-                { icon: Tag, label: "VENDRE", sub: "Mon véhicule", to: "/vendre" },
-                { icon: KeyRound, label: "LOUER", sub: "Un véhicule", to: "/louer" },
-                { icon: Wrench, label: "RÉPARER", sub: "Mon véhicule", to: "/garages" },
+                { icon: Search, label: "ACHETER", sub: "Un véhicule", to: "/acheter", iconClass: "text-blue-600", iconBg: "bg-blue-50", iconBorder: "border-blue-200", hoverBorder: "hover:border-blue-300" },
+                { icon: Tag, label: "VENDRE", sub: "Mon véhicule", to: "/vendre", iconClass: "text-emerald-600", iconBg: "bg-emerald-50", iconBorder: "border-emerald-200", hoverBorder: "hover:border-emerald-300" },
+                { icon: KeyRound, label: "LOUER", sub: "Un véhicule", to: "/louer", iconClass: "text-violet-600", iconBg: "bg-violet-50", iconBorder: "border-violet-200", hoverBorder: "hover:border-violet-300" },
+                { icon: Wrench, label: "RÉPARER", sub: "Mon véhicule", to: "/garages", iconClass: "text-orange-600", iconBg: "bg-orange-50", iconBorder: "border-orange-200", hoverBorder: "hover:border-orange-300" },
+                { icon: ShoppingBag, label: "BOUTIQUE", sub: "MKA.P-MS SHOP", to: "/boutique", pending: true, iconClass: "text-cyan-600", iconBg: "bg-cyan-50", iconBorder: "border-cyan-200", hoverBorder: "hover:border-cyan-300" },
               ].map((a) => (
-                <Link key={a.to} to={a.to} className="group flex flex-col items-center gap-1.5 rounded-xl border border-[#E5E7EB] bg-white p-3 md:p-4 text-center hover:border-[#D4AF37] hover:shadow-md transition">
-                  <div className="flex h-10 w-10 md:h-14 md:w-14 items-center justify-center rounded-full border border-[#D4AF37]/30 bg-[#D4AF37]/5">
-                    <a.icon size={20} className="text-[#D4AF37]" />
+                <Link
+                  key={a.to}
+                  to={a.to}
+                  onClick={a.pending ? (event) => event.preventDefault() : undefined}
+                  aria-label={a.pending ? "Boutique MKA.P-MS — connexion à venir" : a.label}
+                  title={a.pending ? "La connexion à MKA.P-MS SHOP sera ajoutée ensuite" : undefined}
+                  className={`group flex min-w-0 flex-col items-center gap-1 rounded-xl border border-[#E5E7EB] bg-white p-2 md:gap-1.5 md:p-3 text-center ${a.hoverBorder} hover:shadow-md transition`}
+                >
+                  <div className={`flex h-9 w-9 md:h-12 md:w-12 items-center justify-center rounded-full border ${a.iconBorder} ${a.iconBg}`}>
+                    <a.icon size={18} className={a.iconClass} />
                   </div>
-                  <span className="text-[10px] md:text-xs font-extrabold uppercase tracking-wide text-[#111]">{a.label}</span>
-                  <span className="text-[8px] md:text-[10px] text-[#6B7280]">{a.sub}</span>
+                  <span className="text-[9px] md:text-xs font-extrabold uppercase tracking-wide text-[#111] truncate max-w-full">{a.label}</span>
+                  <span className="text-[7px] md:text-[10px] text-[#6B7280] truncate max-w-full">{a.sub}</span>
                 </Link>
               ))}
             </div>
