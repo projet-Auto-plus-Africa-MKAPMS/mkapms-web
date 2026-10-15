@@ -767,9 +767,12 @@ export default function Home() {
                 <Link
                   key={a.to}
                   to={a.to}
-                  onClick={a.pending ? (event) => event.preventDefault() : undefined}
-                  aria-label={a.pending ? "Boutique MKA.P-MS — connexion à venir" : a.label}
-                  title={a.pending ? "La connexion à MKA.P-MS SHOP sera ajoutée ensuite" : undefined}
+                  onClick={a.pending ? (event) => {
+                    event.preventDefault();
+                    window.location.assign("https://mkapms.shop");
+                  } : undefined}
+                  aria-label={a.pending ? "Ouvrir MKA.P-MS SHOP" : a.label}
+                  title={a.pending ? "Ouvrir la boutique MKA.P-MS" : undefined}
                   className={`group flex min-w-0 flex-col items-center gap-1 rounded-xl border border-[#E5E7EB] bg-white p-2 md:gap-1.5 md:p-3 text-center ${a.hoverBorder} hover:shadow-md transition`}
                 >
                   <div className={`flex h-9 w-9 md:h-12 md:w-12 items-center justify-center rounded-full border ${a.iconBorder} ${a.iconBg}`}>
