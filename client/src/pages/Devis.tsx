@@ -234,6 +234,8 @@ export default function Devis() {
   const [tireSection, setTireSection] = useState<"registration" | "dimensions">("registration");
   const [tirePlate, setTirePlate] = useState("");
   const [tireWidth, setTireWidth] = useState("");
+  const [tireAspect, setTireAspect] = useState("45");
+  const [tireRim, setTireRim] = useState("17");
   const [showMoreTireWidths, setShowMoreTireWidths] = useState(false);
   const [estimationServiceSearch, setEstimationServiceSearch] = useState("");
   const [tireDimensions, setTireDimensions] = useState({ largeur: "", hauteur: "", jante: "" });
@@ -525,16 +527,32 @@ export default function Devis() {
                 </div>
               ) : (
                 <div>
-                  <h3 className="mb-4 text-xl font-black text-[#08A9C4]">Sélectionnez la largeur</h3>
-                  <div className="relative mx-auto mb-3 h-36 max-w-[290px] overflow-hidden">
-                    <div className="absolute left-1/2 top-8 h-56 w-56 -translate-x-1/2 rounded-full border-[30px] border-[#242424]" />
-                    <span className="absolute left-8 top-20 rotate-[-55deg] text-xl font-black text-[#FF8A1F]">205</span><span className="absolute left-1/2 top-4 -translate-x-1/2 text-2xl font-black text-white">R16</span><span className="absolute right-8 top-20 rotate-[55deg] text-xl font-black text-white">91</span>
+                  <h3 className="mb-4 text-xl font-black text-[#08A9C4]">Comprenez votre dimension</h3>
+                  <div className="mb-5 rounded-3xl border-2 border-[#B7DCE5] bg-gradient-to-br from-[#F8FDFF] to-[#E8F7FB] p-4 shadow-inner">
+                    <div className="mb-3 flex items-end justify-between"><div><p className="text-[10px] font-black uppercase tracking-[0.16em] text-[#64748B]">Votre dimension</p><p className="text-2xl font-black tracking-tight text-[#102A43]">{tireWidth || "225"}<span className="text-[#08A9C4]"> / {tireAspect} R{tireRim}</span></p></div><span className="rounded-full bg-white px-3 py-1 text-[10px] font-black text-[#08A9C4] shadow-sm">LECTURE GUIDÉE</span></div>
+                    <div className="relative mx-auto h-44 max-w-[330px] overflow-hidden rounded-2xl bg-[#102A43] p-2">
+                      <svg viewBox="0 0 320 170" className="h-full w-full" role="img" aria-label="Indicateur de largeur de pneu">
+                        <path d="M35 150 A125 125 0 0 1 285 150" fill="none" stroke="#071827" strokeWidth="34" strokeLinecap="round" />
+                        <path d="M35 150 A125 125 0 0 1 285 150" fill="none" stroke="#08A9C4" strokeWidth="3" strokeLinecap="round" opacity="0.95" />
+                        <path d="M67 150 A93 93 0 0 1 253 150" fill="none" stroke="#294459" strokeWidth="4" strokeDasharray="2 9" />
+                        <line x1="160" y1="150" x2="160" y2="45" stroke="#FF8A1F" strokeWidth="5" strokeLinecap="round" style={{ transformOrigin: "160px 150px", transform: `rotate(${Math.max(-58, Math.min(58, ((Number(tireWidth || 225) - 145) / 110) * 116 - 58))}deg)` }} />
+                        <circle cx="160" cy="150" r="10" fill="#FF8A1F" stroke="white" strokeWidth="4" />
+                        <text x="34" y="137" fill="#D7F7FB" fontSize="13" fontWeight="800">145</text><text x="143" y="34" fill="white" fontSize="15" fontWeight="900">225</text><text x="267" y="137" fill="#D7F7FB" fontSize="13" fontWeight="800">255</text>
+                      </svg>
+                      <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-2 text-[10px] font-bold text-white/80"><span className="rounded-full bg-white/10 px-2 py-1">gomme : {tireWidth || "225"} mm</span><span className="rounded-full bg-white/10 px-2 py-1">jante : R{tireRim}</span></div>
+                    </div>
+                    <p className="mt-3 text-center text-xs leading-5 text-[#475569]">L’aiguille suit votre choix et vous montre immédiatement la largeur de gomme. La hauteur et la jante sont choisies juste après.</p>
                   </div>
                   <button type="button" className="mb-5 w-full text-center text-sm font-semibold text-[#08A9C4] underline">Lire mes dimensions de pneus</button>
-                  <div className="grid grid-cols-5 gap-2">
-                    {[10, 12, 30, 31, 32, 33, 35, 37, 40, 125, 135, 145, 155, 165, 175].slice(0, showMoreTireWidths ? 15 : 10).map((width) => <button key={width} type="button" onClick={() => setTireWidth(String(width))} className={`rounded-lg px-2 py-3 text-sm font-black transition ${tireWidth === String(width) ? "bg-[#08A9C4] text-white" : "bg-[#F1F5F9] text-[#102A43]"}`}>{width}</button>)}
+                  <p className="mb-2 text-xs font-black uppercase tracking-wider text-[#64748B]">1 · Largeur de gomme</p>
+                  <div className="grid grid-cols-4 gap-2">
+                    {[145, 155, 165, 175, 185, 195, 205, 215, 225, 235, 245, 255].slice(0, showMoreTireWidths ? 12 : 8).map((width) => <button key={width} type="button" onClick={() => setTireWidth(String(width))} className={`rounded-xl border px-2 py-3 text-sm font-black transition ${tireWidth === String(width) ? "border-[#08A9C4] bg-[#08A9C4] text-white shadow-md" : "border-[#D9E3E8] bg-white text-[#102A43]"}`}>{width}</button>)}
                   </div>
                   <button type="button" onClick={() => setShowMoreTireWidths((current) => !current)} className="mt-5 w-full text-center text-sm text-[#64748B] underline">{showMoreTireWidths ? "Afficher moins" : "Afficher plus de valeurs"}</button>
+                  <div className="mt-5 grid grid-cols-2 gap-3">
+                    <label className="rounded-2xl border border-[#D9E3E8] bg-white p-3"><span className="block text-[10px] font-black uppercase text-[#64748B]">2 · Hauteur</span><select value={tireAspect} onChange={(event) => setTireAspect(event.target.value)} className="mt-2 w-full bg-transparent text-lg font-black text-[#102A43] outline-none">{[35,40,45,50,55,60,65].map((value) => <option key={value}>{value}</option>)}</select></label>
+                    <label className="rounded-2xl border border-[#D9E3E8] bg-white p-3"><span className="block text-[10px] font-black uppercase text-[#64748B]">3 · Jante</span><select value={tireRim} onChange={(event) => setTireRim(event.target.value)} className="mt-2 w-full bg-transparent text-lg font-black text-[#102A43] outline-none">{[14,15,16,17,18,19,20].map((value) => <option key={value}>{value}</option>)}</select></label>
+                  </div>
                 </div>
               )}
               <div className="my-5 border-t border-[#E5E7EB]" />
