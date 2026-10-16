@@ -129,6 +129,7 @@ const CRENEAUX = ["08:00", "09:00", "10:00", "11:00", "14:00", "15:00", "16:00",
 export default function Garages() {
   const { user } = useAuth();
   const [searchParams] = useSearchParams();
+  const estimationSource = searchParams.get("source") === "estimation";
   const [q, setQ] = useState("");
   const [city, setCity] = useState("");
   const [noteMin, setNoteMin] = useState("");
@@ -461,7 +462,7 @@ export default function Garages() {
                       <div>
                         <h4 className="font-bold text-[#111]">{g.name}</h4>
                         <p className="text-xs text-[#6B7280] flex items-center gap-1 mt-0.5"><MapPin size={10} /> {[g.addressLine, g.postalCode, g.city].filter(Boolean).join(", ")}</p>
-                        {g.phone && <p className="text-xs text-[#6B7280] flex items-center gap-1 mt-0.5"><Phone size={10} /> {g.phone}</p>}
+                        {g.phone && !estimationSource && <p className="text-xs text-[#6B7280] flex items-center gap-1 mt-0.5"><Phone size={10} /> {g.phone}</p>}
                       </div>
                       <div className="text-right">
                         <div className="flex items-center gap-1"><Star size={12} className="text-[#D4AF37]" fill="#D4AF37" /><span className="text-sm font-bold">{Number(g.rating || 0).toFixed(1)}</span></div>
@@ -754,7 +755,7 @@ export default function Garages() {
               {(g.city || g.addressLine) && (
                 <p className="flex items-center gap-1.5"><MapPin size={14} /> {[g.addressLine, g.postalCode, g.city].filter(Boolean).join(", ")}</p>
               )}
-              {g.phone && <p className="flex items-center gap-1.5"><Phone size={14} /> {g.phone}</p>}
+              {g.phone && !estimationSource && <p className="flex items-center gap-1.5"><Phone size={14} /> {g.phone}</p>}
               <p className="flex items-center gap-1.5">
                 <Star size={14} className="fill-amber-400 text-amber-400" />
                 {Number(g.rating || 0).toFixed(1)} ({g.reviewCount || 0} avis)
