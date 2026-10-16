@@ -656,8 +656,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "cliquables": 46,
         "parMoteur": 0,
         "sansAction": 2,
-        "textes": 318,
-        "mots": 1269
+        "textes": 326,
+        "mots": 1311
       },
       {
         "fichier": "client/src/pages/Favoris.tsx",
@@ -1325,17 +1325,17 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "connecte",
       "public"
     ],
-    "textes": 1548,
-    "mots": 5422,
+    "textes": 1556,
+    "mots": 5464,
     "battement": "sonde",
     "manques": [
       {
         "genre": "bouton_sans_action",
-        "detail": "« VALIDER » client/src/pages/Devis.tsx:524"
+        "detail": "« VALIDER » client/src/pages/Devis.tsx:526"
       },
       {
         "genre": "bouton_sans_action",
-        "detail": "« Lire mes dimensions de pneus » client/src/pages/Devis.tsx:533"
+        "detail": "« Lire mes dimensions de pneus » client/src/pages/Devis.tsx:546"
       },
       {
         "genre": "dependance_non_declaree",
