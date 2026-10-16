@@ -656,8 +656,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "cliquables": 23,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 198,
-        "mots": 728
+        "textes": 208,
+        "mots": 805
       },
       {
         "fichier": "client/src/pages/Favoris.tsx",
@@ -1325,8 +1325,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "connecte",
       "public"
     ],
-    "textes": 1428,
-    "mots": 4881,
+    "textes": 1438,
+    "mots": 4958,
     "battement": "sonde",
     "manques": [
       {
