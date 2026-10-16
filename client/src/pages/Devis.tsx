@@ -417,7 +417,7 @@ export default function Devis() {
                 desc: "Peinture et réparation",
                 to: "/garage/carrosserie-garage",
                 image: "https://images.unsplash.com/photo-1530046339917-2fa7f3f8ea10?w=700&auto=format&fit=crop&q=85",
-                icon: Hammer,
+                icon: Shield,
               },
               {
                 title: "Diagnostic",
@@ -493,6 +493,10 @@ export default function Devis() {
             ))}
           </section>
         </div>
+      </div>
+    );
+  }
+
   /* ════════════════════════════════════════════════════════════
      FLUX 7 ÉTAPES — Réparation / Devis
      ════════════════════════════════════════════════════════════ */
