@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   Search, Wrench, ShoppingCart, MapPin, Calendar, Bell, ChevronRight, ChevronDown,
@@ -214,12 +214,54 @@ export default function Devis() {
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedCreneau, setSelectedCreneau] = useState("");
 
+  // Média publicitaire d'origine : cinq vidéos, rotation de 8 secondes.
+  // Cette zone est volontairement séparée du contenu de la landing page.
+  const HERO_VIDEOS = [
+    { src: "/videos/garage/garage_voiture_complete.mp4", label: "Véhicule" },
+    { src: "/videos/garage/garage_moteur.mp4", label: "Moteur" },
+    { src: "/videos/garage/garage_suspension.mp4", label: "Suspension" },
+    { src: "/videos/garage/garage_freins.mp4", label: "Freinage" },
+    { src: "/videos/garage/garage_carrosserie.mp4", label: "Carrosserie" },
+  ];
+  const [heroVidIdx, setHeroVidIdx] = useState(0);
+  const [heroProgress, setHeroProgress] = useState(0);
+  const progressRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
+
+  const startHeroProgress = () => {
+    setHeroProgress(0);
+    if (progressRef.current) clearInterval(progressRef.current);
+    progressRef.current = setInterval(() => {
+      setHeroProgress((p) => {
+        if (p >= 100) { clearInterval(progressRef.current!); return 100; }
+        return p + 100 / 80;
+      });
+    }, 100);
+  };
+
+  useEffect(() => {
+    const timer = setInterval(() => setHeroVidIdx((i) => (i + 1) % HERO_VIDEOS.length), 8000);
+    startHeroProgress();
+    return () => { clearInterval(timer); if (progressRef.current) clearInterval(progressRef.current); };
+  }, []);
+
+  useEffect(() => {
+    videoRefs.current.forEach((video, i) => {
+      if (!video) return;
+      if (i === heroVidIdx) {
+        video.currentTime = 0;
+        video.play().catch(() => {});
+      } else video.pause();
+    });
+    startHeroProgress();
+  }, [heroVidIdx]);
+
   const selectedRepair = REPAIR_TYPES.find((r) => r.id === selectedRepairId);
 
   /* Garages partenaires réels (server/routers/garages.ts) — jamais une liste inventée. */
   const garagesQuery = trpc.garages.list.useQuery(
     { city: positionSearch || undefined, limit: 20 },
-    { enabled: step >= 5 },
+    { enabled: mode === "landing" || step >= 5 },
   );
   const garages = garagesQuery.data?.items ?? [];
   const selectedGarage = garages.find((g) => g.id === selectedGarageId);
@@ -331,36 +373,51 @@ export default function Devis() {
   if (mode === "landing") {
     return (
       <div className="min-h-screen bg-[#F5F3EF]">
-        {/* HERO */}
-        <div className="relative overflow-hidden bg-gradient-to-br from-[#111] via-[#1a1a1a] to-[#2d2d2d]">
-          <div className="absolute inset-0 opacity-25">
-            <img src="/categories/loc_berline.jpg" alt="" className="h-full w-full object-cover" />
-          </div>
-          <div className="relative px-4 py-10 md:py-16 md:px-8 max-w-6xl mx-auto">
-            <div className="md:flex md:items-center md:justify-between md:gap-12">
-              <div className="md:max-w-xl">
-                <h1 className="text-3xl md:text-5xl font-black text-white leading-tight">
-                  RÉPAREZ VOTRE<br />VÉHICULE EN TOUTE <span className="text-[#D4AF37]">CONFIANCE</span>
-                </h1>
-                <p className="mt-3 text-sm md:text-base text-white/70 max-w-md">
-                  Devis rapide, garages de confiance, réservation en quelques clics.
-                </p>
-              </div>
-              <div className="mt-6 md:mt-0 space-y-2">
-                {[
-                  { icon: FileText, text: "Devis en ligne" },
-                  { icon: Building2, text: "Garages partenaires" },
-                  { icon: ShoppingCart, text: "Comparaison des offres" },
-                  { icon: Calendar, text: "Réservation rapide" },
-                  { icon: Lock, text: "Paiement sécurisé" },
-                  { icon: CheckCircle, text: "Satisfaction garantie" },
-                ].map((b) => (
-                  <div key={b.text} className="flex items-center gap-2">
-                    <b.icon size={16} className="text-[#D4AF37] shrink-0" />
-                    <span className="text-sm text-white/90">{b.text}</span>
+        {/* MÉDIA PUBLICITAIRE D'ORIGINE — contenu vidéo conservé */}
+        <div className="relative overflow-hidden bg-[#111]" style={{ height: 320 }}>
+          {HERO_VIDEOS.map((video, i) => (
+            <video
+              key={video.src}
+              ref={(el) => { videoRefs.current[i] = el; }}
+              src={video.src}
+              autoPlay={i === 0}
+              muted
+              playsInline
+              loop
+              className="absolute inset-0 h-full w-full object-cover opacity-70 transition-opacity duration-700"
+              style={{ opacity: i === heroVidIdx ? 0.7 : 0, zIndex: i === heroVidIdx ? 1 : 0 }}
+            />
+          ))}
+          <div className="absolute inset-0 bg-gradient-to-b from-[#111]/30 via-[#111]/10 to-[#111]/50" />
+          <div className="relative z-10 flex h-full flex-col items-center justify-center px-4 text-center">
+            <span className="mb-3 inline-flex items-center gap-2 rounded-full border border-[#D4AF37]/40 bg-[#D4AF37]/10 px-4 py-1.5 text-[11px] font-bold uppercase tracking-wider text-[#D4AF37]">
+              <Wrench size={12} /> Réparation &amp; Entretien
+            </span>
+            <h1 className="text-[26px] font-black leading-tight text-white md:text-4xl">
+              Réseau de réparation <span className="text-[#D4AF37]">MKA.P-MS</span>
+            </h1>
+            <p className="mt-2 max-w-sm text-sm text-white/70">Garages certifiés, devis instantané, catalogue complet de pièces.</p>
+            <div className="mt-4 flex flex-wrap items-center justify-center gap-3">
+              {[
+                { val: garagesQuery.data ? `${garagesQuery.data.total}` : "...", label: "garages certifiés" },
+                { val: "4,8/5", label: "satisfaction client" },
+                { val: "2 min", label: "devis instantané" },
+              ].map((stat) => (
+                <div key={stat.label} className="flex flex-col items-center rounded-xl border border-white/10 bg-white/10 px-4 py-2 backdrop-blur">
+                  <span className="text-base font-black text-[#D4AF37]">{stat.val}</span>
+                  <span className="mt-0.5 text-[9px] text-white/60">{stat.label}</span>
+                </div>
+              ))}
+            </div>
+            <div className="mt-4 flex justify-center gap-2">
+              {HERO_VIDEOS.map((video, i) => (
+                <button key={video.label} onClick={() => setHeroVidIdx(i)} className={`flex flex-col items-center gap-1 transition-all duration-300 ${i === heroVidIdx ? "opacity-100" : "opacity-35 hover:opacity-60"}`}>
+                  <div className="relative h-[3px] overflow-hidden rounded-full" style={{ width: i === heroVidIdx ? 40 : 20, background: "rgba(255,255,255,0.25)", transition: "width 0.3s" }}>
+                    {i === heroVidIdx && <div className="absolute inset-y-0 left-0 rounded-full" style={{ width: `${heroProgress}%`, background: "linear-gradient(90deg, #D4AF37, #F5D76E)", boxShadow: "0 0 6px #D4AF37", transition: "width 0.1s linear" }} />}
                   </div>
-                ))}
-              </div>
+                  <span className={`text-[8px] font-semibold tracking-wide ${i === heroVidIdx ? "text-[#D4AF37]" : "text-white/50"}`}>{video.label}</span>
+                </button>
+              ))}
             </div>
           </div>
         </div>
