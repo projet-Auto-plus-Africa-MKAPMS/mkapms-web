@@ -365,118 +365,134 @@ export default function Devis() {
           </div>
         </div>
 
-        {/* DEUX CARTES : Obtenir un devis / Trouver un garage */}
-        <div className="px-4 md:px-8 max-w-6xl mx-auto -mt-6 relative z-10">
-          <div className="grid md:grid-cols-2 gap-4 md:gap-6">
-            {/* Carte Devis */}
-            <div className="rounded-2xl bg-white border border-[#E5E7EB] p-6 shadow-lg">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#D4AF37]/10">
-                  <FileText size={22} className="text-[#D4AF37]" />
-                </div>
-                <h2 className="text-lg font-extrabold text-[#111]">OBTENIR UN DEVIS</h2>
-              </div>
-              <p className="text-sm text-[#6B7280] mb-4">
-                Décrivez votre besoin et recevez une estimation personnalisée.
-              </p>
-              <ul className="space-y-2 mb-5">
-                {["Simple et rapide", "Devis transparents", "Garages certifiés", "Service client 7/7"].map((t) => (
-                  <li key={t} className="flex items-center gap-2 text-sm text-[#374151]">
-                    <CheckCircle size={14} className="text-green-500 shrink-0" /> {t}
-                  </li>
-                ))}
-              </ul>
-              <button
-                className="w-full rounded-xl bg-[#D4AF37] py-3.5 text-sm font-bold text-white shadow-md hover:bg-[#C5A028] transition"
-                onClick={() => {
-                  if (!user) { navigate("/connexion"); return; }
-                  setEntryPoint("devis");
-                  setMode("flow");
-                  setStep(1);
-                }}
-              >
-                Commencer
-              </button>
-            </div>
-
-            {/* Carte Garage */}
-            <div className="rounded-2xl bg-white border border-[#E5E7EB] p-6 shadow-lg">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#D4AF37]/10">
-                  <Building2 size={22} className="text-[#D4AF37]" />
-                </div>
-                <h2 className="text-lg font-extrabold text-[#111]">TROUVER UN GARAGE</h2>
-              </div>
-              <p className="text-sm text-[#6B7280] mb-4">
-                Recherchez un garage partenaire près de chez vous.
-              </p>
-              <ul className="space-y-2 mb-5">
-                {["Garages certifiés", "Avis clients vérifiés", "Devis gratuit", "Réservation en ligne"].map((t) => (
-                  <li key={t} className="flex items-center gap-2 text-sm text-[#374151]">
-                    <CheckCircle size={14} className="text-green-500 shrink-0" /> {t}
-                  </li>
-                ))}
-              </ul>
-              <button
-                className="w-full rounded-xl border-2 border-[#D4AF37] py-3.5 text-sm font-bold text-[#D4AF37] hover:bg-[#FFFBEB] transition"
-                onClick={() => {
-                  if (!user) { navigate("/connexion"); return; }
-                  setEntryPoint("garage");
-                  setMode("flow");
-                  setStep(1);
-                }}
-              >
-                Rechercher
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* AVANTAGES */}
-        <div className="px-4 md:px-8 max-w-6xl mx-auto mt-10">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {[
-              { title: "Simple et rapide", desc: "Processus en ligne en quelques minutes", icon: Zap },
-              { title: "Garages certifiés", desc: "Des professionnels de confiance", icon: Shield },
-              { title: "Devis transparents", desc: "Aucun frais caché, prix clairs", icon: Eye },
-              { title: "Service client 7/7", desc: "Nous sommes là pour vous aider", icon: Headphones },
-            ].map((a) => (
-              <div key={a.title} className="text-center">
-                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[#D4AF37]/10">
-                  <a.icon size={22} className="text-[#D4AF37]" />
-                </div>
-                <h3 className="mt-3 text-sm font-bold text-[#111]">{a.title}</h3>
-                <p className="mt-1 text-xs text-[#6B7280] leading-relaxed">{a.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* CTA FINAL */}
-        <div className="px-4 md:px-8 max-w-6xl mx-auto mt-10 mb-10">
-          <div className="rounded-2xl bg-[#111] p-6 md:p-8 text-center">
-            <h2 className="text-lg md:text-xl font-extrabold text-white">
-              BESOIN D'UNE RÉPARATION ?
+        {/* CONTENU SOUS LE MÉDIA — média/hero conservé intact */}
+        <div className="px-4 md:px-8 max-w-6xl mx-auto mt-8 space-y-8">
+          <section className="text-center max-w-2xl mx-auto">
+            <div className="mx-auto mb-3 h-1 w-16 rounded-full bg-[#0B6B8F]" />
+            <h2 className="text-2xl md:text-3xl font-black text-[#102A43]">
+              Une réparation claire, au juste prix
             </h2>
-            <p className="mt-2 text-sm text-white/60 max-w-md mx-auto">
-              Obtenez un devis gratuit et trouvez le meilleur garage en quelques clics.
+            <p className="mt-3 text-sm md:text-base leading-relaxed text-[#64748B]">
+              Des informations transparentes, des professionnels vérifiés et un suivi complet de votre réparation, de la prise de rendez-vous jusqu’à la fin des travaux.
             </p>
+          </section>
+
+          <section>
             <button
-              className="mt-5 rounded-xl bg-[#D4AF37] px-8 py-3.5 text-sm font-bold text-white shadow-lg hover:bg-[#C5A028] transition"
+              type="button"
+              className="group w-full overflow-hidden rounded-2xl bg-gradient-to-br from-[#063B5C] via-[#075985] to-[#0B6B8F] p-5 text-left text-white shadow-lg transition hover:-translate-y-0.5 hover:shadow-xl"
               onClick={() => {
                 if (!user) { navigate("/connexion"); return; }
+                setEntryPoint("garage");
                 setMode("flow");
                 setStep(1);
               }}
             >
-              Obtenir mon devis gratuit
+              <div className="flex items-center gap-4">
+                <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-white/10 ring-1 ring-white/25">
+                  <Settings size={28} />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <h2 className="text-xl font-black">Simuler le prix</h2>
+                  <p className="mt-1 text-sm text-white/80">
+                    Choisissez vos prestations et comparez les prix des garages.
+                  </p>
+                </div>
+                <ArrowRight size={24} className="shrink-0 transition group-hover:translate-x-1" />
+              </div>
             </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
+          </section>
 
+          <section className="grid grid-cols-3 gap-2.5 md:gap-4" aria-label="Services de réparation">
+            {[
+              {
+                title: "Garage",
+                desc: "Mécanique et réparation",
+                to: "/garage",
+                image: "https://images.unsplash.com/photo-1486006920555-c77dcf18193c?w=700&auto=format&fit=crop&q=85",
+                icon: Wrench,
+              },
+              {
+                title: "Carrosserie",
+                desc: "Peinture et réparation",
+                to: "/garage/carrosserie-garage",
+                image: "https://images.unsplash.com/photo-1530046339917-2fa7f3f8ea10?w=700&auto=format&fit=crop&q=85",
+                icon: Hammer,
+              },
+              {
+                title: "Diagnostic",
+                desc: "Contrôle et entretien",
+                to: "/garage/diagnostic-garage",
+                image: "https://images.unsplash.com/photo-1632823469811-2b0e0b8d4f8d?w=700&auto=format&fit=crop&q=85",
+                icon: Search,
+              },
+            ].map((service) => (
+              <Link
+                key={service.title}
+                to={service.to}
+                className="group overflow-hidden rounded-2xl border border-[#DCE6EE] bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg"
+              >
+                <div className="relative aspect-[0.9] overflow-hidden bg-[#EAF2F7]">
+                  <img
+                    src={service.image}
+                    alt={service.title}
+                    className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
+                    loading="lazy"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#062B40]/85 via-transparent to-transparent" />
+                  <div className="absolute left-2 top-2 flex h-8 w-8 items-center justify-center rounded-xl bg-white/90 text-[#0B6B8F]">
+                    <service.icon size={16} />
+                  </div>
+                  <ArrowRight size={16} className="absolute right-2 top-2 text-white" />
+                </div>
+                <div className="p-2.5 md:p-3">
+                  <h3 className="text-sm font-black text-[#102A43]">{service.title}</h3>
+                  <p className="mt-1 text-[10px] leading-snug text-[#64748B]">{service.desc}</p>
+                </div>
+              </Link>
+            ))}
+          </section>
+
+          <section>
+            <button
+              type="button"
+              className="group flex w-full items-center gap-4 rounded-2xl border border-[#C9DCEC] bg-white p-5 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg"
+              onClick={() => {
+                if (!user) { navigate("/connexion"); return; }
+                setEntryPoint("devis");
+                setMode("flow");
+                setStep(1);
+              }}
+            >
+              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-[#EAF2F7] text-[#0B6B8F]">
+                <FileText size={28} />
+              </div>
+              <div className="min-w-0 flex-1">
+                <h2 className="text-xl font-black text-[#102A43]">Obtenir un devis</h2>
+                <p className="mt-1 text-sm text-[#64748B]">
+                  Décrivez votre besoin et recevez des propositions de garages vérifiés.
+                </p>
+              </div>
+              <ArrowRight size={24} className="shrink-0 text-[#0B6B8F] transition group-hover:translate-x-1" />
+            </button>
+          </section>
+
+          <section className="grid grid-cols-2 gap-4 pb-10 md:grid-cols-4">
+            {[
+              { title: "Garages vérifiés", icon: Shield },
+              { title: "Prix transparents", icon: CheckCircle },
+              { title: "Suivi jusqu’à la fin", icon: Calendar },
+              { title: "Service client 7J/7", icon: Headphones },
+            ].map((item) => (
+              <div key={item.title} className="text-center">
+                <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-full bg-[#E7F6F1] text-[#16806A]">
+                  <item.icon size={20} />
+                </div>
+                <p className="mt-2 text-xs font-bold text-[#102A43]">{item.title}</p>
+              </div>
+            ))}
+          </section>
+        </div>
   /* ════════════════════════════════════════════════════════════
      FLUX 7 ÉTAPES — Réparation / Devis
      ════════════════════════════════════════════════════════════ */
