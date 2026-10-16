@@ -70,7 +70,7 @@ const ADS_CENTER = [
 
 /* ── PUBLICITÉ SERVICES ── */
 const ADS_SERVICES = [
-  { titre: "GARAGE & RÉPARATION", sous: "TROUVEZ UN GARAGE VÉRIFIÉ PRÈS DE CHEZ VOUS", color: "bg-orange-600", to: "/garages" },
+  { titre: "GARAGE & RÉPARATION", sous: "TROUVEZ UN GARAGE VÉRIFIÉ PRÈS DE CHEZ VOUS", color: "bg-orange-600", to: "/devis" },
   { titre: "DÉPANNAGE 24H/24", sous: "ASSISTANCE ROUTIÈRE PARTOUT EN FRANCE", color: "bg-red-600", to: "/depannage" },
   { titre: "LOCATION VÉHICULE", sous: "PARTICULIER, PRO, VTC & TAXI — DÈS 29€/JOUR", color: "bg-blue-600", to: "/louer" },
   { titre: "PIÈCES AUTO", sous: "PIÈCES D'ORIGINE — LIVRAISON EXPRESS", color: "bg-gray-800", to: "/pieces" },
@@ -317,7 +317,7 @@ const HOME_MENUS: MegaMenu[] = [
         { label: "Comparateur", to: "/comparateur" },
       ] },
       { heading: "Services auto", links: [
-        { label: "Garage & Réparation", to: "/garages" },
+        { label: "Garage & Réparation", to: "/devis" },
         { label: "Contrôle technique", to: "/garage/controle-technique" },
         { label: "Dépannage", to: "/depannage" },
         { label: "Pièces auto", to: "/pieces" },
@@ -1670,7 +1670,7 @@ export default function Home() {
                     { label: "Acheter", to: "/acheter" },
                     { label: "Vendre", to: "/vendre" },
                     { label: "Louer", to: "/louer" },
-                    { label: "Réparer / Garage", to: "/garages" },
+                    { label: "Réparer / Garage", to: "/devis" },
                     { label: "Finance+", to: "/finance" },
                     { label: "Services", to: "/demarches" },
                   ].map((l) => (
