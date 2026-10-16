@@ -195,6 +195,19 @@ const ESTIMATION_SERVICE_CATALOG = [
   { id: "transmission", label: "Transmission", description: "Boîte, cardans et transmission", repairId: "autre", segment: "mecanique" },
   { id: "carrosserie-esthetique", label: "Carrosserie et esthétique", description: "Tôlerie, peinture et remise en état", repairId: "autre", segment: "carrosserie" },
   { id: "vision-parebrise", label: "Vision et pare-brise", description: "Pare-brise, vitrages et visibilité", repairId: "autre", segment: "carrosserie" },
+  { id: "pare-brise", label: "Remplacement pare-brise", description: "Pare-brise avant, capteurs et recalibrage", repairId: "autre", segment: "carrosserie" },
+  { id: "vitres-laterales", label: "Vitres latérales", description: "Vitres de portes et mécanismes de lève-vitre", repairId: "autre", segment: "carrosserie" },
+  { id: "lunette-arriere", label: "Lunette arrière", description: "Remplacement et dégivrage de lunette arrière", repairId: "autre", segment: "carrosserie" },
+  { id: "pare-chocs", label: "Pare-chocs", description: "Réparation, remplacement et peinture des pare-chocs", repairId: "autre", segment: "carrosserie" },
+  { id: "ailes", label: "Ailes et passages de roue", description: "Réparation ou remplacement des ailes", repairId: "autre", segment: "carrosserie" },
+  { id: "portes", label: "Portières et serrures", description: "Portière, serrure, charnière et lève-vitre", repairId: "autre", segment: "carrosserie" },
+  { id: "capot-coffre", label: "Capot et coffre", description: "Réglage, remplacement et réparation", repairId: "autre", segment: "carrosserie" },
+  { id: "peinture", label: "Peinture carrosserie", description: "Peinture complète, élément ou retouche", repairId: "autre", segment: "carrosserie" },
+  { id: "debosselage", label: "Débosselage sans peinture", description: "Petits impacts, grêle et bosses", repairId: "autre", segment: "carrosserie" },
+  { id: "tolerie", label: "Tôlerie et redressage", description: "Redressage, soudure et remise en ligne", repairId: "autre", segment: "carrosserie" },
+  { id: "retroviseurs", label: "Rétroviseurs", description: "Coque, miroir, clignotant et réglage", repairId: "autre", segment: "carrosserie" },
+  { id: "phares-feux", label: "Phares et feux", description: "Optiques, feux arrière et éclairage extérieur", repairId: "autre", segment: "carrosserie" },
+  { id: "jantes-esthetique", label: "Jantes et esthétique", description: "Jantes, plastiques et finitions extérieures", repairId: "autre", segment: "carrosserie" },
   { id: "diagnostics", label: "Contrôles et diagnostics", description: "Contrôle électronique et diagnostic", repairId: "diagnostic", segment: "mecanique" },
   { id: "recherche-pannes", label: "Recherche de pannes", description: "Identifier l'origine d'un problème", repairId: "diagnostic", segment: "mecanique" },
   { id: "rdv-autre", label: "Prise de RDV (autre problème)", description: "Décrire une demande qui n'est pas listée", repairId: "autre", segment: "mecanique", manual: true },
@@ -217,6 +230,9 @@ export default function Devis() {
   const [estimationExpanded, setEstimationExpanded] = useState<string | null>(null);
   const [estimationSelections, setEstimationSelections] = useState<string[]>([]);
   const [estimationVehicleIdentified, setEstimationVehicleIdentified] = useState(false);
+  const [estimationMode, setEstimationMode] = useState<"repair" | "tires">("repair");
+  const [estimationServiceSearch, setEstimationServiceSearch] = useState("");
+  const [tireDimensions, setTireDimensions] = useState({ largeur: "", hauteur: "", jante: "" });
 
   // Synchronise l’affichage avec les navigations internes (?estimation=1), notamment le bouton d’estimation.
   useEffect(() => {
@@ -425,6 +441,13 @@ export default function Devis() {
      ════════════════════════════════════════════════════════════ */
   if (mode === "estimation") {
     const estimateServices = ESTIMATION_SERVICE_CATALOG.filter((service) => service.segment === estimationCategory);
+    const normalizeEstimateSearch = (value: string) => value.toLocaleLowerCase("fr-FR").normalize("NFD").replace(/[\\u0300-\\u036f]/g, "");
+    const visibleEstimateServices = estimateServices.filter((service) => {
+      const repair = REPAIR_TYPES.find((item) => item.id === service.repairId);
+      const searchable = [service.label, service.description, ...(repair?.subTypes.map((item) => item.label) || [])].join(" ");
+      const query = normalizeEstimateSearch(estimationServiceSearch.trim());
+      return !query || normalizeEstimateSearch(searchable).includes(query);
+    });
     const estimateGarages = estimationCategory === "carrosserie"
       ? garages.filter((garage) => /carross|peinture|vitrage|pare-brise/i.test(garage.services || ""))
       : garages;
@@ -459,7 +482,7 @@ export default function Devis() {
     const canSeeTariffs = estimationVehicleIdentified && positionSearch.trim().length > 0 && selectedServiceCount > 0;
 
     return (
-      <div className="min-h-screen bg-[#08A9C4] pb-24">
+      <div className="min-h-screen bg-[#FFF1E6] pb-24">
         <div className="border-b border-white/20 bg-white px-4 py-4">
           <div className="mx-auto flex max-w-4xl items-center gap-3">
             <button type="button" onClick={() => navigate("/devis")} className="rounded-full p-2 text-[#64748B] hover:bg-[#F1F5F9]" aria-label="Retour"><ArrowLeft size={20} /></button>
@@ -468,17 +491,42 @@ export default function Devis() {
         </div>
 
         <div className="mx-auto max-w-2xl px-3 py-6">
-          <div className="mb-5 flex items-center justify-center gap-2 text-xs font-black text-white">
+          <div className="mb-5 flex items-center justify-center gap-2 text-xs font-black text-[#9A4B12]">
             {["Détails", "Voir les tarifs"].map((label, index) => (
-              <button key={label} type="button" onClick={() => index === 1 && canSeeTariffs && setEstimationStep(2)} className={`rounded-full px-4 py-2 ${estimationStep === index + 1 ? "bg-white text-[#08A9C4]" : "bg-white/20 text-white"}`}>{index + 1}. {label}</button>
+              <button key={label} type="button" onClick={() => index === 1 && canSeeTariffs && setEstimationStep(2)} className={`rounded-full px-4 py-2 ${estimationStep === index + 1 ? "bg-[#FF8A1F] text-white" : "bg-[#FFE0C2] text-[#9A4B12]"}`}>{index + 1}. {label}</button>
             ))}
           </div>
 
-          {estimationStep === 1 && (
+          {estimationMode === "tires" && (
+            <section className="rounded-[28px] bg-white p-5 shadow-2xl">
+              <h2 className="mb-1 text-center text-2xl font-black text-[#08A9C4]">Trouver mes pneus</h2>
+              <p className="mb-5 text-center text-sm text-[#64748B]">Achetez vos pneus ou demandez leur montage auprès d’un garage partenaire.</p>
+              <div className="space-y-3">
+                <button type="button" onClick={() => { setEstimationMode("repair"); setEstimationExpanded("vehicle"); }} className="flex w-full items-center gap-3 rounded-2xl border-2 border-[#B7BDC4] px-4 py-5 text-left">
+                  <span className="text-2xl">🚗</span><span className="min-w-0 flex-1"><span className="block text-base font-black text-[#30343B]">Immatriculation</span><span className="block text-xs text-[#64748B]">Identifier le véhicule pour trouver la bonne dimension</span></span><ChevronRight className="text-[#FF8A1F]" />
+                </button>
+                <div className="text-center text-lg font-bold text-[#94A3B8]">ou</div>
+                <div className="overflow-hidden rounded-2xl border-2 border-[#B7BDC4]">
+                  <button type="button" onClick={() => setEstimationExpanded(estimationExpanded === "tire-dimensions" ? null : "tire-dimensions")} className="flex w-full items-center gap-3 px-4 py-5 text-left">
+                    <span className="text-2xl">↔️</span><span className="min-w-0 flex-1"><span className="block text-base font-black text-[#30343B]">Dimensions</span><span className="block text-xs text-[#64748B]">Largeur · hauteur · diamètre de jante</span></span><ChevronDown className={`text-[#FF8A1F] transition ${estimationExpanded === "tire-dimensions" ? "rotate-180" : ""}`} />
+                  </button>
+                  {estimationExpanded === "tire-dimensions" && <div className="grid grid-cols-3 gap-2 border-t border-[#E5E7EB] bg-[#FAFAFA] px-4 py-4">
+                    {([["largeur", "Largeur"], ["hauteur", "Hauteur"], ["jante", "Jante"]] as const).map(([field, label]) => <input key={field} className="min-w-0 rounded-lg border border-[#CBD5E1] px-2 py-3 text-center text-sm outline-none" placeholder={label} value={tireDimensions[field]} onChange={(event) => setTireDimensions((current) => ({ ...current, [field]: event.target.value }))} />)}
+                  </div>}
+                </div>
+              </div>
+              <div className="my-5 border-t border-[#E5E7EB]" />
+              <p className="text-center text-sm text-[#475569]">Vous avez déjà vos pneus ?</p>
+              <button type="button" onClick={() => { setEstimationMode("repair"); setEstimationCategory("mecanique"); setEstimationExpanded("service"); const key = "pneumatiques::Montage 4 pneus + équilibrage"; setEstimationSelections((current) => current.includes(key) ? current : [...current, key]); setSelectedRepairId("pneus"); setSelectedSubType("Montage 4 pneus + équilibrage"); }} className="mt-2 w-full text-center text-lg font-black text-[#08A9C4] underline">Faire monter mes pneus</button>
+              <button type="button" onClick={() => navigate("/pieces?search=pneus")} className="mt-5 w-full rounded-2xl bg-[#FF8A1F] py-4 text-base font-black text-white shadow-lg">ACHETER MES PNEUS</button>
+            </section>
+          )}
+
+          {estimationMode === "repair" && {estimationStep === 1 && (
             <section className="rounded-[28px] bg-white p-5 shadow-2xl">
               <div className="mb-4 grid grid-cols-2 overflow-hidden rounded-2xl border border-[#E5E7EB]">
-                <button type="button" className="bg-white px-3 py-3 text-sm font-black text-[#08A9C4]">ENTRETENIR MON VÉHICULE</button>
-                <button type="button" className="bg-[#F3F3F3] px-3 py-3 text-sm font-black text-[#374151]">CHANGER MES PNEUS <span className="ml-1 inline-flex rounded-full bg-[#D92D35] px-2 py-1 text-[9px] text-white">NOUVEAU</span></button>
+                <button type="button" onClick={() => { setEstimationMode("repair"); setEstimationStep(1); }} className={`bg-white px-3 py-3 text-sm font-black ${estimationMode === "repair" ? "text-[#08A9C4]" : "text-[#64748B]"}`}>ENTRETENIR MON VÉHICULE</button>
+                <button type="button" onClick={() => { setEstimationMode("tires"); setEstimationStep(1); setEstimationExpanded(null); }} className={`bg-[#F3F3F3] px-3 py-3 text-sm font-black ${estimationMode === "tires" ? "text-[#08A9C4]" : "text-[#374151]"}`}>CHANGER MES PNEUS <span className="ml-1 inline-flex rounded-full bg-[#D92D35] px-2 py-1 text-[9px] text-white">NOUVEAU</span></button>
               </div>
 
               <div className="space-y-3">
@@ -494,7 +542,7 @@ export default function Devis() {
                           <button key={tab} type="button" onClick={() => tab === "manual" ? setSaisieManuelle(true) : (setSaisieManuelle(false), setIdentTab(tab))} className={`flex-1 rounded-lg border px-2 py-2 text-[10px] font-bold ${(tab === "manual" ? saisieManuelle : !saisieManuelle && identTab === tab) ? "border-[#08A9C4] bg-[#E8FAFD] text-[#087B91]" : "border-[#E5E7EB] bg-white text-[#64748B]"}`}>{label}</button>
                         ))}
                       </div>
-                      {!saisieManuelle && identTab === "plaque" && <div className="flex gap-2"><input className="min-w-0 flex-1 rounded-lg border border-[#CBD5E1] px-3 py-2 text-sm uppercase outline-none" placeholder="Ex. AQ-619-QJ" value={plaque} onChange={(event) => { setPlaque(event.target.value.toUpperCase()); setEstimationVehicleIdentified(false); }} /><button type="button" disabled={plateLoading || !plaque.trim()} onClick={() => identifyEstimationVehicle("plaque")} className="rounded-lg bg-[#08A9C4] px-3 py-2 text-xs font-bold text-white disabled:opacity-40">{plateLoading ? "…" : "Identifier"}</button></div>}
+                      {!saisieManuelle && identTab === "plaque" && <div className="flex gap-2"><input className="min-w-0 flex-1 rounded-lg border border-[#CBD5E1] px-3 py-2 text-sm uppercase outline-none" placeholder="Plaque d’immatriculation" value={plaque} onChange={(event) => { setPlaque(event.target.value.toUpperCase()); setEstimationVehicleIdentified(false); }} /><button type="button" disabled={plateLoading || !plaque.trim()} onClick={() => identifyEstimationVehicle("plaque")} className="rounded-lg bg-[#08A9C4] px-3 py-2 text-xs font-bold text-white disabled:opacity-40">{plateLoading ? "…" : "Identifier"}</button></div>}
                       {!saisieManuelle && identTab === "vin" && <div className="flex gap-2"><input className="min-w-0 flex-1 rounded-lg border border-[#CBD5E1] px-3 py-2 text-sm uppercase outline-none" placeholder="Saisir le numéro VIN" value={vin} onChange={(event) => { setVin(event.target.value.toUpperCase()); setEstimationVehicleIdentified(false); }} /><button type="button" disabled={plateLoading || !vin.trim()} onClick={() => identifyEstimationVehicle("vin")} className="rounded-lg bg-[#08A9C4] px-3 py-2 text-xs font-bold text-white disabled:opacity-40">{plateLoading ? "…" : "Identifier"}</button></div>}
                       {saisieManuelle && <div className="space-y-2"><div className="grid grid-cols-2 gap-2">{([["marque", "Marque"], ["modele", "Modèle"], ["annee", "Année"], ["carburant", "Carburant"]] as const).map(([field, label]) => <input key={field} className="rounded-lg border border-[#CBD5E1] px-3 py-2 text-sm outline-none" placeholder={label} value={vehicule[field]} onChange={(event) => { setVehicule((current) => ({ ...current, [field]: event.target.value })); setEstimationVehicleIdentified(false); }} />)}</div><button type="button" onClick={validateManualVehicle} className="w-full rounded-lg bg-[#08A9C4] py-2.5 text-xs font-bold text-white">Valider le véhicule</button></div>}
                     </div>
@@ -509,9 +557,15 @@ export default function Devis() {
                 <div className="overflow-hidden rounded-2xl border-2 border-[#08A9C4]">
                   <button type="button" onClick={() => setEstimationExpanded(estimationExpanded === "service" ? null : "service")} className="flex w-full items-center gap-3 px-4 py-4 text-left"><Wrench size={27} className="text-[#08A9C4]" /><span className="min-w-0 flex-1"><span className="block text-base font-black text-[#30343B]">{selectedServiceCount ? `${selectedServiceCount} prestation${selectedServiceCount > 1 ? "s" : ""} sélectionnée${selectedServiceCount > 1 ? "s" : ""}` : "Choisissez votre prestation"}</span><span className="block text-xs text-[#64748B]">Sélection multiple possible</span></span><ChevronDown size={22} className={`text-[#FF8A1F] transition ${estimationExpanded === "service" ? "rotate-180" : ""}`} /></button>
                   {(estimationExpanded === "service" || estimationExpanded?.startsWith("service:")) && <div className="border-t border-[#E5E7EB] bg-[#FAFAFA] px-3 py-2">
-                    <div className="mb-2 grid grid-cols-2 gap-2"><button type="button" onClick={() => setEstimationCategory("mecanique")} className={`rounded-lg px-2 py-2 text-xs font-black ${estimationCategory === "mecanique" ? "bg-[#08A9C4] text-white" : "bg-white text-[#64748B]"}`}>Mécanique & entretien</button><button type="button" onClick={() => setEstimationCategory("carrosserie")} className={`rounded-lg px-2 py-2 text-xs font-black ${estimationCategory === "carrosserie" ? "bg-[#08A9C4] text-white" : "bg-white text-[#64748B]"}`}>Carrosserie & vitrage</button></div>
+                    <div className="mb-3">
+                        <label className="flex items-center gap-2 rounded-xl border border-[#CBD5E1] bg-white px-3 py-2.5 text-sm text-[#64748B]">
+                          <Search size={17} className="shrink-0 text-[#08A9C4]" />
+                          <input className="min-w-0 flex-1 bg-transparent outline-none" placeholder="Rechercher : plaquettes, distribution, amortisseur…" value={estimationServiceSearch} onChange={(event) => setEstimationServiceSearch(event.target.value)} />
+                        </label>
+                      </div>
+                      <div className="mb-2 grid grid-cols-2 gap-2"><button type="button" onClick={() => setEstimationCategory("mecanique")} className={`rounded-lg px-2 py-2 text-xs font-black ${estimationCategory === "mecanique" ? "bg-[#08A9C4] text-white" : "bg-white text-[#64748B]"}`}>Mécanique & entretien</button><button type="button" onClick={() => setEstimationCategory("carrosserie")} className={`rounded-lg px-2 py-2 text-xs font-black ${estimationCategory === "carrosserie" ? "bg-[#08A9C4] text-white" : "bg-white text-[#64748B]"}`}>Carrosserie & vitrage</button></div>
                     <div className="max-h-[440px] overflow-y-auto">
-                      {estimateServices.map((service) => {
+                      {visibleEstimateServices.map((service) => {
                         const isOpen = estimationExpanded === `service:${service.id}`;
                         const count = estimationSelections.filter((key) => key.startsWith(`${service.id}::`)).length;
                         const repair = REPAIR_TYPES.find((item) => item.id === service.repairId);
