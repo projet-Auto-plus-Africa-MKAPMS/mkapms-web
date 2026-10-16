@@ -1522,4 +1522,18 @@ export default function Devis() {
           </div>
           <h1 className="mt-6 text-2xl font-black text-[#111]">Demande envoyée !</h1>
           <p className="mt-2 text-sm text-[#6B7280]">
-            Votre demande de devis a été transmise aux garages partenaires de votre secteur{selectedGara
+            Votre demande de devis a été transmise aux garages partenaires de votre secteur{selectedGarage ? ` (dont ${selectedGarage.name})` : ""}. Vous serez notifié dès qu'un garage répond.
+          </p>
+          <div className="mt-6 space-y-3">
+            <button onClick={() => navigate("/compte")} className="w-full rounded-xl bg-[#D4AF37] py-3 text-sm font-bold text-white">
+              Suivre ma demande
+            </button>
+            <button onClick={() => { setMode("landing"); setStep(1); }} className="w-full rounded-xl border border-[#E5E7EB] py-3 text-sm font-semibold text-[#111]">
+              Nouvelle demande
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
