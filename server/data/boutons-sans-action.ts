@@ -74,4 +74,5 @@ export const BOUTONS_SANS_ACTION: readonly BoutonSansAction[] = [
 
 /** Nombre d'écrans concernés. */
 export function ecransConcernes(): string[] {
-  return [...new Set(
+  return [...new Set(BOUTONS_SANS_ACTION.map((b) => b.fichier))].sort();
+}
