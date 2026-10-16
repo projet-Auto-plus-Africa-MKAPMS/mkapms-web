@@ -281,9 +281,9 @@ const HOME_MENUS: MegaMenu[] = [
     promo: { title: "Location tout compris", sub: "Particulier, Pro, VTC & Taxi dès 29€/jour", cta: "Découvrir", to: "/louer" },
   },
   {
-    key: "reparer", label: "Réparer", to: "/garages",
+    key: "reparer", label: "Réparer", to: "/devis",
     cols: [{ links: [
-      { label: "Garage & Réparation", to: "/garages" },
+      { label: "Garage & Réparation", to: "/devis" },
       { label: "Contrôle technique", to: "/garage/controle-technique" },
       { label: "Carrosserie / Peinture", to: "/garage/carrosserie-garage" },
       { label: "Dépannage 24h/24", to: "/depannage" },
@@ -293,7 +293,7 @@ const HOME_MENUS: MegaMenu[] = [
       { label: "Livraison", to: "/livraison" },
       { label: "Livraison véhicules & camions", to: "/livraison-vehicule" },
     ] }],
-    promo: { title: "Trouvez un garage vérifié", sub: "Devis en ligne près de chez vous", cta: "Trouver", to: "/garages" },
+    promo: { title: "Trouvez un garage vérifié", sub: "Devis en ligne près de chez vous", cta: "Trouver", to: "/devis" },
   },
   {
     key: "finance", label: "Finance+", to: "/finance",
@@ -761,7 +761,7 @@ export default function Home() {
                 { icon: Search, label: "ACHETER", sub: "Un véhicule", to: "/acheter", iconClass: "text-blue-600", iconBg: "bg-blue-50", iconBorder: "border-blue-200", hoverBorder: "hover:border-blue-300" },
                 { icon: Tag, label: "VENDRE", sub: "Mon véhicule", to: "/vendre", iconClass: "text-emerald-600", iconBg: "bg-emerald-50", iconBorder: "border-emerald-200", hoverBorder: "hover:border-emerald-300" },
                 { icon: KeyRound, label: "LOUER", sub: "Un véhicule", to: "/louer", iconClass: "text-violet-600", iconBg: "bg-violet-50", iconBorder: "border-violet-200", hoverBorder: "hover:border-violet-300" },
-                { icon: Wrench, label: "RÉPARER", sub: "Mon véhicule", to: "/garages", iconClass: "text-orange-600", iconBg: "bg-orange-50", iconBorder: "border-orange-200", hoverBorder: "hover:border-orange-300" },
+                { icon: Wrench, label: "RÉPARER", sub: "Mon véhicule", to: "/devis", iconClass: "text-orange-600", iconBg: "bg-orange-50", iconBorder: "border-orange-200", hoverBorder: "hover:border-orange-300" },
                 { icon: ShoppingBag, label: "BOUTIQUE", sub: "MKA.P-MS SHOP", to: "/boutique", pending: true, iconClass: "text-cyan-600", iconBg: "bg-cyan-50", iconBorder: "border-cyan-200", hoverBorder: "hover:border-cyan-300" },
               ].map((a) => (
                 <Link
@@ -1350,7 +1350,7 @@ export default function Home() {
               {[
                 { icon: Car, label: "Achat / Vente", desc: "Véhicules neufs et d'occasion", to: "/acheter", color: "text-[#D4AF37]" },
                 { icon: KeyRound, label: "Location", desc: "Particulier, Pro, VTC & Taxi", to: "/louer", color: "text-blue-600" },
-                { icon: Wrench, label: "Garage", desc: "Réparation et entretien", to: "/garages", color: "text-orange-600" },
+                { icon: Wrench, label: "Garage", desc: "Réparation et entretien", to: "/devis", color: "text-orange-600" },
                 { icon: Truck, label: "Dépannage", desc: "Assistance 24h/24 7j/7", to: "/depannage", color: "text-red-600" },
                 { icon: ShieldCheck, label: "Contrôle Technique", desc: "Prise en charge et suivi", to: "/garage/controle-technique", color: "text-green-600" },
                 { icon: FileText, label: "Carte Grise", desc: "Démarches administratives", to: "/demarches", color: "text-purple-600" },
@@ -1533,7 +1533,7 @@ export default function Home() {
                     { label: "Acheter", to: "/acheter" },
                     { label: "Vendre", to: "/vendre" },
                     { label: "Louer", to: "/louer" },
-                    { label: "Réparer / Garage", to: "/garages" },
+                    { label: "Réparer / Garage", to: "/devis" },
                     { label: "Finance+", to: "/finance" },
                     { label: "Services", to: "/demarches" },
                   ].map((l) => (
