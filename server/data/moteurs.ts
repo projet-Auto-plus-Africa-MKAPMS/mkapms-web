@@ -100,14 +100,14 @@ export interface PerimetreMoteur {
 }
 
 export const MOTEURS_TOTAL = 96;
-export const MANQUES_TOTAL = 526;
+export const MANQUES_TOTAL = 528;
 export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
+  "bouton_sans_action": 52,
   "dependance_non_declaree": 67,
   "sans_logique_serveur": 10,
   "ecran_sans_contenu": 340,
   "sans_ecran": 8,
   "dependance_sans_preuve": 41,
-  "bouton_sans_action": 50,
   "bouton_declare_absent_ecran": 6,
   "emission_dynamique": 2,
   "destination_inconnue": 2
@@ -653,11 +653,11 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/devis"
         ],
-        "cliquables": 31,
+        "cliquables": 37,
         "parMoteur": 0,
-        "sansAction": 0,
-        "textes": 243,
-        "mots": 1017
+        "sansAction": 2,
+        "textes": 275,
+        "mots": 1096
       },
       {
         "fichier": "client/src/pages/Favoris.tsx",
@@ -1329,6 +1329,14 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "mots": 5170,
     "battement": "sonde",
     "manques": [
+      {
+        "genre": "bouton_sans_action",
+        "detail": "« ENTRETENIR MON VÉHICULE » client/src/pages/Devis.tsx:480"
+      },
+      {
+        "genre": "bouton_sans_action",
+        "detail": "« CHANGER MES PNEUS NOUVEAU » client/src/pages/Devis.tsx:481"
+      },
       {
         "genre": "dependance_non_declaree",
         "detail": "boutons — client/src/pages/Vehicule.tsx embarque lib/boutonMoteur.tsx (trpc.buttonEngine)"
