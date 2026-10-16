@@ -177,6 +177,29 @@ const REPAIR_TYPES = [
   },
 ];
 
+
+const ESTIMATION_SERVICE_CATALOG = [
+  { id: "nouveau", label: "Nouveau", description: "Une prestation récente ou non listée", repairId: "autre", segment: "mecanique", manual: true },
+  { id: "revision", label: "Révisions et vidange", description: "Entretien périodique, vidange et filtres", repairId: "revision", segment: "mecanique" },
+  { id: "freinage", label: "Freinage", description: "Plaquettes, disques et liquide de frein", repairId: "freinage", segment: "mecanique" },
+  { id: "distribution", label: "Distribution", description: "Courroie, chaîne et pompe à eau", repairId: "moteur", segment: "mecanique" },
+  { id: "pieces-moteur", label: "Pièces moteur", description: "Moteur, turbo, EGR et pièces associées", repairId: "moteur", segment: "mecanique" },
+  { id: "embrayage", label: "Embrayage", description: "Embrayage et transmission de puissance", repairId: "autre", segment: "mecanique" },
+  { id: "suspension", label: "Suspension", description: "Amortisseurs, ressorts et liaisons au sol", repairId: "autre", segment: "mecanique" },
+  { id: "geometrie", label: "Géométrie", description: "Parallélisme et réglage des trains roulants", repairId: "pneus", segment: "mecanique" },
+  { id: "demarrage-charge", label: "Démarrage et charge", description: "Batterie, alternateur et démarreur", repairId: "electricite", segment: "mecanique" },
+  { id: "echappement-fap", label: "Échappement et FAP", description: "Échappement, filtre à particules et antipollution", repairId: "autre", segment: "mecanique" },
+  { id: "climatisation", label: "Climatisation", description: "Recharge, entretien et diagnostic", repairId: "climatisation", segment: "mecanique" },
+  { id: "pneumatiques", label: "Pneumatiques (hors achat)", description: "Montage, équilibrage et crevaison", repairId: "pneus", segment: "mecanique" },
+  { id: "direction", label: "Direction", description: "Direction, crémaillère et assistance", repairId: "autre", segment: "mecanique" },
+  { id: "transmission", label: "Transmission", description: "Boîte, cardans et transmission", repairId: "autre", segment: "mecanique" },
+  { id: "carrosserie-esthetique", label: "Carrosserie et esthétique", description: "Tôlerie, peinture et remise en état", repairId: "autre", segment: "carrosserie" },
+  { id: "vision-parebrise", label: "Vision et pare-brise", description: "Pare-brise, vitrages et visibilité", repairId: "autre", segment: "carrosserie" },
+  { id: "diagnostics", label: "Contrôles et diagnostics", description: "Contrôle électronique et diagnostic", repairId: "diagnostic", segment: "mecanique" },
+  { id: "recherche-pannes", label: "Recherche de pannes", description: "Identifier l'origine d'un problème", repairId: "diagnostic", segment: "mecanique" },
+  { id: "rdv-autre", label: "Prise de RDV (autre problème)", description: "Décrire une demande qui n'est pas listée", repairId: "autre", segment: "mecanique", manual: true },
+] as const;
+
 const CRENEAUX = ["08:00", "09:00", "10:00", "11:00", "14:00", "15:00", "16:00", "17:00"];
 
 export default function Devis() {
@@ -193,6 +216,7 @@ export default function Devis() {
   const [estimationCategory, setEstimationCategory] = useState<"mecanique" | "carrosserie">("mecanique");
   const [estimationExpanded, setEstimationExpanded] = useState<string | null>(null);
   const [estimationSelections, setEstimationSelections] = useState<string[]>([]);
+  const [estimationVehicleIdentified, setEstimationVehicleIdentified] = useState(false);
 
   // Synchronise l’affichage avec les navigations internes (?estimation=1), notamment le bouton d’estimation.
   useEffect(() => {
@@ -299,11 +323,12 @@ export default function Devis() {
   }, [selectedRepair, selectedSubType]);
 
   const estimationSelectionData = useMemo(() => estimationSelections.map((key) => {
-    const [repairId, ...subParts] = key.split("::");
-    const repair = REPAIR_TYPES.find((item) => item.id === repairId);
+    const [serviceId, ...subParts] = key.split("::");
+    const service = ESTIMATION_SERVICE_CATALOG.find((item) => item.id === serviceId);
+    const repair = REPAIR_TYPES.find((item) => item.id === service?.repairId);
     const subType = subParts.join("::");
-    const sub = repair?.subTypes.find((item) => item.label === subType);
-    if (!repair || !sub) return null;
+    const sub = repair?.subTypes.find((item) => item.label === subType) || repair?.subTypes[0];
+    if (!service || !repair || !sub) return null;
     const pieces = repair.pieces.reduce((sum, piece) => ({ min: sum.min + piece.prixMin, max: sum.max + piece.prixMax }), { min: 0, max: 0 });
     return { key, repair, sub, min: pieces.min + repair.mainOeuvreMin, max: pieces.max + repair.mainOeuvreMax };
   }).filter(Boolean) as Array<{ key: string; repair: typeof REPAIR_TYPES[number]; sub: typeof REPAIR_TYPES[number]["subTypes"][number]; min: number; max: number }>, [estimationSelections]);
@@ -399,180 +424,118 @@ export default function Devis() {
      ESTIMATION — détail rapide, sélection multiple et comparaison
      ════════════════════════════════════════════════════════════ */
   if (mode === "estimation") {
-    const estimateRepairs = estimationCategory === "carrosserie"
-      ? REPAIR_TYPES.filter((repair) => repair.id === "autre")
-      : REPAIR_TYPES.filter((repair) => repair.id !== "diagnostic");
+    const estimateServices = ESTIMATION_SERVICE_CATALOG.filter((service) => service.segment === estimationCategory);
     const estimateGarages = estimationCategory === "carrosserie"
       ? garages.filter((garage) => /carross|peinture|vitrage|pare-brise/i.test(garage.services || ""))
       : garages;
 
-    const toggleEstimateService = (repairId: string, subType: string) => {
-      const key = `${repairId}::${subType}`;
+    const toggleEstimateService = (serviceId: string, subType: string) => {
+      const key = \`${serviceId}::${subType}\`;
       setEstimationSelections((current) => current.includes(key) ? current.filter((item) => item !== key) : [...current, key]);
-      setSelectedRepairId(repairId);
-      setSelectedSubType(subType);
+      const service = ESTIMATION_SERVICE_CATALOG.find((item) => item.id === serviceId);
+      if (service) { setSelectedRepairId(service.repairId); setSelectedSubType(subType); }
     };
 
+    const identifyEstimationVehicle = async (type: "plaque" | "vin") => {
+      const query = type === "plaque" ? plaque.trim() : vin.trim();
+      if (!query) return;
+      setPlateLoading(true);
+      try {
+        const result = await utils.annonces.lookupPlate.fetch({ type, query });
+        if (result) {
+          setVehicule({ marque: result.marque || "", modele: result.modele || "", version: result.version || "", annee: result.annee ? String(result.annee) : "", carburant: result.carburant || "", boite: result.boite || "", puissance: result.puissance ? String(result.puissance) : "", portes: (result as { portes?: number | null }).portes ? String((result as { portes?: number | null }).portes) : "" });
+          setEstimationVehicleIdentified(true); setEstimationExpanded(null);
+        }
+      } catch { setEstimationVehicleIdentified(false); } finally { setPlateLoading(false); }
+    };
+
+    const validateManualVehicle = () => {
+      if (vehicule.marque.trim() && vehicule.modele.trim() && vehicule.annee.trim()) {
+        setEstimationVehicleIdentified(true); setEstimationExpanded(null);
+      }
+    };
+
+    const selectedServiceCount = estimationSelections.length;
+    const canSeeTariffs = estimationVehicleIdentified && positionSearch.trim().length > 0 && selectedServiceCount > 0;
+
     return (
-      <div className="min-h-screen bg-[#F5F3EF] pb-24">
-        <div className="border-b border-[#E5E7EB] bg-white px-4 py-4">
+      <div className="min-h-screen bg-[#08A9C4] pb-24">
+        <div className="border-b border-white/20 bg-white px-4 py-4">
           <div className="mx-auto flex max-w-4xl items-center gap-3">
-            <button type="button" onClick={() => navigate("/devis")} className="rounded-full p-2 text-[#64748B] hover:bg-[#F1F5F9]" aria-label="Retour">
-              <ArrowLeft size={20} />
-            </button>
-            <div>
-              <p className="text-[10px] font-bold uppercase tracking-wider text-[#0B6B8F]">Estimation rapide</p>
-              <h1 className="text-lg font-black text-[#102A43]">Comparer les prestations et les garages</h1>
-            </div>
+            <button type="button" onClick={() => navigate("/devis")} className="rounded-full p-2 text-[#64748B] hover:bg-[#F1F5F9]" aria-label="Retour"><ArrowLeft size={20} /></button>
+            <div><p className="text-[10px] font-bold uppercase tracking-wider text-[#08A9C4]">Estimation rapide</p><h1 className="text-lg font-black text-[#102A43]">Comparez les garages, réservez au meilleur prix</h1></div>
           </div>
         </div>
 
-        <div className="mx-auto max-w-4xl px-4 py-5">
-          <div className="mb-5 flex gap-2 overflow-x-auto pb-1">
-            {["Détails", "Prestations", "Garages"].map((label, index) => (
-              <button key={label} type="button" onClick={() => index + 1 <= estimationStep && setEstimationStep(index + 1)} className={`flex shrink-0 items-center gap-2 rounded-full px-3 py-2 text-xs font-bold ${estimationStep === index + 1 ? "bg-[#0B6B8F] text-white" : estimationStep > index + 1 ? "bg-[#DDF4F0] text-[#16806A]" : "bg-white text-[#94A3B8]"}`}>
-                <span>{index + 1}</span>{label}
-              </button>
+        <div className="mx-auto max-w-2xl px-3 py-6">
+          <div className="mb-5 flex items-center justify-center gap-2 text-xs font-black text-white">
+            {["Détails", "Voir les tarifs"].map((label, index) => (
+              <button key={label} type="button" onClick={() => index === 1 && canSeeTariffs && setEstimationStep(2)} className={\`rounded-full px-4 py-2 ${estimationStep === index + 1 ? "bg-white text-[#08A9C4]" : "bg-white/20 text-white"}\`}>{index + 1}. {label}</button>
             ))}
           </div>
 
           {estimationStep === 1 && (
-            <section className="space-y-4">
-              <div className="rounded-2xl border border-[#DCE6EE] bg-white p-5 shadow-sm">
-                <p className="text-[10px] font-bold uppercase tracking-wider text-[#0B6B8F]">1 · Détails de votre demande</p>
-                <h2 className="mt-1 text-xl font-black text-[#102A43]">Commencez par votre véhicule et votre zone</h2>
-                <p className="mt-1 text-sm text-[#64748B]">Ces informations servent à afficher les prestations et les garages réellement adaptés.</p>
-                <div className="mt-5 space-y-3">
-                  <label className="flex items-center gap-3 rounded-xl border border-[#CBD5E1] bg-white px-4 py-3">
-                    <span className="text-xl">🚗</span>
-                    <span className="flex-1">
-                      <span className="block text-[10px] font-bold uppercase tracking-wide text-[#94A3B8]">Plaque d'immatriculation</span>
-                      <input className="mt-1 w-full text-sm font-bold text-[#102A43] outline-none" placeholder="Ex. AQ-619-QJ" value={plaque} onChange={(event) => setPlaque(event.target.value.toUpperCase())} />
-                    </span>
-                  </label>
-                  <label className="flex items-center gap-3 rounded-xl border border-[#CBD5E1] bg-white px-4 py-3">
-                    <MapPin size={22} className="text-[#0B6B8F]" />
-                    <span className="flex-1">
-                      <span className="block text-[10px] font-bold uppercase tracking-wide text-[#94A3B8]">Localisation</span>
-                      <input className="mt-1 w-full text-sm font-bold text-[#102A43] outline-none" placeholder="Ville ou code postal" value={positionSearch} onChange={(event) => setPositionSearch(event.target.value)} />
-                    </span>
-                  </label>
+            <section className="rounded-[28px] bg-white p-5 shadow-2xl">
+              <div className="mb-4 grid grid-cols-2 overflow-hidden rounded-2xl border border-[#E5E7EB]">
+                <button type="button" className="bg-white px-3 py-3 text-sm font-black text-[#08A9C4]">ENTRETENIR MON VÉHICULE</button>
+                <button type="button" className="bg-[#F3F3F3] px-3 py-3 text-sm font-black text-[#374151]">CHANGER MES PNEUS <span className="ml-1 inline-flex rounded-full bg-[#D92D35] px-2 py-1 text-[9px] text-white">NOUVEAU</span></button>
+              </div>
+
+              <div className="space-y-3">
+                <div className="overflow-hidden rounded-2xl border-2 border-[#B7BDC4]">
+                  <button type="button" onClick={() => setEstimationExpanded(estimationExpanded === "vehicle" ? null : "vehicle")} className="flex w-full items-center gap-3 px-4 py-4 text-left">
+                    <span className="text-2xl">🚗</span><span className="min-w-0 flex-1"><span className="block text-base font-black text-[#30343B]">{estimationVehicleIdentified ? \`${vehicule.marque} ${vehicule.modele}\`.trim() || "Véhicule identifié" : "Identifier mon véhicule"}</span><span className="block text-xs text-[#64748B]">{estimationVehicleIdentified ? \`${plaque || vin || "Saisie manuelle"} · ${vehicule.annee}\` : "Plaque, VIN ou saisie manuelle"}</span></span>
+                    {estimationVehicleIdentified && <CheckCircle size={21} className="text-[#16806A]" />}<ChevronDown size={22} className={\`text-[#FF8A1F] transition ${estimationExpanded === "vehicle" ? "rotate-180" : ""}\`} />
+                  </button>
+                  {estimationExpanded === "vehicle" && (
+                    <div className="border-t border-[#E5E7EB] bg-[#FAFAFA] px-4 py-4">
+                      <div className="mb-3 flex gap-2">
+                        {([["plaque", "Plaque d'immatriculation"], ["vin", "Numéro VIN"], ["manual", "Saisie manuelle"]] as const).map(([tab, label]) => (
+                          <button key={tab} type="button" onClick={() => tab === "manual" ? setSaisieManuelle(true) : (setSaisieManuelle(false), setIdentTab(tab))} className={\`flex-1 rounded-lg border px-2 py-2 text-[10px] font-bold ${(tab === "manual" ? saisieManuelle : !saisieManuelle && identTab === tab) ? "border-[#08A9C4] bg-[#E8FAFD] text-[#087B91]" : "border-[#E5E7EB] bg-white text-[#64748B]"}\`}>{label}</button>
+                        ))}
+                      </div>
+                      {!saisieManuelle && identTab === "plaque" && <div className="flex gap-2"><input className="min-w-0 flex-1 rounded-lg border border-[#CBD5E1] px-3 py-2 text-sm uppercase outline-none" placeholder="Ex. AQ-619-QJ" value={plaque} onChange={(event) => { setPlaque(event.target.value.toUpperCase()); setEstimationVehicleIdentified(false); }} /><button type="button" disabled={plateLoading || !plaque.trim()} onClick={() => identifyEstimationVehicle("plaque")} className="rounded-lg bg-[#08A9C4] px-3 py-2 text-xs font-bold text-white disabled:opacity-40">{plateLoading ? "…" : "Identifier"}</button></div>}
+                      {!saisieManuelle && identTab === "vin" && <div className="flex gap-2"><input className="min-w-0 flex-1 rounded-lg border border-[#CBD5E1] px-3 py-2 text-sm uppercase outline-none" placeholder="Saisir le numéro VIN" value={vin} onChange={(event) => { setVin(event.target.value.toUpperCase()); setEstimationVehicleIdentified(false); }} /><button type="button" disabled={plateLoading || !vin.trim()} onClick={() => identifyEstimationVehicle("vin")} className="rounded-lg bg-[#08A9C4] px-3 py-2 text-xs font-bold text-white disabled:opacity-40">{plateLoading ? "…" : "Identifier"}</button></div>}
+                      {saisieManuelle && <div className="space-y-2"><div className="grid grid-cols-2 gap-2">{([["marque", "Marque"], ["modele", "Modèle"], ["annee", "Année"], ["carburant", "Carburant"]] as const).map(([field, label]) => <input key={field} className="rounded-lg border border-[#CBD5E1] px-3 py-2 text-sm outline-none" placeholder={label} value={vehicule[field]} onChange={(event) => { setVehicule((current) => ({ ...current, [field]: event.target.value })); setEstimationVehicleIdentified(false); }} />)}</div><button type="button" onClick={validateManualVehicle} className="w-full rounded-lg bg-[#08A9C4] py-2.5 text-xs font-bold text-white">Valider le véhicule</button></div>}
+                    </div>
+                  )}
+                </div>
+
+                <div className="overflow-hidden rounded-2xl border-2 border-[#B7BDC4]">
+                  <button type="button" onClick={() => setEstimationExpanded(estimationExpanded === "location" ? null : "location")} className="flex w-full items-center gap-3 px-4 py-4 text-left"><MapPin size={25} className="text-[#08A9C4]" /><span className="min-w-0 flex-1"><span className="block text-base font-black text-[#30343B]">{positionSearch || "Ajouter ma localisation"}</span><span className="block text-xs text-[#64748B]">Ville ou code postal</span></span><ChevronDown size={22} className={\`text-[#FF8A1F] transition ${estimationExpanded === "location" ? "rotate-180" : ""}\`} /></button>
+                  {estimationExpanded === "location" && <div className="border-t border-[#E5E7EB] bg-[#FAFAFA] px-4 py-4"><input className="w-full rounded-lg border border-[#CBD5E1] px-3 py-3 text-sm outline-none" placeholder="Ex. 95100 Argenteuil" value={positionSearch} onChange={(event) => setPositionSearch(event.target.value)} /></div>}
+                </div>
+
+                <div className="overflow-hidden rounded-2xl border-2 border-[#08A9C4]">
+                  <button type="button" onClick={() => setEstimationExpanded(estimationExpanded === "service" ? null : "service")} className="flex w-full items-center gap-3 px-4 py-4 text-left"><Wrench size={27} className="text-[#08A9C4]" /><span className="min-w-0 flex-1"><span className="block text-base font-black text-[#30343B]">{selectedServiceCount ? \`${selectedServiceCount} prestation${selectedServiceCount > 1 ? "s" : ""} sélectionnée${selectedServiceCount > 1 ? "s" : ""}\` : "Choisissez votre prestation"}</span><span className="block text-xs text-[#64748B]">Sélection multiple possible</span></span><ChevronDown size={22} className={\`text-[#FF8A1F] transition ${estimationExpanded === "service" ? "rotate-180" : ""}\`} /></button>
+                  {estimationExpanded === "service" && <div className="border-t border-[#E5E7EB] bg-[#FAFAFA] px-3 py-2">
+                    <div className="mb-2 grid grid-cols-2 gap-2"><button type="button" onClick={() => setEstimationCategory("mecanique")} className={\`rounded-lg px-2 py-2 text-xs font-black ${estimationCategory === "mecanique" ? "bg-[#08A9C4] text-white" : "bg-white text-[#64748B]"}\`}>Mécanique & entretien</button><button type="button" onClick={() => setEstimationCategory("carrosserie")} className={\`rounded-lg px-2 py-2 text-xs font-black ${estimationCategory === "carrosserie" ? "bg-[#08A9C4] text-white" : "bg-white text-[#64748B]"}\`}>Carrosserie & vitrage</button></div>
+                    <div className="max-h-[440px] overflow-y-auto">
+                      {estimateServices.map((service) => {
+                        const isOpen = estimationExpanded === \`service:${service.id}\`;
+                        const count = estimationSelections.filter((key) => key.startsWith(\`${service.id}::\`)).length;
+                        const repair = REPAIR_TYPES.find((item) => item.id === service.repairId);
+                        return <div key={service.id} className="border-b border-[#E5E7EB] last:border-0">
+                          <button type="button" onClick={() => setEstimationExpanded(isOpen ? "service" : \`service:${service.id}\`)} className="flex w-full items-center gap-3 px-2 py-3 text-left"><span className="min-w-0 flex-1"><span className="block text-sm font-bold text-[#30343B]">{service.label} {service.id === "nouveau" && <span className="ml-1 rounded bg-[#D92D35] px-1.5 py-0.5 text-[9px] text-white">NOUVEAU</span>}</span><span className="block text-[11px] text-[#64748B]">{service.description}</span></span>{count > 0 && <span className="rounded-full bg-[#DDF4F0] px-2 py-1 text-[10px] font-black text-[#16806A]">{count}</span>}<ChevronDown size={19} className={\`shrink-0 text-[#FF8A1F] transition ${isOpen ? "rotate-180" : ""}\`} /></button>
+                          {isOpen && repair && <div className="mb-2 rounded-lg bg-white px-2">
+                            {service.manual ? <div className="space-y-2 px-2 py-2"><input className="w-full rounded-lg border border-[#CBD5E1] px-3 py-2 text-sm outline-none" placeholder="Décrivez votre besoin" value={descriptionLibre} onChange={(event) => setDescriptionLibre(event.target.value)} /><button type="button" onClick={() => toggleEstimateService(service.id, repair.subTypes[repair.subTypes.length - 1].label)} className="w-full rounded-lg bg-[#08A9C4] py-2 text-xs font-bold text-white">Ajouter cette demande</button></div> : repair.subTypes.map((subType) => { const key = \`${service.id}::${subType.label}\`; const checked = estimationSelections.includes(key); return <button key={subType.label} type="button" onClick={() => toggleEstimateService(service.id, subType.label)} className="flex w-full items-center gap-3 border-b border-[#EEF2F4] px-2 py-3 text-left last:border-0"><span className="min-w-0 flex-1 text-sm text-[#334155]">{subType.label}</span><span className={\`flex h-6 w-6 shrink-0 items-center justify-center rounded-md border-2 ${checked ? "border-[#08A9C4] bg-[#08A9C4] text-white" : "border-[#CBD5E1] bg-white"}\`}>{checked && <Check size={15} />}</span></button>; })}
+                          </div>}
+                        </div>;
+                      })}
+                    </div>
+                  </div>}
                 </div>
               </div>
 
-              <div className="rounded-2xl border border-[#DCE6EE] bg-white p-5 shadow-sm">
-                <p className="text-[10px] font-bold uppercase tracking-wider text-[#0B6B8F]">2 · Univers de réparation</p>
-                <h2 className="mt-1 text-lg font-black text-[#102A43]">Quel type de garage recherchez-vous ?</h2>
-                <div className="mt-4 grid grid-cols-2 gap-3">
-                  {[
-                    { id: "mecanique" as const, label: "Mécanique & entretien", text: "Révision, moteur, pneus, freinage, climatisation…" },
-                    { id: "carrosserie" as const, label: "Carrosserie & vitrage", text: "Peinture, tôlerie, pare-brise et réparations extérieures." },
-                  ].map((category) => (
-                    <button key={category.id} type="button" onClick={() => setEstimationCategory(category.id)} className={`rounded-xl border p-4 text-left ${estimationCategory === category.id ? "border-[#0B6B8F] bg-[#EFF8FB]" : "border-[#E5E7EB] bg-white"}`}>
-                      <p className="text-sm font-black text-[#102A43]">{category.label}</p>
-                      <p className="mt-1 text-[11px] leading-snug text-[#64748B]">{category.text}</p>
-                    </button>
-                  ))}
-                </div>
-                <button type="button" onClick={() => setEstimationStep(2)} className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-[#0B6B8F] px-4 py-3 text-sm font-bold text-white">
-                  Continuer vers les prestations <ArrowRight size={16} />
-                </button>
-              </div>
+              <div className="mt-5 border-t border-[#E5E7EB] pt-4"><p className="mb-3 text-center text-xs text-[#64748B]">Véhicule identifié · zone renseignée · prestations sélectionnées</p><button type="button" disabled={!canSeeTariffs} onClick={() => setEstimationStep(2)} className="w-full rounded-2xl bg-[#FF8A1F] py-4 text-base font-black text-white shadow-lg disabled:cursor-not-allowed disabled:opacity-40">VOIR LES TARIFS</button></div>
             </section>
           )}
 
           {estimationStep === 2 && (
             <section className="space-y-4">
-              <div className="rounded-2xl border border-[#DCE6EE] bg-white p-5 shadow-sm">
-                <div className="flex items-center justify-between gap-3">
-                  <div>
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-[#0B6B8F]">3 · Prestations</p>
-                    <h2 className="mt-1 text-xl font-black text-[#102A43]">Choisissez une ou plusieurs prestations</h2>
-                  </div>
-                  <span className="rounded-full bg-[#EAF2F7] px-3 py-1 text-xs font-black text-[#0B6B8F]">{estimationSelections.length} sélectionnée{estimationSelections.length > 1 ? "s" : ""}</span>
-                </div>
-                <p className="mt-1 text-sm text-[#64748B]">Touchez une ligne pour ouvrir son contenu. Les sélections restent mémorisées quand vous refermez la ligne.</p>
-
-                <div className="mt-4 space-y-2">
-                  {estimateRepairs.map((repair) => {
-                    const selectedCount = estimationSelections.filter((key) => key.startsWith(`${repair.id}::`)).length;
-                    const isOpen = estimationExpanded === repair.id;
-                    return (
-                      <div key={repair.id} className="overflow-hidden rounded-xl border border-[#D8E2EA] bg-white">
-                        <button type="button" onClick={() => setEstimationExpanded(isOpen ? null : repair.id)} className="flex w-full items-center gap-3 px-4 py-4 text-left">
-                          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#EAF2F7] text-[#0B6B8F]">{repairIcon(repair.id, 21)}</span>
-                          <span className="min-w-0 flex-1">
-                            <span className="block text-sm font-black text-[#102A43]">{repair.label}</span>
-                            <span className="mt-0.5 block text-xs text-[#64748B]">{repair.desc}</span>
-                          </span>
-                          {selectedCount > 0 && <span className="rounded-full bg-[#DDF4F0] px-2 py-1 text-[10px] font-black text-[#16806A]">{selectedCount}</span>}
-                          <ChevronDown size={19} className={`shrink-0 text-[#0B6B8F] transition ${isOpen ? "rotate-180" : ""}`} />
-                        </button>
-                        {isOpen && (
-                          <div className="border-t border-[#E5E7EB] bg-[#F8FAFC] px-3 py-2">
-                            {repair.subTypes.map((subType) => {
-                              const key = `${repair.id}::${subType.label}`;
-                              const checked = estimationSelections.includes(key);
-                              return (
-                                <button key={subType.label} type="button" onClick={() => toggleEstimateService(repair.id, subType.label)} className="flex w-full items-center gap-3 border-b border-[#E5E7EB] px-2 py-3 text-left last:border-0">
-                                  <span className="min-w-0 flex-1 text-sm text-[#334155]">{subType.label}</span>
-                                  <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-md border-2 ${checked ? "border-[#0B6B8F] bg-[#0B6B8F] text-white" : "border-[#CBD5E1] bg-white"}`}>
-                                    {checked && <Check size={15} />}
-                                  </span>
-                                </button>
-                              );
-                            })}
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-
-                <div className="mt-4 rounded-xl bg-[#F1F7FA] p-3 text-xs text-[#475569]">
-                  <span className="font-bold text-[#102A43]">Sélection multiple :</span> vous pouvez combiner par exemple climatisation + pneus + embrayage dans une seule estimation.
-                </div>
-                <div className="mt-4 flex gap-3">
-                  <button type="button" onClick={() => setEstimationStep(1)} className="rounded-xl border border-[#CBD5E1] px-4 py-3 text-sm font-bold text-[#475569]">Retour</button>
-                  <button type="button" disabled={!estimationSelections.length} onClick={() => setEstimationStep(3)} className="flex-1 rounded-xl bg-[#0B6B8F] px-4 py-3 text-sm font-bold text-white disabled:opacity-40">Voir les tarifs</button>
-                </div>
-              </div>
-            </section>
-          )}
-
-          {estimationStep === 3 && (
-            <section className="space-y-4">
-              <div className="rounded-2xl bg-gradient-to-br from-[#063B5C] to-[#0B6B8F] p-5 text-white shadow-lg">
-                <p className="text-xs font-bold uppercase tracking-wider text-white/70">Estimation indicative</p>
-                <h2 className="mt-2 text-3xl font-black">{estimationTotals.min} – {estimationTotals.max} €</h2>
-                <p className="mt-1 text-sm text-white/80">{estimationSelections.length} prestation{estimationSelections.length > 1 ? "s" : ""} sélectionnée{estimationSelections.length > 1 ? "s" : ""} · {positionSearch || "Zone à préciser"}</p>
-                <p className="mt-3 text-xs text-white/70">Durée indicative cumulée : {Math.floor(estimationTotals.durationMin / 60)}h{(estimationTotals.durationMin % 60).toString().padStart(2, "0")} à {Math.floor(estimationTotals.durationMax / 60)}h{(estimationTotals.durationMax % 60).toString().padStart(2, "0")}</p>
-              </div>
-
-              <div className="rounded-2xl border border-[#DCE6EE] bg-white p-5 shadow-sm">
-                <div className="flex items-center justify-between gap-3">
-                  <div><h2 className="text-lg font-black text-[#102A43]">Garages compatibles</h2><p className="text-xs text-[#64748B]">{estimationCategory === "carrosserie" ? "Carrosserie, peinture et vitrage" : "Mécanique et entretien"} · classés par note.</p></div>
-                  <button type="button" onClick={() => setEstimationStep(2)} className="text-xs font-bold text-[#0B6B8F]">Modifier</button>
-                </div>
-                <div className="mt-4 space-y-3">
-                  {garagesQuery.isFetching && <p className="py-5 text-center text-sm text-[#64748B]">Recherche des garages partenaires…</p>}
-                  {!garagesQuery.isFetching && estimateGarages.length === 0 && <p className="py-5 text-center text-sm text-[#64748B]">Aucun garage compatible trouvé pour cette zone.</p>}
-                  {estimateGarages.slice(0, 10).map((garage) => (
-                    <div key={garage.id} className="rounded-xl border border-[#E5E7EB] p-4">
-                      <div className="flex items-start gap-3">
-                        <img src={garage.coverUrl || "/categories/loc_berline.jpg"} alt="" className="h-14 w-16 rounded-lg object-cover" />
-                        <div className="min-w-0 flex-1">
-                          <p className="truncate text-sm font-black text-[#102A43]">{garage.name}</p>
-                          <p className="mt-1 text-xs text-[#64748B]">{[garage.city, garage.addressLine].filter(Boolean).join(" · ")}</p>
-                          <div className="mt-1 flex items-center gap-1 text-xs"><Star size={12} className="fill-[#D4AF37] text-[#D4AF37]" /><b>{Number(garage.rating || 0).toFixed(1)}</b><span className="text-[#94A3B8]">({garage.reviewCount || 0} avis)</span></div>
-                        </div>
-                        <div className="text-right"><p className="text-xs font-black text-[#0B6B8F]">{estimationTotals.min} – {estimationTotals.max} €</p><p className="text-[10px] text-[#94A3B8]">indicatif</p></div>
-                      </div>
-                      <p className="mt-3 rounded-lg bg-[#F8FAFC] px-3 py-2 text-[11px] text-[#64748B]">Coordonnées protégées. La réservation, les échanges et le paiement restent dans MKA.P-MS.</p>
-                      <button type="button" onClick={() => navigate(`/garages?devis=1&garage=${garage.id}&source=estimation`)} className="mt-3 w-full rounded-lg bg-[#0B6B8F] py-2.5 text-xs font-bold text-white">Choisir ce garage et continuer</button>
-                    </div>
-                  ))}
-                </div>
+              <div className="rounded-[28px] bg-gradient-to-br from-[#063B5C] to-[#087B91] p-5 text-white shadow-2xl"><p className="text-xs font-bold uppercase tracking-wider text-white/70">Estimation indicative</p><h2 className="mt-2 text-3xl font-black">{estimationTotals.min} – {estimationTotals.max} €</h2><p className="mt-1 text-sm text-white/80">{selectedServiceCount} prestation{selectedServiceCount > 1 ? "s" : ""} sélectionnée{selectedServiceCount > 1 ? "s" : ""} · {positionSearch || "Zone à préciser"}</p><p className="mt-3 text-xs text-white/70">Durée indicative cumulée : {Math.floor(estimationTotals.durationMin / 60)}h{(estimationTotals.durationMin % 60).toString().padStart(2, "0")} à {Math.floor(estimationTotals.durationMax / 60)}h{(estimationTotals.durationMax % 60).toString().padStart(2, "0")}</p></div>
+              <div className="rounded-[28px] border border-white/60 bg-white p-5 shadow-2xl"><div className="flex items-center justify-between gap-3"><div><h2 className="text-lg font-black text-[#102A43]">Garages compatibles</h2><p className="text-xs text-[#64748B]">{estimationCategory === "carrosserie" ? "Carrosserie, peinture et vitrage" : "Mécanique et entretien"} · classés par note.</p></div><button type="button" onClick={() => setEstimationStep(1)} className="text-xs font-bold text-[#087B91]">Modifier les détails</button></div>
+                <div className="mt-4 space-y-3">{garagesQuery.isFetching && <p className="py-5 text-center text-sm text-[#64748B]">Recherche des garages partenaires…</p>}{!garagesQuery.isFetching && estimateGarages.length === 0 && <p className="py-5 text-center text-sm text-[#64748B]">Aucun garage compatible trouvé pour cette zone.</p>}{estimateGarages.slice(0, 10).map((garage) => <div key={garage.id} className="rounded-2xl border border-[#E5E7EB] p-4"><div className="flex items-start gap-3"><img src={garage.coverUrl || "/categories/loc_berline.jpg"} alt="" className="h-14 w-16 rounded-lg object-cover" /><div className="min-w-0 flex-1"><p className="truncate text-sm font-black text-[#102A43]">{garage.name}</p><p className="mt-1 text-xs text-[#64748B]">{[garage.city, garage.addressLine].filter(Boolean).join(" · ")}</p><div className="mt-1 flex items-center gap-1 text-xs"><Star size={12} className="fill-[#D4AF37] text-[#D4AF37]" /><b>{Number(garage.rating || 0).toFixed(1)}</b><span className="text-[#94A3B8]">({garage.reviewCount || 0} avis)</span></div></div><div className="text-right"><p className="text-xs font-black text-[#0B6B8F]">{estimationTotals.min} – {estimationTotals.max} €</p><p className="text-[10px] text-[#94A3B8]">indicatif</p></div></div><p className="mt-3 rounded-lg bg-[#F8FAFC] px-3 py-2 text-[11px] text-[#64748B]">Coordonnées protégées. La réservation, les échanges et le paiement restent dans MKA.P-MS.</p><button type="button" onClick={() => navigate(\`/garages?devis=1&garage=${garage.id}&source=estimation\`)} className="mt-3 w-full rounded-xl bg-[#087B91] py-3 text-xs font-bold text-white">Choisir ce garage et continuer</button></div>)}</div>
                 <p className="mt-4 text-[11px] leading-relaxed text-[#64748B]">Les coordonnées directes du garage ne sont pas affichées dans l'estimation. Toute réservation, annulation, messagerie et paiement passent par la plateforme afin de protéger le client et le garage.</p>
               </div>
             </section>
