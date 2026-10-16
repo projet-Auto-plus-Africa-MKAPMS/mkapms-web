@@ -653,11 +653,11 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/devis"
         ],
-        "cliquables": 23,
+        "cliquables": 29,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 208,
-        "mots": 805
+        "textes": 226,
+        "mots": 911
       },
       {
         "fichier": "client/src/pages/Favoris.tsx",
@@ -1325,8 +1325,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "connecte",
       "public"
     ],
-    "textes": 1438,
-    "mots": 4958,
+    "textes": 1456,
+    "mots": 5064,
     "battement": "sonde",
     "manques": [
       {
@@ -9351,8 +9351,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "cliquables": 18,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 152,
-        "mots": 527
+        "textes": 153,
+        "mots": 564
       },
       {
         "fichier": "client/src/pages/garage/AssistanceRoutiere.tsx",
@@ -9882,8 +9882,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "professionnel",
       "public"
     ],
-    "textes": 650,
-    "mots": 2129,
+    "textes": 651,
+    "mots": 2166,
     "battement": "sonde",
     "manques": [
       {
