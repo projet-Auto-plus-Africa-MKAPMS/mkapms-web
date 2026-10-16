@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { MapPin, Phone, Star, BadgeCheck, Search, Wrench, ShoppingCart, Calendar, Bell, ChevronRight, Check, Building2, Minus, Plus, FileText } from "lucide-react";
 import { trpc } from "../lib/trpc";
 import { useAuth } from "../lib/auth";
@@ -128,6 +128,7 @@ const CRENEAUX = ["08:00", "09:00", "10:00", "11:00", "14:00", "15:00", "16:00",
 
 export default function Garages() {
   const { user } = useAuth();
+  const [searchParams] = useSearchParams();
   const [q, setQ] = useState("");
   const [city, setCity] = useState("");
   const [noteMin, setNoteMin] = useState("");
@@ -138,7 +139,7 @@ export default function Garages() {
   const list = trpc.garages.list.useQuery({ q: q || undefined, city: city || undefined, country: country || undefined, limit: 60 });
 
   // Mode devis
-  const [devisMode, setDevisMode] = useState(false);
+  const [devisMode, setDevisMode] = useState(() => searchParams.get("devis") === "1");
   const [step, setStep] = useState(0);
 
   // Champs devis
@@ -154,7 +155,10 @@ export default function Garages() {
   const [pieceSearch, setPieceSearch] = useState("");
   const [catFilter, setCatFilter] = useState("");
   const [selectedPieces, setSelectedPieces] = useState<{ ref: string; nom: string; prix: number; qty: number; categorie: string }[]>([]);
-  const [selectedGarage, setSelectedGarage] = useState<number | null>(null);
+  const [selectedGarage, setSelectedGarage] = useState<number | null>(() => {
+    const value = searchParams.get("garage");
+    return value && /^\d+$/.test(value) ? Number(value) : null;
+  });
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedCreneau, setSelectedCreneau] = useState("");
 
