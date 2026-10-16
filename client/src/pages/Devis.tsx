@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, useRef } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import {
   Search, Wrench, ShoppingCart, MapPin, Calendar, Bell, ChevronRight, ChevronDown,
   Check, Star, Clock, Building2, Phone, Mail, Shield, Lock, CheckCircle,
@@ -182,11 +182,13 @@ const CRENEAUX = ["08:00", "09:00", "10:00", "11:00", "14:00", "15:00", "16:00",
 export default function Devis() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const utils = trpc.useUtils();
 
   /* Mode : landing vs flow (7 steps) */
-  const [mode, setMode] = useState<"landing" | "flow">("landing");
+  const [mode, setMode] = useState<"landing" | "flow" | "estimation">(() => searchParams.get("estimation") === "1" ? "estimation" : "landing");
   const [step, setStep] = useState(1);
+  const [estimationStep, setEstimationStep] = useState(1);
   const [entryPoint, setEntryPoint] = useState<"devis" | "garage">("devis");
 
   /* Identification véhicule */
@@ -261,7 +263,7 @@ export default function Devis() {
   /* Garages partenaires réels (server/routers/garages.ts) — jamais une liste inventée. */
   const garagesQuery = trpc.garages.list.useQuery(
     { city: positionSearch || undefined, limit: 20 },
-    { enabled: mode === "landing" || step >= 5 },
+    { enabled: mode === "landing" || mode === "estimation" || step >= 5 },
   );
   const garages = garagesQuery.data?.items ?? [];
   const selectedGarage = garages.find((g) => g.id === selectedGarageId);
@@ -368,6 +370,103 @@ export default function Devis() {
   }
 
   /* ════════════════════════════════════════════════════════════
+     ESTIMATION — parcours séparé du devis complet
+     ════════════════════════════════════════════════════════════ */
+  if (mode === "estimation") {
+    return (
+      <div className="min-h-screen bg-[#F5F3EF] pb-24">
+        <div className="border-b border-[#E5E7EB] bg-white px-4 py-4">
+          <div className="mx-auto flex max-w-4xl items-center gap-3">
+            <button type="button" onClick={() => navigate("/devis")} className="rounded-full p-2 text-[#64748B] hover:bg-[#F1F5F9]" aria-label="Retour">
+              <ArrowLeft size={20} />
+            </button>
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-wider text-[#0B6B8F]">Estimation indépendante</p>
+              <h1 className="text-lg font-black text-[#102A43]">Estimer le prix de ma réparation</h1>
+            </div>
+          </div>
+        </div>
+
+        <div className="mx-auto max-w-4xl px-4 py-5">
+          <div className="mb-5 flex gap-2 overflow-x-auto pb-1">
+            {["Prestation", "Détails", "Garages"].map((label, index) => (
+              <button key={label} type="button" onClick={() => index + 1 <= estimationStep && setEstimationStep(index + 1)} className={`flex shrink-0 items-center gap-2 rounded-full px-3 py-2 text-xs font-bold ${estimationStep === index + 1 ? "bg-[#0B6B8F] text-white" : estimationStep > index + 1 ? "bg-[#DDF4F0] text-[#16806A]" : "bg-white text-[#94A3B8]"}`}>
+                <span>{index + 1}</span>{label}
+              </button>
+            ))}
+          </div>
+
+          {estimationStep === 1 && (
+            <section className="rounded-2xl border border-[#DCE6EE] bg-white p-5 shadow-sm">
+              <h2 className="text-xl font-black text-[#102A43]">Que souhaitez-vous estimer ?</h2>
+              <p className="mt-1 text-sm text-[#64748B]">Sélectionnez une prestation. Vous pourrez ensuite choisir le détail exact.</p>
+              <div className="mt-5 grid grid-cols-2 gap-3 md:grid-cols-4">
+                {REPAIR_TYPES.filter((repair) => repair.id !== "diagnostic").map((repair) => (
+                  <button key={repair.id} type="button" onClick={() => { setSelectedRepairId(repair.id); setSelectedSubType(repair.subTypes[0]?.label || ""); setEstimationStep(2); }} className={`rounded-2xl border p-4 text-left transition hover:-translate-y-0.5 hover:shadow-md ${selectedRepairId === repair.id ? "border-[#0B6B8F] bg-[#EFF8FB]" : "border-[#E5E7EB]"}`}>
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#EAF2F7] text-[#0B6B8F]">{repairIcon(repair.id, 20)}</div>
+                    <p className="mt-3 text-sm font-black text-[#102A43]">{repair.label}</p>
+                    <p className="mt-1 text-[11px] leading-snug text-[#64748B]">{repair.desc}</p>
+                  </button>
+                ))}
+              </div>
+              <p className="mt-5 rounded-xl bg-[#F8FAFC] p-3 text-xs text-[#64748B]">Le diagnostic reste dans son parcours dédié et n’est pas modifié.</p>
+            </section>
+          )}
+
+          {estimationStep === 2 && selectedRepair && (
+            <section className="space-y-4">
+              <div className="rounded-2xl border border-[#DCE6EE] bg-white p-5 shadow-sm">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#EAF2F7] text-[#0B6B8F]">{repairIcon(selectedRepair.id, 22)}</div>
+                  <div><h2 className="text-lg font-black text-[#102A43]">{selectedRepair.label}</h2><p className="text-xs text-[#64748B]">Précisez la prestation recherchée</p></div>
+                </div>
+                <label className="mt-5 block text-xs font-bold text-[#475569]">Prestation</label>
+                <select className="mt-1 w-full rounded-xl border border-[#CBD5E1] bg-white px-3 py-3 text-sm" value={selectedSubType} onChange={(event) => setSelectedSubType(event.target.value)}>
+                  {selectedRepair.subTypes.map((subType) => <option key={subType.label} value={subType.label}>{subType.label}</option>)}
+                </select>
+                <div className="mt-4 grid gap-3 md:grid-cols-2">
+                  <input className="rounded-xl border border-[#CBD5E1] px-3 py-3 text-sm" placeholder="Marque du véhicule (facultatif)" value={vehicule.marque} onChange={(event) => setVehicule({ ...vehicule, marque: event.target.value })} />
+                  <input className="rounded-xl border border-[#CBD5E1] px-3 py-3 text-sm" placeholder="Modèle (facultatif)" value={vehicule.modele} onChange={(event) => setVehicule({ ...vehicule, modele: event.target.value })} />
+                  <input className="rounded-xl border border-[#CBD5E1] px-3 py-3 text-sm" placeholder="Ville ou code postal" value={positionSearch} onChange={(event) => setPositionSearch(event.target.value)} />
+                </div>
+                <div className="mt-5 flex gap-3">
+                  <button type="button" onClick={() => setEstimationStep(1)} className="rounded-xl border border-[#CBD5E1] px-4 py-3 text-sm font-bold text-[#475569]">Retour</button>
+                  <button type="button" onClick={() => setEstimationStep(3)} className="flex-1 rounded-xl bg-[#0B6B8F] px-4 py-3 text-sm font-bold text-white">Voir l’estimation</button>
+                </div>
+              </div>
+            </section>
+          )}
+
+          {estimationStep === 3 && selectedRepair && (
+            <section className="space-y-4">
+              <div className="rounded-2xl bg-gradient-to-br from-[#063B5C] to-[#0B6B8F] p-5 text-white shadow-lg">
+                <p className="text-xs font-bold uppercase tracking-wider text-white/70">Estimation indicative</p>
+                <h2 className="mt-2 text-3xl font-black">{estimation ? `${estimation.totalMin} – ${estimation.totalMax} €` : "À confirmer"}</h2>
+                <p className="mt-1 text-sm text-white/80">{selectedRepair.label} · {selectedSubType}</p>
+                {estimation && <p className="mt-3 text-xs text-white/70">Durée indicative : {Math.floor(estimation.dureeMin / 60)}h{(estimation.dureeMin % 60).toString().padStart(2, "0")} à {Math.floor(estimation.dureeMax / 60)}h{(estimation.dureeMax % 60).toString().padStart(2, "0")}</p>}
+              </div>
+              <div className="rounded-2xl border border-[#DCE6EE] bg-white p-5 shadow-sm">
+                <div className="flex items-center justify-between gap-3"><div><h2 className="text-lg font-black text-[#102A43]">Garages à comparer</h2><p className="text-xs text-[#64748B]">Classés par recommandation et notation.</p></div><button type="button" onClick={() => setEstimationStep(2)} className="text-xs font-bold text-[#0B6B8F]">Modifier</button></div>
+                <div className="mt-4 space-y-3">
+                  {garagesQuery.isFetching && <p className="py-5 text-center text-sm text-[#64748B]">Recherche des garages partenaires…</p>}
+                  {!garagesQuery.isFetching && garages.length === 0 && <p className="py-5 text-center text-sm text-[#64748B]">Aucun garage trouvé pour cette zone.</p>}
+                  {garages.slice(0, 10).map((garage) => (
+                    <div key={garage.id} className="rounded-xl border border-[#E5E7EB] p-4">
+                      <div className="flex items-start gap-3"><img src={garage.coverUrl || "/categories/loc_berline.jpg"} alt="" className="h-14 w-16 rounded-lg object-cover" /><div className="min-w-0 flex-1"><p className="truncate text-sm font-black text-[#102A43]">{garage.name}</p><p className="mt-1 text-xs text-[#64748B]">{[garage.city, garage.addressLine].filter(Boolean).join(" · ")}</p><div className="mt-1 flex items-center gap-1 text-xs"><Star size={12} className="fill-[#D4AF37] text-[#D4AF37]" /><b>{Number(garage.rating || 0).toFixed(1)}</b><span className="text-[#94A3B8]">({garage.reviewCount || 0} avis)</span></div></div><div className="text-right"><p className="text-xs font-black text-[#0B6B8F]">{estimation ? `${estimation.totalMin} – ${estimation.totalMax} €` : "Sur devis"}</p><p className="text-[10px] text-[#94A3B8]">indicatif</p></div></div>
+                      <button type="button" onClick={() => navigate(`/garages?devis=1&garage=${garage.id}`)} className="mt-3 w-full rounded-lg border border-[#0B6B8F] py-2 text-xs font-bold text-[#0B6B8F]">Demander le devis complet</button>
+                    </div>
+                  ))}
+                </div>
+                <p className="mt-4 text-[11px] leading-relaxed text-[#64748B]">Les montants affichés sont indicatifs. Le montant confirmé est établi par le garage dans le parcours de devis complet, qui conserve toutes les étapes et le suivi de la réparation.</p>
+              </div>
+            </section>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  /* ════════════════════════════════════════════════════════════
      LANDING PAGE — Page vitrine Réparer
      ════════════════════════════════════════════════════════════ */
   if (mode === "landing") {
@@ -439,10 +538,7 @@ export default function Devis() {
               type="button"
               className="group w-full overflow-hidden rounded-2xl bg-gradient-to-br from-[#063B5C] via-[#075985] to-[#0B6B8F] p-5 text-left text-white shadow-lg transition hover:-translate-y-0.5 hover:shadow-xl"
               onClick={() => {
-                if (!user) { navigate("/connexion"); return; }
-                setEntryPoint("garage");
-                setMode("flow");
-                setStep(1);
+                navigate("/devis?estimation=1");
               }}
             >
               <div className="flex items-center gap-4">
@@ -515,10 +611,7 @@ export default function Devis() {
               type="button"
               className="group flex w-full items-center gap-4 rounded-2xl border border-[#C9DCEC] bg-white p-5 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg"
               onClick={() => {
-                if (!user) { navigate("/connexion"); return; }
-                setEntryPoint("devis");
-                setMode("flow");
-                setStep(1);
+                navigate("/garages?devis=1");
               }}
             >
               <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-[#EAF2F7] text-[#0B6B8F]">
