@@ -93,7 +93,7 @@ const HOME_SERVICE_VIDEOS = [
   { src: "/videos/home/home_acheter.mp4", label: "Acheter", sub: "Un véhicule", to: "/acheter", icon: "🚗" },
   { src: "/videos/home/home_vendre.mp4", label: "Vendre", sub: "Mon véhicule", to: "/vendre", icon: "🏷️" },
   { src: "/videos/home/home_louer.mp4", label: "Louer", sub: "Un véhicule", to: "/louer", icon: "🔑" },
-  { src: "/videos/home/home_reparer.mp4", label: "Réparer", sub: "Mon véhicule", to: "/garages", icon: "🔧" },
+  { src: "/videos/home/home_reparer.mp4", label: "Réparer", sub: "Mon véhicule", to: "/devis", icon: "🔧" },
   { src: "/videos/home/home_finance.mp4", label: "Finance+", sub: "Financement auto", to: "/finance", icon: "💳" },
   { src: "/videos/home/home_services.mp4", label: "Services", sub: "Livraison, CT, démarches", to: "/demarches", icon: "⚙️" },
   { src: "/videos/home/home_livraison.mp4", label: "Livraison", sub: "Moto, utilitaire, fourgon", to: "/livraison", icon: "📦" },

@@ -40,7 +40,7 @@ export interface AnomalieCliquable {
   readonly motif: MotifAnomalie;
 }
 
-export const CLIQUABLES_TOTAL = 2801;
+export const CLIQUABLES_TOTAL = 2804;
 
 export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/components/AccessDenied.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
@@ -208,7 +208,7 @@ export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/pages/depot-annonce/VideosAnnonce.tsx", total: 2, moteur: 0, liens: 2, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/DepotAnnonce.tsx", total: 22, moteur: 0, liens: 2, boutonsLocaux: 20, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/DepotVente.tsx", total: 7, moteur: 0, liens: 1, boutonsLocaux: 6, sansAction: 0, zones: 0 },
-  { fichier: "client/src/pages/Devis.tsx", total: 26, moteur: 0, liens: 0, boutonsLocaux: 25, sansAction: 0, zones: 1 },
+  { fichier: "client/src/pages/Devis.tsx", total: 29, moteur: 0, liens: 3, boutonsLocaux: 25, sansAction: 0, zones: 1 },
   { fichier: "client/src/pages/DocumentsVault.tsx", total: 2, moteur: 0, liens: 2, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/DossierClient.tsx", total: 18, moteur: 0, liens: 4, boutonsLocaux: 10, sansAction: 0, zones: 4 },
   { fichier: "client/src/pages/DossierVehiculeNumerique.tsx", total: 10, moteur: 0, liens: 6, boutonsLocaux: 4, sansAction: 0, zones: 0 },
