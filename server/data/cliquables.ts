@@ -817,4 +817,5 @@ export const CLIQUABLES_ANOMALIES: readonly AnomalieCliquable[] = [
 
 /** Anomalies d'un motif donné. */
 export function anomaliesParMotif(motif: MotifAnomalie): readonly AnomalieCliquable[] {
-  return CLIQUABL
+  return CLIQUABLES_ANOMALIES.filter((a) => a.motif === motif);
+}
