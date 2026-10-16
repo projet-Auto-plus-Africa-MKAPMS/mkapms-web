@@ -522,7 +522,7 @@ export default function Devis() {
             </section>
           )}
 
-          {estimationMode === "repair" && {estimationStep === 1 && (
+          {estimationMode === "repair" && estimationStep === 1 && (
             <section className="rounded-[28px] bg-white p-5 shadow-2xl">
               <div className="mb-4 grid grid-cols-2 overflow-hidden rounded-2xl border border-[#E5E7EB]">
                 <button type="button" onClick={() => { setEstimationMode("repair"); setEstimationStep(1); }} className={`bg-white px-3 py-3 text-sm font-black ${estimationMode === "repair" ? "text-[#08A9C4]" : "text-[#64748B]"}`}>ENTRETENIR MON VÉHICULE</button>
