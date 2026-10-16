@@ -518,10 +518,14 @@ export default function Devis() {
 
               {tireSection === "registration" ? (
                 <div>
-                  <h3 className="mb-4 text-xl font-black text-[#08A9C4]">Quelle est votre voiture ?</h3>
-                  <div className="overflow-hidden rounded-2xl border-2 border-[#B7BDC4] bg-white">
-                    <div className="flex items-center gap-3 border-b border-[#E5E7EB] px-4 py-4"><span className="text-2xl">🚗</span><span className="text-base font-black text-[#30343B]">Renseignez votre immatriculation</span></div>
-                    <input aria-label="Immatriculation pour trouver mes pneus" className="w-full px-5 py-7 text-center text-3xl uppercase tracking-wider outline-none placeholder:text-[#D1D5DB]" placeholder="AB-123-CD" value={tirePlate} onChange={(event) => setTirePlate(event.target.value.toUpperCase())} />
+                  <h3 className="mb-4 text-xl font-black text-[#08A9C4]">Identifiez votre véhicule</h3>
+                  <div className="overflow-hidden rounded-3xl border border-[#B7DCE5] bg-gradient-to-br from-[#F8FDFF] to-[#E8F7FB] p-4 shadow-inner">
+                    <div className="mb-3 flex items-center justify-between"><div><p className="text-[10px] font-black uppercase tracking-[0.16em] text-[#64748B]">Recherche pneus</p><p className="text-base font-black text-[#102A43]">Par immatriculation</p></div><span className="rounded-full bg-white px-3 py-1 text-[10px] font-black text-[#08A9C4] shadow-sm">FR · RAPIDE</span></div>
+                    <div className="overflow-hidden rounded-2xl border-2 border-[#94A3B8] bg-white shadow-sm focus-within:border-[#08A9C4] focus-within:ring-4 focus-within:ring-[#08A9C4]/15">
+                      <div className="flex items-center gap-3 border-b border-[#E5E7EB] px-4 py-4"><span className="text-2xl">🚗</span><span className="min-w-0 flex-1"><span className="block text-sm font-black text-[#30343B]">Renseignez votre immatriculation</span><span className="block text-xs text-[#64748B]">Nous trouvons automatiquement la bonne dimension</span></span></div>
+                      <div className="flex items-center gap-3 px-4 py-4"><span className="rounded-lg bg-[#164B7A] px-2 py-3 text-xs font-black text-white">F</span><input aria-label="Immatriculation pour trouver mes pneus" className="min-w-0 flex-1 px-1 py-3 text-center text-2xl font-black uppercase tracking-wider outline-none placeholder:text-[#CBD5E1]" placeholder="AB-123-CD" value={tirePlate} onChange={(event) => setTirePlate(event.target.value.toUpperCase())} /></div>
+                    </div>
+                    <p className="mt-3 text-center text-xs text-[#64748B]">Aucune donnée enregistrée sans votre validation.</p>
                   </div>
                   <button type="button" disabled={!tirePlate.trim()} className="mt-5 w-full rounded-2xl bg-[#FF8A1F] py-4 text-base font-black text-white shadow-lg disabled:opacity-40">VALIDER</button>
                 </div>
@@ -570,7 +574,7 @@ export default function Devis() {
               </div>
 
               <div className="space-y-3">
-                <div className="overflow-hidden rounded-2xl border-2 border-[#B7BDC4]">
+                <div className={`overflow-hidden rounded-2xl border-2 transition-all duration-300 ${estimationExpanded === "vehicle" ? "border-[#08A9C4] shadow-[0_0_0_4px_rgba(8,169,196,0.14)]" : "border-[#B7BDC4]"}`}>
                   <button type="button" onClick={() => setEstimationExpanded(estimationExpanded === "vehicle" ? null : "vehicle")} className="flex w-full items-center gap-3 px-4 py-4 text-left">
                     <span className="text-2xl">🚗</span><span className="min-w-0 flex-1"><span className="block text-base font-black text-[#30343B]">{estimationVehicleIdentified ? `${vehicule.marque} ${vehicule.modele}`.trim() || "Véhicule identifié" : "Identifier mon véhicule"}</span><span className="block text-xs text-[#64748B]">{estimationVehicleIdentified ? `${plaque || vin || "Saisie manuelle"} · ${vehicule.annee}` : "Plaque, VIN ou saisie manuelle"}</span></span>
                     {estimationVehicleIdentified && <CheckCircle size={21} className="text-[#16806A]" />}<ChevronDown size={22} className={`text-[#FF8A1F] transition ${estimationExpanded === "vehicle" ? "rotate-180" : ""}`} />
@@ -589,12 +593,12 @@ export default function Devis() {
                   )}
                 </div>
 
-                <div className="overflow-hidden rounded-2xl border-2 border-[#B7BDC4]">
+                <div className={`overflow-hidden rounded-2xl border-2 transition-all duration-300 ${estimationExpanded === "location" ? "border-[#08A9C4] shadow-[0_0_0_4px_rgba(8,169,196,0.14)]" : "border-[#B7BDC4]"}`}>
                   <button type="button" onClick={() => setEstimationExpanded(estimationExpanded === "location" ? null : "location")} className="flex w-full items-center gap-3 px-4 py-4 text-left"><MapPin size={25} className="text-[#08A9C4]" /><span className="min-w-0 flex-1"><span className="block text-base font-black text-[#30343B]">{positionSearch || "Ajouter ma localisation"}</span><span className="block text-xs text-[#64748B]">Ville ou code postal</span></span><ChevronDown size={22} className={`text-[#FF8A1F] transition ${estimationExpanded === "location" ? "rotate-180" : ""}`} /></button>
                   {estimationExpanded === "location" && <div className="border-t border-[#E5E7EB] bg-[#FAFAFA] px-4 py-4"><input className="w-full rounded-lg border border-[#CBD5E1] px-3 py-3 text-sm outline-none" placeholder="Ex. 95100 Argenteuil" value={positionSearch} onChange={(event) => setPositionSearch(event.target.value)} /></div>}
                 </div>
 
-                <div className="overflow-hidden rounded-2xl border-2 border-[#08A9C4]">
+                <div className={`overflow-hidden rounded-2xl border-2 transition-all duration-300 ${estimationExpanded === "service" || estimationExpanded?.startsWith("service:") ? "border-[#08A9C4] shadow-[0_0_0_4px_rgba(8,169,196,0.14)]" : "border-[#B7BDC4]"}`}>
                   <button type="button" onClick={() => setEstimationExpanded(estimationExpanded === "service" ? null : "service")} className="flex w-full items-center gap-3 px-4 py-4 text-left"><Wrench size={27} className="text-[#08A9C4]" /><span className="min-w-0 flex-1"><span className="block text-base font-black text-[#30343B]">{selectedServiceCount ? `${selectedServiceCount} prestation${selectedServiceCount > 1 ? "s" : ""} sélectionnée${selectedServiceCount > 1 ? "s" : ""}` : "Choisissez votre prestation"}</span><span className="block text-xs text-[#64748B]">Sélection multiple possible</span></span><ChevronDown size={22} className={`text-[#FF8A1F] transition ${estimationExpanded === "service" ? "rotate-180" : ""}`} /></button>
                   {(estimationExpanded === "service" || estimationExpanded?.startsWith("service:")) && <div className="border-t border-[#E5E7EB] bg-[#FAFAFA] px-3 py-2">
                     <div className="mb-3">
