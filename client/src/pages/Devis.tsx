@@ -499,6 +499,10 @@ export default function Devis() {
 
           {estimationMode === "tires" && (
             <section className="rounded-[28px] bg-white p-5 shadow-2xl">
+              <div className="mb-4 grid grid-cols-2 overflow-hidden rounded-2xl border border-[#E5E7EB]">
+                <button type="button" onClick={() => { setEstimationMode("repair"); setEstimationStep(1); }} className="bg-white px-3 py-3 text-sm font-black text-[#08A9C4]">ENTRETENIR MON VÉHICULE</button>
+                <button type="button" onClick={() => setEstimationMode("tires")} className="bg-[#F3F3F3] px-3 py-3 text-sm font-black text-[#08A9C4]">CHANGER MES PNEUS <span className="ml-1 inline-flex rounded-full bg-[#D92D35] px-2 py-1 text-[9px] text-white">NOUVEAU</span></button>
+              </div>
               <h2 className="mb-1 text-center text-2xl font-black text-[#08A9C4]">Trouver mes pneus</h2>
               <p className="mb-5 text-center text-sm text-[#64748B]">Achetez vos pneus ou demandez leur montage auprès d’un garage partenaire.</p>
               <div className="space-y-3">
@@ -1518,18 +1522,4 @@ export default function Devis() {
           </div>
           <h1 className="mt-6 text-2xl font-black text-[#111]">Demande envoyée !</h1>
           <p className="mt-2 text-sm text-[#6B7280]">
-            Votre demande de devis a été transmise aux garages partenaires de votre secteur{selectedGarage ? ` (dont ${selectedGarage.name})` : ""}. Vous serez notifié dès qu'un garage répond.
-          </p>
-          <div className="mt-6 space-y-3">
-            <button onClick={() => navigate("/compte")} className="w-full rounded-xl bg-[#D4AF37] py-3 text-sm font-bold text-white">
-              Suivre ma demande
-            </button>
-            <button onClick={() => { setMode("landing"); setStep(1); }} className="w-full rounded-xl border border-[#E5E7EB] py-3 text-sm font-semibold text-[#111]">
-              Nouvelle demande
-            </button>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
+            Votre demande de devis a été transmise aux garages partenaires de votre secteur{selectedGara
