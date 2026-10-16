@@ -653,11 +653,11 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/devis"
         ],
-        "cliquables": 38,
+        "cliquables": 40,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 311,
-        "mots": 1254
+        "textes": 314,
+        "mots": 1261
       },
       {
         "fichier": "client/src/pages/Favoris.tsx",
@@ -1325,8 +1325,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "connecte",
       "public"
     ],
-    "textes": 1541,
-    "mots": 5407,
+    "textes": 1544,
+    "mots": 5414,
     "battement": "sonde",
     "manques": [
       {
