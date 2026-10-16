@@ -252,9 +252,10 @@ export default function Devis() {
   const [vin, setVin] = useState("");
   const [plateLoading, setPlateLoading] = useState(false);
   const [saisieManuelle, setSaisieManuelle] = useState(false);
+  const [flowManualOpen, setFlowManualOpen] = useState(false);
   const [vehicule, setVehicule] = useState({
     marque: "", modele: "", version: "", annee: "",
-    carburant: "", boite: "", puissance: "", portes: "",
+    carburant: "", boite: "", puissance: "", portes: "", kilometrage: "",
   });
 
   /* Réparation */
@@ -787,21 +788,21 @@ export default function Devis() {
           <section>
             <button
               type="button"
-              className="group flex w-full items-center gap-4 rounded-2xl border border-[#C9DCEC] bg-white p-5 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg"
+              className="group flex w-full items-center gap-4 rounded-2xl border border-[#D6D0F2] bg-gradient-to-r from-[#20233A] via-[#2D3150] to-[#3F4670] p-5 text-left text-white shadow-lg shadow-[#20233A]/15 transition hover:-translate-y-0.5 hover:shadow-xl"
               onClick={() => {
                 navigate("/garages?devis=1");
               }}
             >
-              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-[#EAF2F7] text-[#0B6B8F]">
+              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-white/10 text-[#DCD8FF] ring-1 ring-white/20">
                 <FileText size={28} />
               </div>
               <div className="min-w-0 flex-1">
-                <h2 className="text-xl font-black text-[#102A43]">Obtenir un devis</h2>
-                <p className="mt-1 text-sm text-[#64748B]">
+                <h2 className="text-xl font-black text-white">Obtenir un devis</h2>
+                <p className="mt-1 text-sm text-white/75">
                   Décrivez votre besoin et recevez des propositions de garages vérifiés.
                 </p>
               </div>
-              <ArrowRight size={24} className="shrink-0 text-[#0B6B8F] transition group-hover:translate-x-1" />
+              <ArrowRight size={24} className="shrink-0 text-[#DCD8FF] transition group-hover:translate-x-1" />
             </button>
           </section>
 
@@ -829,7 +830,7 @@ export default function Devis() {
      FLUX 7 ÉTAPES — Réparation / Devis
      ════════════════════════════════════════════════════════════ */
   return (
-    <div className="min-h-screen bg-[#F5F3EF] pb-24">
+    <div className="min-h-screen bg-[#F6F4FB] pb-24">
       {/* Header */}
       <div className="bg-white border-b border-[#E5E7EB] px-4 py-3">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
@@ -887,7 +888,7 @@ export default function Devis() {
           ÉTAPE 2 — IDENTIFICATION VÉHICULE
          ═══════════════════════════════════════ */}
       {step <= 2 && (
-        <div className="max-w-4xl mx-auto px-4 mt-6">
+      <div className="max-w-4xl mx-auto px-4 mt-6">
           <h1 className="text-2xl font-black text-[#111] text-center">
             IDENTIFIEZ VOTRE <span className="text-[#D4AF37]">VÉHICULE</span>
           </h1>
@@ -898,18 +899,28 @@ export default function Devis() {
 
           <div className="mt-6 grid md:grid-cols-2 gap-6">
             {/* Formulaire */}
-            <div className="rounded-2xl bg-white border border-[#E5E7EB] p-6 shadow-sm">
+            <div className="rounded-[28px] border border-[#DCD8F2] bg-gradient-to-br from-white to-[#F3F1FC] p-6 shadow-[0_18px_50px_rgba(48,43,95,0.10)]">
+              <div className="mb-5 flex items-start gap-3">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#6658D9] text-white shadow-lg shadow-[#6658D9]/20">
+                  <FileText size={24} />
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#6658D9]">Devis personnalisé</p>
+                  <h2 className="mt-1 text-xl font-black text-[#20233A]">Identifiez votre véhicule</h2>
+                  <p className="mt-1 text-xs leading-relaxed text-[#6B7280]">Une identification rapide pour préparer un devis adapté à votre garage, carrosserie ou entretien.</p>
+                </div>
+              </div>
               {/* Tabs Plaque / VIN */}
-              <div className="flex border-b border-[#E5E7EB] mb-4">
+              <div className="mb-4 flex rounded-xl bg-[#E9E7F8] p-1">
                 <button
                   onClick={() => setIdentTab("plaque")}
-                  className={`flex-1 py-2.5 text-sm font-bold text-center transition border-b-2 ${identTab === "plaque" ? "border-[#D4AF37] text-[#111]" : "border-transparent text-[#9CA3AF]"}`}
+                  className={`flex-1 rounded-lg py-2.5 text-xs font-bold text-center transition ${identTab === "plaque" ? "bg-white text-[#312E81] shadow-sm" : "text-[#6B7280]"}`}
                 >
                   PLAQUE D'IMMATRICULATION
                 </button>
                 <button
                   onClick={() => setIdentTab("vin")}
-                  className={`flex-1 py-2.5 text-sm font-bold text-center transition border-b-2 ${identTab === "vin" ? "border-[#D4AF37] text-[#111]" : "border-transparent text-[#9CA3AF]"}`}
+                  className={`flex-1 rounded-lg py-2.5 text-xs font-bold text-center transition ${identTab === "vin" ? "bg-white text-[#312E81] shadow-sm" : "text-[#6B7280]"}`}
                 >
                   NUMÉRO VIN
                 </button>
@@ -917,9 +928,9 @@ export default function Devis() {
 
               {identTab === "plaque" ? (
                 <div className="flex items-center gap-2 rounded-xl border-2 border-[#E5E7EB] p-3">
-                  <div className="flex h-8 w-8 items-center justify-center rounded bg-[#003399] text-white text-[10px] font-bold shrink-0">FR</div>
+                  <div className="flex h-8 w-8 items-center justify-center rounded bg-[#312E81] text-white text-[10px] font-bold shrink-0">FR</div>
                   <input
-                    className="flex-1 text-lg font-bold text-[#111] outline-none placeholder:text-[#D1D5DB] bg-transparent"
+                    className="flex-1 bg-transparent text-lg font-bold text-[#20233A] outline-none placeholder:text-[#B8B8C8]"
                     placeholder="Ex : AB-123-CD"
                     value={plaque}
                     onChange={(e) => setPlaque(e.target.value.toUpperCase())}
@@ -927,7 +938,7 @@ export default function Devis() {
                 </div>
               ) : (
                 <input
-                  className="w-full rounded-xl border-2 border-[#E5E7EB] p-3 text-sm font-bold text-[#111] outline-none placeholder:text-[#D1D5DB]"
+                  className="w-full rounded-xl border-2 border-[#DCD8F2] bg-white/80 p-3 text-sm font-bold text-[#20233A] outline-none placeholder:text-[#B8B8C8]"
                   placeholder="Ex : VF1XXXXXXXXXX"
                   value={vin}
                   onChange={(e) => setVin(e.target.value.toUpperCase())}
@@ -940,7 +951,7 @@ export default function Devis() {
               </p>
 
               <button
-                className="mt-4 w-full rounded-xl bg-[#D4AF37] py-3.5 text-sm font-bold text-white shadow-md hover:bg-[#C5A028] disabled:opacity-50 flex items-center justify-center gap-2 transition"
+                className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-[#6658D9] py-3.5 text-sm font-bold text-white shadow-lg shadow-[#6658D9]/20 transition hover:bg-[#5548C4] disabled:opacity-50"
                 disabled={(!plaque.trim() && !vin.trim()) || plateLoading}
                 onClick={identifierVehicule}
               >
@@ -948,22 +959,25 @@ export default function Devis() {
                 {plateLoading ? "Recherche en cours..." : "Identifier mon véhicule"}
               </button>
 
-              <div className="mt-4 text-center">
-                <button className="text-sm font-semibold text-[#D4AF37] hover:underline" onClick={() => setSaisieManuelle((v) => !v)}>
-                  {saisieManuelle ? "Masquer la saisie manuelle" : "Saisir manuellement →"}
+              <div className="mt-4">
+                <button className="flex w-full items-center justify-between rounded-xl border border-[#DCD8F2] bg-white/70 px-4 py-3 text-left text-sm font-bold text-[#312E81] transition hover:bg-white" onClick={() => setFlowManualOpen((v) => !v)}>
+                  <span className="flex items-center gap-2"><Settings size={16} /> Saisie manuelle</span>
+                  <ChevronDown size={18} className={`transition ${flowManualOpen ? "rotate-180" : ""}`} />
                 </button>
               </div>
 
-              {saisieManuelle && (
-                <div className="mt-3 space-y-2 rounded-xl border border-[#E5E7EB] p-3">
+              {flowManualOpen && (
+                <div className="mt-3 space-y-3 rounded-2xl border border-[#DCD8F2] bg-white/80 p-4">
+                  <p className="text-xs leading-relaxed text-[#6B7280]">Complétez les informations si l’identification automatique n’est pas disponible.</p>
                   <div className="grid grid-cols-2 gap-2">
-                    <input className="rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm" placeholder="Marque *" value={vehicule.marque} onChange={(e) => setVehicule({ ...vehicule, marque: e.target.value })} />
-                    <input className="rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm" placeholder="Modèle *" value={vehicule.modele} onChange={(e) => setVehicule({ ...vehicule, modele: e.target.value })} />
-                    <input className="rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm" placeholder="Année" inputMode="numeric" value={vehicule.annee} onChange={(e) => setVehicule({ ...vehicule, annee: e.target.value })} />
-                    <input className="rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm" placeholder="Énergie" value={vehicule.carburant} onChange={(e) => setVehicule({ ...vehicule, carburant: e.target.value })} />
+                    <input className="rounded-lg border border-[#DCD8F2] bg-white px-3 py-2 text-sm outline-none focus:border-[#6658D9]" placeholder="Marque *" value={vehicule.marque} onChange={(e) => setVehicule({ ...vehicule, marque: e.target.value })} />
+                    <input className="rounded-lg border border-[#DCD8F2] bg-white px-3 py-2 text-sm outline-none focus:border-[#6658D9]" placeholder="Modèle *" value={vehicule.modele} onChange={(e) => setVehicule({ ...vehicule, modele: e.target.value })} />
+                    <input className="rounded-lg border border-[#DCD8F2] bg-white px-3 py-2 text-sm outline-none focus:border-[#6658D9]" placeholder="Année" inputMode="numeric" value={vehicule.annee} onChange={(e) => setVehicule({ ...vehicule, annee: e.target.value })} />
+                    <input className="rounded-lg border border-[#DCD8F2] bg-white px-3 py-2 text-sm outline-none focus:border-[#6658D9]" placeholder="Kilométrage actuel" inputMode="numeric" value={vehicule.kilometrage} onChange={(e) => setVehicule({ ...vehicule, kilometrage: e.target.value })} />
+                    <input className="col-span-2 rounded-lg border border-[#DCD8F2] bg-white px-3 py-2 text-sm outline-none focus:border-[#6658D9]" placeholder="Énergie" value={vehicule.carburant} onChange={(e) => setVehicule({ ...vehicule, carburant: e.target.value })} />
                   </div>
                   <button
-                    className="w-full rounded-xl bg-[#111] py-2.5 text-sm font-bold text-white disabled:opacity-50"
+                    className="w-full rounded-xl bg-[#20233A] py-2.5 text-sm font-bold text-white shadow-md disabled:opacity-50"
                     disabled={!vehicule.marque.trim() || !vehicule.modele.trim()}
                     onClick={() => setStep(3)}
                   >
@@ -1441,7 +1455,7 @@ export default function Devis() {
             {/* Garage + RDV */}
             <div className="space-y-4">
               {selectedGarage && (
-                <div className="rounded-2xl bg-white border border-[#E5E7EB] p-5 shadow-sm">
+              <div className="rounded-2xl border border-[#DCD8F2] bg-white/80 p-5 shadow-sm">
                   <h3 className="text-xs font-bold text-[#9CA3AF] uppercase tracking-wider mb-3">Garage consulté</h3>
                   <div className="flex items-center gap-3">
                     <img src={selectedGarage.coverUrl || "/categories/loc_berline.jpg"} alt={selectedGarage.name} className="h-14 w-20 rounded-xl object-cover shrink-0" />
