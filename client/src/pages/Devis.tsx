@@ -231,6 +231,10 @@ export default function Devis() {
   const [estimationSelections, setEstimationSelections] = useState<string[]>([]);
   const [estimationVehicleIdentified, setEstimationVehicleIdentified] = useState(false);
   const [estimationMode, setEstimationMode] = useState<"repair" | "tires">("repair");
+  const [tireSection, setTireSection] = useState<"registration" | "dimensions">("registration");
+  const [tirePlate, setTirePlate] = useState("");
+  const [tireWidth, setTireWidth] = useState("");
+  const [showMoreTireWidths, setShowMoreTireWidths] = useState(false);
   const [estimationServiceSearch, setEstimationServiceSearch] = useState("");
   const [tireDimensions, setTireDimensions] = useState({ largeur: "", hauteur: "", jante: "" });
 
@@ -482,7 +486,7 @@ export default function Devis() {
     const canSeeTariffs = estimationVehicleIdentified && positionSearch.trim().length > 0 && selectedServiceCount > 0;
 
     return (
-      <div className="min-h-screen bg-[#FFF1E6] pb-24">
+      <div className="min-h-screen bg-[#E8F7FB] pb-24">
         <div className="border-b border-white/20 bg-white px-4 py-4">
           <div className="mx-auto flex max-w-4xl items-center gap-3">
             <button type="button" onClick={() => navigate("/devis")} className="rounded-full p-2 text-[#64748B] hover:bg-[#F1F5F9]" aria-label="Retour"><ArrowLeft size={20} /></button>
@@ -505,20 +509,34 @@ export default function Devis() {
               </div>
               <h2 className="mb-1 text-center text-2xl font-black text-[#08A9C4]">Trouver mes pneus</h2>
               <p className="mb-5 text-center text-sm text-[#64748B]">Achetez vos pneus ou demandez leur montage auprès d’un garage partenaire.</p>
-              <div className="space-y-3">
-                <button type="button" onClick={() => { setEstimationMode("repair"); setEstimationExpanded("vehicle"); }} className="flex w-full items-center gap-3 rounded-2xl border-2 border-[#B7BDC4] px-4 py-5 text-left">
-                  <span className="text-2xl">🚗</span><span className="min-w-0 flex-1"><span className="block text-base font-black text-[#30343B]">Immatriculation</span><span className="block text-xs text-[#64748B]">Identifier le véhicule pour trouver la bonne dimension</span></span><ChevronRight className="text-[#FF8A1F]" />
-                </button>
-                <div className="text-center text-lg font-bold text-[#94A3B8]">ou</div>
-                <div className="overflow-hidden rounded-2xl border-2 border-[#B7BDC4]">
-                  <button type="button" onClick={() => setEstimationExpanded(estimationExpanded === "tire-dimensions" ? null : "tire-dimensions")} className="flex w-full items-center gap-3 px-4 py-5 text-left">
-                    <span className="text-2xl">↔️</span><span className="min-w-0 flex-1"><span className="block text-base font-black text-[#30343B]">Dimensions</span><span className="block text-xs text-[#64748B]">Largeur · hauteur · diamètre de jante</span></span><ChevronDown className={`text-[#FF8A1F] transition ${estimationExpanded === "tire-dimensions" ? "rotate-180" : ""}`} />
-                  </button>
-                  {estimationExpanded === "tire-dimensions" && <div className="grid grid-cols-3 gap-2 border-t border-[#E5E7EB] bg-[#FAFAFA] px-4 py-4">
-                    {([["largeur", "Largeur"], ["hauteur", "Hauteur"], ["jante", "Jante"]] as const).map(([field, label]) => <input key={field} className="min-w-0 rounded-lg border border-[#CBD5E1] px-2 py-3 text-center text-sm outline-none" placeholder={label} value={tireDimensions[field]} onChange={(event) => setTireDimensions((current) => ({ ...current, [field]: event.target.value }))} />)}
-                  </div>}
-                </div>
+              <div className="mb-6 grid grid-cols-2 overflow-hidden rounded-full border border-[#E5E7EB] bg-[#F8FAFC] p-1">
+                <button type="button" onClick={() => setTireSection("registration")} className={`rounded-full px-3 py-3 text-xs font-black transition ${tireSection === "registration" ? "bg-[#08A9C4] text-white shadow-md" : "text-[#64748B]"}`}>IMMATRICULATION</button>
+                <button type="button" onClick={() => setTireSection("dimensions")} className={`rounded-full px-3 py-3 text-xs font-black transition ${tireSection === "dimensions" ? "bg-[#08A9C4] text-white shadow-md" : "text-[#64748B]"}`}>DIMENSIONS</button>
               </div>
+
+              {tireSection === "registration" ? (
+                <div>
+                  <h3 className="mb-4 text-xl font-black text-[#08A9C4]">Quelle est votre voiture ?</h3>
+                  <div className="overflow-hidden rounded-2xl border-2 border-[#B7BDC4] bg-white">
+                    <div className="flex items-center gap-3 border-b border-[#E5E7EB] px-4 py-4"><span className="text-2xl">🚗</span><span className="text-base font-black text-[#30343B]">Renseignez votre immatriculation</span></div>
+                    <input aria-label="Immatriculation pour trouver mes pneus" className="w-full px-5 py-7 text-center text-3xl uppercase tracking-wider outline-none placeholder:text-[#D1D5DB]" placeholder="AB-123-CD" value={tirePlate} onChange={(event) => setTirePlate(event.target.value.toUpperCase())} />
+                  </div>
+                  <button type="button" disabled={!tirePlate.trim()} className="mt-5 w-full rounded-2xl bg-[#FF8A1F] py-4 text-base font-black text-white shadow-lg disabled:opacity-40">VALIDER</button>
+                </div>
+              ) : (
+                <div>
+                  <h3 className="mb-4 text-xl font-black text-[#08A9C4]">Sélectionnez la largeur</h3>
+                  <div className="relative mx-auto mb-3 h-36 max-w-[290px] overflow-hidden">
+                    <div className="absolute left-1/2 top-8 h-56 w-56 -translate-x-1/2 rounded-full border-[30px] border-[#242424]" />
+                    <span className="absolute left-8 top-20 rotate-[-55deg] text-xl font-black text-[#FF8A1F]">205</span><span className="absolute left-1/2 top-4 -translate-x-1/2 text-2xl font-black text-white">R16</span><span className="absolute right-8 top-20 rotate-[55deg] text-xl font-black text-white">91</span>
+                  </div>
+                  <button type="button" className="mb-5 w-full text-center text-sm font-semibold text-[#08A9C4] underline">Lire mes dimensions de pneus</button>
+                  <div className="grid grid-cols-5 gap-2">
+                    {[10, 12, 30, 31, 32, 33, 35, 37, 40, 125, 135, 145, 155, 165, 175].slice(0, showMoreTireWidths ? 15 : 10).map((width) => <button key={width} type="button" onClick={() => setTireWidth(String(width))} className={`rounded-lg px-2 py-3 text-sm font-black transition ${tireWidth === String(width) ? "bg-[#08A9C4] text-white" : "bg-[#F1F5F9] text-[#102A43]"}`}>{width}</button>)}
+                  </div>
+                  <button type="button" onClick={() => setShowMoreTireWidths((current) => !current)} className="mt-5 w-full text-center text-sm text-[#64748B] underline">{showMoreTireWidths ? "Afficher moins" : "Afficher plus de valeurs"}</button>
+                </div>
+              )}
               <div className="my-5 border-t border-[#E5E7EB]" />
               <p className="text-center text-sm text-[#475569]">Vous avez déjà vos pneus ?</p>
               <button type="button" onClick={() => { setEstimationMode("repair"); setEstimationCategory("mecanique"); setEstimationExpanded("service"); const key = "pneumatiques::Montage 4 pneus + équilibrage"; setEstimationSelections((current) => current.includes(key) ? current : [...current, key]); setSelectedRepairId("pneus"); setSelectedSubType("Montage 4 pneus + équilibrage"); }} className="mt-2 w-full text-center text-lg font-black text-[#08A9C4] underline">Faire monter mes pneus</button>
