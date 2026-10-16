@@ -191,6 +191,12 @@ export default function Devis() {
   const [estimationStep, setEstimationStep] = useState(1);
   const [entryPoint, setEntryPoint] = useState<"devis" | "garage">("devis");
 
+  // Synchronise l’affichage avec les navigations internes (?estimation=1), notamment le bouton d’estimation.
+  useEffect(() => {
+    if (mode === "flow") return;
+    setMode(searchParams.get("estimation") === "1" ? "estimation" : "landing");
+  }, [searchParams, mode]);
+
   /* Identification véhicule */
   const [identTab, setIdentTab] = useState<"plaque" | "vin">("plaque");
   const [plaque, setPlaque] = useState("");
