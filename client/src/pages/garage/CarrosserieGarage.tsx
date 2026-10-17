@@ -177,6 +177,9 @@ export default function CarrosserieGarage() {
   /* Photos avant/après */
   const [photosAvant, setPhotosAvant] = useState<string[]>([]);
   const [photosApres, setPhotosApres] = useState<string[]>([]);
+  const [priseEnChargeAssurance, setPriseEnChargeAssurance] = useState<"non" | "oui" | "a-confirmer">("a-confirmer");
+  const [vehiculeCourtoisie, setVehiculeCourtoisie] = useState<"non" | "oui">("non");
+  const [urgence, setUrgence] = useState<"standard" | "rapide">("standard");
 
   /* Carrossier */
   const [selectedCarrossierId, setSelectedCarrossierId] = useState<number | null>(null);
@@ -224,7 +227,7 @@ export default function CarrosserieGarage() {
       vehiculeAnnee: vehicule.annee ? Number(vehicule.annee) : undefined,
       immatriculation: plaque || undefined,
       typeIntervention: `Carrosserie — ${selectedTravaux?.label || "Autre"}`,
-      description: `${selectedSubType}${descriptionLibre ? ` — ${descriptionLibre}` : ""}`,
+      description: `${selectedSubType}${descriptionLibre ? ` — ${descriptionLibre}` : ""} — Assurance : ${priseEnChargeAssurance} — Véhicule de courtoisie : ${vehiculeCourtoisie === "oui" ? "oui" : "non"} — Délai : ${urgence}`,
       ville: positionSearch || undefined,
       photos: [...photosAvant, ...photosApres],
       devisType: "pieces_main_oeuvre",
@@ -246,6 +249,7 @@ export default function CarrosserieGarage() {
     { num: 4, label: "Devis" },
     { num: 5, label: "Carrossier" },
     { num: 6, label: "Réservation" },
+    { num: 7, label: "Suivi" },
   ];
 
   /* ════════════════════════════════════════════════════════════
@@ -257,7 +261,7 @@ export default function CarrosserieGarage() {
         {/* HERO */}
         <div className="relative overflow-hidden bg-gradient-to-br from-[#111] via-[#1a1a1a] to-[#2d2d2d]">
           <div className="absolute inset-0 opacity-25">
-            <img src="https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=1200&q=80" alt="" className="h-full w-full object-cover" />
+            <img src="/images/services/carrosserie.jpg" alt="Atelier de carrosserie automobile" className="h-full w-full object-cover" />
           </div>
           <div className="relative px-4 py-10 md:py-16 md:px-8 max-w-6xl mx-auto">
             <div className="md:flex md:items-center md:justify-between md:gap-12">
@@ -383,9 +387,10 @@ export default function CarrosserieGarage() {
         </div>
       </div>
 
-      {/* Stepper */}
-      <div className="bg-white border-b border-[#E5E7EB] px-4 py-4">
-        <div className="max-w-4xl mx-auto flex items-center justify-center gap-2 md:gap-4">
+      {/* Stepper : défilement horizontal volontaire sur mobile pour garder chaque libellé lisible. */}
+      <div className="bg-white border-b border-[#E5E7EB] px-4 py-3">
+        <div className="mx-auto max-w-4xl overflow-x-auto overscroll-x-contain scrollbar-thin scrollbar-thumb-[#D4AF37]/50">
+          <div className="flex min-w-max items-start justify-start gap-2 px-1 md:justify-center md:gap-4">
           {STEPS_LABELS.map((s, i) => {
             const done = step > s.num + 1;
             const active = step === s.num + 1;
@@ -401,7 +406,9 @@ export default function CarrosserieGarage() {
               </div>
             );
           })}
+          </div>
         </div>
+        <p className="mx-auto mt-2 max-w-4xl text-center text-[10px] text-[#9CA3AF] md:hidden">Faites glisser pour voir toutes les étapes</p>
       </div>
 
       {/* Retour */}
@@ -466,7 +473,7 @@ export default function CarrosserieGarage() {
       {step === 3 && (
         <div className="max-w-4xl mx-auto px-4 mt-6">
           <h1 className="text-2xl font-black text-[#111] text-center">QUEL TYPE DE <span className="text-[#D4AF37]">TRAVAUX ?</span></h1>
-          <p className="mt-2 text-sm text-[#6B7280] text-center">Sélectionnez le type de réparation carrosserie dont vous avez besoin.</p>
+          <p className="mt-2 text-sm text-[#6B7280] text-center">Choisissez la zone et le type de réparation. Vous pourrez préciser les dégâts et joindre des photos à l’étape suivante.</p>
 
           {vehicule.marque && (
             <div className="mt-4 rounded-2xl bg-white border border-green-200 p-4 shadow-sm max-w-lg mx-auto">
@@ -503,6 +510,10 @@ export default function CarrosserieGarage() {
                 ))}
               </div>
               <textarea className="w-full rounded-xl border border-[#E5E7EB] p-3 text-sm text-[#111] outline-none placeholder:text-[#D1D5DB] min-h-20" placeholder="Décrivez les dégâts en détail..." value={descriptionLibre} onChange={(e) => setDescriptionLibre(e.target.value)} />
+              <div className="rounded-xl bg-[#F5F3EF] p-4">
+                <p className="text-xs font-bold text-[#111]">Pour préparer un devis fiable</p>
+                <p className="mt-1 text-[11px] leading-5 text-[#6B7280]">Précisez le côté du véhicule, le nombre d’éléments touchés et si la pièce doit être réparée ou remplacée.</p>
+              </div>
             </div>
           )}
 
@@ -519,7 +530,7 @@ export default function CarrosserieGarage() {
       {step === 4 && (
         <div className="max-w-4xl mx-auto px-4 mt-6 space-y-6">
           <h1 className="text-2xl font-black text-[#111] text-center">PHOTOS <span className="text-[#D4AF37]">AVANT / APRÈS</span></h1>
-          <p className="text-sm text-[#6B7280] text-center">Ajoutez des photos des dégâts pour un devis plus précis.</p>
+          <p className="text-sm text-[#6B7280] text-center">Ajoutez des vues larges et rapprochées : elles aident les carrossiers à distinguer réparation, peinture et remplacement.</p>
 
           <div className="grid md:grid-cols-2 gap-4">
             <div className="rounded-2xl bg-white border-2 border-dashed border-red-300 p-6 shadow-sm">
@@ -536,6 +547,7 @@ export default function CarrosserieGarage() {
                   ))}
                 </div>
               )}
+              <p className="mt-3 text-[11px] leading-5 text-[#6B7280]">Conseil : photographiez le véhicule de face, de côté et le détail de chaque impact, dans une zone bien éclairée.</p>
             </div>
 
             <div className="rounded-2xl bg-white border-2 border-dashed border-green-300 p-6 shadow-sm">
@@ -553,7 +565,29 @@ export default function CarrosserieGarage() {
                   ))}
                 </div>
               )}
+              <p className="mt-3 text-[11px] leading-5 text-[#6B7280]">Les photos après réparation pourront être ajoutées par le carrossier pour le suivi du dossier.</p>
             </div>
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-3">
+            <label className="rounded-xl border border-[#E5E7EB] bg-white p-3 text-xs text-[#374151]">
+              <span className="mb-2 block font-bold text-[#111]">Prise en charge assurance</span>
+              <select value={priseEnChargeAssurance} onChange={(e) => setPriseEnChargeAssurance(e.target.value as typeof priseEnChargeAssurance)} className="w-full rounded-lg border border-[#D1D5DB] bg-white px-2 py-2 text-xs">
+                <option value="a-confirmer">À confirmer</option><option value="oui">Oui, sinistre déclaré</option><option value="non">Non</option>
+              </select>
+            </label>
+            <label className="rounded-xl border border-[#E5E7EB] bg-white p-3 text-xs text-[#374151]">
+              <span className="mb-2 block font-bold text-[#111]">Véhicule de courtoisie</span>
+              <select value={vehiculeCourtoisie} onChange={(e) => setVehiculeCourtoisie(e.target.value as typeof vehiculeCourtoisie)} className="w-full rounded-lg border border-[#D1D5DB] bg-white px-2 py-2 text-xs">
+                <option value="non">Pas nécessaire</option><option value="oui">Oui, si disponible</option>
+              </select>
+            </label>
+            <label className="rounded-xl border border-[#E5E7EB] bg-white p-3 text-xs text-[#374151]">
+              <span className="mb-2 block font-bold text-[#111]">Délai souhaité</span>
+              <select value={urgence} onChange={(e) => setUrgence(e.target.value as typeof urgence)} className="w-full rounded-lg border border-[#D1D5DB] bg-white px-2 py-2 text-xs">
+                <option value="standard">Standard</option><option value="rapide">Le plus rapidement possible</option>
+              </select>
+            </label>
           </div>
 
           <div className="flex gap-3">
@@ -604,6 +638,15 @@ export default function CarrosserieGarage() {
                 </div>
               </div>
             )}
+            <div className="mt-5 rounded-xl border border-[#E5E7EB] bg-[#F8FAFC] p-4">
+              <p className="text-xs font-bold text-[#111]">Détail indicatif du devis</p>
+              <div className="mt-3 grid gap-2 text-xs text-[#6B7280] sm:grid-cols-2">
+                <div className="flex items-center justify-between gap-3"><span>Main-d’œuvre carrosserie</span><span className="font-semibold text-[#374151]">Incluse</span></div>
+                <div className="flex items-center justify-between gap-3"><span>Peinture / finition</span><span className="font-semibold text-[#374151]">Selon le dommage</span></div>
+                <div className="flex items-center justify-between gap-3"><span>Pièce à réparer ou remplacer</span><span className="font-semibold text-[#374151]">À confirmer</span></div>
+                <div className="flex items-center justify-between gap-3"><span>Assurance</span><span className="font-semibold text-[#374151]">{priseEnChargeAssurance === "oui" ? "Demandée" : "À confirmer"}</span></div>
+              </div>
+            </div>
           </div>
 
           <p className="text-[10px] text-[#9CA3AF] text-center flex items-center justify-center gap-1">
