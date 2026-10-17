@@ -40,7 +40,7 @@ export interface AnomalieCliquable {
   readonly motif: MotifAnomalie;
 }
 
-export const CLIQUABLES_TOTAL = 2852;
+export const CLIQUABLES_TOTAL = 2853;
 
 export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/components/AccessDenied.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
@@ -767,8 +767,8 @@ export const CLIQUABLES_ANOMALIES: readonly AnomalieCliquable[] = [
   { fichier: "client/src/lib/boutonMoteur.tsx", ligne: 88, genre: "bouton", libelle: "(sans texte)", motif: "sans_action" },
   { fichier: "client/src/pages/comptabilite/CentrePilotage.tsx", ligne: 1010, genre: "bouton", libelle: "Consommation energetique 12 450 kWh", motif: "sans_action" },
   { fichier: "client/src/pages/comptabilite/CentrePilotage.tsx", ligne: 1027, genre: "bouton", libelle: "Prochaines echeances 12 dossiers", motif: "sans_action" },
-  { fichier: "client/src/pages/Devis.tsx", ligne: 542, genre: "bouton", libelle: "VALIDER", motif: "sans_action" },
-  { fichier: "client/src/pages/Devis.tsx", ligne: 562, genre: "bouton", libelle: "Lire mes dimensions de pneus", motif: "sans_action" },
+  { fichier: "client/src/pages/Devis.tsx", ligne: 548, genre: "bouton", libelle: "VALIDER", motif: "sans_action" },
+  { fichier: "client/src/pages/Devis.tsx", ligne: 568, genre: "bouton", libelle: "Lire mes dimensions de pneus", motif: "sans_action" },
   { fichier: "client/src/pages/finance/LOAFinance.tsx", ligne: 11, genre: "bouton", libelle: "Simulation indisponible", motif: "sans_action" },
   { fichier: "client/src/pages/garage/ControleQualiteGarage.tsx", ligne: 16, genre: "bouton", libelle: "Validation atelier ✓", motif: "sans_action" },
   { fichier: "client/src/pages/garage/ControleQualiteGarage.tsx", ligne: 16, genre: "bouton", libelle: "Validation responsable", motif: "sans_action" },

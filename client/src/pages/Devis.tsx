@@ -210,6 +210,12 @@ const ESTIMATION_SERVICE_CATALOG = [
   { id: "phares-feux", label: "Phares et feux", description: "Optiques, feux arrière et éclairage extérieur", repairId: "autre", segment: "carrosserie" },
   { id: "jantes-esthetique", label: "Jantes et esthétique", description: "Jantes, plastiques et finitions extérieures", repairId: "autre", segment: "carrosserie" },
   { id: "diagnostics", label: "Contrôles et diagnostics", description: "Contrôle électronique et diagnostic", repairId: "diagnostic", segment: "mecanique" },
+  { id: "diagnostic-electronique", label: "Diagnostic électronique", description: "Lecture des codes défauts, calculateurs, voyants et systèmes électroniques", repairId: "diagnostic", segment: "mecanique" },
+  { id: "pre-controle-technique", label: "Pré-contrôle technique", description: "Vérification des points contrôlés avant le contrôle technique", repairId: "diagnostic", segment: "mecanique" },
+  { id: "controle-ampoules", label: "Contrôle ampoules et éclairage", description: "Ampoules, feux, phares, clignotants et éclairage extérieur", repairId: "diagnostic", segment: "mecanique" },
+  { id: "controle-etat-complet", label: "Contrôle état complet du véhicule", description: "Contrôle visuel, niveaux, sécurité, usure et éléments essentiels", repairId: "diagnostic", segment: "mecanique" },
+  { id: "controle-plaquettes", label: "Contrôle plaquettes et freinage", description: "Plaquettes, disques, liquide et état général du freinage", repairId: "diagnostic", segment: "mecanique" },
+  { id: "controle-pneus", label: "Contrôle pneus et sécurité", description: "Pression, usure, témoins et état des pneumatiques", repairId: "diagnostic", segment: "mecanique" },
   { id: "recherche-pannes", label: "Recherche de pannes", description: "Identifier l'origine d'un problème", repairId: "diagnostic", segment: "mecanique" },
   { id: "rdv-autre", label: "Prise de RDV (autre problème)", description: "Décrire une demande qui n'est pas listée", repairId: "autre", segment: "mecanique", manual: true },
 ] as const;
