@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { ChevronLeft, Search, AlertCircle, Clock, Home, ArrowRight } from "lucide-react";
+import { ChevronLeft, Search, AlertCircle, Clock, Home, ArrowRight, ShieldCheck, Wrench } from "lucide-react";
 const DEFAUTS = [
   { label: "Plaquettes avant usées à 80%", priorite: "Haute", recommandation: "Remplacement immédiat" },
   { label: "Filtre habitacle encrassé", priorite: "Moyenne", recommandation: "Remplacement conseillé" },
@@ -7,22 +7,17 @@ const DEFAUTS = [
   { label: "Pneu avant droit — 2mm", priorite: "Haute", recommandation: "Remplacement obligatoire" },
 ];
 export default function DiagnosticGarage() {
-  return (
-    <div className="min-h-screen bg-[#F5F3EF] pb-24">
-      <div className="bg-[#111] px-4 pt-5 pb-4"><Link to="/garage" className="flex items-center gap-1 text-xs text-white/60 mb-2"><ChevronLeft size={14} /> Garage</Link><h1 className="text-lg font-black text-white flex items-center gap-2"><Search size={19} className="text-[#D4AF37]" /> Diagnostic</h1><p className="mt-1 text-xs text-white/60">Peugeot 3008 GT — AB-123-CD</p></div>
-      <div className="mx-4 mt-3 rounded-xl bg-amber-50 border border-amber-200 px-3 py-2.5 flex items-center gap-2"><Clock size={14} className="text-amber-600" /><span className="text-xs font-bold text-amber-700">Diagnostic en cours</span></div>
-      <div className="px-4 mt-2.5 space-y-1.5">{DEFAUTS.map(d => (
-        <div key={d.label} className={`rounded-xl bg-white border px-3 py-3 ${d.priorite === "Haute" ? "border-red-200" : "border-[#E5E7EB]"}`}>
-          <div className="flex items-center gap-2"><AlertCircle size={14} className={d.priorite === "Haute" ? "text-red-500" : "text-amber-500"} /><h3 className="text-[13px] leading-5 font-bold text-[#111]">{d.label}</h3></div>
-          <div className="mt-1 flex items-center gap-2 text-[10px]"><span className={`rounded-full px-2 py-0.5 font-bold ${d.priorite === "Haute" ? "bg-red-50 text-red-600" : "bg-amber-50 text-amber-600"}`}>{d.priorite}</span><span className="text-[#6B7280]">{d.recommandation}</span></div>
-        </div>))}</div>
-      <div className="mx-4 mt-3 rounded-xl border border-[#B7E3E8] bg-gradient-to-br from-[#EAF8FA] to-white p-3 shadow-sm">
-        <Link to="/devis?estimation=1&service=mecanicien-domicile" className="flex items-center gap-3">
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#0B6B8F] text-white"><Home size={17} /></span>
-          <span className="min-w-0 flex-1"><span className="block text-xs font-black text-[#102A43]">Mécanicien à domicile</span><span className="block mt-0.5 text-[10px] leading-4 text-[#64748B]">Demandez une estimation pour une intervention sur place.</span></span>
-          <ArrowRight size={16} className="shrink-0 text-[#0B6B8F]" />
-        </Link>
-      </div>
-    </div>
-  );
+  return <div className="min-h-screen bg-[#F5F3EF] pb-24 text-[#102A43]">
+    <header className="relative overflow-hidden bg-gradient-to-br from-[#102A43] via-[#123E56] to-[#0B6B8F] px-4 pb-7 pt-5 text-white">
+      <Link to="/garage" className="relative flex items-center gap-1 text-sm text-white/75"><ChevronLeft size={17}/> Garage</Link>
+      <div className="relative mt-5 flex items-center gap-3"><span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#D4AF37] text-[#102A43]"><Search size={22}/></span><div><p className="text-xs font-bold uppercase tracking-[0.18em] text-[#F4D35E]">Contrôle automobile</p><h1 className="text-2xl font-black">Diagnostic</h1></div></div>
+      <p className="relative mt-3 text-sm text-white/75">Peugeot 3008 GT — AB-123-CD</p>
+    </header>
+    <main className="mx-auto max-w-3xl px-4">
+      <div className="-mt-3 rounded-2xl border border-[#F5D66B] bg-[#FFF9E8] p-4 shadow-sm"><div className="flex items-center gap-3"><Clock size={20} className="text-[#C27A00]"/><div><p className="font-extrabold text-[#A65B00]">Diagnostic en cours</p><p className="mt-0.5 text-xs text-[#8A5A20]">Les résultats sont présentés par niveau de priorité.</p></div></div></div>
+      <section className="mt-5 space-y-3">{DEFAUTS.map((d) => <article key={d.label} className={`rounded-2xl border bg-white p-4 shadow-sm ${d.priorite === "Haute" ? "border-[#F7B4B4]" : "border-[#DCE6EE]"}`}><div className="flex items-start gap-3"><AlertCircle size={19} className={d.priorite === "Haute" ? "mt-0.5 shrink-0 text-[#DC2626]" : "mt-0.5 shrink-0 text-[#D97706]"}/><div className="min-w-0 flex-1"><h2 className="text-base font-extrabold leading-6 text-[#102A43]">{d.label}</h2><div className="mt-2 flex flex-wrap items-center gap-2"><span className={`rounded-full px-3 py-1 text-xs font-extrabold ${d.priorite === "Haute" ? "bg-[#FFF0F0] text-[#C62828]" : "bg-[#FFF7E0] text-[#B66A00]"}`}>{d.priorite}</span><span className="text-sm text-[#64748B]">{d.recommandation}</span></div></div></div></article>)}</section>
+      <section className="mt-5 rounded-2xl border border-[#B7E3E8] bg-gradient-to-br from-[#EAF8FA] to-white p-5 shadow-sm"><div className="flex items-start gap-3"><span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#0B6B8F] text-white"><Home size={21}/></span><div className="min-w-0 flex-1"><p className="text-xs font-bold uppercase tracking-[0.16em] text-[#0B6B8F]">Intervention sur place</p><h2 className="mt-1 text-base font-black text-[#102A43]">Mécanicien à domicile</h2><p className="mt-1 text-sm leading-5 text-[#64748B]">Demandez une estimation pour faire contrôler ou réparer votre véhicule directement chez vous.</p><Link to="/devis?estimation=1&service=mecanicien-domicile" className="mt-4 inline-flex items-center gap-2 rounded-xl bg-[#0B6B8F] px-4 py-3 text-sm font-extrabold text-white">Voir l’estimation <ArrowRight size={16}/></Link></div></div></section>
+      <div className="mt-4 rounded-2xl border border-[#DCE6EE] bg-white p-4 text-sm text-[#64748B] shadow-sm"><div className="flex items-center gap-2 font-bold text-[#102A43]"><ShieldCheck size={18} className="text-[#0B6B8F}"/> Conseils MKA.P-MS</div><p className="mt-2">Un diagnostic permet de prioriser les interventions et de comparer les solutions adaptées à votre véhicule.</p><Link to="/devis?estimation=1&service=diagnostics" className="mt-3 inline-flex items-center gap-2 font-bold text-[#0B6B8F]">Comparer les prix <ArrowRight size={15}/></Link></div>
+    </main>
+  </div>;
 }
