@@ -25,6 +25,7 @@ import { useCurrency } from "../lib/currency";
 import { CURRENCIES } from "@shared/currency";
 import { trpc } from "../lib/trpc";
 import { SmartLink, useResolvedTarget } from "../lib/redirect";
+import { useDomain } from "../lib/domain";
 
 // Navigation publique — aucune donnée interne (VO retiré : confidentiel).
 // Chaque entrée passe par le Moteur de Redirection (redirKey) avec un
@@ -417,12 +418,16 @@ function BackButton() {
 // routes précises sautent donc le chrome du site — inchangé partout ailleurs.
 // "/b2b" fournit son propre en-tête et pied de page (HeaderPro/FooterPro) :
 // même raison que les deux routes ci-dessus, pour ne pas empiler deux chromes.
+// Sur mkapms.pro, "/" rend aussi HomePro (même composant, même chrome propre)
+// — donc "/" doit sauter le chrome du site uniquement sur ce domaine, sinon
+// HeaderPro/FooterPro s'empileraient sous le header/footer grand public.
 const ECRANS_PLEIN_ECRAN = ["/admin/intelligences", "/intelligence", "/b2b"];
 
 export default function Layout({ children }: { children: ReactNode }) {
   const { pathname } = useLocation();
+  const { key: domainKey } = useDomain();
   const isHome = pathname === "/";
-  const pleinEcran = ECRANS_PLEIN_ECRAN.includes(pathname);
+  const pleinEcran = ECRANS_PLEIN_ECRAN.includes(pathname) || (isHome && domainKey === "pro");
 
   if (pleinEcran) {
     return (

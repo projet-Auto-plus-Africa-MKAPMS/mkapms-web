@@ -842,8 +842,12 @@ function DomainHome() {
     return () => mq.removeEventListener("change", handler);
   }, []);
 
-  if (isMobile) return <Home />;
+  // mkapms.pro doit toujours montrer l'accueil B2B, y compris sur mobile :
+  // Google indexe mkapms.pro avec le titre/description B2B (MetaSEO de
+  // HomePro) — si le clic depuis Google affichait l'accueil grand public sur
+  // téléphone, la page ne correspondrait plus à ce que Google promet.
   if (key === "pro") return <HomePro />;
+  if (isMobile) return <Home />;
   if (key === "site") return <HomeSite />;
   return <Home />;
 }
