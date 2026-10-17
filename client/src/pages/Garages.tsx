@@ -126,6 +126,47 @@ const ALL_PIECES = CATEGORIES_PIECES.flatMap((c) => c.pieces.map((p) => ({ ...p,
 const DEVIS_STEPS = ["Véhicule", "Catalogue", "Panier", "Fournisseur", "Garage", "Calendrier", "Récap", "Suivi"];
 const CRENEAUX = ["08:00", "09:00", "10:00", "11:00", "14:00", "15:00", "16:00", "17:00"];
 
+// Catalogue de départ mondial pour les sélecteurs du devis. La saisie libre
+// reste toujours possible pour une marque ou un modèle non encore référencé.
+const VEHICLE_CATALOG: Record<string, string[]> = {
+  "Abarth": ["500", "595", "695", "124 Spider"], "Alfa Romeo": ["Giulia", "Stelvio", "Tonale", "Giulietta", "MiTo"],
+  "Audi": ["A1", "A3", "A4", "A5", "A6", "A7", "A8", "Q2", "Q3", "Q5", "Q7", "Q8", "e-tron"],
+  "BMW": ["Série 1", "Série 2", "Série 3", "Série 4", "Série 5", "Série 7", "X1", "X3", "X5", "X6", "i3", "i4", "iX"],
+  "BYD": ["Dolphin", "Atto 3", "Seal", "Han", "Tang", "Seagull"], "Chevrolet": ["Spark", "Aveo", "Cruze", "Malibu", "Camaro", "Captiva", "Tahoe"],
+  "Citroën": ["C1", "C3", "C4", "C5 Aircross", "Berlingo", "Jumpy", "ë-C3"], "Dacia": ["Sandero", "Logan", "Duster", "Jogger", "Spring"],
+  "Fiat": ["500", "Panda", "Tipo", "Punto", "Doblo", "Ducato", "500X"], "Ford": ["Fiesta", "Focus", "Mondeo", "Puma", "Kuga", "Ranger", "Transit", "Mustang"],
+  "Honda": ["Civic", "Jazz", "Accord", "CR-V", "HR-V", "NSX"], "Hyundai": ["i10", "i20", "i30", "Kona", "Tucson", "Santa Fe", "Ioniq 5"],
+  "Kia": ["Picanto", "Rio", "Ceed", "Sportage", "Sorento", "Niro", "EV6"], "Land Rover": ["Defender", "Discovery", "Discovery Sport", "Range Rover", "Evoque"],
+  "Lexus": ["CT", "IS", "ES", "NX", "RX", "UX", "RZ"], "Mercedes-Benz": ["Classe A", "Classe B", "Classe C", "Classe E", "Classe S", "GLA", "GLC", "GLE", "Sprinter"],
+  "Nissan": ["Micra", "Juke", "Qashqai", "X-Trail", "Leaf", "Navara", "Ariya"], "Opel": ["Corsa", "Astra", "Insignia", "Mokka", "Crossland", "Grandland", "Vivaro"],
+  "Peugeot": ["108", "208", "308", "508", "2008", "3008", "5008", "Partner", "Expert", "e-208"], "Renault": ["Twingo", "Clio", "Mégane", "Captur", "Austral", "Arkana", "Scénic", "Kangoo", "Master", "Zoe"],
+  "Seat": ["Ibiza", "Leon", "Arona", "Ateca", "Tarraco"], "Skoda": ["Fabia", "Scala", "Octavia", "Superb", "Kamiq", "Karoq", "Kodiaq", "Enyaq"],
+  "Tesla": ["Model 3", "Model S", "Model X", "Model Y"], "Toyota": ["Aygo", "Yaris", "Corolla", "Camry", "C-HR", "RAV4", "Hilux", "Land Cruiser", "Prius"],
+  "Volkswagen": ["Polo", "Golf", "Passat", "T-Roc", "Tiguan", "Touareg", "Caddy", "Transporter", "ID.3", "ID.4"], "Volvo": ["V40", "S60", "V60", "XC40", "XC60", "XC90", "EX30"],
+};
+
+function SelectOrType({ label, value, placeholder, options, open, onToggle, onChange }: {
+  label: string; value: string; placeholder?: string; options: string[]; open: boolean;
+  onToggle: () => void; onChange: (value: string) => void;
+}) {
+  const shown = options.filter((option) => !value || option.toLowerCase().includes(value.toLowerCase())).slice(0, 80);
+  return (
+    <div className="relative">
+      <label className="label">{label}</label>
+      <div className={`flex overflow-hidden rounded-xl border-2 bg-white transition ${open ? "border-[#08A9C4] shadow-[0_0_0_3px_rgba(8,169,196,0.12)]" : "border-[#CBD5E1]"}`}>
+        <input className="min-w-0 flex-1 border-0 bg-transparent px-3 py-3 text-sm outline-none focus:ring-0" value={value} placeholder={placeholder} onChange={(e) => onChange(e.target.value)} />
+        <button type="button" aria-label={`Choisir ${label}`} onClick={onToggle} className="flex w-11 shrink-0 items-center justify-center border-l border-[#E2E8F0] text-[#087B91]">
+          <ChevronDown size={18} className={`transition-transform ${open ? "rotate-180" : ""}`} />
+        </button>
+      </div>
+      {open && <div className="absolute inset-x-0 z-20 mt-1 max-h-56 overflow-y-auto rounded-xl border border-[#B8DCE5] bg-white p-1 shadow-xl">
+        {shown.map((option) => <button type="button" key={option} onClick={() => { onChange(option); onToggle(); }} className="block w-full rounded-lg px-3 py-2 text-left text-sm text-[#102A43] hover:bg-[#E8F7FB]">{option}</button>)}
+        {shown.length === 0 && <p className="px-3 py-3 text-xs text-[#64748B]">Saisissez librement votre valeur.</p>}
+      </div>}
+    </div>
+  );
+}
+
 export default function Garages() {
   const { user } = useAuth();
   const [searchParams] = useSearchParams();
@@ -144,6 +185,7 @@ export default function Garages() {
   const [step, setStep] = useState(0);
   const [vehicleIdentityOpen, setVehicleIdentityOpen] = useState(false);
   const [manualEntryOpen, setManualEntryOpen] = useState(false);
+  const [openPicker, setOpenPicker] = useState<"marque" | "modele" | "annee" | "kilometrage" | null>(null);
 
   // Champs devis
   const [f, setF] = useState({
@@ -164,6 +206,10 @@ export default function Garages() {
   });
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedCreneau, setSelectedCreneau] = useState("");
+  const brandOptions = Object.keys(VEHICLE_CATALOG).sort((a, b) => a.localeCompare(b));
+  const modelOptions = VEHICLE_CATALOG[f.vehiculeMarque] || [];
+  const yearOptions = Array.from({ length: 77 }, (_, i) => String(2026 - i));
+  const mileageOptions = Array.from({ length: 81 }, (_, i) => String(i * 5000));
 
   const create = trpc.devis.create.useMutation({ onSuccess: () => setStep(7) });
   const utils = trpc.useUtils();
@@ -363,10 +409,10 @@ export default function Garages() {
                 </button>
                 {manualEntryOpen && <div className="border-t border-[#D9EEF2] bg-[#F7FDFF] px-4 py-4">
                   <div className="grid gap-3 sm:grid-cols-2">
-                    <div><label className="label">Marque</label><input className="input bg-white" value={f.vehiculeMarque} onChange={(e) => set("vehiculeMarque", e.target.value)} /></div>
-                    <div><label className="label">Modèle</label><input className="input bg-white" value={f.vehiculeModele} onChange={(e) => set("vehiculeModele", e.target.value)} /></div>
-                    <div><label className="label">Année</label><input className="input bg-white" type="number" value={f.vehiculeAnnee} onChange={(e) => set("vehiculeAnnee", e.target.value)} /></div>
-                    <div><label className="label">Kilométrage actuel</label><input className="input bg-white" inputMode="numeric" placeholder="Ex. 125 000 km" value={f.kilometrage} onChange={(e) => set("kilometrage", e.target.value)} /></div>
+                    <SelectOrType label="Marque" value={f.vehiculeMarque} placeholder="Saisir ou choisir" options={brandOptions} open={openPicker === "marque"} onToggle={() => setOpenPicker(openPicker === "marque" ? null : "marque")} onChange={(value) => { set("vehiculeMarque", value); if (value !== f.vehiculeMarque) set("vehiculeModele", ""); }} />
+                    <SelectOrType label="Modèle" value={f.vehiculeModele} placeholder={f.vehiculeMarque ? "Saisir ou choisir" : "Choisir d’abord la marque"} options={modelOptions} open={openPicker === "modele"} onToggle={() => setOpenPicker(openPicker === "modele" ? null : "modele")} onChange={(value) => set("vehiculeModele", value)} />
+                    <SelectOrType label="Année" value={f.vehiculeAnnee} placeholder="Ex. 2020" options={yearOptions} open={openPicker === "annee"} onToggle={() => setOpenPicker(openPicker === "annee" ? null : "annee")} onChange={(value) => set("vehiculeAnnee", value)} />
+                    <SelectOrType label="Kilométrage actuel" value={f.kilometrage} placeholder="Ex. 125 000 km" options={mileageOptions.map((value) => `${Number(value).toLocaleString("fr-FR")} km`)} open={openPicker === "kilometrage"} onToggle={() => setOpenPicker(openPicker === "kilometrage" ? null : "kilometrage")} onChange={(value) => set("kilometrage", value.replace(/\s?km$/i, "").replace(/\s/g, ""))} />
                     <div className="sm:col-span-2"><label className="label">Type d’intervention *</label><select className="input bg-white" value={f.typeIntervention} onChange={(e) => set("typeIntervention", e.target.value)}><option value="">Choisir…</option>{["Révision / entretien", "Freinage", "Pneumatiques", "Distribution", "Climatisation", "Carrosserie", "Diagnostic électronique", "Vidange", "Embrayage", "Suspension", "Échappement", "Électricité", "Autre"].map((t) => <option key={t} value={t}>{t}</option>)}</select></div>
                   </div>
                   <div className="mt-3"><label className="label">Description du problème</label><textarea className="input min-h-20 bg-white text-sm" value={f.description} onChange={(e) => set("description", e.target.value)} placeholder="Décrivez votre problème ou l’intervention souhaitée..." /></div>
