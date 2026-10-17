@@ -26,10 +26,10 @@ export default function GarageGenerale() {
       <section className="relative overflow-hidden bg-gradient-to-br from-[#102A43] via-[#123E56] to-[#0B6B8F] px-4 pb-7 pt-6 text-white">
         <div className="absolute -right-16 -top-20 h-56 w-56 rounded-full bg-[#D4AF37]/20 blur-3xl" />
         <div className="relative mx-auto max-w-6xl">
-          <div className="flex items-center gap-2 text-sm font-bold"><Wrench size={20} className="text-[#F4D35E]" /> Garage <span className="text-[#F4D35E]">MKA.P-MS</span></div>
-          <h1 className="mt-3 max-w-2xl text-2xl font-black leading-tight sm:text-3xl">Votre entretien automobile, suivi de bout en bout.</h1>
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-white/80">Trouvez le bon professionnel, obtenez une estimation claire et suivez votre réparation au même endroit.</p>
-          <div className="mt-5 flex flex-wrap gap-3 text-xs text-white/75">
+          <div className="flex items-center justify-center gap-2 text-center text-sm font-bold"><Wrench size={20} className="text-[#F4D35E]" /> Garage <span className="text-[#F4D35E]">MKA.P-MS</span></div>
+          <h1 className="mx-auto mt-3 max-w-2xl text-center text-2xl font-black leading-tight sm:text-3xl">Votre entretien automobile, suivi de bout en bout.</h1>
+          <p className="mx-auto mt-2 max-w-2xl text-center text-sm leading-6 text-white/80">Trouvez le bon professionnel, obtenez une estimation claire et suivez votre réparation au même endroit.</p>
+          <div className="mt-5 flex flex-wrap justify-center gap-3 text-xs text-white/75">
             <span className="inline-flex items-center gap-1.5"><MapPin size={14} className="text-[#F4D35E]" /> Disponible dans toute la France</span>
             <span className="inline-flex items-center gap-1.5"><Phone size={14} className="text-[#F4D35E]" /> 99 70 70 50 50</span>
             <span className="inline-flex items-center gap-1.5"><Clock3 size={14} className="text-[#F4D35E]" /> 7/7 de 8h à 20h</span>
