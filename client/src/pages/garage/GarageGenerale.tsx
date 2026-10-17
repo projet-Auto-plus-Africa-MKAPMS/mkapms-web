@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { Wrench, FileText, Calendar, AlertTriangle, Shield, Circle, Search, Paintbrush, Users, Phone, Star, MapPin, Home } from "lucide-react";
 
 const SERVICES = [
-  { label: "Mécanicien à domicile", icon: Home, to: "/garage/demande-devis?service=mecanicien-domicile", color: "bg-[#0B6B8F]" },
+  { label: "Mécanicien à domicile", icon: Home, to: "/devis?estimation=1&service=mecanicien-domicile", color: "bg-[#0B6B8F]" },
   { label: "Demander un devis", icon: FileText, to: "/garage/demande-devis", color: "bg-[#D4AF37]" },
   { label: "Prendre rendez-vous", icon: Calendar, to: "/garage/prise-rendez-vous", color: "bg-blue-600" },
   { label: "Dépannage", icon: AlertTriangle, to: "/garage/depannage-garage", color: "bg-red-600" },
@@ -32,7 +32,7 @@ export default function GarageGenerale() {
       <div className="px-4 -mt-2 relative z-10">
         <div className="grid grid-cols-2 gap-2">
           {SERVICES.map((s) => { const Icon = s.icon; return (
-            <Link key={s.label} to={s.to} className="min-h-[104px] rounded-xl bg-white border border-[#E5E7EB] px-2.5 py-3 text-center active:scale-[0.98] transition shadow-sm flex flex-col items-center justify-center">
+            <Link key={s.label} to={s.to} className="min-h-[104px] rounded-xl border border-[#DCE6EE] bg-gradient-to-br from-white to-[#F0F8FA] px-2.5 py-3 text-center active:scale-[0.98] transition shadow-sm flex flex-col items-center justify-center">
               <div className={`flex h-9 w-9 items-center justify-center rounded-lg ${s.color}`}><Icon size={17} className="text-white" /></div>
               <p className="text-[11px] leading-4 font-bold text-[#111] mt-2">{s.label}</p>
             </Link>
