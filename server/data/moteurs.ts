@@ -9511,11 +9511,11 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/garage/diagnostic-garage"
         ],
-        "cliquables": 4,
+        "cliquables": 5,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 37,
-        "mots": 181
+        "textes": 38,
+        "mots": 187
       },
       {
         "fichier": "client/src/pages/garage/DossiersFlottes.tsx",
