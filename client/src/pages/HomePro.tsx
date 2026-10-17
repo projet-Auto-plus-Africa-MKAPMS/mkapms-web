@@ -119,7 +119,7 @@ const PRO_STATS = [
 export default function HomePro() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { country } = useCurrency();
+  const { country, format: formatPrice } = useCurrency();
   const domain = useDomain();
   const proPlans = getPlansByCategory("pro_vente");
   const { data: proAnnonces } = trpc.annonces.list.useQuery({ categorieAnnonce: "professionnelle", pays: country ?? undefined, limit: 8 });
@@ -275,7 +275,7 @@ export default function HomePro() {
                 )}
                 <h3 className="text-lg font-black text-white">{plan.label}</h3>
                 <p className="text-2xl font-black text-[#D4AF37] mt-2">
-                  {plan.priceEur !== null ? `${plan.priceEur} €/mois` : "Sur devis"}
+                  {plan.priceEur !== null ? <>{formatPrice(plan.priceEur)}<span className="text-xs font-normal text-white/50">/mois</span></> : "Sur devis"}
                   {plan.commissionPct ? <span className="text-xs text-white/50"> + {plan.commissionPct}% commission</span> : null}
                 </p>
                 <ul className="mt-4 space-y-2">
@@ -335,7 +335,7 @@ export default function HomePro() {
                   <p className="text-sm font-bold text-white truncate">{a.titre}</p>
                   <p className="text-[10px] text-white/40 mt-0.5">{a.marque} · {a.annee}</p>
                   <p className="text-base font-black text-[#D4AF37] mt-1">
-                    {a.prix ? `${Number(a.prix).toLocaleString("fr-FR")} €` : "Prix sur demande"}
+                    {a.prix ? formatPrice(Number(a.prix)) : "Prix sur demande"}
                   </p>
                 </div>
               </Link>
