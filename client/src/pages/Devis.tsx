@@ -750,7 +750,7 @@ export default function Devis() {
             </button>
           </section>
 
-          <section className="grid grid-cols-3 gap-2.5 md:gap-4" aria-label="Services de réparation">
+          <section className="mx-auto grid max-w-[900px] grid-cols-3 gap-2 md:gap-3" aria-label="Services de réparation">
             {[
               {
                 title: "Garage",
@@ -763,23 +763,23 @@ export default function Devis() {
                 title: "Carrosserie",
                 desc: "Peinture et réparation",
                 to: "/garage/carrosserie-garage",
-                image: "https://images.unsplash.com/photo-1530046339917-2fa7f3f8ea10?w=700&auto=format&fit=crop&q=85",
+                image: "https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=700&auto=format&fit=crop&q=85",
                 icon: Shield,
               },
               {
                 title: "Diagnostic",
                 desc: "Contrôle et entretien",
                 to: "/garage/diagnostic-garage",
-                image: "https://images.unsplash.com/photo-1632823469811-2b0e0b8d4f8d?w=700&auto=format&fit=crop&q=85",
+                image: "https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=700&auto=format&fit=crop&q=85",
                 icon: Search,
               },
             ].map((service) => (
               <Link
                 key={service.title}
                 to={service.to}
-                className="group overflow-hidden rounded-2xl border border-[#DCE6EE] bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg"
+                className="group overflow-hidden rounded-xl border border-[#DCE6EE] bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg"
               >
-                <div className="relative aspect-[0.9] overflow-hidden bg-[#EAF2F7]">
+                <div className="relative aspect-[1.12] overflow-hidden bg-[#EAF2F7]">
                   <img
                     src={service.image}
                     alt={service.title}
@@ -787,14 +787,14 @@ export default function Devis() {
                     loading="lazy"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-[#062B40]/85 via-transparent to-transparent" />
-                  <div className="absolute left-2 top-2 flex h-8 w-8 items-center justify-center rounded-xl bg-white/90 text-[#0B6B8F]">
-                    <service.icon size={16} />
+                  <div className="absolute left-1.5 top-1.5 flex h-7 w-7 items-center justify-center rounded-lg bg-white/90 text-[#0B6B8F]">
+                    <service.icon size={14} />
                   </div>
-                  <ArrowRight size={16} className="absolute right-2 top-2 text-white" />
+                  <ArrowRight size={14} className="absolute right-1.5 top-1.5 text-white" />
                 </div>
-                <div className="p-2.5 md:p-3">
-                  <h3 className="text-sm font-black text-[#102A43]">{service.title}</h3>
-                  <p className="mt-1 text-[10px] leading-snug text-[#64748B]">{service.desc}</p>
+                <div className="p-2 md:p-2.5">
+                  <h3 className="text-xs md:text-sm font-black text-[#102A43]">{service.title}</h3>
+                  <p className="mt-0.5 text-[9px] md:text-[10px] leading-snug text-[#64748B]">{service.desc}</p>
                 </div>
               </Link>
             ))}
