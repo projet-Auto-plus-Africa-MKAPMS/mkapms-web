@@ -303,7 +303,16 @@ export default function Devis() {
     return () => { clearInterval(timer); if (progressRef.current) clearInterval(progressRef.current); };
   }, []);
 
+  const prevHeroVidIdx = useRef<number | null>(null);
   useEffect(() => {
+    // En React.StrictMode (développement), cet effet est invoqué deux fois au
+    // montage sans démontage réel entre les deux : relancer currentTime=0 puis
+    // play() à chaque invocation interrompt la requête vidéo déjà en cours et
+    // peut déclencher une erreur de décodage (DEMUXER_ERROR_NO_SUPPORTED_STREAMS).
+    // On ignore donc la ré-invocation qui ne correspond pas à un vrai changement
+    // d'index — l'attribut autoPlay natif se charge déjà du tout premier départ.
+    if (prevHeroVidIdx.current === heroVidIdx) { prevHeroVidIdx.current = heroVidIdx; return; }
+    prevHeroVidIdx.current = heroVidIdx;
     videoRefs.current.forEach((video, i) => {
       if (!video) return;
       if (i === heroVidIdx) {
@@ -385,6 +394,7 @@ export default function Devis() {
           boite: r.boite || "",
           puissance: r.puissance ? String(r.puissance) : "",
           portes: (r as { portes?: number | null }).portes ? String((r as { portes?: number | null }).portes) : "",
+          kilometrage: vehicule.kilometrage,
         });
         setStep(3);
       }
@@ -473,7 +483,7 @@ export default function Devis() {
       try {
         const result = await utils.annonces.lookupPlate.fetch({ type, query });
         if (result) {
-          setVehicule({ marque: result.marque || "", modele: result.modele || "", version: result.version || "", annee: result.annee ? String(result.annee) : "", carburant: result.carburant || "", boite: result.boite || "", puissance: result.puissance ? String(result.puissance) : "", portes: (result as { portes?: number | null }).portes ? String((result as { portes?: number | null }).portes) : "" });
+          setVehicule({ marque: result.marque || "", modele: result.modele || "", version: result.version || "", annee: result.annee ? String(result.annee) : "", carburant: result.carburant || "", boite: result.boite || "", puissance: result.puissance ? String(result.puissance) : "", portes: (result as { portes?: number | null }).portes ? String((result as { portes?: number | null }).portes) : "", kilometrage: vehicule.kilometrage });
           setEstimationVehicleIdentified(true); setEstimationExpanded(null);
         }
       } catch { setEstimationVehicleIdentified(false); } finally { setPlateLoading(false); }
@@ -571,7 +581,7 @@ export default function Devis() {
             <section className="rounded-[28px] bg-white p-5 shadow-2xl">
               <div className="mb-4 grid grid-cols-2 overflow-hidden rounded-2xl border border-[#E5E7EB]">
                 <button type="button" onClick={() => { setEstimationMode("repair"); setEstimationStep(1); }} className={`bg-white px-3 py-3 text-sm font-black ${estimationMode === "repair" ? "text-[#08A9C4]" : "text-[#64748B]"}`}>ENTRETENIR MON VÉHICULE</button>
-                <button type="button" onClick={() => { setEstimationMode("tires"); setEstimationStep(1); setEstimationExpanded(null); }} className={`bg-[#F3F3F3] px-3 py-3 text-sm font-black ${estimationMode === "tires" ? "text-[#08A9C4]" : "text-[#374151]"}`}>CHANGER MES PNEUS <span className="ml-1 inline-flex rounded-full bg-[#D92D35] px-2 py-1 text-[9px] text-white">NOUVEAU</span></button>
+                <button type="button" onClick={() => { setEstimationMode("tires"); setEstimationStep(1); setEstimationExpanded(null); }} className="bg-[#F3F3F3] px-3 py-3 text-sm font-black text-[#374151]">CHANGER MES PNEUS <span className="ml-1 inline-flex rounded-full bg-[#D92D35] px-2 py-1 text-[9px] text-white">NOUVEAU</span></button>
               </div>
 
               <div className="space-y-3">
@@ -617,7 +627,7 @@ export default function Devis() {
                         return <div key={service.id} className="border-b border-[#E5E7EB] last:border-0">
                           <button type="button" onClick={() => setEstimationExpanded(isOpen ? "service" : `service:${service.id}`)} className="flex w-full items-center gap-3 px-2 py-3 text-left"><span className="min-w-0 flex-1"><span className="block text-sm font-bold text-[#30343B]">{service.label} {service.id === "nouveau" && <span className="ml-1 rounded bg-[#D92D35] px-1.5 py-0.5 text-[9px] text-white">NOUVEAU</span>}</span><span className="block text-[11px] text-[#64748B]">{service.description}</span></span>{count > 0 && <span className="rounded-full bg-[#DDF4F0] px-2 py-1 text-[10px] font-black text-[#16806A]">{count}</span>}<ChevronDown size={19} className={`shrink-0 text-[#FF8A1F] transition ${isOpen ? "rotate-180" : ""}`} /></button>
                           {isOpen && repair && <div className="mb-2 rounded-lg bg-white px-2">
-                            {service.manual ? <div className="space-y-2 px-2 py-2"><input className="w-full rounded-lg border border-[#CBD5E1] px-3 py-2 text-sm outline-none" placeholder="Décrivez votre besoin" value={descriptionLibre} onChange={(event) => setDescriptionLibre(event.target.value)} /><button type="button" onClick={() => toggleEstimateService(service.id, repair.subTypes[repair.subTypes.length - 1].label)} className="w-full rounded-lg bg-[#08A9C4] py-2 text-xs font-bold text-white">Ajouter cette demande</button></div> : repair.subTypes.map((subType) => { const key = `${service.id}::${subType.label}`; const checked = estimationSelections.includes(key); return <button key={subType.label} type="button" onClick={() => toggleEstimateService(service.id, subType.label)} className="flex w-full items-center gap-3 border-b border-[#EEF2F4] px-2 py-3 text-left last:border-0"><span className="min-w-0 flex-1 text-sm text-[#334155]">{subType.label}</span><span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-md border-2 ${checked ? "border-[#08A9C4] bg-[#08A9C4] text-white" : "border-[#CBD5E1] bg-white"}`}>{checked && <Check size={15} />}</span></button>; })}
+                            {(service as { manual?: boolean }).manual ? <div className="space-y-2 px-2 py-2"><input className="w-full rounded-lg border border-[#CBD5E1] px-3 py-2 text-sm outline-none" placeholder="Décrivez votre besoin" value={descriptionLibre} onChange={(event) => setDescriptionLibre(event.target.value)} /><button type="button" onClick={() => toggleEstimateService(service.id, repair.subTypes[repair.subTypes.length - 1].label)} className="w-full rounded-lg bg-[#08A9C4] py-2 text-xs font-bold text-white">Ajouter cette demande</button></div> : repair.subTypes.map((subType) => { const key = `${service.id}::${subType.label}`; const checked = estimationSelections.includes(key); return <button key={subType.label} type="button" onClick={() => toggleEstimateService(service.id, subType.label)} className="flex w-full items-center gap-3 border-b border-[#EEF2F4] px-2 py-3 text-left last:border-0"><span className="min-w-0 flex-1 text-sm text-[#334155]">{subType.label}</span><span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-md border-2 ${checked ? "border-[#08A9C4] bg-[#08A9C4] text-white" : "border-[#CBD5E1] bg-white"}`}>{checked && <Check size={15} />}</span></button>; })}
                           </div>}
                         </div>;
                       })}
@@ -657,7 +667,12 @@ export default function Devis() {
             <video
               key={video.src}
               ref={(el) => { videoRefs.current[i] = el; }}
-              src={video.src}
+              // Ne charger que la vidéo active : les 5 vidéos (plusieurs Mo chacune)
+              // demandées en même temps saturaient la connexion et empêchaient la
+              // première de démarrer (constaté même hors React, 5 <video> statiques
+              // suffisent à le reproduire). Chaque vidéo n'est récupérée qu'au
+              // moment où le carrousel l'affiche.
+              src={i === heroVidIdx ? video.src : undefined}
               autoPlay={i === 0}
               muted
               playsInline

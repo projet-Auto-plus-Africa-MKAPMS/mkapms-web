@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { MapPin, Phone, Star, BadgeCheck, Search, Wrench, ShoppingCart, Calendar, Bell, ChevronRight, ChevronDown, Check, Building2, Minus, Plus, FileText } from "lucide-react";
 import { trpc } from "../lib/trpc";
 import { useAuth } from "../lib/auth";
@@ -169,6 +169,7 @@ function SelectOrType({ label, value, placeholder, options, open, onToggle, onCh
 
 export default function Garages() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const estimationSource = searchParams.get("source") === "estimation";
   const [q, setQ] = useState("");
@@ -318,7 +319,16 @@ export default function Garages() {
     return () => { clearInterval(t); if (progressRef.current) clearInterval(progressRef.current); };
   }, []);
 
+  const prevHeroVidIdx = useRef<number | null>(null);
   useEffect(() => {
+    // En React.StrictMode (développement), cet effet est invoqué deux fois au
+    // montage sans démontage réel entre les deux : relancer currentTime=0 puis
+    // play() à chaque invocation interrompt la requête vidéo déjà en cours et
+    // peut déclencher une erreur de décodage (DEMUXER_ERROR_NO_SUPPORTED_STREAMS).
+    // On ignore donc la ré-invocation qui ne correspond pas à un vrai changement
+    // d'index — l'attribut autoPlay natif se charge déjà du tout premier départ.
+    if (prevHeroVidIdx.current === heroVidIdx) { prevHeroVidIdx.current = heroVidIdx; return; }
+    prevHeroVidIdx.current = heroVidIdx;
     videoRefs.current.forEach((v, i) => {
       if (!v) return;
       if (i === heroVidIdx) {
@@ -661,14 +671,14 @@ export default function Garages() {
               {f.fournisseurPiece === "client" && selectedPieces.length > 0 && (
                 <Link to="/pieces" className="btn-primary mt-4 w-full flex items-center justify-center gap-2"><ShoppingCart size={16} /> Acheter mes pièces en boutique →</Link>
               )}
-              <button className="btn-outline mt-2 w-full" onClick={() => { setDevisMode(false); setStep(0); }}>Retour aux garages</button>
+              <button className="btn-outline mt-2 w-full" onClick={() => navigate("/devis")}>Retour aux garages</button>
             </div>
           )}
 
           {/* Navigation */}
           {step < 7 && (
             <div className="mt-6 flex justify-between">
-              <button className="btn-outline" onClick={() => step === 0 ? setDevisMode(false) : setStep((s) => s - 1)}>
+              <button className="btn-outline" onClick={() => step === 0 ? navigate("/devis") : setStep((s) => s - 1)}>
                 ← {step === 0 ? "Garages" : "Précédent"}
               </button>
               {step < 6 ? (
@@ -698,7 +708,12 @@ export default function Garages() {
           <video
             key={v.src}
             ref={(el) => { videoRefs.current[i] = el; }}
-            src={v.src}
+            // Ne charger que la vidéo active : les 5 vidéos (plusieurs Mo chacune)
+            // demandées en même temps saturaient la connexion et empêchaient la
+            // première de démarrer (constaté même hors React, 5 <video> statiques
+            // suffisent à le reproduire). Chaque vidéo n'est récupérée qu'au
+            // moment où le carrousel l'affiche.
+            src={i === heroVidIdx ? v.src : undefined}
             autoPlay={i === 0}
             muted
             playsInline
