@@ -9913,8 +9913,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "professionnel",
       "public"
     ],
-    "textes": 759,
-    "mots": 2721,
+    "textes": 758,
+    "mots": 2708,
     "battement": "sonde",
     "manques": [
       {
