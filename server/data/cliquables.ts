@@ -40,7 +40,7 @@ export interface AnomalieCliquable {
   readonly motif: MotifAnomalie;
 }
 
-export const CLIQUABLES_TOTAL = 2821;
+export const CLIQUABLES_TOTAL = 2845;
 
 export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/components/AccessDenied.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
@@ -51,6 +51,8 @@ export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/components/demarches/DemarcheFormulaire.tsx", total: 3, moteur: 2, liens: 0, boutonsLocaux: 1, sansAction: 0, zones: 0 },
   { fichier: "client/src/components/DocumentPDF.tsx", total: 8, moteur: 0, liens: 0, boutonsLocaux: 6, sansAction: 0, zones: 2 },
   { fichier: "client/src/components/FileUpload.tsx", total: 1, moteur: 0, liens: 0, boutonsLocaux: 0, sansAction: 0, zones: 1 },
+  { fichier: "client/src/components/FooterPro.tsx", total: 18, moteur: 0, liens: 18, boutonsLocaux: 0, sansAction: 0, zones: 0 },
+  { fichier: "client/src/components/HeaderPro.tsx", total: 6, moteur: 0, liens: 5, boutonsLocaux: 1, sansAction: 0, zones: 0 },
   { fichier: "client/src/components/InstallPrompt.tsx", total: 4, moteur: 0, liens: 0, boutonsLocaux: 4, sansAction: 0, zones: 0 },
   { fichier: "client/src/components/Layout.tsx", total: 12, moteur: 0, liens: 7, boutonsLocaux: 5, sansAction: 0, zones: 0 },
   { fichier: "client/src/components/MicroVocal.tsx", total: 1, moteur: 0, liens: 0, boutonsLocaux: 1, sansAction: 0, zones: 0 },

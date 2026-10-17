@@ -862,6 +862,9 @@ export default function App() {
         <Suspense fallback={<PageLoader />}>
           <Routes>
             <Route path="/" element={<DomainHome />} />
+            {/* Portail B2B joignable par chemin sur le domaine déjà actif et indexé,
+                sans dépendre du pointage DNS de mkapms.pro (qui peut être mal configuré). */}
+            <Route path="/b2b" element={<HomePro />} />
             <Route path="/louer" element={<U name="Location"><Louer /></U>} />
             <Route path="/louer/vtc-taxi" element={<U name="Location VTC & Taxi"><VtcTaxi /></U>} />
             <Route path="/louer/particulier" element={<U name="Location Particulier"><LocationParticulier /></U>} />
