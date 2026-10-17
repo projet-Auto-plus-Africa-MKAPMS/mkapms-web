@@ -257,7 +257,7 @@ export default function CarrosserieGarage() {
      ════════════════════════════════════════════════════════════ */
   if (mode === "landing") {
     return (
-      <div className="min-h-screen bg-[#F5F3EF]">
+      <div className="min-h-screen bg-gradient-to-b from-[#F5F3EF] via-white to-[#EEF7F8]">
         {/* HERO */}
         <div className="relative overflow-hidden bg-gradient-to-br from-[#111] via-[#1a1a1a] to-[#2d2d2d]">
           <div className="absolute inset-0 opacity-25">
@@ -295,7 +295,7 @@ export default function CarrosserieGarage() {
         {/* DEUX CARTES */}
         <div className="px-4 md:px-8 max-w-6xl mx-auto -mt-6 relative z-10">
           <div className="grid md:grid-cols-2 gap-4 md:gap-6">
-            <div className="rounded-2xl bg-white border border-[#E5E7EB] p-6 shadow-lg">
+            <div className="rounded-2xl bg-white/95 border border-[#DCE6EE] shadow-[0_8px_24px_rgba(16,42,67,0.06)] p-6 shadow-lg">
               <div className="flex items-center gap-3 mb-4">
                 <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#D4AF37]/10">
                   <Paintbrush size={22} className="text-[#D4AF37]" />
@@ -318,7 +318,7 @@ export default function CarrosserieGarage() {
               </button>
             </div>
 
-            <div className="rounded-2xl bg-white border border-[#E5E7EB] p-6 shadow-lg">
+            <div className="rounded-2xl bg-white/95 border border-[#DCE6EE] shadow-[0_8px_24px_rgba(16,42,67,0.06)] p-6 shadow-lg">
               <div className="flex items-center gap-3 mb-4">
                 <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#D4AF37]/10">
                   <Building2 size={22} className="text-[#D4AF37]" />
@@ -358,7 +358,7 @@ export default function CarrosserieGarage() {
 
         {/* CTA */}
         <div className="px-4 md:px-8 max-w-6xl mx-auto mt-10 mb-10">
-          <div className="rounded-2xl bg-[#111] p-6 md:p-8 text-center">
+          <div className="rounded-2xl bg-gradient-to-br from-[#102A43] via-[#123E56] to-[#0B6B8F] p-6 md:p-8 text-center">
             <h2 className="text-lg md:text-xl font-extrabold text-white">BESOIN D'UNE RÉPARATION CARROSSERIE ?</h2>
             <p className="mt-2 text-sm text-white/60 max-w-md mx-auto">Devis gratuit, carrossiers certifiés, garantie peinture.</p>
             <button
@@ -377,9 +377,9 @@ export default function CarrosserieGarage() {
      FLUX CARROSSERIE — 7 ÉTAPES
      ════════════════════════════════════════════════════════════ */
   return (
-    <div className="min-h-screen bg-[#F5F3EF] pb-24">
+    <div className="min-h-screen bg-gradient-to-b from-[#F5F3EF] via-white to-[#EEF7F8] pb-24">
       {/* Header */}
-      <div className="bg-white border-b border-[#E5E7EB] px-4 py-3">
+      <div className="bg-white/95 border-b border-[#DCE6EE] shadow-sm px-4 py-3">
         <div className="max-w-4xl mx-auto flex items-center gap-3">
           {/* Logo FERMÉ (Version 1 – Terre) : surface interne */}
           <img src="/logo-closed.png" alt="MKA.P-MS" className="h-8 w-auto" draggable={false} />
@@ -388,7 +388,7 @@ export default function CarrosserieGarage() {
       </div>
 
       {/* Stepper : défilement horizontal volontaire sur mobile pour garder chaque libellé lisible. */}
-      <div className="bg-white border-b border-[#E5E7EB] px-4 py-3">
+      <div className="bg-white/95 border-b border-[#DCE6EE] shadow-sm px-4 py-3">
         <div className="mx-auto max-w-4xl overflow-x-auto overscroll-x-contain scrollbar-thin scrollbar-thumb-[#D4AF37]/50">
           <div className="flex min-w-max items-start justify-start gap-2 px-1 md:justify-center md:gap-4">
           {STEPS_LABELS.map((s, i) => {
@@ -424,19 +424,19 @@ export default function CarrosserieGarage() {
           <h1 className="text-2xl font-black text-[#111] text-center">IDENTIFIEZ VOTRE <span className="text-[#D4AF37]">VÉHICULE</span></h1>
           <p className="mt-2 text-sm text-[#6B7280] text-center max-w-lg mx-auto">Renseignez votre plaque ou VIN pour identifier automatiquement votre véhicule.</p>
 
-          <div className="mt-6 max-w-lg mx-auto rounded-2xl bg-white border border-[#E5E7EB] p-6 shadow-sm">
-            <div className="flex border-b border-[#E5E7EB] mb-4">
+          <div className="mt-6 max-w-lg mx-auto rounded-2xl bg-white/95 border border-[#DCE6EE] shadow-[0_8px_24px_rgba(16,42,67,0.06)] p-6 shadow-sm">
+            <div className="flex border-b border-[#DCE6EE] mb-4">
               <button onClick={() => setIdentTab("plaque")} className={`flex-1 py-2.5 text-sm font-bold text-center border-b-2 transition ${identTab === "plaque" ? "border-[#D4AF37] text-[#111]" : "border-transparent text-[#9CA3AF]"}`}>PLAQUE D'IMMATRICULATION</button>
               <button onClick={() => setIdentTab("vin")} className={`flex-1 py-2.5 text-sm font-bold text-center border-b-2 transition ${identTab === "vin" ? "border-[#D4AF37] text-[#111]" : "border-transparent text-[#9CA3AF]"}`}>NUMÉRO VIN</button>
             </div>
 
             {identTab === "plaque" ? (
-              <div className="flex items-center gap-2 rounded-xl border-2 border-[#E5E7EB] p-3">
+              <div className="flex items-center gap-2 rounded-xl border-2 border-[#DCE6EE] p-3">
                 <div className="flex h-8 w-8 items-center justify-center rounded bg-[#003399] text-white text-[10px] font-bold shrink-0">FR</div>
                 <input className="flex-1 text-lg font-bold text-[#111] outline-none placeholder:text-[#D1D5DB] bg-transparent" placeholder="Ex : AB-123-CD" value={plaque} onChange={(e) => setPlaque(e.target.value.toUpperCase())} />
               </div>
             ) : (
-              <input className="w-full rounded-xl border-2 border-[#E5E7EB] p-3 text-sm font-bold text-[#111] outline-none placeholder:text-[#D1D5DB]" placeholder="Ex : VF1XXXXXXXXXX" value={vin} onChange={(e) => setVin(e.target.value.toUpperCase())} maxLength={17} />
+              <input className="w-full rounded-xl border-2 border-[#DCE6EE] p-3 text-sm font-bold text-[#111] outline-none placeholder:text-[#D1D5DB]" placeholder="Ex : VF1XXXXXXXXXX" value={vin} onChange={(e) => setVin(e.target.value.toUpperCase())} maxLength={17} />
             )}
 
             <button className="mt-4 w-full rounded-xl bg-[#D4AF37] py-3.5 text-sm font-bold text-white shadow-md hover:bg-[#C5A028] disabled:opacity-50 flex items-center justify-center gap-2 transition" disabled={(!plaque.trim() && !vin.trim()) || plateLoading} onClick={identifierVehicule}>
@@ -449,15 +449,15 @@ export default function CarrosserieGarage() {
             </div>
 
             {saisieManuelle && (
-              <div className="mt-3 space-y-2 rounded-xl border border-[#E5E7EB] p-3">
+              <div className="mt-3 space-y-2 rounded-xl border border-[#DCE6EE] p-3">
                 <div className="grid grid-cols-2 gap-2">
-                  <input className="rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm" placeholder="Marque *" value={vehicule.marque} onChange={(e) => setVehicule({ ...vehicule, marque: e.target.value })} />
-                  <input className="rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm" placeholder="Modèle *" value={vehicule.modele} onChange={(e) => setVehicule({ ...vehicule, modele: e.target.value })} />
-                  <input className="rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm" placeholder="Année" inputMode="numeric" value={vehicule.annee} onChange={(e) => setVehicule({ ...vehicule, annee: e.target.value })} />
-                  <input className="rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm" placeholder="Énergie" value={vehicule.carburant} onChange={(e) => setVehicule({ ...vehicule, carburant: e.target.value })} />
+                  <input className="rounded-lg border border-[#DCE6EE] px-3 py-2 text-sm" placeholder="Marque *" value={vehicule.marque} onChange={(e) => setVehicule({ ...vehicule, marque: e.target.value })} />
+                  <input className="rounded-lg border border-[#DCE6EE] px-3 py-2 text-sm" placeholder="Modèle *" value={vehicule.modele} onChange={(e) => setVehicule({ ...vehicule, modele: e.target.value })} />
+                  <input className="rounded-lg border border-[#DCE6EE] px-3 py-2 text-sm" placeholder="Année" inputMode="numeric" value={vehicule.annee} onChange={(e) => setVehicule({ ...vehicule, annee: e.target.value })} />
+                  <input className="rounded-lg border border-[#DCE6EE] px-3 py-2 text-sm" placeholder="Énergie" value={vehicule.carburant} onChange={(e) => setVehicule({ ...vehicule, carburant: e.target.value })} />
                 </div>
                 <button
-                  className="w-full rounded-xl bg-[#111] py-2.5 text-sm font-bold text-white disabled:opacity-50"
+                  className="w-full rounded-xl bg-gradient-to-br from-[#102A43] via-[#123E56] to-[#0B6B8F] py-2.5 text-sm font-bold text-white disabled:opacity-50"
                   disabled={!vehicule.marque.trim() || !vehicule.modele.trim()}
                   onClick={() => setStep(3)}
                 >
@@ -490,7 +490,7 @@ export default function CarrosserieGarage() {
           <div className="mt-6 grid grid-cols-3 md:grid-cols-5 gap-3">
             {TRAVAUX_CARROSSERIE.map((t) => (
               <button key={t.id} onClick={() => { setSelectedTravauxId(t.id); setSelectedSubType(t.subTypes[0]?.label || ""); }}
-                className={`rounded-2xl border-2 p-4 text-center transition hover:shadow-md ${selectedTravauxId === t.id ? "border-[#D4AF37] bg-[#FFFBEB] shadow-md" : "border-[#E5E7EB] bg-white"}`}>
+                className={`rounded-2xl border-2 p-4 text-center transition hover:shadow-md ${selectedTravauxId === t.id ? "border-[#D4AF37] bg-[#FFFBEB] shadow-md" : "border-[#DCE6EE] bg-white"}`}>
                 <div className="mx-auto text-2xl mb-2">{t.icon}</div>
                 <h3 className="text-xs font-bold text-[#111]">{t.label}</h3>
                 <p className="mt-0.5 text-[9px] text-[#6B7280] leading-tight">{t.desc}</p>
@@ -499,18 +499,18 @@ export default function CarrosserieGarage() {
           </div>
 
           {selectedTravaux && (
-            <div className="mt-6 rounded-2xl bg-white border border-[#E5E7EB] p-6 shadow-sm space-y-4">
+            <div className="mt-6 rounded-2xl bg-white/95 border border-[#DCE6EE] shadow-[0_8px_24px_rgba(16,42,67,0.06)] p-6 shadow-sm space-y-4">
               <h3 className="text-sm font-bold text-[#111] uppercase tracking-wider">Précisez votre besoin</h3>
               <div className="grid grid-cols-2 gap-2">
                 {selectedTravaux.subTypes.map((st) => (
                   <button key={st.label} onClick={() => setSelectedSubType(st.label)}
-                    className={`rounded-xl border-2 p-3 text-left text-xs font-semibold transition ${selectedSubType === st.label ? "border-[#D4AF37] bg-[#FFFBEB] text-[#111]" : "border-[#E5E7EB] text-[#6B7280]"}`}>
+                    className={`rounded-xl border-2 p-3 text-left text-xs font-semibold transition ${selectedSubType === st.label ? "border-[#D4AF37] bg-[#FFFBEB] text-[#111]" : "border-[#DCE6EE] text-[#6B7280]"}`}>
                     {st.label}
                   </button>
                 ))}
               </div>
-              <textarea className="w-full rounded-xl border border-[#E5E7EB] p-3 text-sm text-[#111] outline-none placeholder:text-[#D1D5DB] min-h-20" placeholder="Décrivez les dégâts en détail..." value={descriptionLibre} onChange={(e) => setDescriptionLibre(e.target.value)} />
-              <div className="rounded-xl bg-[#F5F3EF] p-4">
+              <textarea className="w-full rounded-xl border border-[#DCE6EE] p-3 text-sm text-[#111] outline-none placeholder:text-[#D1D5DB] min-h-20" placeholder="Décrivez les dégâts en détail..." value={descriptionLibre} onChange={(e) => setDescriptionLibre(e.target.value)} />
+              <div className="rounded-xl bg-gradient-to-b from-[#F5F3EF] via-white to-[#EEF7F8] p-4">
                 <p className="text-xs font-bold text-[#111]">Pour préparer un devis fiable</p>
                 <p className="mt-1 text-[11px] leading-5 text-[#6B7280]">Précisez le côté du véhicule, le nombre d’éléments touchés et si la pièce doit être réparée ou remplacée.</p>
               </div>
@@ -518,7 +518,7 @@ export default function CarrosserieGarage() {
           )}
 
           <div className="mt-6 flex gap-3">
-            <button onClick={() => setStep(2)} className="rounded-xl border border-[#D1D5DB] px-6 py-3 text-sm font-medium text-[#374151] flex items-center gap-2 hover:bg-[#F3F4F6]"><ArrowLeft size={14} /> Retour</button>
+            <button onClick={() => setStep(2)} className="rounded-xl border border-[#D1D5DB] px-6 py-3 text-sm font-medium text-[#374151] flex items-center gap-2 hover:bg-[#EAF4F6]"><ArrowLeft size={14} /> Retour</button>
             <button onClick={() => setStep(4)} disabled={!selectedTravauxId} className="flex-1 rounded-xl bg-[#D4AF37] py-3 text-sm font-bold text-white shadow-md hover:bg-[#C5A028] disabled:opacity-50 flex items-center justify-center gap-2 transition">
               Continuer <ArrowRight size={14} />
             </button>
@@ -570,19 +570,19 @@ export default function CarrosserieGarage() {
           </div>
 
           <div className="grid gap-3 sm:grid-cols-3">
-            <label className="rounded-xl border border-[#E5E7EB] bg-white p-3 text-xs text-[#374151]">
+            <label className="rounded-xl border border-[#DCE6EE] bg-white p-3 text-xs text-[#374151]">
               <span className="mb-2 block font-bold text-[#111]">Prise en charge assurance</span>
               <select value={priseEnChargeAssurance} onChange={(e) => setPriseEnChargeAssurance(e.target.value as typeof priseEnChargeAssurance)} className="w-full rounded-lg border border-[#D1D5DB] bg-white px-2 py-2 text-xs">
                 <option value="a-confirmer">À confirmer</option><option value="oui">Oui, sinistre déclaré</option><option value="non">Non</option>
               </select>
             </label>
-            <label className="rounded-xl border border-[#E5E7EB] bg-white p-3 text-xs text-[#374151]">
+            <label className="rounded-xl border border-[#DCE6EE] bg-white p-3 text-xs text-[#374151]">
               <span className="mb-2 block font-bold text-[#111]">Véhicule de courtoisie</span>
               <select value={vehiculeCourtoisie} onChange={(e) => setVehiculeCourtoisie(e.target.value as typeof vehiculeCourtoisie)} className="w-full rounded-lg border border-[#D1D5DB] bg-white px-2 py-2 text-xs">
                 <option value="non">Pas nécessaire</option><option value="oui">Oui, si disponible</option>
               </select>
             </label>
-            <label className="rounded-xl border border-[#E5E7EB] bg-white p-3 text-xs text-[#374151]">
+            <label className="rounded-xl border border-[#DCE6EE] bg-white p-3 text-xs text-[#374151]">
               <span className="mb-2 block font-bold text-[#111]">Délai souhaité</span>
               <select value={urgence} onChange={(e) => setUrgence(e.target.value as typeof urgence)} className="w-full rounded-lg border border-[#D1D5DB] bg-white px-2 py-2 text-xs">
                 <option value="standard">Standard</option><option value="rapide">Le plus rapidement possible</option>
@@ -591,7 +591,7 @@ export default function CarrosserieGarage() {
           </div>
 
           <div className="flex gap-3">
-            <button onClick={() => setStep(3)} className="rounded-xl border border-[#D1D5DB] px-6 py-3 text-sm font-medium text-[#374151] flex items-center gap-2 hover:bg-[#F3F4F6]"><ArrowLeft size={14} /> Retour</button>
+            <button onClick={() => setStep(3)} className="rounded-xl border border-[#D1D5DB] px-6 py-3 text-sm font-medium text-[#374151] flex items-center gap-2 hover:bg-[#EAF4F6]"><ArrowLeft size={14} /> Retour</button>
             <button onClick={() => setStep(5)} className="flex-1 rounded-xl bg-[#D4AF37] py-3 text-sm font-bold text-white shadow-md hover:bg-[#C5A028] flex items-center justify-center gap-2 transition">
               Voir le devis <ArrowRight size={14} />
             </button>
@@ -604,9 +604,9 @@ export default function CarrosserieGarage() {
         <div className="max-w-4xl mx-auto px-4 mt-6 space-y-6">
           <h1 className="text-2xl font-black text-[#111] text-center">ESTIMATION <span className="text-[#D4AF37]">CARROSSERIE</span></h1>
 
-          <div className="rounded-2xl bg-white border border-[#E5E7EB] p-6 shadow-sm">
+          <div className="rounded-2xl bg-white/95 border border-[#DCE6EE] shadow-[0_8px_24px_rgba(16,42,67,0.06)] p-6 shadow-sm">
             {vehicule.marque && (
-              <div className="flex items-center gap-3 pb-4 border-b border-[#E5E7EB]">
+              <div className="flex items-center gap-3 pb-4 border-b border-[#DCE6EE]">
                 <div className="text-2xl">🚗</div>
                 <div>
                   <p className="text-sm font-extrabold text-[#111]">{vehicule.marque} {vehicule.modele}</p>
@@ -634,11 +634,11 @@ export default function CarrosserieGarage() {
               <div className="mt-4">
                 <p className="text-xs font-bold text-[#111] mb-2">Photos des dégâts ({photosAvant.length})</p>
                 <div className="flex gap-2 overflow-x-auto">
-                  {photosAvant.map((p, i) => <img key={i} src={p} alt="" className="h-16 w-16 rounded-lg object-cover border border-[#E5E7EB] shrink-0" />)}
+                  {photosAvant.map((p, i) => <img key={i} src={p} alt="" className="h-16 w-16 rounded-lg object-cover border border-[#DCE6EE] shrink-0" />)}
                 </div>
               </div>
             )}
-            <div className="mt-5 rounded-xl border border-[#E5E7EB] bg-[#F8FAFC] p-4">
+            <div className="mt-5 rounded-xl border border-[#DCE6EE] bg-[#F3F8FA] p-4">
               <p className="text-xs font-bold text-[#111]">Détail indicatif du devis</p>
               <div className="mt-3 grid gap-2 text-xs text-[#6B7280] sm:grid-cols-2">
                 <div className="flex items-center justify-between gap-3"><span>Main-d’œuvre carrosserie</span><span className="font-semibold text-[#374151]">Incluse</span></div>
@@ -654,7 +654,7 @@ export default function CarrosserieGarage() {
           </p>
 
           <div className="flex gap-3">
-            <button onClick={() => setStep(4)} className="rounded-xl border border-[#D1D5DB] px-6 py-3 text-sm font-medium text-[#374151] flex items-center gap-2 hover:bg-[#F3F4F6]"><ArrowLeft size={14} /> Retour</button>
+            <button onClick={() => setStep(4)} className="rounded-xl border border-[#D1D5DB] px-6 py-3 text-sm font-medium text-[#374151] flex items-center gap-2 hover:bg-[#EAF4F6]"><ArrowLeft size={14} /> Retour</button>
             <button onClick={() => setStep(6)} className="flex-1 rounded-xl bg-[#D4AF37] py-3 text-sm font-bold text-white shadow-md hover:bg-[#C5A028] flex items-center justify-center gap-2 transition">
               Trouver un carrossier <ArrowRight size={14} />
             </button>
@@ -668,23 +668,23 @@ export default function CarrosserieGarage() {
           <h1 className="text-2xl font-black text-[#111] text-center">TROUVEZ UN <span className="text-[#D4AF37]">CARROSSIER</span></h1>
 
           <div className="mt-4 flex gap-2">
-            <div className="flex-1 flex items-center gap-2 rounded-xl border border-[#E5E7EB] bg-white px-3 py-2.5">
+            <div className="flex-1 flex items-center gap-2 rounded-xl border border-[#DCE6EE] bg-white px-3 py-2.5">
               <MapPin size={16} className="text-[#9CA3AF]" />
               <input className="flex-1 text-sm text-[#111] outline-none placeholder:text-[#D1D5DB]" placeholder="Votre ville" value={positionSearch} onChange={(e) => setPositionSearch(e.target.value)} onKeyDown={(e) => e.key === "Enter" && setRechercheVille(positionSearch)} />
             </div>
-            <button className="rounded-xl bg-[#111] px-4 py-2.5 text-sm font-bold text-white" onClick={() => setRechercheVille(positionSearch)}>Rechercher</button>
+            <button className="rounded-xl bg-gradient-to-br from-[#102A43] via-[#123E56] to-[#0B6B8F] px-4 py-2.5 text-sm font-bold text-white" onClick={() => setRechercheVille(positionSearch)}>Rechercher</button>
           </div>
 
           {carrossiers.isLoading && <p className="mt-4 text-center text-sm text-[#6B7280]">Recherche…</p>}
           {!carrossiers.isLoading && CARROSSIERS.length === 0 && (
-            <p className="mt-4 rounded-xl border border-[#E5E7EB] bg-white p-4 text-center text-sm text-[#6B7280]">Aucun garage trouvé{rechercheVille ? ` pour « ${rechercheVille} »` : ""}.</p>
+            <p className="mt-4 rounded-xl border border-[#DCE6EE] bg-white p-4 text-center text-sm text-[#6B7280]">Aucun garage trouvé{rechercheVille ? ` pour « ${rechercheVille} »` : ""}.</p>
           )}
 
           <div className="mt-4 space-y-3">
             {CARROSSIERS.map((c) => {
               const specialites = c.specialites ? c.specialites.split(",").map((s) => s.trim()).filter(Boolean) : [];
               return (
-              <div key={c.id} className={`rounded-2xl border-2 bg-white p-4 cursor-pointer transition hover:shadow-md ${selectedCarrossierId === c.id ? "border-[#D4AF37] shadow-md" : "border-[#E5E7EB]"}`} onClick={() => setSelectedCarrossierId(c.id)}>
+              <div key={c.id} className={`rounded-2xl border-2 bg-white p-4 cursor-pointer transition hover:shadow-md ${selectedCarrossierId === c.id ? "border-[#D4AF37] shadow-md" : "border-[#DCE6EE]"}`} onClick={() => setSelectedCarrossierId(c.id)}>
                 <div className="flex items-start gap-3">
                   {c.coverUrl && <img src={c.coverUrl} alt={c.name} className="h-16 w-20 rounded-xl object-cover shrink-0" />}
                   <div className="flex-1 min-w-0">
@@ -707,9 +707,9 @@ export default function CarrosserieGarage() {
                 </div>
                 <div className="mt-3 grid grid-cols-4 gap-2">
                   <button className="rounded-lg bg-[#D4AF37] py-2 text-[10px] font-bold text-white" onClick={(e) => { e.stopPropagation(); setSelectedCarrossierId(c.id); setStep(7); }}>Devis</button>
-                  <button className="rounded-lg bg-[#111] py-2 text-[10px] font-bold text-white" onClick={(e) => { e.stopPropagation(); setSelectedCarrossierId(c.id); setStep(7); }}>Réserver</button>
-                  {c.phone && <a href={`tel:${c.phone}`} className="rounded-lg border border-[#E5E7EB] py-2 text-[10px] font-semibold text-[#111] text-center" onClick={(e) => e.stopPropagation()}>Appeler</a>}
-                  <button className="rounded-lg border border-[#E5E7EB] py-2 text-[10px] font-semibold text-[#111]" onClick={(e) => { e.stopPropagation(); navigate("/messages"); }}>Message</button>
+                  <button className="rounded-lg bg-gradient-to-br from-[#102A43] via-[#123E56] to-[#0B6B8F] py-2 text-[10px] font-bold text-white" onClick={(e) => { e.stopPropagation(); setSelectedCarrossierId(c.id); setStep(7); }}>Réserver</button>
+                  {c.phone && <a href={`tel:${c.phone}`} className="rounded-lg border border-[#DCE6EE] py-2 text-[10px] font-semibold text-[#111] text-center" onClick={(e) => e.stopPropagation()}>Appeler</a>}
+                  <button className="rounded-lg border border-[#DCE6EE] py-2 text-[10px] font-semibold text-[#111]" onClick={(e) => { e.stopPropagation(); navigate("/messages"); }}>Message</button>
                 </div>
               </div>
               );
@@ -724,7 +724,7 @@ export default function CarrosserieGarage() {
           <h1 className="text-2xl font-black text-[#111] text-center">CONFIRMATION DE VOTRE <span className="text-[#D4AF37]">DEMANDE</span></h1>
 
           <div className="grid md:grid-cols-2 gap-4">
-            <div className="rounded-2xl bg-white border border-[#E5E7EB] p-5 shadow-sm">
+            <div className="rounded-2xl bg-white/95 border border-[#DCE6EE] shadow-[0_8px_24px_rgba(16,42,67,0.06)] p-5 shadow-sm">
               <h3 className="text-xs font-bold text-[#9CA3AF] uppercase tracking-wider mb-3">Résumé</h3>
               {vehicule.marque && <p className="text-sm font-extrabold text-[#111]">{vehicule.marque} {vehicule.modele} — {vehicule.annee}</p>}
               {selectedTravaux && (
@@ -736,14 +736,14 @@ export default function CarrosserieGarage() {
               )}
               {photosAvant.length > 0 && (
                 <div className="mt-3 flex gap-1.5 overflow-x-auto">
-                  {photosAvant.map((p, i) => <img key={i} src={p} alt="" className="h-12 w-12 rounded-lg object-cover border border-[#E5E7EB] shrink-0" />)}
+                  {photosAvant.map((p, i) => <img key={i} src={p} alt="" className="h-12 w-12 rounded-lg object-cover border border-[#DCE6EE] shrink-0" />)}
                 </div>
               )}
             </div>
 
             <div className="space-y-4">
               {selectedCarrossier && (
-                <div className="rounded-2xl bg-white border border-[#E5E7EB] p-5 shadow-sm">
+                <div className="rounded-2xl bg-white/95 border border-[#DCE6EE] shadow-[0_8px_24px_rgba(16,42,67,0.06)] p-5 shadow-sm">
                   <h3 className="text-xs font-bold text-[#9CA3AF] uppercase tracking-wider mb-3">Carrossier</h3>
                   <p className="text-sm font-bold text-[#111]">{selectedCarrossier.name}</p>
                   <p className="text-[10px] text-[#6B7280]">{selectedCarrossier.addressLine || selectedCarrossier.city}</p>
@@ -753,13 +753,13 @@ export default function CarrosserieGarage() {
                 </div>
               )}
 
-              <div className="rounded-2xl bg-white border border-[#E5E7EB] p-5 shadow-sm">
+              <div className="rounded-2xl bg-white/95 border border-[#DCE6EE] shadow-[0_8px_24px_rgba(16,42,67,0.06)] p-5 shadow-sm">
                 <h3 className="text-xs font-bold text-[#9CA3AF] uppercase tracking-wider mb-3">Rendez-vous</h3>
                 <div className="grid grid-cols-4 gap-1.5 mb-3">
                   {availableDates.slice(0, 8).map((d) => {
                     const date = new Date(d);
                     return (
-                      <button key={d} onClick={() => setSelectedDate(d)} className={`rounded-lg border p-2 text-center text-xs transition ${selectedDate === d ? "border-[#D4AF37] bg-[#FFFBEB] font-bold" : "border-[#E5E7EB]"}`}>
+                      <button key={d} onClick={() => setSelectedDate(d)} className={`rounded-lg border p-2 text-center text-xs transition ${selectedDate === d ? "border-[#D4AF37] bg-[#FFFBEB] font-bold" : "border-[#DCE6EE]"}`}>
                         <p className="text-[10px] text-[#9CA3AF]">{date.toLocaleDateString("fr-FR", { weekday: "short" })}</p>
                         <p className="font-bold text-[#111]">{date.getDate()}</p>
                       </button>
@@ -768,7 +768,7 @@ export default function CarrosserieGarage() {
                 </div>
                 <div className="grid grid-cols-4 gap-1.5">
                   {CRENEAUX.map((c) => (
-                    <button key={c} onClick={() => setSelectedCreneau(c)} className={`rounded-lg border p-2 text-center text-xs transition ${selectedCreneau === c ? "border-[#D4AF37] bg-[#FFFBEB] font-bold" : "border-[#E5E7EB]"}`}>{c}</button>
+                    <button key={c} onClick={() => setSelectedCreneau(c)} className={`rounded-lg border p-2 text-center text-xs transition ${selectedCreneau === c ? "border-[#D4AF37] bg-[#FFFBEB] font-bold" : "border-[#DCE6EE]"}`}>{c}</button>
                   ))}
                 </div>
               </div>
@@ -776,7 +776,7 @@ export default function CarrosserieGarage() {
           </div>
 
           <div className="flex gap-3">
-            <button onClick={() => setStep(6)} className="rounded-xl border border-[#D1D5DB] px-6 py-3 text-sm font-medium text-[#374151] flex items-center gap-2 hover:bg-[#F3F4F6]"><ArrowLeft size={14} /> Retour</button>
+            <button onClick={() => setStep(6)} className="rounded-xl border border-[#D1D5DB] px-6 py-3 text-sm font-medium text-[#374151] flex items-center gap-2 hover:bg-[#EAF4F6]"><ArrowLeft size={14} /> Retour</button>
             <button onClick={submit} disabled={create.isPending || !selectedDate || !selectedCreneau} className="flex-1 rounded-xl bg-[#D4AF37] py-3.5 text-sm font-bold text-white shadow-lg hover:bg-[#C5A028] disabled:opacity-50 flex items-center justify-center gap-2 transition">
               {create.isPending ? "Envoi..." : "Confirmer ma demande"} <CheckCircle size={16} />
             </button>
@@ -793,7 +793,7 @@ export default function CarrosserieGarage() {
           <p className="mt-2 text-sm text-[#6B7280]">Votre demande de devis carrosserie a été transmise{selectedCarrossier ? ` à ${selectedCarrossier.name}` : ""}.</p>
           <div className="mt-6 space-y-3">
             <button onClick={() => navigate("/compte")} className="w-full rounded-xl bg-[#D4AF37] py-3 text-sm font-bold text-white">Suivre ma demande</button>
-            <button onClick={() => { setMode("landing"); setStep(1); }} className="w-full rounded-xl border border-[#E5E7EB] py-3 text-sm font-semibold text-[#111]">Nouvelle demande</button>
+            <button onClick={() => { setMode("landing"); setStep(1); }} className="w-full rounded-xl border border-[#DCE6EE] py-3 text-sm font-semibold text-[#111]">Nouvelle demande</button>
           </div>
         </div>
       )}
