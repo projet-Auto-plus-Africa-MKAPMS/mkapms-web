@@ -334,21 +334,19 @@ export default function CarrosserieGarage() {
     return (
       <div className="min-h-screen bg-gradient-to-b from-[#F5F3EF] via-white to-[#EEF7F8]">
         {/* HERO */}
-        <div className="relative overflow-hidden bg-gradient-to-br from-[#111] via-[#1a1a1a] to-[#2d2d2d]">
-          <div className="absolute inset-0 opacity-25">
+        <div className="relative overflow-hidden bg-gradient-to-br from-[#102A43] via-[#123E56] to-[#0B6B8F]">
+          <div className="absolute inset-0 opacity-20">
             <img src="/images/services/carrosserie.jpg" alt="Atelier de carrosserie automobile" className="h-full w-full object-cover" />
           </div>
-          <div className="relative px-4 py-10 md:py-16 md:px-8 max-w-6xl mx-auto">
-            <div className="md:flex md:items-center md:justify-between md:gap-12">
-              <div className="md:max-w-xl">
-                <h1 className="text-3xl md:text-5xl font-black text-white leading-tight">
+          <div className="relative mx-auto max-w-6xl px-4 py-12 text-center md:px-8 md:py-16">
+            <div className="mx-auto max-w-3xl">
+                <h1 className="mt-3 text-3xl font-black leading-tight text-white md:text-5xl">
                   CARROSSERIE<br /><span className="text-[#D4AF37]">PROFESSIONNELLE</span>
                 </h1>
-                <p className="mt-3 text-sm md:text-base text-white/70 max-w-md">
+                <p className="mx-auto mt-4 max-w-2xl text-sm leading-6 text-white/80 md:text-lg">
                   Débosselage, peinture, réparation — des carrossiers certifiés près de chez vous.
                 </p>
-              </div>
-              <div className="mt-6 md:mt-0 space-y-2">
+              <div className="mx-auto mt-7 grid max-w-3xl gap-2 text-left sm:grid-cols-2 md:gap-x-8">
                 {[
                   { text: "Devis carrosserie gratuit" },
                   { text: "Photos avant / après" },
@@ -357,8 +355,8 @@ export default function CarrosserieGarage() {
                   { text: "Prise en charge assurance" },
                   { text: "Véhicule de courtoisie" },
                 ].map((b) => (
-                  <div key={b.text} className="flex items-center gap-2">
-                    <CheckCircle size={16} className="text-[#D4AF37] shrink-0" />
+                  <div key={b.text} className="flex items-center gap-2 rounded-xl bg-black/10 px-3 py-2">
+                    <CheckCircle size={17} className="shrink-0 text-[#F6D76B]" />
                     <span className="text-sm text-white/90">{b.text}</span>
                   </div>
                 ))}
@@ -367,18 +365,18 @@ export default function CarrosserieGarage() {
           </div>
         </div>
 
-        {/* DEUX CARTES */}
-        <div className="px-4 md:px-8 max-w-6xl mx-auto -mt-6 relative z-10">
+        {/* ACCÈS PRINCIPAUX */}
+        <div className="relative z-10 mx-auto -mt-8 max-w-6xl px-4 md:px-8">
           <div className="grid md:grid-cols-2 gap-4 md:gap-6">
-            <div className="rounded-2xl bg-white/95 border border-[#DCE6EE] shadow-[0_8px_24px_rgba(16,42,67,0.06)] p-6 shadow-lg">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#D4AF37]/10">
+            <div className="rounded-3xl border border-[#DCE6EE] bg-white p-6 shadow-[0_12px_30px_rgba(16,42,67,0.10)] md:p-8">
+              <div className="mb-4 flex items-center gap-3">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#D4AF37]/10">
                   <Paintbrush size={22} className="text-[#D4AF37]" />
                 </div>
                 <h2 className="text-lg font-extrabold text-[#111]">DEVIS CARROSSERIE</h2>
               </div>
-              <p className="text-sm text-[#6B7280] mb-4">Décrivez les dégâts et recevez une estimation de réparation.</p>
-              <ul className="space-y-2 mb-5">
+              <p className="mb-4 text-sm text-[#6B7280]">Décrivez les dégâts et recevez une estimation de réparation.</p>
+              <ul className="mb-5 space-y-2">
                 {["Estimation immédiate", "Photos avant/après", "Devis transparent", "Sans engagement"].map((t) => (
                   <li key={t} className="flex items-center gap-2 text-sm text-[#374151]">
                     <CheckCircle size={14} className="text-green-500 shrink-0" /> {t}
@@ -386,22 +384,22 @@ export default function CarrosserieGarage() {
                 ))}
               </ul>
               <button
-                className="w-full rounded-xl bg-[#D4AF37] py-3.5 text-sm font-bold text-white shadow-md hover:bg-[#C5A028] transition"
+                className="w-full rounded-2xl bg-[#D4AF37] py-3.5 text-sm font-bold text-white shadow-md transition hover:bg-[#C5A028]"
                 onClick={() => { if (!user) { navigate("/connexion"); return; } setMode("flow"); setStep(1); }}
               >
                 Obtenir un devis carrosserie
               </button>
             </div>
 
-            <div className="rounded-2xl bg-white/95 border border-[#DCE6EE] shadow-[0_8px_24px_rgba(16,42,67,0.06)] p-6 shadow-lg">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#D4AF37]/10">
+            <div className="rounded-3xl border border-[#DCE6EE] bg-white p-6 shadow-[0_12px_30px_rgba(16,42,67,0.10)] md:p-8">
+              <div className="mb-4 flex items-center gap-3">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#D4AF37]/10">
                   <Building2 size={22} className="text-[#D4AF37]" />
                 </div>
                 <h2 className="text-lg font-extrabold text-[#111]">TROUVER UN CARROSSIER</h2>
               </div>
-              <p className="text-sm text-[#6B7280] mb-4">Trouvez un carrossier certifié près de chez vous.</p>
-              <ul className="space-y-2 mb-5">
+              <p className="mb-4 text-sm text-[#6B7280]">Trouvez un carrossier certifié près de chez vous.</p>
+              <ul className="mb-5 space-y-2">
                 {["Carrossiers agréés assurance", "Avis vérifiés", "Garantie peinture", "Véhicule de courtoisie"].map((t) => (
                   <li key={t} className="flex items-center gap-2 text-sm text-[#374151]">
                     <CheckCircle size={14} className="text-green-500 shrink-0" /> {t}
@@ -409,7 +407,7 @@ export default function CarrosserieGarage() {
                 ))}
               </ul>
               <button
-                className="w-full rounded-xl border-2 border-[#D4AF37] py-3.5 text-sm font-bold text-[#D4AF37] hover:bg-[#FFFBEB] transition"
+                className="w-full rounded-2xl border-2 border-[#D4AF37] py-3.5 text-sm font-bold text-[#D4AF37] transition hover:bg-[#FFFBEB]"
                 onClick={() => { if (!user) { navigate("/connexion"); return; } setMode("flow"); setStep(1); }}
               >
                 Rechercher
@@ -419,8 +417,8 @@ export default function CarrosserieGarage() {
         </div>
 
         {/* TYPES DE TRAVAUX */}
-        <div className="px-4 md:px-8 max-w-6xl mx-auto mt-10">
-          <h2 className="text-xl font-extrabold text-[#111] text-center mb-6">NOS SPÉCIALITÉS CARROSSERIE</h2>
+        <div className="mx-auto mt-12 max-w-6xl px-4 md:px-8">
+          <h2 className="mb-6 text-center text-xl font-extrabold text-[#111]">NOS SPÉCIALITÉS CARROSSERIE</h2>
           <div className="grid grid-cols-3 md:grid-cols-5 gap-3">
             {TRAVAUX_CARROSSERIE.slice(0, 10).map((t) => (
               <div key={t.id} className="text-center">
@@ -431,17 +429,19 @@ export default function CarrosserieGarage() {
           </div>
         </div>
 
-        {/* CTA */}
-        <div className="px-4 md:px-8 max-w-6xl mx-auto mt-10 mb-10">
-          <div className="rounded-2xl bg-gradient-to-br from-[#102A43] via-[#123E56] to-[#0B6B8F] p-6 md:p-8 text-center">
-            <h2 className="text-lg md:text-xl font-extrabold text-white">BESOIN D'UNE RÉPARATION CARROSSERIE ?</h2>
-            <p className="mt-2 text-sm text-white/60 max-w-md mx-auto">Devis gratuit, carrossiers certifiés, garantie peinture.</p>
-            <button
-              className="mt-5 rounded-xl bg-[#D4AF37] px-8 py-3.5 text-sm font-bold text-white shadow-lg hover:bg-[#C5A028] transition"
-              onClick={() => { if (!user) { navigate("/connexion"); return; } setMode("flow"); setStep(1); }}
-            >
-              Obtenir mon devis gratuit
-            </button>
+        {/* ACCÈS EN BAS DE PAGE */}
+        <div className="mx-auto mb-10 mt-12 max-w-6xl px-4 md:px-8">
+          <div className="rounded-3xl bg-gradient-to-br from-[#102A43] via-[#123E56] to-[#0B6B8F] p-6 md:p-9">
+            <h2 className="text-center text-lg font-extrabold text-white md:text-xl">BESOIN D'UNE RÉPARATION CARROSSERIE ?</h2>
+            <p className="mx-auto mt-2 max-w-md text-center text-sm text-white/60">Devis gratuit, carrossiers certifiés, garantie peinture.</p>
+            <div className="mt-5 text-center">
+              <button
+                className="rounded-2xl bg-[#D4AF37] px-8 py-3.5 text-sm font-bold text-white shadow-lg transition hover:bg-[#C5A028]"
+                onClick={() => navigate("/devis?estimation=1&service=carrosserie-esthetique")}
+              >
+                Obtenir mon devis gratuit
+              </button>
+            </div>
           </div>
         </div>
       </div>
