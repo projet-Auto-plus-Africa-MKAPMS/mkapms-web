@@ -14,6 +14,39 @@ import {
 import { useAuth } from "../lib/auth";
 import { trpc } from "../lib/trpc";
 import { useCurrency } from "../lib/currency";
+import { useDomain } from "../lib/domain";
+import { getPlansByCategory } from "@shared/plans";
+import HeaderPro from "../components/HeaderPro";
+import FooterPro from "../components/FooterPro";
+import MetaSEO from "../components/MetaSEO";
+
+/* ── GRANDES CATÉGORIES B2B (plan de présentation du portail) ── */
+const B2B_CATEGORIES = [
+  {
+    icon: Building2,
+    label: "Professionnels",
+    sub: "Garages, concessionnaires, vendeurs, loueurs, pièces, contrôle technique, VTC & taxis",
+    to: "/espace-pro",
+  },
+  {
+    icon: TrendingUp,
+    label: "Investisseurs",
+    sub: "Opportunités par univers et pays, contrats, suivi des revenus",
+    to: "/investissement",
+  },
+  {
+    icon: Handshake,
+    label: "Partenaires",
+    sub: "Constructeurs, grossistes, fournisseurs, réseaux, prestataires technologiques",
+    to: "/partenaires",
+  },
+  {
+    icon: Truck,
+    label: "Transport & Livraison",
+    sub: "Transporteurs routiers, livraison de véhicules, missions et suivi",
+    to: "/espace-transporteur",
+  },
+];
 
 /* ── SERVICES B2B ── */
 const PRO_SERVICES = [
@@ -75,32 +108,6 @@ const PRO_SERVICES = [
   },
 ];
 
-/* ── ABONNEMENTS PRO ── */
-const PRO_PLANS = [
-  {
-    name: "Starter Pro",
-    price: "49 €/mois",
-    features: ["5 annonces actives", "Tableau de bord vendeur", "Messagerie pro", "Badge PRO"],
-    color: "border-[#D4AF37]",
-    cta: "/abonnements",
-  },
-  {
-    name: "Business",
-    price: "149 €/mois",
-    features: ["50 annonces actives", "Garage+", "Comptabilité", "Gestion flotte 10 véhicules", "API accès"],
-    color: "border-blue-500",
-    cta: "/abonnements",
-    highlight: true,
-  },
-  {
-    name: "Enterprise",
-    price: "Sur devis",
-    features: ["Annonces illimitées", "Multi-sites", "Atelier Pro complet", "Finance+", "Support dédié", "API complète"],
-    color: "border-purple-500",
-    cta: "/devis",
-  },
-];
-
 /* ── CHIFFRES CLÉS ── */
 const PRO_STATS = [
   { value: "+12 000", label: "Professionnels inscrits" },
@@ -113,10 +120,14 @@ export default function HomePro() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { country } = useCurrency();
+  const domain = useDomain();
+  const proPlans = getPlansByCategory("pro_vente");
   const { data: proAnnonces } = trpc.annonces.list.useQuery({ categorieAnnonce: "professionnelle", pays: country ?? undefined, limit: 8 });
 
   return (
     <div className="bg-[#0A0A0A] min-h-screen text-white">
+      <MetaSEO title={domain.seoTitle} description={domain.seoDescription} url="https://mkapms.pro/" />
+      <HeaderPro />
 
       {/* ═══════════════════════════════════════════════════════════════
           HERO B2B — FOND SOMBRE PREMIUM
@@ -184,6 +195,34 @@ export default function HomePro() {
       </section>
 
       {/* ═══════════════════════════════════════════════════════════════
+          GRANDES CATÉGORIES B2B
+          ═══════════════════════════════════════════════════════════════ */}
+      <section className="max-w-6xl mx-auto px-4 py-12">
+        <div className="mb-6 text-center">
+          <p className="text-[10px] uppercase tracking-widest text-[#D4AF37] font-semibold">UN ÉCOSYSTÈME, QUATRE PARCOURS</p>
+          <h2 className="text-xl md:text-2xl font-black uppercase text-white mt-0.5">Choisissez votre activité</h2>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {B2B_CATEGORIES.map((c) => (
+            <Link
+              key={c.to}
+              to={c.to}
+              className="group rounded-2xl border border-white/10 bg-white/5 p-5 hover:border-[#D4AF37]/50 hover:bg-white/10 transition"
+            >
+              <div className="w-11 h-11 rounded-xl bg-[#D4AF37]/15 flex items-center justify-center mb-4">
+                <c.icon size={20} className="text-[#D4AF37]" />
+              </div>
+              <p className="text-base font-black text-white group-hover:text-[#D4AF37] transition">{c.label}</p>
+              <p className="text-xs text-white/50 mt-1.5 leading-relaxed">{c.sub}</p>
+              <span className="mt-4 flex items-center gap-1 text-xs font-semibold text-[#D4AF37]">
+                Découvrir <ChevronRight size={13} />
+              </span>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════════════════════════════
           SERVICES B2B
           ═══════════════════════════════════════════════════════════════ */}
       <section className="max-w-6xl mx-auto px-4 py-12">
@@ -223,19 +262,22 @@ export default function HomePro() {
             <h2 className="text-xl md:text-2xl font-black uppercase text-white mt-0.5">Choisissez votre formule</h2>
             <p className="text-sm text-white/50 mt-1">Sans engagement · Résiliable à tout moment</p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {PRO_PLANS.map((plan) => (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {proPlans.map((plan) => (
               <div
-                key={plan.name}
-                className={`rounded-2xl border-2 ${plan.color} ${plan.highlight ? "bg-[#D4AF37]/5" : "bg-white/5"} p-6 relative`}
+                key={plan.code}
+                className={`rounded-2xl border-2 ${plan.highlight ? "border-[#D4AF37] bg-[#D4AF37]/5" : "border-white/10 bg-white/5"} p-6 relative`}
               >
                 {plan.highlight && (
                   <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-[#D4AF37] px-4 py-0.5 text-[10px] font-black text-[#111] uppercase">
                     LE PLUS POPULAIRE
                   </span>
                 )}
-                <h3 className="text-lg font-black text-white">{plan.name}</h3>
-                <p className="text-2xl font-black text-[#D4AF37] mt-2">{plan.price}</p>
+                <h3 className="text-lg font-black text-white">{plan.label}</h3>
+                <p className="text-2xl font-black text-[#D4AF37] mt-2">
+                  {plan.priceEur !== null ? `${plan.priceEur} €/mois` : "Sur devis"}
+                  {plan.commissionPct ? <span className="text-xs text-white/50"> + {plan.commissionPct}% commission</span> : null}
+                </p>
                 <ul className="mt-4 space-y-2">
                   {plan.features.map((f) => (
                     <li key={f} className="flex items-center gap-2 text-xs text-white/70">
@@ -245,7 +287,7 @@ export default function HomePro() {
                   ))}
                 </ul>
                 <Link
-                  to={plan.cta}
+                  to="/abonnements"
                   className="mt-6 block text-center rounded-xl bg-[#D4AF37] py-2.5 text-sm font-bold text-[#111] hover:bg-[#C9A227] transition"
                 >
                   Commencer
@@ -253,6 +295,9 @@ export default function HomePro() {
               </div>
             ))}
           </div>
+          <p className="mt-4 text-center text-[11px] text-white/30">
+            Tarifs à titre indicatif, détaillés et confirmés sur la page Abonnements.
+          </p>
         </div>
       </section>
 
@@ -347,6 +392,8 @@ export default function HomePro() {
           </p>
         </div>
       </section>
+
+      <FooterPro />
     </div>
   );
 }

@@ -74,6 +74,7 @@ export const CLIENT_ROUTES: readonly string[] = [
   "/automatisations/moteur-workflow",
   "/automatisations/objectif-automatisations",
   "/automatisations/workflows-personnalises",
+  "/b2b",
   "/badges-definitifs",
   "/carte",
   "/carte-grise",

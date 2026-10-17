@@ -415,7 +415,9 @@ function BackButton() {
 // navigation fixe en bas), la page devenait plus haute qu'un écran : il
 // fallait défiler pour voir soit le haut, soit la zone de saisie. Ces deux
 // routes précises sautent donc le chrome du site — inchangé partout ailleurs.
-const ECRANS_PLEIN_ECRAN = ["/admin/intelligences", "/intelligence"];
+// "/b2b" fournit son propre en-tête et pied de page (HeaderPro/FooterPro) :
+// même raison que les deux routes ci-dessus, pour ne pas empiler deux chromes.
+const ECRANS_PLEIN_ECRAN = ["/admin/intelligences", "/intelligence", "/b2b"];
 
 export default function Layout({ children }: { children: ReactNode }) {
   const { pathname } = useLocation();
