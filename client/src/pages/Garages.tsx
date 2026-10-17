@@ -142,11 +142,13 @@ export default function Garages() {
   // Mode devis
   const [devisMode, setDevisMode] = useState(() => searchParams.get("devis") === "1");
   const [step, setStep] = useState(0);
+  const [vehicleIdentityOpen, setVehicleIdentityOpen] = useState(false);
+  const [manualEntryOpen, setManualEntryOpen] = useState(false);
 
   // Champs devis
   const [f, setF] = useState({
     vehiculeMarque: "", vehiculeModele: "", vehiculeAnnee: "",
-    immatriculation: "", vin: "",
+    immatriculation: "", vin: "", kilometrage: "",
     typeIntervention: "", description: "",
     ville: "", codePostal: "",
     contactNom: "", contactEmail: "", contactTelephone: "",
@@ -288,9 +290,26 @@ export default function Garages() {
   // ═══════════════════════════════════════
   if (devisMode) {
     return (
-      <div className="container-page py-8">
+      <div className="min-h-screen bg-[#E8F7FB] px-4 py-8 pb-28">
+        <div className="mx-auto max-w-4xl">
         <h1 className="text-2xl font-extrabold text-[#111]">Devis réparation — Réseau MKA.P-MS</h1>
         <p className="mt-1 text-sm text-[#6B7280]">Système de devis complet étape par étape</p>
+
+        <section className="mt-5 overflow-hidden rounded-[24px] bg-gradient-to-br from-[#063B5C] via-[#087B91] to-[#08A9C4] p-5 text-white shadow-xl shadow-[#087B91]/20">
+          <div className="flex items-start gap-3">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white/15 ring-1 ring-white/25"><FileText size={23} /></div>
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-white/70">Comparateur de devis</p>
+              <h2 className="mt-1 text-xl font-black">Comparez les garages avant de réserver</h2>
+              <p className="mt-1 text-xs leading-relaxed text-white/80">Un seul formulaire pour comparer les offres adaptées à votre véhicule, les prix, les avis vérifiés et les créneaux disponibles.</p>
+            </div>
+          </div>
+          <div className="mt-4 grid grid-cols-3 gap-2 border-t border-white/15 pt-4 text-center">
+            <div><p className="text-sm font-black">01</p><p className="mt-1 text-[10px] text-white/70">Identifiez</p></div>
+            <div><p className="text-sm font-black">02</p><p className="mt-1 text-[10px] text-white/70">Comparez</p></div>
+            <div><p className="text-sm font-black">03</p><p className="mt-1 text-[10px] text-white/70">Réservez</p></div>
+          </div>
+        </section>
 
         {/* Barre de progression */}
         <div className="mt-4 flex items-center gap-1 overflow-x-auto pb-2">
@@ -309,44 +328,49 @@ export default function Garages() {
           ))}
         </div>
 
-        <div className="card mt-6 max-w-3xl p-6">
+        <div className="mt-6 max-w-3xl rounded-[28px] border border-[#CDEAF0] bg-white/95 p-5 shadow-[0_18px_50px_rgba(8,169,196,0.12)] md:p-6">
 
           {/* ÉTAPE 0: VÉHICULE */}
           {step === 0 && (
             <div>
-              <h3 className="flex items-center gap-2 text-lg font-bold text-[#111]">
-                <Search size={20} className="text-[#D4AF37]" /> Identifiez votre véhicule
-              </h3>
-              <p className="mt-1 text-xs text-[#6B7280]">Entrez votre plaque ou VIN pour identifier automatiquement votre véhicule</p>
-              <div className="mt-4 grid grid-cols-2 gap-3">
-                <div>
-                  <label className="mb-1 block text-xs font-semibold text-[#D4AF37]">Plaque d'immatriculation</label>
-                  <input className="input text-sm" placeholder="AB-123-CD" value={f.immatriculation} onChange={(e) => set("immatriculation", e.target.value.toUpperCase())} />
-                </div>
-                <div>
-                  <label className="mb-1 block text-xs font-semibold text-[#D4AF37]">Numéro VIN</label>
-                  <input className="input text-sm" placeholder="VF1XXXXX..." value={f.vin} onChange={(e) => set("vin", e.target.value.toUpperCase())} maxLength={17} />
-                </div>
+              <div className="mb-5 flex items-start gap-3">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#E8F7FB] text-[#087B91]"><FileText size={25} /></div>
+                <div><p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#087B91]">Devis sécurisé</p><h3 className="mt-1 text-xl font-black text-[#102A43]">Préparez votre demande</h3><p className="mt-1 text-xs leading-relaxed text-[#64748B]">Identifiez d’abord le véhicule, puis complétez les informations utiles.</p></div>
               </div>
-              <button type="button" className="mt-3 w-full rounded-xl bg-[#D4AF37] px-4 py-3 text-sm font-bold text-white hover:bg-[#C5A028] disabled:opacity-50 flex items-center justify-center gap-2" disabled={(!f.immatriculation.trim() && !f.vin.trim()) || plateLoading} onClick={identifierVehicule}>
-                <Search size={16} /> {plateLoading ? "Recherche..." : "Rechercher et remplir automatiquement"}
-              </button>
-              <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                <div><label className="label">Marque</label><input className="input" value={f.vehiculeMarque} onChange={(e) => set("vehiculeMarque", e.target.value)} /></div>
-                <div><label className="label">Modèle</label><input className="input" value={f.vehiculeModele} onChange={(e) => set("vehiculeModele", e.target.value)} /></div>
-                <div><label className="label">Année</label><input className="input" type="number" value={f.vehiculeAnnee} onChange={(e) => set("vehiculeAnnee", e.target.value)} /></div>
-                <div>
-                  <label className="label">Type d'intervention *</label>
-                  <select className="input" value={f.typeIntervention} onChange={(e) => set("typeIntervention", e.target.value)}>
-                    <option value="">Choisir…</option>
-                    {["Révision / entretien", "Freinage", "Pneumatiques", "Distribution", "Climatisation", "Carrosserie", "Diagnostic électronique", "Vidange", "Embrayage", "Suspension", "Échappement", "Électricité", "Autre"].map((t) => (
-                      <option key={t} value={t}>{t}</option>
-                    ))}
-                  </select>
-                </div>
+
+              <div className={`overflow-hidden rounded-2xl border-2 transition ${vehicleIdentityOpen ? "border-[#08A9C4] shadow-[0_0_0_4px_rgba(8,169,196,0.12)]" : "border-[#CBD5E1]"}`}>
+                <button type="button" onClick={() => setVehicleIdentityOpen((v) => !v)} className="flex w-full items-center gap-3 px-4 py-4 text-left">
+                  <Search size={22} className="shrink-0 text-[#08A9C4]" />
+                  <span className="min-w-0 flex-1"><span className="block text-base font-black text-[#102A43]">Identifier mon véhicule</span><span className="block text-xs text-[#64748B]">Plaque d’immatriculation ou numéro VIN</span></span>
+                  <ChevronDown size={20} className={`shrink-0 text-[#087B91] transition ${vehicleIdentityOpen ? "rotate-180" : ""}`} />
+                </button>
+                {vehicleIdentityOpen && <div className="border-t border-[#D9EEF2] bg-[#F7FDFF] px-4 py-4">
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    <div><label className="mb-1 block text-xs font-semibold text-[#087B91]">Plaque d’immatriculation</label><input className="input bg-white text-sm" placeholder="AB-123-CD" value={f.immatriculation} onChange={(e) => set("immatriculation", e.target.value.toUpperCase())} /></div>
+                    <div><label className="mb-1 block text-xs font-semibold text-[#087B91]">Numéro VIN</label><input className="input bg-white text-sm" placeholder="VF1XXXXX..." value={f.vin} onChange={(e) => set("vin", e.target.value.toUpperCase())} maxLength={17} /></div>
+                  </div>
+                  <button type="button" className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-[#087B91] px-4 py-3 text-sm font-bold text-white shadow-lg shadow-[#087B91]/20 transition hover:bg-[#06677A] disabled:opacity-50" disabled={(!f.immatriculation.trim() && !f.vin.trim()) || plateLoading} onClick={identifierVehicule}>
+                    <Search size={16} /> {plateLoading ? "Recherche..." : "Identifier et remplir automatiquement"}
+                  </button>
+                </div>}
               </div>
-              <div className="mt-3"><label className="label">Description du problème</label>
-                <textarea className="input min-h-20 text-sm" value={f.description} onChange={(e) => set("description", e.target.value)} placeholder="Décrivez votre problème ou l'intervention souhaitée..." />
+
+              <div className={`mt-3 overflow-hidden rounded-2xl border-2 transition ${manualEntryOpen ? "border-[#08A9C4] shadow-[0_0_0_4px_rgba(8,169,196,0.12)]" : "border-[#CBD5E1]"}`}>
+                <button type="button" onClick={() => setManualEntryOpen((v) => !v)} className="flex w-full items-center gap-3 px-4 py-4 text-left">
+                  <Wrench size={22} className="shrink-0 text-[#08A9C4]" />
+                  <span className="min-w-0 flex-1"><span className="block text-base font-black text-[#102A43]">Saisie manuelle</span><span className="block text-xs text-[#64748B]">Compléter le véhicule et votre intervention</span></span>
+                  <ChevronDown size={20} className={`shrink-0 text-[#087B91] transition ${manualEntryOpen ? "rotate-180" : ""}`} />
+                </button>
+                {manualEntryOpen && <div className="border-t border-[#D9EEF2] bg-[#F7FDFF] px-4 py-4">
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <div><label className="label">Marque</label><input className="input bg-white" value={f.vehiculeMarque} onChange={(e) => set("vehiculeMarque", e.target.value)} /></div>
+                    <div><label className="label">Modèle</label><input className="input bg-white" value={f.vehiculeModele} onChange={(e) => set("vehiculeModele", e.target.value)} /></div>
+                    <div><label className="label">Année</label><input className="input bg-white" type="number" value={f.vehiculeAnnee} onChange={(e) => set("vehiculeAnnee", e.target.value)} /></div>
+                    <div><label className="label">Kilométrage actuel</label><input className="input bg-white" inputMode="numeric" placeholder="Ex. 125 000 km" value={f.kilometrage} onChange={(e) => set("kilometrage", e.target.value)} /></div>
+                    <div className="sm:col-span-2"><label className="label">Type d’intervention *</label><select className="input bg-white" value={f.typeIntervention} onChange={(e) => set("typeIntervention", e.target.value)}><option value="">Choisir…</option>{["Révision / entretien", "Freinage", "Pneumatiques", "Distribution", "Climatisation", "Carrosserie", "Diagnostic électronique", "Vidange", "Embrayage", "Suspension", "Échappement", "Électricité", "Autre"].map((t) => <option key={t} value={t}>{t}</option>)}</select></div>
+                  </div>
+                  <div className="mt-3"><label className="label">Description du problème</label><textarea className="input min-h-20 bg-white text-sm" value={f.description} onChange={(e) => set("description", e.target.value)} placeholder="Décrivez votre problème ou l’intervention souhaitée..." /></div>
+                </div>}
               </div>
             </div>
           )}
@@ -607,7 +631,7 @@ export default function Garages() {
               )}
             </div>
           )}
-        </div>
+        </div></div>
       </div>
     );
   }
