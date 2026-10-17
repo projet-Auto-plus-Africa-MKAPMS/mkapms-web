@@ -5,7 +5,7 @@ import {
   Search, X, MapPin, Car, Wrench, Key, Gavel, Settings, Truck,
   HelpCircle, ChevronRight, Star, Shield, Navigation, Phone,
   MessageSquare, Calendar, ArrowRight, Paintbrush, Zap, FileText,
-  Users, Building2, Package, Clock, AlertCircle, Sparkles, Filter,
+  Users, Building2, Package, Clock, AlertCircle, Sparkles, Filter, Home,
 } from "lucide-react";
 
 /* ══════════════════════════════════════════════════════════════════════
