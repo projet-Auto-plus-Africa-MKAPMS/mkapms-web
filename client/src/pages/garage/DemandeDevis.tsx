@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { ChevronLeft, FileText, Search, Check, Send } from "lucide-react";
 import { trpc } from "../../lib/trpc";
 import { useAuth } from "../../lib/auth";
@@ -9,12 +9,13 @@ import FileUpload from "../../components/FileUpload";
    `devis.create` : suivi de service, notification et dossier côté garage.
    Aucun écran de confirmation n'est affiché si le serveur n'a rien accepté. */
 
-const INTERVENTIONS = ["Révision", "Vidange", "Freinage", "Distribution", "Embrayage", "Climatisation", "Diagnostic", "Pneus", "Carrosserie", "Autre"];
+const INTERVENTIONS = ["Mécanicien à domicile", "Révision", "Vidange", "Freinage", "Distribution", "Embrayage", "Climatisation", "Diagnostic", "Pneus", "Carrosserie", "Autre"];
 const URGENCES = ["Normal", "Urgent", "Très urgent"] as const;
 
 export default function DemandeDevis() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [method, setMethod] = useState<"plaque" | "vin" | "manuelle">("plaque");
   const [immat, setImmat] = useState("");
   const [vin, setVin] = useState("");
@@ -22,7 +23,7 @@ export default function DemandeDevis() {
   const [modele, setModele] = useState("");
   const [annee, setAnnee] = useState("");
   const [motorisation, setMotorisation] = useState("");
-  const [intervention, setIntervention] = useState<string>("");
+  const [intervention, setIntervention] = useState<string>(() => searchParams.get("service") === "mecanicien-domicile" ? "Mécanicien à domicile" : "");
   const [description, setDescription] = useState("");
   const [urgence, setUrgence] = useState<(typeof URGENCES)[number]>("Normal");
   const [photos, setPhotos] = useState<string[]>([]);
