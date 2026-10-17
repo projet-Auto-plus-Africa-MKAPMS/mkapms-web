@@ -40,7 +40,7 @@ export interface AnomalieCliquable {
   readonly motif: MotifAnomalie;
 }
 
-export const CLIQUABLES_TOTAL = 2853;
+export const CLIQUABLES_TOTAL = 2854;
 
 export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/components/AccessDenied.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
@@ -286,7 +286,7 @@ export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/pages/garage/DepannageAvance.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/garage/DepannageGarage.tsx", total: 5, moteur: 3, liens: 1, boutonsLocaux: 1, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/garage/DiagnosticAvance.tsx", total: 2, moteur: 0, liens: 2, boutonsLocaux: 0, sansAction: 0, zones: 0 },
-  { fichier: "client/src/pages/garage/DiagnosticGarage.tsx", total: 4, moteur: 0, liens: 3, boutonsLocaux: 1, sansAction: 0, zones: 0 },
+  { fichier: "client/src/pages/garage/DiagnosticGarage.tsx", total: 5, moteur: 0, liens: 3, boutonsLocaux: 1, sansAction: 0, zones: 1 },
   { fichier: "client/src/pages/garage/DossiersFlottes.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/garage/EntretiensPreventifs.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/garage/EsthetiqueAuto.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
