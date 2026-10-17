@@ -500,7 +500,7 @@ export default function Devis() {
     const canSeeTariffs = estimationVehicleIdentified && positionSearch.trim().length > 0 && selectedServiceCount > 0;
 
     return (
-      <div className="min-h-screen bg-[#E8F7FB] pb-24">
+      <div className="min-h-screen bg-gradient-to-b from-[#EAF8FA] via-[#F8FAFC] to-[#F5F3EF] pb-24 text-[#102A43]">
         <div className="border-b border-white/20 bg-white px-4 py-4">
           <div className="mx-auto flex max-w-4xl items-center gap-3">
             <button type="button" onClick={() => navigate("/devis")} className="rounded-full p-2 text-[#64748B] hover:bg-[#F1F5F9]" aria-label="Retour"><ArrowLeft size={20} /></button>
@@ -517,13 +517,13 @@ export default function Devis() {
 
           {estimationMode === "tires" && (
             <section className="rounded-[28px] bg-white p-5 shadow-2xl">
-              <div className="mb-4 grid grid-cols-2 overflow-hidden rounded-2xl border border-[#E5E7EB]">
+              <div className="mb-4 grid grid-cols-2 overflow-hidden rounded-2xl border border-[#DCE6EE]">
                 <button type="button" onClick={() => { setEstimationMode("repair"); setEstimationStep(1); }} className="bg-white px-3 py-3 text-sm font-black text-[#08A9C4]">ENTRETENIR MON VÉHICULE</button>
                 <button type="button" onClick={() => setEstimationMode("tires")} className="bg-[#F3F3F3] px-3 py-3 text-sm font-black text-[#08A9C4]">CHANGER MES PNEUS <span className="ml-1 inline-flex rounded-full bg-[#D92D35] px-2 py-1 text-[9px] text-white">NOUVEAU</span></button>
               </div>
               <h2 className="mb-1 text-center text-2xl font-black text-[#08A9C4]">Trouver mes pneus</h2>
               <p className="mb-5 text-center text-sm text-[#64748B]">Achetez vos pneus ou demandez leur montage auprès d’un garage partenaire.</p>
-              <div className="mb-6 grid grid-cols-2 overflow-hidden rounded-full border border-[#E5E7EB] bg-[#F8FAFC] p-1">
+              <div className="mb-6 grid grid-cols-2 overflow-hidden rounded-full border border-[#DCE6EE] bg-[#F8FAFC] p-1">
                 <button type="button" onClick={() => setTireSection("registration")} className={`rounded-full px-3 py-3 text-xs font-black transition ${tireSection === "registration" ? "bg-[#08A9C4] text-white shadow-md" : "text-[#64748B]"}`}>IMMATRICULATION</button>
                 <button type="button" onClick={() => setTireSection("dimensions")} className={`rounded-full px-3 py-3 text-xs font-black transition ${tireSection === "dimensions" ? "bg-[#08A9C4] text-white shadow-md" : "text-[#64748B]"}`}>DIMENSIONS</button>
               </div>
@@ -534,7 +534,7 @@ export default function Devis() {
                   <div className="overflow-hidden rounded-3xl border border-[#B7DCE5] bg-gradient-to-br from-[#F8FDFF] to-[#E8F7FB] p-4 shadow-inner">
                     <div className="mb-3 flex items-center justify-between"><div><p className="text-[10px] font-black uppercase tracking-[0.16em] text-[#64748B]">Recherche pneus</p><p className="text-base font-black text-[#102A43]">Par immatriculation</p></div><span className="rounded-full bg-white px-3 py-1 text-[10px] font-black text-[#08A9C4] shadow-sm">FR · RAPIDE</span></div>
                     <div className="overflow-hidden rounded-2xl border-2 border-[#94A3B8] bg-white shadow-sm focus-within:border-[#08A9C4] focus-within:ring-4 focus-within:ring-[#08A9C4]/15">
-                      <div className="flex items-center gap-3 border-b border-[#E5E7EB] px-4 py-4"><span className="text-2xl">🚗</span><span className="min-w-0 flex-1"><span className="block text-sm font-black text-[#30343B]">Renseignez votre immatriculation</span><span className="block text-xs text-[#64748B]">Nous trouvons automatiquement la bonne dimension</span></span></div>
+                      <div className="flex items-center gap-3 border-b border-[#DCE6EE] px-4 py-4"><span className="text-2xl">🚗</span><span className="min-w-0 flex-1"><span className="block text-sm font-black text-[#30343B]">Renseignez votre immatriculation</span><span className="block text-xs text-[#64748B]">Nous trouvons automatiquement la bonne dimension</span></span></div>
                       <div className="flex items-center gap-3 px-4 py-4"><span className="rounded-lg bg-[#164B7A] px-2 py-3 text-xs font-black text-white">F</span><input aria-label="Immatriculation pour trouver mes pneus" className="min-w-0 flex-1 px-1 py-3 text-center text-2xl font-black uppercase tracking-wider outline-none placeholder:text-[#CBD5E1]" placeholder="AB-123-CD" value={tirePlate} onChange={(event) => setTirePlate(event.target.value.toUpperCase())} /></div>
                     </div>
                     <p className="mt-3 text-center text-xs text-[#64748B]">Aucune donnée enregistrée sans votre validation.</p>
@@ -571,7 +571,7 @@ export default function Devis() {
                   </div>
                 </div>
               )}
-              <div className="my-5 border-t border-[#E5E7EB]" />
+              <div className="my-5 border-t border-[#DCE6EE]" />
               <p className="text-center text-sm text-[#475569]">Vous avez déjà vos pneus ?</p>
               <button type="button" onClick={() => { setEstimationMode("repair"); setEstimationCategory("mecanique"); setEstimationExpanded("service"); const key = "pneumatiques::Montage 4 pneus + équilibrage"; setEstimationSelections((current) => current.includes(key) ? current : [...current, key]); setSelectedRepairId("pneus"); setSelectedSubType("Montage 4 pneus + équilibrage"); }} className="mt-2 w-full text-center text-lg font-black text-[#08A9C4] underline">Faire monter mes pneus</button>
               <button type="button" onClick={() => navigate("/pieces?search=pneus")} className="mt-5 w-full rounded-2xl bg-[#FF8A1F] py-4 text-base font-black text-white shadow-lg">ACHETER MES PNEUS</button>
@@ -580,7 +580,7 @@ export default function Devis() {
 
           {estimationMode === "repair" && estimationStep === 1 && (
             <section className="rounded-[28px] bg-white p-5 shadow-2xl">
-              <div className="mb-4 grid grid-cols-2 overflow-hidden rounded-2xl border border-[#E5E7EB]">
+              <div className="mb-4 grid grid-cols-2 overflow-hidden rounded-2xl border border-[#DCE6EE]">
                 <button type="button" onClick={() => { setEstimationMode("repair"); setEstimationStep(1); }} className={`bg-white px-3 py-3 text-sm font-black ${estimationMode === "repair" ? "text-[#08A9C4]" : "text-[#64748B]"}`}>ENTRETENIR MON VÉHICULE</button>
                 <button type="button" onClick={() => { setEstimationMode("tires"); setEstimationStep(1); setEstimationExpanded(null); }} className="bg-[#F3F3F3] px-3 py-3 text-sm font-black text-[#374151]">CHANGER MES PNEUS <span className="ml-1 inline-flex rounded-full bg-[#D92D35] px-2 py-1 text-[9px] text-white">NOUVEAU</span></button>
               </div>
@@ -592,10 +592,10 @@ export default function Devis() {
                     {estimationVehicleIdentified && <CheckCircle size={21} className="text-[#16806A]" />}<ChevronDown size={22} className={`text-[#FF8A1F] transition ${estimationExpanded === "vehicle" ? "rotate-180" : ""}`} />
                   </button>
                   {estimationExpanded === "vehicle" && (
-                    <div className="border-t border-[#E5E7EB] bg-[#FAFAFA] px-4 py-4">
+                    <div className="border-t border-[#DCE6EE] bg-[#FAFAFA] px-4 py-4">
                       <div className="mb-3 flex gap-2">
                         {([["plaque", "Plaque d'immatriculation"], ["vin", "Numéro VIN"], ["manual", "Saisie manuelle"]] as const).map(([tab, label]) => (
-                          <button key={tab} type="button" onClick={() => tab === "manual" ? setSaisieManuelle(true) : (setSaisieManuelle(false), setIdentTab(tab))} className={`flex-1 rounded-lg border px-2 py-2 text-[10px] font-bold ${(tab === "manual" ? saisieManuelle : !saisieManuelle && identTab === tab) ? "border-[#08A9C4] bg-[#E8FAFD] text-[#087B91]" : "border-[#E5E7EB] bg-white text-[#64748B]"}`}>{label}</button>
+                          <button key={tab} type="button" onClick={() => tab === "manual" ? setSaisieManuelle(true) : (setSaisieManuelle(false), setIdentTab(tab))} className={`flex-1 rounded-lg border px-2 py-2 text-[10px] font-bold ${(tab === "manual" ? saisieManuelle : !saisieManuelle && identTab === tab) ? "border-[#08A9C4] bg-[#E8FAFD] text-[#087B91]" : "border-[#DCE6EE] bg-white text-[#64748B]"}`}>{label}</button>
                         ))}
                       </div>
                       {!saisieManuelle && identTab === "plaque" && <div className="flex gap-2"><input className="min-w-0 flex-1 rounded-lg border border-[#CBD5E1] px-3 py-2 text-sm uppercase outline-none" placeholder="Plaque d’immatriculation" value={plaque} onChange={(event) => { setPlaque(event.target.value.toUpperCase()); setEstimationVehicleIdentified(false); }} /><button type="button" disabled={plateLoading || !plaque.trim()} onClick={() => identifyEstimationVehicle("plaque")} className="rounded-lg bg-[#08A9C4] px-3 py-2 text-xs font-bold text-white disabled:opacity-40">{plateLoading ? "…" : "Identifier"}</button></div>}
@@ -607,12 +607,12 @@ export default function Devis() {
 
                 <div className={`overflow-hidden rounded-2xl border-2 transition-all duration-300 ${estimationExpanded === "location" ? "border-[#08A9C4] shadow-[0_0_0_4px_rgba(8,169,196,0.14)]" : "border-[#B7BDC4]"}`}>
                   <button type="button" onClick={() => setEstimationExpanded(estimationExpanded === "location" ? null : "location")} className="flex w-full items-center gap-3 px-4 py-4 text-left"><MapPin size={25} className="text-[#08A9C4]" /><span className="min-w-0 flex-1"><span className="block text-base font-black text-[#30343B]">{positionSearch || "Ajouter ma localisation"}</span><span className="block text-xs text-[#64748B]">Ville ou code postal</span></span><ChevronDown size={22} className={`text-[#FF8A1F] transition ${estimationExpanded === "location" ? "rotate-180" : ""}`} /></button>
-                  {estimationExpanded === "location" && <div className="border-t border-[#E5E7EB] bg-[#FAFAFA] px-4 py-4"><input className="w-full rounded-lg border border-[#CBD5E1] px-3 py-3 text-sm outline-none" placeholder="Ex. 95100 Argenteuil" value={positionSearch} onChange={(event) => setPositionSearch(event.target.value)} /></div>}
+                  {estimationExpanded === "location" && <div className="border-t border-[#DCE6EE] bg-[#FAFAFA] px-4 py-4"><input className="w-full rounded-lg border border-[#CBD5E1] px-3 py-3 text-sm outline-none" placeholder="Ex. 95100 Argenteuil" value={positionSearch} onChange={(event) => setPositionSearch(event.target.value)} /></div>}
                 </div>
 
                 <div className={`overflow-hidden rounded-2xl border-2 transition-all duration-300 ${estimationExpanded === "service" || estimationExpanded?.startsWith("service:") ? "border-[#08A9C4] shadow-[0_0_0_4px_rgba(8,169,196,0.14)]" : "border-[#B7BDC4]"}`}>
                   <button type="button" onClick={() => setEstimationExpanded(estimationExpanded === "service" ? null : "service")} className="flex w-full items-center gap-3 px-4 py-4 text-left"><Wrench size={27} className="text-[#08A9C4]" /><span className="min-w-0 flex-1"><span className="block text-base font-black text-[#30343B]">{selectedServiceCount ? `${selectedServiceCount} prestation${selectedServiceCount > 1 ? "s" : ""} sélectionnée${selectedServiceCount > 1 ? "s" : ""}` : "Choisissez votre prestation"}</span><span className="block text-xs text-[#64748B]">Sélection multiple possible</span></span><ChevronDown size={22} className={`text-[#FF8A1F] transition ${estimationExpanded === "service" ? "rotate-180" : ""}`} /></button>
-                  {(estimationExpanded === "service" || estimationExpanded?.startsWith("service:")) && <div className="border-t border-[#E5E7EB] bg-[#FAFAFA] px-3 py-2">
+                  {(estimationExpanded === "service" || estimationExpanded?.startsWith("service:")) && <div className="border-t border-[#DCE6EE] bg-[#FAFAFA] px-3 py-2">
                     <div className="mb-3">
                         <label className="flex items-center gap-2 rounded-xl border border-[#CBD5E1] bg-white px-3 py-2.5 text-sm text-[#64748B]">
                           <Search size={17} className="shrink-0 text-[#08A9C4]" />
@@ -625,7 +625,7 @@ export default function Devis() {
                         const isOpen = estimationExpanded === `service:${service.id}`;
                         const count = estimationSelections.filter((key) => key.startsWith(`${service.id}::`)).length;
                         const repair = REPAIR_TYPES.find((item) => item.id === service.repairId);
-                        return <div key={service.id} className="border-b border-[#E5E7EB] last:border-0">
+                        return <div key={service.id} className="border-b border-[#DCE6EE] last:border-0">
                           <button type="button" onClick={() => setEstimationExpanded(isOpen ? "service" : `service:${service.id}`)} className="flex w-full items-center gap-3 px-2 py-3 text-left"><span className="min-w-0 flex-1"><span className="block text-sm font-bold text-[#30343B]">{service.label} {service.id === "nouveau" && <span className="ml-1 rounded bg-[#D92D35] px-1.5 py-0.5 text-[9px] text-white">NOUVEAU</span>}</span><span className="block text-[11px] text-[#64748B]">{service.description}</span></span>{count > 0 && <span className="rounded-full bg-[#DDF4F0] px-2 py-1 text-[10px] font-black text-[#16806A]">{count}</span>}<ChevronDown size={19} className={`shrink-0 text-[#FF8A1F] transition ${isOpen ? "rotate-180" : ""}`} /></button>
                           {isOpen && repair && <div className="mb-2 rounded-lg bg-white px-2">
                             {(service as { manual?: boolean }).manual ? <div className="space-y-2 px-2 py-2"><input className="w-full rounded-lg border border-[#CBD5E1] px-3 py-2 text-sm outline-none" placeholder="Décrivez votre besoin" value={descriptionLibre} onChange={(event) => setDescriptionLibre(event.target.value)} /><button type="button" onClick={() => toggleEstimateService(service.id, repair.subTypes[repair.subTypes.length - 1].label)} className="w-full rounded-lg bg-[#08A9C4] py-2 text-xs font-bold text-white">Ajouter cette demande</button></div> : repair.subTypes.map((subType) => { const key = `${service.id}::${subType.label}`; const checked = estimationSelections.includes(key); return <button key={subType.label} type="button" onClick={() => toggleEstimateService(service.id, subType.label)} className="flex w-full items-center gap-3 border-b border-[#EEF2F4] px-2 py-3 text-left last:border-0"><span className="min-w-0 flex-1 text-sm text-[#334155]">{subType.label}</span><span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-md border-2 ${checked ? "border-[#08A9C4] bg-[#08A9C4] text-white" : "border-[#CBD5E1] bg-white"}`}>{checked && <Check size={15} />}</span></button>; })}
@@ -637,7 +637,7 @@ export default function Devis() {
                 </div>
               </div>
 
-              <div className="mt-5 border-t border-[#E5E7EB] pt-4"><p className="mb-3 text-center text-xs text-[#64748B]">Véhicule identifié · zone renseignée · prestations sélectionnées</p><button type="button" disabled={!canSeeTariffs} onClick={() => setEstimationStep(2)} className="w-full rounded-2xl bg-[#FF8A1F] py-4 text-base font-black text-white shadow-lg disabled:cursor-not-allowed disabled:opacity-40">VOIR LES TARIFS</button></div>
+              <div className="mt-5 border-t border-[#DCE6EE] pt-4"><p className="mb-3 text-center text-xs text-[#64748B]">Véhicule identifié · zone renseignée · prestations sélectionnées</p><button type="button" disabled={!canSeeTariffs} onClick={() => setEstimationStep(2)} className="w-full rounded-2xl bg-[#FF8A1F] py-4 text-base font-black text-white shadow-lg disabled:cursor-not-allowed disabled:opacity-40">VOIR LES TARIFS</button></div>
             </section>
           )}
 
@@ -645,7 +645,7 @@ export default function Devis() {
             <section className="space-y-4">
               <div className="rounded-[28px] bg-gradient-to-br from-[#063B5C] to-[#087B91] p-5 text-white shadow-2xl"><p className="text-xs font-bold uppercase tracking-wider text-white/70">Estimation indicative</p><h2 className="mt-2 text-3xl font-black">{estimationTotals.min} – {estimationTotals.max} €</h2><p className="mt-1 text-sm text-white/80">{selectedServiceCount} prestation{selectedServiceCount > 1 ? "s" : ""} sélectionnée{selectedServiceCount > 1 ? "s" : ""} · {positionSearch || "Zone à préciser"}</p><p className="mt-3 text-xs text-white/70">Durée indicative cumulée : {Math.floor(estimationTotals.durationMin / 60)}h{(estimationTotals.durationMin % 60).toString().padStart(2, "0")} à {Math.floor(estimationTotals.durationMax / 60)}h{(estimationTotals.durationMax % 60).toString().padStart(2, "0")}</p></div>
               <div className="rounded-[28px] border border-white/60 bg-white p-5 shadow-2xl"><div className="flex items-center justify-between gap-3"><div><h2 className="text-lg font-black text-[#102A43]">Garages compatibles</h2><p className="text-xs text-[#64748B]">{estimationCategory === "carrosserie" ? "Carrosserie, peinture et vitrage" : "Mécanique et entretien"} · classés par note.</p></div><button type="button" onClick={() => setEstimationStep(1)} className="text-xs font-bold text-[#087B91]">Modifier les détails</button></div>
-                <div className="mt-4 space-y-3">{garagesQuery.isFetching && <p className="py-5 text-center text-sm text-[#64748B]">Recherche des garages partenaires…</p>}{!garagesQuery.isFetching && estimateGarages.length === 0 && <p className="py-5 text-center text-sm text-[#64748B]">Aucun garage compatible trouvé pour cette zone.</p>}{estimateGarages.slice(0, 10).map((garage) => <div key={garage.id} className="rounded-2xl border border-[#E5E7EB] p-4"><div className="flex items-start gap-3"><img src={garage.coverUrl || "/categories/loc_berline.jpg"} alt="" className="h-14 w-16 rounded-lg object-cover" /><div className="min-w-0 flex-1"><p className="truncate text-sm font-black text-[#102A43]">{garage.name}</p><p className="mt-1 text-xs text-[#64748B]">{[garage.city, garage.addressLine].filter(Boolean).join(" · ")}</p><div className="mt-1 flex items-center gap-1 text-xs"><Star size={12} className="fill-[#D4AF37] text-[#D4AF37]" /><b>{Number(garage.rating || 0).toFixed(1)}</b><span className="text-[#94A3B8]">({garage.reviewCount || 0} avis)</span></div></div><div className="text-right"><p className="text-xs font-black text-[#0B6B8F]">{estimationTotals.min} – {estimationTotals.max} €</p><p className="text-[10px] text-[#94A3B8]">indicatif</p></div></div><p className="mt-3 rounded-lg bg-[#F8FAFC] px-3 py-2 text-[11px] text-[#64748B]">Coordonnées protégées. La réservation, les échanges et le paiement restent dans MKA.P-MS.</p><button type="button" onClick={() => navigate(`/garages?devis=1&garage=${garage.id}&source=estimation`)} className="mt-3 w-full rounded-xl bg-[#087B91] py-3 text-xs font-bold text-white">Choisir ce garage et continuer</button></div>)}</div>
+                <div className="mt-4 space-y-3">{garagesQuery.isFetching && <p className="py-5 text-center text-sm text-[#64748B]">Recherche des garages partenaires…</p>}{!garagesQuery.isFetching && estimateGarages.length === 0 && <p className="py-5 text-center text-sm text-[#64748B]">Aucun garage compatible trouvé pour cette zone.</p>}{estimateGarages.slice(0, 10).map((garage) => <div key={garage.id} className="rounded-2xl border border-[#DCE6EE] p-4"><div className="flex items-start gap-3"><img src={garage.coverUrl || "/categories/loc_berline.jpg"} alt="" className="h-14 w-16 rounded-lg object-cover" /><div className="min-w-0 flex-1"><p className="truncate text-sm font-black text-[#102A43]">{garage.name}</p><p className="mt-1 text-xs text-[#64748B]">{[garage.city, garage.addressLine].filter(Boolean).join(" · ")}</p><div className="mt-1 flex items-center gap-1 text-xs"><Star size={12} className="fill-[#D4AF37] text-[#D4AF37]" /><b>{Number(garage.rating || 0).toFixed(1)}</b><span className="text-[#94A3B8]">({garage.reviewCount || 0} avis)</span></div></div><div className="text-right"><p className="text-xs font-black text-[#0B6B8F]">{estimationTotals.min} – {estimationTotals.max} €</p><p className="text-[10px] text-[#94A3B8]">indicatif</p></div></div><p className="mt-3 rounded-lg bg-[#F8FAFC] px-3 py-2 text-[11px] text-[#64748B]">Coordonnées protégées. La réservation, les échanges et le paiement restent dans MKA.P-MS.</p><button type="button" onClick={() => navigate(`/garages?devis=1&garage=${garage.id}&source=estimation`)} className="mt-3 w-full rounded-xl bg-[#087B91] py-3 text-xs font-bold text-white">Choisir ce garage et continuer</button></div>)}</div>
                 <p className="mt-4 text-[11px] leading-relaxed text-[#64748B]">Les coordonnées directes du garage ne sont pas affichées dans l'estimation. Toute réservation, annulation, messagerie et paiement passent par la plateforme afin de protéger le client et le garage.</p>
               </div>
             </section>
@@ -661,9 +661,9 @@ export default function Devis() {
 
   if (mode === "landing") {
     return (
-      <div className="min-h-screen bg-[#F5F3EF]">
+      <div className="min-h-screen bg-gradient-to-b from-[#F5F3EF] via-white to-[#EEF7F8]">
         {/* MÉDIA PUBLICITAIRE D'ORIGINE — contenu vidéo conservé */}
-        <div className="relative overflow-hidden bg-[#111]" style={{ height: 320 }}>
+        <div className="relative overflow-hidden bg-[#102A43]" style={{ height: 320 }}>
           {HERO_VIDEOS.map((video, i) => (
             <video
               key={video.src}
@@ -847,9 +847,9 @@ export default function Devis() {
      FLUX 7 ÉTAPES — Réparation / Devis
      ════════════════════════════════════════════════════════════ */
   return (
-    <div className="min-h-screen bg-[#F6F4FB] pb-24">
+    <div className="min-h-screen bg-gradient-to-b from-[#F5F3EF] via-[#F8FAFC] to-[#EEF7F8] pb-24 text-[#102A43]">
       {/* Header */}
-      <div className="bg-white border-b border-[#E5E7EB] px-4 py-3">
+      <div className="bg-white border-b border-[#DCE6EE] px-4 py-3">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
             {/* Logo FERMÉ (Version 1 – Terre) : surface interne */}
@@ -862,7 +862,7 @@ export default function Devis() {
       </div>
 
       {/* Stepper */}
-      <div className="bg-white border-b border-[#E5E7EB] px-4 py-4">
+      <div className="bg-white border-b border-[#DCE6EE] px-4 py-4">
         <div className="max-w-4xl mx-auto flex items-center justify-center gap-2 md:gap-4">
           {STEPS_LABELS.map((s, i) => {
             const done = step > s.num + 1;
@@ -944,7 +944,7 @@ export default function Devis() {
               </div>
 
               {identTab === "plaque" ? (
-                <div className="flex items-center gap-2 rounded-xl border-2 border-[#E5E7EB] p-3">
+                <div className="flex items-center gap-2 rounded-xl border-2 border-[#DCE6EE] p-3">
                   <div className="flex h-8 w-8 items-center justify-center rounded bg-[#312E81] text-white text-[10px] font-bold shrink-0">FR</div>
                   <input
                     className="flex-1 bg-transparent text-lg font-bold text-[#20233A] outline-none placeholder:text-[#B8B8C8]"
@@ -1011,7 +1011,7 @@ export default function Devis() {
 
             {/* Infos récupérées (exemple) */}
             <div className="space-y-4">
-              <div className="rounded-2xl bg-white border border-[#E5E7EB] p-5 shadow-sm">
+              <div className="rounded-2xl bg-white/95 border border-[#DCE6EE] shadow-[0_8px_24px_rgba(16,42,67,0.06)] p-5 shadow-sm">
                 <h3 className="text-sm font-bold text-[#111] mb-3">Exemple d'informations récupérées automatiquement</h3>
                 <div className="grid grid-cols-3 gap-3">
                   {[
@@ -1022,7 +1022,7 @@ export default function Devis() {
                     { label: "Boîte", value: "Manuelle", icon: "⚙️" },
                     { label: "Portes", value: "5", icon: "🚪" },
                   ].map((info) => (
-                    <div key={info.label} className="text-center rounded-xl bg-[#F9FAFB] p-3">
+                    <div key={info.label} className="text-center rounded-xl bg-[#F3F8FA] p-3">
                       <p className="text-lg">{info.icon}</p>
                       <p className="text-[10px] text-[#9CA3AF] mt-1">{info.label}</p>
                       <p className="text-xs font-bold text-[#111]">{info.value}</p>
@@ -1060,9 +1060,9 @@ export default function Devis() {
                   <p className="text-base font-extrabold text-[#111]">{vehicule.marque} {vehicule.modele}</p>
                   <p className="text-xs text-[#6B7280]">{vehicule.version}</p>
                   <div className="mt-1 flex flex-wrap gap-1.5">
-                    {vehicule.annee && <span className="rounded-full border border-[#E5E7EB] px-2 py-0.5 text-[10px] font-semibold">{vehicule.annee}</span>}
-                    {vehicule.carburant && <span className="rounded-full border border-[#E5E7EB] px-2 py-0.5 text-[10px] font-semibold">{vehicule.carburant}</span>}
-                    {vehicule.boite && <span className="rounded-full border border-[#E5E7EB] px-2 py-0.5 text-[10px] font-semibold">{vehicule.boite}</span>}
+                    {vehicule.annee && <span className="rounded-full border border-[#DCE6EE] px-2 py-0.5 text-[10px] font-semibold">{vehicule.annee}</span>}
+                    {vehicule.carburant && <span className="rounded-full border border-[#DCE6EE] px-2 py-0.5 text-[10px] font-semibold">{vehicule.carburant}</span>}
+                    {vehicule.boite && <span className="rounded-full border border-[#DCE6EE] px-2 py-0.5 text-[10px] font-semibold">{vehicule.boite}</span>}
                   </div>
                 </div>
               </div>
@@ -1078,7 +1078,7 @@ export default function Devis() {
                 className={`rounded-2xl border-2 p-5 text-center transition hover:shadow-md ${
                   selectedRepairId === rt.id
                     ? "border-[#D4AF37] bg-[#FFFBEB] shadow-md"
-                    : "border-[#E5E7EB] bg-white"
+                    : "border-[#DCE6EE] bg-white"
                 }`}
               >
                 <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[#F5F3EF] text-[#D4AF37]">
@@ -1092,7 +1092,7 @@ export default function Devis() {
 
           {/* Sous-type + description */}
           {selectedRepair && (
-            <div className="mt-6 rounded-2xl bg-white border border-[#E5E7EB] p-6 shadow-sm space-y-4">
+            <div className="mt-6 rounded-2xl bg-white/95 border border-[#DCE6EE] shadow-[0_8px_24px_rgba(16,42,67,0.06)] p-6 shadow-sm space-y-4">
               <h3 className="text-sm font-bold text-[#111] uppercase tracking-wider">Précisez votre besoin</h3>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                 {selectedRepair.subTypes.map((st) => (
@@ -1100,7 +1100,7 @@ export default function Devis() {
                     key={st.label}
                     onClick={() => setSelectedSubType(st.label)}
                     className={`rounded-xl border-2 p-3 text-left text-xs font-semibold transition ${
-                      selectedSubType === st.label ? "border-[#D4AF37] bg-[#FFFBEB] text-[#111]" : "border-[#E5E7EB] text-[#6B7280]"
+                      selectedSubType === st.label ? "border-[#D4AF37] bg-[#FFFBEB] text-[#111]" : "border-[#DCE6EE] text-[#6B7280]"
                     }`}
                   >
                     {st.label}
@@ -1111,7 +1111,7 @@ export default function Devis() {
               <div>
                 <label className="block text-xs font-semibold text-[#6B7280] mb-1">Décrivez votre besoin en détail (optionnel)</label>
                 <textarea
-                  className="w-full rounded-xl border border-[#E5E7EB] p-3 text-sm text-[#111] outline-none placeholder:text-[#D1D5DB] min-h-20"
+                  className="w-full rounded-xl border border-[#DCE6EE] p-3 text-sm text-[#111] outline-none placeholder:text-[#D1D5DB] min-h-20"
                   placeholder="Décrivez votre problème ou besoin..."
                   value={descriptionLibre}
                   onChange={(e) => setDescriptionLibre(e.target.value)}
@@ -1122,7 +1122,7 @@ export default function Devis() {
 
           {/* Navigation */}
           <div className="mt-6 flex gap-3">
-            <button onClick={() => setStep(2)} className="rounded-xl border border-[#D1D5DB] px-6 py-3 text-sm font-medium text-[#374151] flex items-center gap-2 hover:bg-[#F3F4F6]">
+            <button onClick={() => setStep(2)} className="rounded-xl border border-[#D1D5DB] px-6 py-3 text-sm font-medium text-[#374151] flex items-center gap-2 hover:bg-[#EAF4F6]">
               <ArrowLeft size={14} /> Retour
             </button>
             <button
@@ -1150,9 +1150,9 @@ export default function Devis() {
 
           <div className="mt-6 grid md:grid-cols-2 gap-6">
             {/* Véhicule + intervention */}
-            <div className="rounded-2xl bg-white border border-[#E5E7EB] p-6 shadow-sm">
+            <div className="rounded-2xl bg-white/95 border border-[#DCE6EE] shadow-[0_8px_24px_rgba(16,42,67,0.06)] p-6 shadow-sm">
               {vehicule.marque && (
-                <div className="flex items-center gap-3 pb-4 border-b border-[#E5E7EB]">
+                <div className="flex items-center gap-3 pb-4 border-b border-[#DCE6EE]">
                   <div className="h-16 w-24 rounded-xl bg-slate-100 flex items-center justify-center text-3xl">🚗</div>
                   <div>
                     <p className="text-sm font-extrabold text-[#111]">{vehicule.marque} {vehicule.modele}</p>
@@ -1175,7 +1175,7 @@ export default function Devis() {
             </div>
 
             {/* Estimation */}
-            <div className="rounded-2xl bg-white border border-[#E5E7EB] p-6 shadow-sm">
+            <div className="rounded-2xl bg-white/95 border border-[#DCE6EE] shadow-[0_8px_24px_rgba(16,42,67,0.06)] p-6 shadow-sm">
               <h3 className="text-sm font-bold text-[#111] uppercase tracking-wider mb-3">Estimation du devis</h3>
               {estimation && (
                 <>
@@ -1201,7 +1201,7 @@ export default function Devis() {
                         ))}
                       </>
                     )}
-                    <div className="border-t border-[#E5E7EB] pt-2 mt-2 flex justify-between font-bold">
+                    <div className="border-t border-[#DCE6EE] pt-2 mt-2 flex justify-between font-bold">
                       <span>Total estimé</span>
                       <span className="text-[#D4AF37]">{estimation.totalMin} – {estimation.totalMax} €</span>
                     </div>
@@ -1219,7 +1219,7 @@ export default function Devis() {
               { icon: Shield, text: "Garages partenaires", sub: "Certifiés et vérifiés" },
               { icon: Calendar, text: "Réservation en ligne", sub: "24h/24 et 7/7" },
             ].map((a) => (
-              <div key={a.text} className="rounded-xl bg-white border border-[#E5E7EB] p-3 text-center">
+              <div key={a.text} className="rounded-xl bg-white/95 border border-[#DCE6EE] shadow-[0_8px_24px_rgba(16,42,67,0.06)] p-3 text-center">
                 <a.icon size={18} className="text-[#D4AF37] mx-auto" />
                 <p className="mt-1 text-xs font-bold text-[#111]">{a.text}</p>
                 <p className="text-[10px] text-[#6B7280]">{a.sub}</p>
@@ -1233,7 +1233,7 @@ export default function Devis() {
 
           {/* Navigation */}
           <div className="mt-6 flex gap-3">
-            <button onClick={() => setStep(3)} className="rounded-xl border border-[#D1D5DB] px-6 py-3 text-sm font-medium text-[#374151] flex items-center gap-2 hover:bg-[#F3F4F6]">
+            <button onClick={() => setStep(3)} className="rounded-xl border border-[#D1D5DB] px-6 py-3 text-sm font-medium text-[#374151] flex items-center gap-2 hover:bg-[#EAF4F6]">
               <ArrowLeft size={14} /> Retour
             </button>
             <button
@@ -1260,7 +1260,7 @@ export default function Devis() {
 
           {/* Barre de recherche */}
           <div className="mt-4 flex gap-2">
-            <div className="flex-1 flex items-center gap-2 rounded-xl border border-[#E5E7EB] bg-white px-3 py-2.5">
+            <div className="flex-1 flex items-center gap-2 rounded-xl border border-[#DCE6EE] bg-white px-3 py-2.5">
               <MapPin size={16} className="text-[#9CA3AF]" />
               <input
                 className="flex-1 text-sm text-[#111] outline-none placeholder:text-[#D1D5DB]"
@@ -1269,13 +1269,13 @@ export default function Devis() {
                 onChange={(e) => setPositionSearch(e.target.value)}
               />
             </div>
-            <select className="rounded-xl border border-[#E5E7EB] bg-white px-3 py-2.5 text-sm text-[#111]" value={rayonKm} onChange={(e) => setRayonKm(e.target.value)}>
+            <select className="rounded-xl border border-[#DCE6EE] bg-white px-3 py-2.5 text-sm text-[#111]" value={rayonKm} onChange={(e) => setRayonKm(e.target.value)}>
               <option value="5">5 km</option>
               <option value="10">10 km</option>
               <option value="20">20 km</option>
               <option value="50">50 km</option>
             </select>
-            <button onClick={() => garagesQuery.refetch()} className="rounded-xl bg-[#111] px-4 py-2.5 text-sm font-bold text-white">Filtrer</button>
+            <button onClick={() => garagesQuery.refetch()} className="rounded-xl bg-[#102A43] px-4 py-2.5 text-sm font-bold text-white">Filtrer</button>
           </div>
           <p className="mt-2 text-[10px] text-[#9CA3AF] text-center">Le rayon de recherche n'est pas encore un filtre réel côté moteur : la ville, oui.</p>
 
@@ -1290,7 +1290,7 @@ export default function Devis() {
                 <div
                   key={g.id}
                   className={`rounded-2xl border-2 bg-white p-4 cursor-pointer transition hover:shadow-md ${
-                    selectedGarageId === g.id ? "border-[#D4AF37] shadow-md" : "border-[#E5E7EB]"
+                    selectedGarageId === g.id ? "border-[#D4AF37] shadow-md" : "border-[#DCE6EE]"
                   }`}
                   onClick={() => setSelectedGarageId(g.id)}
                 >
@@ -1334,7 +1334,7 @@ export default function Devis() {
 
           <div className="mt-6 grid md:grid-cols-2 gap-6">
             {/* Photo + infos réelles (garages_publics) */}
-            <div className="rounded-2xl bg-white border border-[#E5E7EB] overflow-hidden shadow-sm">
+            <div className="rounded-2xl bg-white/95 border border-[#DCE6EE] shadow-[0_8px_24px_rgba(16,42,67,0.06)] overflow-hidden shadow-sm">
               <img src={selectedGarage.coverUrl || "/categories/loc_berline.jpg"} alt={selectedGarage.name} className="w-full h-48 object-cover" />
               <div className="p-5">
                 <div className="flex items-center gap-2">
@@ -1356,7 +1356,7 @@ export default function Devis() {
 
             {/* Services + boutons */}
             <div className="space-y-4">
-              <div className="rounded-2xl bg-white border border-[#E5E7EB] p-5 shadow-sm">
+              <div className="rounded-2xl bg-white/95 border border-[#DCE6EE] shadow-[0_8px_24px_rgba(16,42,67,0.06)] p-5 shadow-sm">
                 <h3 className="text-sm font-bold text-[#111] mb-3">Services proposés</h3>
                 <ul className="space-y-2">
                   {(selectedGarage.services ?? "").split(",").map((s) => s.trim()).filter(Boolean).map((s) => (
@@ -1368,7 +1368,7 @@ export default function Devis() {
                 </ul>
               </div>
 
-              <div className="rounded-2xl bg-white border border-[#E5E7EB] p-5 shadow-sm space-y-2">
+              <div className="rounded-2xl bg-white/95 border border-[#DCE6EE] shadow-[0_8px_24px_rgba(16,42,67,0.06)] p-5 shadow-sm space-y-2">
                 <h3 className="text-sm font-bold text-[#111] mb-3">Actions</h3>
                 <button
                   className="w-full rounded-xl bg-[#D4AF37] py-3 text-sm font-bold text-white flex items-center justify-center gap-2"
@@ -1377,20 +1377,20 @@ export default function Devis() {
                   <FileText size={16} /> Demander un devis
                 </button>
                 <button
-                  className="w-full rounded-xl bg-[#111] py-3 text-sm font-bold text-white flex items-center justify-center gap-2"
+                  className="w-full rounded-xl bg-[#102A43] py-3 text-sm font-bold text-white flex items-center justify-center gap-2"
                   onClick={() => setStep(7)}
                 >
                   <Calendar size={16} /> Réserver un rendez-vous
                 </button>
                 <div className="grid grid-cols-2 gap-2">
                   {selectedGarage.phone ? (
-                    <a href={`tel:${selectedGarage.phone}`} className="rounded-xl border border-[#E5E7EB] py-2.5 text-sm font-semibold text-[#111] flex items-center justify-center gap-2">
+                    <a href={`tel:${selectedGarage.phone}`} className="rounded-xl border border-[#DCE6EE] py-2.5 text-sm font-semibold text-[#111] flex items-center justify-center gap-2">
                       <Phone size={14} className="text-red-500" /> Appeler
                     </a>
                   ) : (
-                    <span className="rounded-xl border border-[#E5E7EB] py-2.5 text-xs text-[#9CA3AF] flex items-center justify-center">Pas de téléphone renseigné</span>
+                    <span className="rounded-xl border border-[#DCE6EE] py-2.5 text-xs text-[#9CA3AF] flex items-center justify-center">Pas de téléphone renseigné</span>
                   )}
-                  <button className="rounded-xl border border-[#E5E7EB] py-2.5 text-sm font-semibold text-[#111] flex items-center justify-center gap-2" onClick={() => navigate("/messages")}>
+                  <button className="rounded-xl border border-[#DCE6EE] py-2.5 text-sm font-semibold text-[#111] flex items-center justify-center gap-2" onClick={() => navigate("/messages")}>
                     <MessageSquare size={14} className="text-red-500" /> Message
                   </button>
                 </div>
@@ -1401,7 +1401,7 @@ export default function Devis() {
                   { icon: FileText, text: "Devis gratuit" },
                   { icon: Eye, text: "Prix transparents" },
                 ].map((a) => (
-                  <div key={a.text} className="rounded-xl bg-white border border-[#E5E7EB] p-2 text-center">
+                  <div key={a.text} className="rounded-xl bg-white/95 border border-[#DCE6EE] shadow-[0_8px_24px_rgba(16,42,67,0.06)] p-2 text-center">
                     <a.icon size={14} className="text-[#D4AF37] mx-auto" />
                     <p className="mt-1 text-[10px] font-semibold text-[#111]">{a.text}</p>
                   </div>
@@ -1436,10 +1436,10 @@ export default function Devis() {
 
           <div className="grid md:grid-cols-2 gap-4">
             {/* Résumé véhicule */}
-            <div className="rounded-2xl bg-white border border-[#E5E7EB] p-5 shadow-sm">
+            <div className="rounded-2xl bg-white/95 border border-[#DCE6EE] shadow-[0_8px_24px_rgba(16,42,67,0.06)] p-5 shadow-sm">
               <h3 className="text-xs font-bold text-[#9CA3AF] uppercase tracking-wider mb-3">Résumé de votre demande</h3>
               {vehicule.marque && (
-                <div className="flex items-center gap-3 pb-3 border-b border-[#E5E7EB]">
+                <div className="flex items-center gap-3 pb-3 border-b border-[#DCE6EE]">
                   <div className="h-14 w-20 rounded-xl bg-slate-100 flex items-center justify-center text-2xl">🚗</div>
                   <div>
                     <p className="text-sm font-extrabold text-[#111]">{vehicule.marque} {vehicule.modele}</p>
@@ -1460,7 +1460,7 @@ export default function Devis() {
                     </div>
                   </div>
                   {estimation && (
-                    <div className="mt-2 rounded-xl bg-[#F9FAFB] p-3">
+                    <div className="mt-2 rounded-xl bg-[#F3F8FA] p-3">
                       <div className="flex justify-between text-xs"><span className="text-[#6B7280]">Estimation</span><span className="font-bold text-[#D4AF37]">{estimation.totalMin} – {estimation.totalMax} € TTC</span></div>
                       <div className="flex justify-between text-xs mt-1"><span className="text-[#6B7280]">Durée estimée</span><span className="font-semibold">{Math.floor(estimation.dureeMin / 60)}h{(estimation.dureeMin % 60).toString().padStart(2, "0")} – {Math.floor(estimation.dureeMax / 60)}h{(estimation.dureeMax % 60).toString().padStart(2, "0")}</span></div>
                     </div>
@@ -1491,7 +1491,7 @@ export default function Devis() {
               )}
 
               {/* Rendez-vous */}
-              <div className="rounded-2xl bg-white border border-[#E5E7EB] p-5 shadow-sm">
+              <div className="rounded-2xl bg-white/95 border border-[#DCE6EE] shadow-[0_8px_24px_rgba(16,42,67,0.06)] p-5 shadow-sm">
                 <h3 className="text-xs font-bold text-[#9CA3AF] uppercase tracking-wider mb-3">Votre rendez-vous</h3>
                 <div>
                   <label className="block text-xs font-semibold text-[#6B7280] mb-1">Date</label>
@@ -1506,7 +1506,7 @@ export default function Devis() {
                           key={d}
                           onClick={() => setSelectedDate(d)}
                           className={`rounded-lg border p-2 text-center text-xs transition ${
-                            selectedDate === d ? "border-[#D4AF37] bg-[#FFFBEB] font-bold" : "border-[#E5E7EB]"
+                            selectedDate === d ? "border-[#D4AF37] bg-[#FFFBEB] font-bold" : "border-[#DCE6EE]"
                           }`}
                         >
                           <p className="text-[10px] text-[#9CA3AF]">{dayName}</p>
@@ -1525,7 +1525,7 @@ export default function Devis() {
                         key={c}
                         onClick={() => setSelectedCreneau(c)}
                         className={`rounded-lg border p-2 text-center text-xs transition ${
-                          selectedCreneau === c ? "border-[#D4AF37] bg-[#FFFBEB] font-bold" : "border-[#E5E7EB]"
+                          selectedCreneau === c ? "border-[#D4AF37] bg-[#FFFBEB] font-bold" : "border-[#DCE6EE]"
                         }`}
                       >
                         {c}
@@ -1536,7 +1536,7 @@ export default function Devis() {
               </div>
 
               {/* Paiement */}
-              <div className="rounded-2xl bg-white border border-[#E5E7EB] p-5 shadow-sm">
+              <div className="rounded-2xl bg-white/95 border border-[#DCE6EE] shadow-[0_8px_24px_rgba(16,42,67,0.06)] p-5 shadow-sm">
                 <h3 className="text-xs font-bold text-[#9CA3AF] uppercase tracking-wider mb-3">Paiement sécurisé</h3>
                 {estimation && (
                   <div className="flex justify-between items-center mb-3">
@@ -1557,7 +1557,7 @@ export default function Devis() {
 
           {/* Navigation */}
           <div className="flex gap-3">
-            <button onClick={() => setStep(6)} className="rounded-xl border border-[#D1D5DB] px-6 py-3 text-sm font-medium text-[#374151] flex items-center gap-2 hover:bg-[#F3F4F6]">
+            <button onClick={() => setStep(6)} className="rounded-xl border border-[#D1D5DB] px-6 py-3 text-sm font-medium text-[#374151] flex items-center gap-2 hover:bg-[#EAF4F6]">
               <ArrowLeft size={14} /> Retour
             </button>
             <button
@@ -1571,7 +1571,7 @@ export default function Devis() {
           {create.error && <p className="text-sm text-red-600 text-center">{create.error.message}</p>}
 
           {/* Aide */}
-          <div className="rounded-xl bg-[#F9FAFB] p-4 flex items-center justify-between">
+          <div className="rounded-xl bg-[#F3F8FA] p-4 flex items-center justify-between">
             <div>
               <p className="text-sm font-bold text-[#111]">Besoin d'aide ?</p>
               <p className="text-xs text-[#6B7280]">Notre équipe est disponible pour vous accompagner.</p>
@@ -1599,7 +1599,7 @@ export default function Devis() {
             <button onClick={() => navigate("/compte")} className="w-full rounded-xl bg-[#D4AF37] py-3 text-sm font-bold text-white">
               Suivre ma demande
             </button>
-            <button onClick={() => { setMode("landing"); setStep(1); }} className="w-full rounded-xl border border-[#E5E7EB] py-3 text-sm font-semibold text-[#111]">
+            <button onClick={() => { setMode("landing"); setStep(1); }} className="w-full rounded-xl border border-[#DCE6EE] py-3 text-sm font-semibold text-[#111]">
               Nouvelle demande
             </button>
           </div>
