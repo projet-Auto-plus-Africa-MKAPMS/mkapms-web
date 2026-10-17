@@ -40,7 +40,7 @@ export interface AnomalieCliquable {
   readonly motif: MotifAnomalie;
 }
 
-export const CLIQUABLES_TOTAL = 2821;
+export const CLIQUABLES_TOTAL = 2823;
 
 export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/components/AccessDenied.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
@@ -331,7 +331,7 @@ export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/pages/garage/ValidationInterne.tsx", total: 2, moteur: 1, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/garage/VehiculesAttente.tsx", total: 3, moteur: 0, liens: 1, boutonsLocaux: 2, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/GaragePlus.tsx", total: 2, moteur: 0, liens: 1, boutonsLocaux: 1, sansAction: 0, zones: 0 },
-  { fichier: "client/src/pages/Garages.tsx", total: 18, moteur: 0, liens: 1, boutonsLocaux: 17, sansAction: 0, zones: 0 },
+  { fichier: "client/src/pages/Garages.tsx", total: 20, moteur: 0, liens: 1, boutonsLocaux: 19, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/GestionConducteurs.tsx", total: 6, moteur: 0, liens: 1, boutonsLocaux: 1, sansAction: 4, zones: 0 },
   { fichier: "client/src/pages/GestionFranchises.tsx", total: 2, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 1, zones: 0 },
   { fichier: "client/src/pages/GlobalCountryEngine.tsx", total: 19, moteur: 0, liens: 0, boutonsLocaux: 18, sansAction: 0, zones: 1 },
