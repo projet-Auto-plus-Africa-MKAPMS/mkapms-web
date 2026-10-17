@@ -179,6 +179,7 @@ const REPAIR_TYPES = [
 
 
 const ESTIMATION_SERVICE_CATALOG = [
+  { id: "mecanicien-domicile", label: "Mécanicien à domicile", description: "Intervention mécanique sur place, selon le véhicule et la zone", repairId: "autre", segment: "mecanique", manual: true },
   { id: "nouveau", label: "Nouveau", description: "Une prestation récente ou non listée", repairId: "autre", segment: "mecanique", manual: true },
   { id: "revision", label: "Révisions et vidange", description: "Entretien périodique, vidange et filtres", repairId: "revision", segment: "mecanique" },
   { id: "freinage", label: "Freinage", description: "Plaquettes, disques et liquide de frein", repairId: "freinage", segment: "mecanique" },
@@ -227,7 +228,7 @@ export default function Devis() {
   const [estimationStep, setEstimationStep] = useState(1);
   const [entryPoint, setEntryPoint] = useState<"devis" | "garage">("devis");
   const [estimationCategory, setEstimationCategory] = useState<"mecanique" | "carrosserie">("mecanique");
-  const [estimationExpanded, setEstimationExpanded] = useState<string | null>(null);
+  const [estimationExpanded, setEstimationExpanded] = useState<string | null>(() => searchParams.get("service") === "mecanicien-domicile" ? "service:mecanicien-domicile" : null);
   const [estimationSelections, setEstimationSelections] = useState<string[]>([]);
   const [estimationVehicleIdentified, setEstimationVehicleIdentified] = useState(false);
   const [estimationMode, setEstimationMode] = useState<"repair" | "tires">("repair");
@@ -783,8 +784,9 @@ export default function Devis() {
                   <img
                     src={service.image}
                     alt={service.title}
-                    className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
+                    className="h-full w-full object-cover object-center transition duration-300 group-hover:scale-105"
                     loading="lazy"
+                    decoding="async"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-[#062B40]/85 via-transparent to-transparent" />
                   <div className="absolute left-1.5 top-1.5 flex h-7 w-7 items-center justify-center rounded-lg bg-white/90 text-[#0B6B8F]">
