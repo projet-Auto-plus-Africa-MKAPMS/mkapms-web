@@ -594,6 +594,7 @@ export default function Garages() {
                   <p className="text-xs font-semibold text-[#D4AF37]">Véhicule</p>
                   <p className="font-medium text-[#111]">{f.vehiculeMarque} {f.vehiculeModele} {f.vehiculeAnnee}</p>
                   {f.immatriculation && <p className="text-xs text-[#6B7280]">Plaque : {f.immatriculation}</p>}
+                  {f.kilometrage && <p className="text-xs text-[#6B7280]">Kilométrage : {Number(f.kilometrage.replace(/\D/g, "")).toLocaleString("fr-FR")} km</p>}
                   <p className="text-xs text-[#6B7280]">Intervention : {f.typeIntervention}</p>
                 </div>
                 {selectedPieces.length > 0 && (
