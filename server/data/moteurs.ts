@@ -9359,8 +9359,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "cliquables": 18,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 153,
-        "mots": 564
+        "textes": 165,
+        "mots": 625
       },
       {
         "fichier": "client/src/pages/garage/AssistanceRoutiere.tsx",
@@ -9890,8 +9890,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "professionnel",
       "public"
     ],
-    "textes": 651,
-    "mots": 2166,
+    "textes": 663,
+    "mots": 2227,
     "battement": "sonde",
     "manques": [
       {
