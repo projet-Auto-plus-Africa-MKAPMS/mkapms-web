@@ -144,6 +144,77 @@ const TRAVAUX_CARROSSERIE = [
     ],
     prixMin: 20, prixMax: 800,
   },
+  {
+    id: "pare-brise",
+    label: "Pare-brise",
+    icon: "🪟",
+    desc: "Remplacement, capteurs et recalibrage ADAS",
+    subTypes: [
+      { label: "Remplacement pare-brise avant", dureeMin: 60, dureeMax: 120 },
+      { label: "Réparation impact pare-brise", dureeMin: 30, dureeMax: 60 },
+      { label: "Recalibrage caméra / ADAS", dureeMin: 30, dureeMax: 60 },
+    ],
+    prixMin: 90, prixMax: 900,
+  },
+  {
+    id: "vitres-laterales",
+    label: "Vitres latérales",
+    icon: "🔳",
+    desc: "Vitres de portes et mécanismes de lève-vitre",
+    subTypes: [
+      { label: "Remplacement vitre latérale", dureeMin: 45, dureeMax: 90 },
+      { label: "Réparation mécanisme lève-vitre", dureeMin: 45, dureeMax: 120 },
+      { label: "Remplacement joint de vitre", dureeMin: 30, dureeMax: 60 },
+    ],
+    prixMin: 80, prixMax: 500,
+  },
+  {
+    id: "lunette-arriere",
+    label: "Lunette arrière",
+    icon: "🪟",
+    desc: "Remplacement et dégivrage de lunette arrière",
+    subTypes: [
+      { label: "Remplacement lunette arrière", dureeMin: 60, dureeMax: 120 },
+      { label: "Réparation dégivrage lunette", dureeMin: 30, dureeMax: 90 },
+    ],
+    prixMin: 120, prixMax: 700,
+  },
+  {
+    id: "retroviseurs",
+    label: "Rétroviseurs",
+    icon: "🪞",
+    desc: "Coque, miroir, clignotant et réglage",
+    subTypes: [
+      { label: "Remplacement miroir", dureeMin: 15, dureeMax: 45 },
+      { label: "Remplacement coque", dureeMin: 30, dureeMax: 60 },
+      { label: "Remplacement rétroviseur complet", dureeMin: 45, dureeMax: 120 },
+    ],
+    prixMin: 30, prixMax: 500,
+  },
+  {
+    id: "phares-feux",
+    label: "Phares et feux",
+    icon: "💡",
+    desc: "Optiques, feux arrière et éclairage extérieur",
+    subTypes: [
+      { label: "Remplacement phare avant", dureeMin: 30, dureeMax: 90 },
+      { label: "Remplacement feu arrière", dureeMin: 30, dureeMax: 60 },
+      { label: "Rénovation optiques", dureeMin: 60, dureeMax: 120 },
+    ],
+    prixMin: 30, prixMax: 900,
+  },
+  {
+    id: "tolerie",
+    label: "Tôlerie et redressage",
+    icon: "🔧",
+    desc: "Redressage, soudure et remise en ligne",
+    subTypes: [
+      { label: "Redressage d’un élément", dureeMin: 120, dureeMax: 360 },
+      { label: "Réparation structurelle", dureeMin: 240, dureeMax: 960 },
+      { label: "Passage au marbre", dureeMin: 240, dureeMax: 720 },
+    ],
+    prixMin: 250, prixMax: 2500,
+  },
 ];
 
 /* Carrossiers : données réelles via trpc.garages.list (table garages_publics,
@@ -157,6 +228,8 @@ export default function CarrosserieGarage() {
 
   const [mode, setMode] = useState<"landing" | "flow">("landing");
   const [step, setStep] = useState(1);
+  const [carrosserieCategory, setCarrosserieCategory] = useState<"carrosserie" | "vitrage">("carrosserie");
+  const [carrosserieSearch, setCarrosserieSearch] = useState("");
 
   /* Identification */
   const [identTab, setIdentTab] = useState<"plaque" | "vin">("plaque");
@@ -193,6 +266,8 @@ export default function CarrosserieGarage() {
   const [selectedCreneau, setSelectedCreneau] = useState("");
 
   const selectedTravaux = TRAVAUX_CARROSSERIE.find((t) => t.id === selectedTravauxId);
+  const vitrageIds = new Set(["pare-brise", "vitres-laterales", "lunette-arriere", "retroviseurs", "phares-feux"]);
+  const visibleTravaux = TRAVAUX_CARROSSERIE.filter((t) => (carrosserieCategory === "vitrage" ? vitrageIds.has(t.id) : !vitrageIds.has(t.id))).filter((t) => !carrosserieSearch.trim() || `${t.label} ${t.desc}`.toLowerCase().includes(carrosserieSearch.toLowerCase()));
   const selectedCarrossier = CARROSSIERS.find((c) => c.id === selectedCarrossierId);
 
   const create = trpc.devis.create.useMutation({
@@ -469,60 +544,37 @@ export default function CarrosserieGarage() {
         </div>
       )}
 
-      {/* ÉTAPE 3 — TYPE DE TRAVAUX CARROSSERIE */}
+      {/* ÉTAPE 3 — ESTIMATION CARROSSERIE SÉPARÉE */}
       {step === 3 && (
-        <div className="max-w-4xl mx-auto px-4 mt-6">
-          <h1 className="text-2xl font-black text-[#111] text-center">QUEL TYPE DE <span className="text-[#D4AF37]">TRAVAUX ?</span></h1>
-          <p className="mt-2 text-sm text-[#6B7280] text-center">Choisissez la zone et le type de réparation. Vous pourrez préciser les dégâts et joindre des photos à l’étape suivante.</p>
+        <div className="mx-auto mt-6 max-w-4xl px-4">
+          <div className="text-center">
+            <p className="text-xs font-black uppercase tracking-[0.22em] text-[#0B9DB5]">Estimation carrosserie</p>
+            <h1 className="mt-2 text-2xl font-black text-[#102A43] sm:text-3xl">Choisissez votre prestation</h1>
+            <p className="mt-2 text-sm text-[#64748B]">Sélectionnez les éléments concernés pour transmettre une demande précise aux carrossiers.</p>
+          </div>
 
           {vehicule.marque && (
-            <div className="mt-4 rounded-2xl bg-white border border-green-200 p-4 shadow-sm max-w-lg mx-auto">
-              <div className="flex items-center gap-3">
-                <div className="text-2xl">🚗</div>
-                <div>
-                  <p className="text-base font-extrabold text-[#111]">{vehicule.marque} {vehicule.modele}</p>
-                  <p className="text-xs text-[#6B7280]">{vehicule.annee} · {vehicule.carburant} · {vehicule.boite}</p>
+            <div className="mx-auto mt-5 max-w-lg rounded-2xl border border-[#B7E3E8] bg-[#EAF8FA] p-4 shadow-sm">
+              <div className="flex items-center gap-3"><div className="text-2xl">🚗</div><div><p className="text-base font-extrabold text-[#102A43]">{vehicule.marque} {vehicule.modele}</p><p className="text-xs text-[#64748B]">{vehicule.annee} · {vehicule.carburant} · {vehicule.boite}</p></div></div>
+            </div>
+          )}
+
+          <div className="mt-6 rounded-3xl border-2 border-[#0BA6BD] bg-white p-4 shadow-[0_12px_32px_rgba(11,166,189,0.12)] sm:p-6">
+            <div className="flex items-center gap-3 border-b border-[#DCE6EE] pb-4"><span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#EAF8FA] text-2xl">🔧</span><div><h2 className="text-lg font-black text-[#102A43]">Choisissez votre prestation</h2><p className="text-xs text-[#64748B]">Sélection multiple possible</p></div></div>
+            <div className="mt-4 flex items-center gap-2 rounded-2xl border border-[#DCE6EE] bg-[#F8FBFC] px-4 py-3"><Search size={20} className="text-[#0BA6BD]" /><input value={carrosserieSearch} onChange={(e) => setCarrosserieSearch(e.target.value)} className="w-full bg-transparent text-sm text-[#102A43] outline-none placeholder:text-[#94A3B8]" placeholder="Rechercher : aile, pare-chocs, peinture, vitrage…" /></div>
+            <div className="mt-4 grid grid-cols-2 gap-2"><button type="button" onClick={() => setCarrosserieCategory("carrosserie")} className={`rounded-xl px-3 py-3 text-sm font-black transition ${carrosserieCategory === "carrosserie" ? "bg-[#0BA6BD] text-white" : "bg-[#F5F8FA] text-[#64748B]"}`}>Carrosserie & esthétique</button><button type="button" onClick={() => setCarrosserieCategory("vitrage")} className={`rounded-xl px-3 py-3 text-sm font-black transition ${carrosserieCategory === "vitrage" ? "bg-[#0BA6BD] text-white" : "bg-[#F5F8FA] text-[#64748B]"}`}>Carrosserie & vitrage</button></div>
+            <div className="mt-4 divide-y divide-[#DCE6EE]">
+              {visibleTravaux.map((t) => (
+                <div key={t.id} className="py-3">
+                  <button type="button" onClick={() => { setSelectedTravauxId(t.id); setSelectedSubType(t.subTypes[0]?.label || ""); }} className="flex w-full items-center justify-between gap-3 text-left"><span><span className="block text-sm font-extrabold text-[#102A43]">{t.label}</span><span className="mt-0.5 block text-xs text-[#64748B]">{t.desc}</span></span><span className={`text-xl transition ${selectedTravauxId === t.id ? "rotate-180 text-[#0BA6BD]" : "text-[#F28C28]"}`}>⌄</span></button>
+                  {selectedTravauxId === t.id && <div className="mt-3 rounded-2xl bg-[#F3F8FA] p-3"><div className="grid gap-2 sm:grid-cols-2">{t.subTypes.map((st) => <button key={st.label} type="button" onClick={() => setSelectedSubType(st.label)} className={`rounded-xl border-2 p-3 text-left text-xs font-semibold transition ${selectedSubType === st.label ? "border-[#0BA6BD] bg-white text-[#102A43]" : "border-transparent bg-white text-[#64748B]"}`}>{st.label}</button>)}</div><textarea className="mt-3 min-h-20 w-full rounded-xl border border-[#DCE6EE] bg-white p-3 text-sm text-[#102A43] outline-none placeholder:text-[#94A3B8]" placeholder="Décrivez les dégâts ou les éléments à remplacer…" value={descriptionLibre} onChange={(e) => setDescriptionLibre(e.target.value)} /></div>}
                 </div>
-              </div>
+              ))}
+              {visibleTravaux.length === 0 && <p className="py-6 text-center text-sm text-[#64748B]">Aucune prestation ne correspond à votre recherche.</p>}
             </div>
-          )}
-
-          <div className="mt-6 grid grid-cols-3 md:grid-cols-5 gap-3">
-            {TRAVAUX_CARROSSERIE.map((t) => (
-              <button key={t.id} onClick={() => { setSelectedTravauxId(t.id); setSelectedSubType(t.subTypes[0]?.label || ""); }}
-                className={`rounded-2xl border-2 p-4 text-center transition hover:shadow-md ${selectedTravauxId === t.id ? "border-[#D4AF37] bg-[#FFFBEB] shadow-md" : "border-[#DCE6EE] bg-white"}`}>
-                <div className="mx-auto text-2xl mb-2">{t.icon}</div>
-                <h3 className="text-xs font-bold text-[#111]">{t.label}</h3>
-                <p className="mt-0.5 text-[9px] text-[#6B7280] leading-tight">{t.desc}</p>
-              </button>
-            ))}
           </div>
 
-          {selectedTravaux && (
-            <div className="mt-6 rounded-2xl bg-white/95 border border-[#DCE6EE] shadow-[0_8px_24px_rgba(16,42,67,0.06)] p-6 shadow-sm space-y-4">
-              <h3 className="text-sm font-bold text-[#111] uppercase tracking-wider">Précisez votre besoin</h3>
-              <div className="grid grid-cols-2 gap-2">
-                {selectedTravaux.subTypes.map((st) => (
-                  <button key={st.label} onClick={() => setSelectedSubType(st.label)}
-                    className={`rounded-xl border-2 p-3 text-left text-xs font-semibold transition ${selectedSubType === st.label ? "border-[#D4AF37] bg-[#FFFBEB] text-[#111]" : "border-[#DCE6EE] text-[#6B7280]"}`}>
-                    {st.label}
-                  </button>
-                ))}
-              </div>
-              <textarea className="w-full rounded-xl border border-[#DCE6EE] p-3 text-sm text-[#111] outline-none placeholder:text-[#D1D5DB] min-h-20" placeholder="Décrivez les dégâts en détail..." value={descriptionLibre} onChange={(e) => setDescriptionLibre(e.target.value)} />
-              <div className="rounded-xl bg-gradient-to-b from-[#F5F3EF] via-white to-[#EEF7F8] p-4">
-                <p className="text-xs font-bold text-[#111]">Pour préparer un devis fiable</p>
-                <p className="mt-1 text-[11px] leading-5 text-[#6B7280]">Précisez le côté du véhicule, le nombre d’éléments touchés et si la pièce doit être réparée ou remplacée.</p>
-              </div>
-            </div>
-          )}
-
-          <div className="mt-6 flex gap-3">
-            <button onClick={() => setStep(2)} className="rounded-xl border border-[#D1D5DB] px-6 py-3 text-sm font-medium text-[#374151] flex items-center gap-2 hover:bg-[#EAF4F6]"><ArrowLeft size={14} /> Retour</button>
-            <button onClick={() => setStep(4)} disabled={!selectedTravauxId} className="flex-1 rounded-xl bg-[#D4AF37] py-3 text-sm font-bold text-white shadow-md hover:bg-[#C5A028] disabled:opacity-50 flex items-center justify-center gap-2 transition">
-              Continuer <ArrowRight size={14} />
-            </button>
-          </div>
+          <div className="mt-5 flex gap-3"><button onClick={() => setStep(2)} className="rounded-xl border border-[#D1D5DB] px-5 py-3 text-sm font-medium text-[#374151]"><ArrowLeft size={14} /></button><button onClick={() => setStep(4)} disabled={!selectedTravauxId} className="flex-1 rounded-xl bg-[#D4AF37] py-3 text-sm font-bold text-white shadow-md disabled:opacity-50">Continuer vers les photos <ArrowRight size={14} className="ml-1 inline" /></button></div>
         </div>
       )}
 
