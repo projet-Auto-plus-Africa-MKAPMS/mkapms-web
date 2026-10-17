@@ -114,7 +114,9 @@ export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
 };
 
 /** Routes client qu'aucun moteur ne revendique. */
-export const ROUTES_SANS_MOTEUR: readonly string[] = [];
+export const ROUTES_SANS_MOTEUR: readonly string[] = [
+  "/b2b"
+];
 
 /** Routeurs tRPC montés qu'aucun moteur ne revendique. */
 export const ROUTEURS_SANS_MOTEUR: readonly string[] = [];
@@ -838,6 +840,13 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     ],
     "ecransHotes": [
       {
+        "fichier": "client/src/pages/HomePro.tsx",
+        "route": "/b2b",
+        "composants": [
+          "trpc.annonces"
+        ]
+      },
+      {
         "fichier": "client/src/pages/LocationParticulier.tsx",
         "route": "/louer/particulier",
         "composants": [
@@ -1331,11 +1340,11 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "manques": [
       {
         "genre": "bouton_sans_action",
-        "detail": "« VALIDER » client/src/pages/Devis.tsx:531"
+        "detail": "« VALIDER » client/src/pages/Devis.tsx:541"
       },
       {
         "genre": "bouton_sans_action",
-        "detail": "« Lire mes dimensions de pneus » client/src/pages/Devis.tsx:551"
+        "detail": "« Lire mes dimensions de pneus » client/src/pages/Devis.tsx:561"
       },
       {
         "genre": "dependance_non_declaree",
@@ -6407,6 +6416,13 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     ],
     "ecransHotes": [
       {
+        "fichier": "client/src/pages/HomePro.tsx",
+        "route": "/b2b",
+        "composants": [
+          "components/FooterPro.tsx"
+        ]
+      },
+      {
         "fichier": "client/src/pages/Vehicule.tsx",
         "route": "/acheter/particulier/vehicule/:id",
         "composants": [
@@ -7233,6 +7249,13 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       }
     ],
     "ecransHotes": [
+      {
+        "fichier": "client/src/pages/HomePro.tsx",
+        "route": "/b2b",
+        "composants": [
+          "lib/currency.tsx"
+        ]
+      },
       {
         "fichier": "client/src/pages/LocationParticulier.tsx",
         "route": "/louer/particulier",

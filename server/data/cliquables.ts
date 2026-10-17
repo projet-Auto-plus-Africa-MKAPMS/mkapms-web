@@ -40,7 +40,7 @@ export interface AnomalieCliquable {
   readonly motif: MotifAnomalie;
 }
 
-export const CLIQUABLES_TOTAL = 2823;
+export const CLIQUABLES_TOTAL = 2848;
 
 export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/components/AccessDenied.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
@@ -51,6 +51,8 @@ export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/components/demarches/DemarcheFormulaire.tsx", total: 3, moteur: 2, liens: 0, boutonsLocaux: 1, sansAction: 0, zones: 0 },
   { fichier: "client/src/components/DocumentPDF.tsx", total: 8, moteur: 0, liens: 0, boutonsLocaux: 6, sansAction: 0, zones: 2 },
   { fichier: "client/src/components/FileUpload.tsx", total: 1, moteur: 0, liens: 0, boutonsLocaux: 0, sansAction: 0, zones: 1 },
+  { fichier: "client/src/components/FooterPro.tsx", total: 18, moteur: 0, liens: 18, boutonsLocaux: 0, sansAction: 0, zones: 0 },
+  { fichier: "client/src/components/HeaderPro.tsx", total: 6, moteur: 0, liens: 5, boutonsLocaux: 1, sansAction: 0, zones: 0 },
   { fichier: "client/src/components/InstallPrompt.tsx", total: 4, moteur: 0, liens: 0, boutonsLocaux: 4, sansAction: 0, zones: 0 },
   { fichier: "client/src/components/Layout.tsx", total: 12, moteur: 0, liens: 7, boutonsLocaux: 5, sansAction: 0, zones: 0 },
   { fichier: "client/src/components/MicroVocal.tsx", total: 1, moteur: 0, liens: 0, boutonsLocaux: 1, sansAction: 0, zones: 0 },
@@ -340,7 +342,7 @@ export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/pages/HistoriqueLocation.tsx", total: 6, moteur: 0, liens: 1, boutonsLocaux: 5, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/HistoriqueVehiculeVente.tsx", total: 6, moteur: 0, liens: 2, boutonsLocaux: 4, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/Home.tsx", total: 15, moteur: 0, liens: 12, boutonsLocaux: 2, sansAction: 0, zones: 1 },
-  { fichier: "client/src/pages/HomePro.tsx", total: 5, moteur: 0, liens: 5, boutonsLocaux: 0, sansAction: 0, zones: 0 },
+  { fichier: "client/src/pages/HomePro.tsx", total: 6, moteur: 0, liens: 6, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/HomeSite.tsx", total: 4, moteur: 0, liens: 2, boutonsLocaux: 2, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/InscriptionParticulier.tsx", total: 5, moteur: 0, liens: 3, boutonsLocaux: 2, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/InscriptionProVente.tsx", total: 8, moteur: 0, liens: 4, boutonsLocaux: 4, sansAction: 0, zones: 0 },
@@ -765,8 +767,8 @@ export const CLIQUABLES_ANOMALIES: readonly AnomalieCliquable[] = [
   { fichier: "client/src/lib/boutonMoteur.tsx", ligne: 88, genre: "bouton", libelle: "(sans texte)", motif: "sans_action" },
   { fichier: "client/src/pages/comptabilite/CentrePilotage.tsx", ligne: 1010, genre: "bouton", libelle: "Consommation energetique 12 450 kWh", motif: "sans_action" },
   { fichier: "client/src/pages/comptabilite/CentrePilotage.tsx", ligne: 1027, genre: "bouton", libelle: "Prochaines echeances 12 dossiers", motif: "sans_action" },
-  { fichier: "client/src/pages/Devis.tsx", ligne: 531, genre: "bouton", libelle: "VALIDER", motif: "sans_action" },
-  { fichier: "client/src/pages/Devis.tsx", ligne: 551, genre: "bouton", libelle: "Lire mes dimensions de pneus", motif: "sans_action" },
+  { fichier: "client/src/pages/Devis.tsx", ligne: 541, genre: "bouton", libelle: "VALIDER", motif: "sans_action" },
+  { fichier: "client/src/pages/Devis.tsx", ligne: 561, genre: "bouton", libelle: "Lire mes dimensions de pneus", motif: "sans_action" },
   { fichier: "client/src/pages/finance/LOAFinance.tsx", ligne: 11, genre: "bouton", libelle: "Simulation indisponible", motif: "sans_action" },
   { fichier: "client/src/pages/garage/ControleQualiteGarage.tsx", ligne: 16, genre: "bouton", libelle: "Validation atelier ✓", motif: "sans_action" },
   { fichier: "client/src/pages/garage/ControleQualiteGarage.tsx", ligne: 16, genre: "bouton", libelle: "Validation responsable", motif: "sans_action" },
