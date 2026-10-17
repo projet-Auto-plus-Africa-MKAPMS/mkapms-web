@@ -658,8 +658,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "cliquables": 46,
         "parMoteur": 0,
         "sansAction": 2,
-        "textes": 338,
-        "mots": 1382
+        "textes": 350,
+        "mots": 1450
       },
       {
         "fichier": "client/src/pages/Favoris.tsx",
@@ -1334,17 +1334,17 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "connecte",
       "public"
     ],
-    "textes": 1568,
-    "mots": 5535,
+    "textes": 1580,
+    "mots": 5603,
     "battement": "sonde",
     "manques": [
       {
         "genre": "bouton_sans_action",
-        "detail": "« VALIDER » client/src/pages/Devis.tsx:542"
+        "detail": "« VALIDER » client/src/pages/Devis.tsx:548"
       },
       {
         "genre": "bouton_sans_action",
-        "detail": "« Lire mes dimensions de pneus » client/src/pages/Devis.tsx:562"
+        "detail": "« Lire mes dimensions de pneus » client/src/pages/Devis.tsx:568"
       },
       {
         "genre": "dependance_non_declaree",
@@ -9511,11 +9511,11 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/garage/diagnostic-garage"
         ],
-        "cliquables": 3,
+        "cliquables": 4,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 17,
-        "mots": 80
+        "textes": 37,
+        "mots": 181
       },
       {
         "fichier": "client/src/pages/garage/DossiersFlottes.tsx",
@@ -9913,8 +9913,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "professionnel",
       "public"
     ],
-    "textes": 739,
-    "mots": 2620,
+    "textes": 759,
+    "mots": 2721,
     "battement": "sonde",
     "manques": [
       {
