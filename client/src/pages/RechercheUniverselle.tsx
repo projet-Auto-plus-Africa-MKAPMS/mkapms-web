@@ -5,7 +5,7 @@ import {
   Search, X, MapPin, Car, Wrench, Key, Gavel, Settings, Truck,
   HelpCircle, ChevronRight, Star, Shield, Navigation, Phone,
   MessageSquare, Calendar, ArrowRight, Paintbrush, Zap, FileText,
-  Users, Building2, Package, Clock, AlertCircle, Sparkles, Filter,
+  Users, Building2, Package, Clock, AlertCircle, Sparkles, Filter, Home,
 } from "lucide-react";
 
 /* ══════════════════════════════════════════════════════════════════════
@@ -88,6 +88,7 @@ const STATIC_PAGES: SearchResult[] = [
   { id: "l-utilitaire", titre: "Location utilitaire", description: "Fourgons, camions, utilitaires — pro et particulier", category: "location", to: "/louer/utilitaires", icon: Truck, priority: 5 },
   // Univers Garage
   { id: "g-garage", titre: "Trouver un garage", description: "Garages verifies pres de chez vous — devis gratuit", category: "garage", to: "/garages", icon: Wrench, priority: 3 },
+  { id: "g-domicile", titre: "Mécanicien à domicile", description: "Demandez une intervention mécanique à domicile selon la disponibilité locale", category: "garage", to: "/garage/demande-devis?service=mecanicien-domicile", icon: Home, priority: 4 },
   { id: "g-carrosserie", titre: "Carrosserie", description: "Carrossiers : peinture, debosselage, reparation tole", category: "carrosserie", to: "/garage/carrosserie-garage", icon: Paintbrush, priority: 3 },
   { id: "g-pieces", titre: "Pieces detachees", description: "Pieces auto neuves et d'occasion — livraison rapide", category: "pieces", to: "/pieces", icon: Settings, priority: 3 },
   { id: "g-ct", titre: "Controle technique", description: "Centres de controle technique pres de chez vous", category: "garage", to: "/garages", icon: Shield, priority: 3 },
@@ -120,7 +121,7 @@ const TABS: { id: ResultCategory | "tout"; label: string; icon: typeof Car; to?:
 const SUGGESTIONS = [
   "Peugeot 308", "BMW Serie 3", "garage mecanique", "location voiture",
   "estimer mon vehicule", "carte grise", "pieces frein", "controle technique",
-  "depannage", "VTC taxi", "Mercedes occasion", "Renault Clio",
+  "depannage", "mécanicien à domicile", "VTC taxi", "Mercedes occasion", "Renault Clio",
 ];
 
 // ── Detect "pres de moi" intent ──────────────────────────────────────

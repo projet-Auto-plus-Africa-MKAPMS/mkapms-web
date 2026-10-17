@@ -78,7 +78,7 @@ const DOMAIN_SEO: Record<DomainKey, DomainSeoMeta> = {
     defaultDescription:
       "Achetez, vendez, louez et réparez votre véhicule en France. Particuliers, garages, vendeurs et loueurs : MKA.P-MS est votre plateforme automobile de référence.",
     keywords:
-      "voiture occasion, achat voiture, vente voiture, location voiture, garage, réparation auto, marketplace automobile, France, particulier, professionnel",
+      "voiture occasion, achat voiture, vente voiture, location voiture, garage, mécanicien à domicile, réparation voiture à domicile, diagnostic automobile, marketplace automobile, France, particulier, professionnel",
     lang: "fr",
     ogLocale: "fr_FR",
     staticPaths: [
@@ -92,6 +92,8 @@ const DOMAIN_SEO: Record<DomainKey, DomainSeoMeta> = {
       "/louer",
       "/vendre",
       "/garages",
+      "/garage",
+      "/garage/demande-devis",
       "/pieces",
       "/devis",
       "/finance",
