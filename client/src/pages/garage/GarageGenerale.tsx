@@ -1,7 +1,8 @@
 import { Link } from "react-router-dom";
-import { Wrench, FileText, Calendar, AlertTriangle, Shield, Circle, Search, Paintbrush, Users, Phone, Star, MapPin } from "lucide-react";
+import { Wrench, FileText, Calendar, AlertTriangle, Shield, Circle, Search, Paintbrush, Users, Phone, Star, MapPin, Home } from "lucide-react";
 
 const SERVICES = [
+  { label: "Mécanicien à domicile", icon: Home, to: "/garage/demande-devis?service=mecanicien-domicile", color: "bg-[#0B6B8F]" },
   { label: "Demander un devis", icon: FileText, to: "/garage/demande-devis", color: "bg-[#D4AF37]" },
   { label: "Prendre rendez-vous", icon: Calendar, to: "/garage/prise-rendez-vous", color: "bg-blue-600" },
   { label: "Dépannage", icon: AlertTriangle, to: "/garage/depannage-garage", color: "bg-red-600" },
