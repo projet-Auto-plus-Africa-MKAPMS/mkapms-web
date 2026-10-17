@@ -95,7 +95,9 @@ function fichiersDe(dir, ext, acc = []) {
       fichiersDe(p, ext, acc);
     } else if (ext.some((x) => e.name.endsWith(x))) acc.push(p);
   }
-  return acc;
+  // Railway et le poste local peuvent énumérer les dossiers dans un ordre
+  // différent. L’inventaire généré doit rester strictement reproductible.
+  return acc.sort();
 }
 
 const fichiersServeur = fichiersDe(SERVEUR, [".ts"]).map((f) => f.split("\\").join("/"));
