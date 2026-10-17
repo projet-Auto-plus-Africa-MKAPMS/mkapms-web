@@ -227,6 +227,7 @@ export default function CarrosserieGarage() {
   const utils = trpc.useUtils();
 
   const [mode, setMode] = useState<"landing" | "flow">("landing");
+  const [landingCard, setLandingCard] = useState<"devis" | "estimation" | null>(null);
   const [step, setStep] = useState(1);
   const [carrosserieCategory, setCarrosserieCategory] = useState<"carrosserie" | "vitrage">("carrosserie");
   const [carrosserieSearch, setCarrosserieSearch] = useState("");
@@ -365,54 +366,40 @@ export default function CarrosserieGarage() {
           </div>
         </div>
 
-        {/* ACCÈS PRINCIPAUX */}
+        {/* DEUX ACCÈS COMPACTS : le contenu s’ouvre dans la carte choisie. */}
         <div className="relative z-10 mx-auto -mt-8 max-w-6xl px-4 md:px-8">
-          <div className="grid md:grid-cols-2 gap-4 md:gap-6">
-            <div className="rounded-3xl border border-[#DCE6EE] bg-white p-6 shadow-[0_12px_30px_rgba(16,42,67,0.10)] md:p-8">
-              <div className="mb-4 flex items-center gap-3">
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#D4AF37]/10">
-                  <Paintbrush size={22} className="text-[#D4AF37]" />
+          <div className="grid gap-3 md:grid-cols-2 md:gap-4">
+            {([
+              { id: "devis" as const, title: "DEVIS CARROSSERIE", icon: Paintbrush, text: "Décrivez les dégâts et préparez votre demande." },
+              { id: "estimation" as const, title: "ESTIMATION CARROSSERIE", icon: Building2, text: "Identifiez votre véhicule et comparez les solutions." },
+            ]).map((card) => {
+              const Icon = card.icon;
+              const open = landingCard === card.id;
+              return (
+                <div key={card.id} className={`rounded-3xl border bg-white shadow-[0_10px_28px_rgba(16,42,67,0.08)] transition ${open ? "border-[#0B6B8F] md:col-span-2" : "border-[#DCE6EE]"}`}>
+                  <button type="button" onClick={() => setLandingCard(open ? null : card.id)} className="flex w-full items-center gap-3 p-4 text-left sm:p-5">
+                    <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl ${open ? "bg-[#0B6B8F] text-white" : "bg-[#D4AF37]/10 text-[#D4AF37]"}`}><Icon size={21} /></span>
+                    <span className="min-w-0 flex-1"><span className="block text-sm font-black text-[#102A43] sm:text-base">{card.title}</span><span className="mt-0.5 block text-xs text-[#64748B]">{card.text}</span></span>
+                    <ChevronDown size={19} className={`shrink-0 text-[#64748B] transition-transform ${open ? "rotate-180" : ""}`} />
+                  </button>
+                  {open && (
+                    <div className="border-t border-[#DCE6EE] px-4 pb-4 pt-3 sm:px-5 sm:pb-5">
+                      <div className="grid grid-cols-2 border-b border-[#DCE6EE]">
+                        <button type="button" onClick={() => setIdentTab("plaque")} className={`py-2 text-xs font-black ${identTab === "plaque" ? "border-b-2 border-[#D4AF37] text-[#102A43]" : "text-[#94A3B8]"}`}>PLAQUE D’IMMATRICULATION</button>
+                        <button type="button" onClick={() => setIdentTab("vin")} className={`py-2 text-xs font-black ${identTab === "vin" ? "border-b-2 border-[#D4AF37] text-[#102A43]" : "text-[#94A3B8]"}`}>NUMÉRO VIN</button>
+                      </div>
+                      <div className="mt-3 flex items-center gap-2 rounded-2xl border border-[#DCE6EE] bg-[#F8FBFC] px-3 py-2.5">
+                        <span className="rounded-lg bg-[#0B6B8F] px-2 py-1 text-xs font-black text-white">{identTab === "plaque" ? "FR" : "VIN"}</span>
+                        <input value={identTab === "plaque" ? plaque : vin} onChange={(event) => identTab === "plaque" ? setPlaque(event.target.value.toUpperCase()) : setVin(event.target.value.toUpperCase())} placeholder={identTab === "plaque" ? "Ex. AB-123-CD" : "Saisir le numéro VIN"} className="min-w-0 flex-1 bg-transparent text-sm font-semibold text-[#102A43] outline-none placeholder:text-[#A0AEC0]" />
+                      </div>
+                      <button type="button" disabled={!plaque.trim() && !vin.trim()} onClick={() => { if (card.id === "devis") { if (!user) { navigate("/connexion"); return; } setMode("flow"); setStep(1); } else { navigate("/devis?estimation=1&service=carrosserie-esthetique"); } }} className="mt-3 flex w-full items-center justify-center gap-2 rounded-2xl bg-[#D4AF37] py-3 text-sm font-black text-white shadow-sm transition hover:bg-[#C5A028] disabled:cursor-not-allowed disabled:opacity-40">
+                        {card.id === "devis" ? "Continuer vers le devis" : "Voir l’estimation"}<ArrowRight size={16} />
+                      </button>
+                    </div>
+                  )}
                 </div>
-                <h2 className="text-lg font-extrabold text-[#111]">DEVIS CARROSSERIE</h2>
-              </div>
-              <p className="mb-4 text-sm text-[#6B7280]">Décrivez les dégâts et recevez une estimation de réparation.</p>
-              <ul className="mb-5 space-y-2">
-                {["Estimation immédiate", "Photos avant/après", "Devis transparent", "Sans engagement"].map((t) => (
-                  <li key={t} className="flex items-center gap-2 text-sm text-[#374151]">
-                    <CheckCircle size={14} className="text-green-500 shrink-0" /> {t}
-                  </li>
-                ))}
-              </ul>
-              <button
-                className="w-full rounded-2xl bg-[#D4AF37] py-3.5 text-sm font-bold text-white shadow-md transition hover:bg-[#C5A028]"
-                onClick={() => { if (!user) { navigate("/connexion"); return; } setMode("flow"); setStep(1); }}
-              >
-                Obtenir un devis carrosserie
-              </button>
-            </div>
-
-            <div className="rounded-3xl border border-[#DCE6EE] bg-white p-6 shadow-[0_12px_30px_rgba(16,42,67,0.10)] md:p-8">
-              <div className="mb-4 flex items-center gap-3">
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#D4AF37]/10">
-                  <Building2 size={22} className="text-[#D4AF37]" />
-                </div>
-                <h2 className="text-lg font-extrabold text-[#111]">TROUVER UN CARROSSIER</h2>
-              </div>
-              <p className="mb-4 text-sm text-[#6B7280]">Trouvez un carrossier certifié près de chez vous.</p>
-              <ul className="mb-5 space-y-2">
-                {["Carrossiers agréés assurance", "Avis vérifiés", "Garantie peinture", "Véhicule de courtoisie"].map((t) => (
-                  <li key={t} className="flex items-center gap-2 text-sm text-[#374151]">
-                    <CheckCircle size={14} className="text-green-500 shrink-0" /> {t}
-                  </li>
-                ))}
-              </ul>
-              <button
-                className="w-full rounded-2xl border-2 border-[#D4AF37] py-3.5 text-sm font-bold text-[#D4AF37] transition hover:bg-[#FFFBEB]"
-                onClick={() => { if (!user) { navigate("/connexion"); return; } setMode("flow"); setStep(1); }}
-              >
-                Rechercher
-              </button>
-            </div>
+              );
+            })}
           </div>
         </div>
 
