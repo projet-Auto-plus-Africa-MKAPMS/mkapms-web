@@ -9412,11 +9412,11 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/garage/carrosserie-garage"
         ],
-        "cliquables": 28,
+        "cliquables": 30,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 158,
-        "mots": 610
+        "textes": 182,
+        "mots": 661
       },
       {
         "fichier": "client/src/pages/garage/CentreLavage.tsx",
@@ -9913,8 +9913,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "professionnel",
       "public"
     ],
-    "textes": 715,
-    "mots": 2569,
+    "textes": 739,
+    "mots": 2620,
     "battement": "sonde",
     "manques": [
       {
