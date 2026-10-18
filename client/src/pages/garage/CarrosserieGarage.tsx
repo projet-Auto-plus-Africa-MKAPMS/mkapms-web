@@ -250,6 +250,9 @@ export default function CarrosserieGarage() {
 
   /* Travaux */
   const [selectedTravauxId, setSelectedTravauxId] = useState("");
+  const [selectedTravauxIds, setSelectedTravauxIds] = useState<string[]>([]);
+  const [expandedTravauxIds, setExpandedTravauxIds] = useState<string[]>([]);
+  const [selectedPrestations, setSelectedPrestations] = useState<Record<string, string[]>>({});
   const [selectedSubType, setSelectedSubType] = useState("");
   const [descriptionLibre, setDescriptionLibre] = useState("");
 
@@ -274,6 +277,7 @@ export default function CarrosserieGarage() {
   const selectedTravaux = TRAVAUX_CARROSSERIE.find((t) => t.id === selectedTravauxId);
   const vitrageIds = new Set(["pare-brise", "vitres-laterales", "lunette-arriere", "retroviseurs", "phares-feux"]);
   const visibleTravaux = TRAVAUX_CARROSSERIE.filter((t) => (carrosserieCategory === "vitrage" ? vitrageIds.has(t.id) : !vitrageIds.has(t.id))).filter((t) => !carrosserieSearch.trim() || `${t.label} ${t.desc}`.toLowerCase().includes(carrosserieSearch.toLowerCase()));
+  const selectedPrestationCount = Object.values(selectedPrestations).reduce((sum, items) => sum + items.length, 0);
   const selectedCarrossier = CARROSSIERS.find((c) => c.id === selectedCarrossierId);
 
   const create = trpc.devis.create.useMutation({
@@ -307,8 +311,8 @@ export default function CarrosserieGarage() {
       vehiculeModele: vehicule.modele || undefined,
       vehiculeAnnee: vehicule.annee ? Number(vehicule.annee) : undefined,
       immatriculation: plaque || undefined,
-      typeIntervention: `Carrosserie — ${selectedTravaux?.label || "Autre"}`,
-      description: `${selectedSubType}${descriptionLibre ? ` — ${descriptionLibre}` : ""} — Assurance : ${priseEnChargeAssurance} — Véhicule de courtoisie : ${vehiculeCourtoisie === "oui" ? "oui" : "non"} — Délai : ${urgence}`,
+      typeIntervention: `Carrosserie — ${selectedTravauxIds.map((id) => TRAVAUX_CARROSSERIE.find((t) => t.id === id)?.label).filter(Boolean).join(", ") || selectedTravaux?.label || "Autre"}`,
+      description: `${Object.entries(selectedPrestations).flatMap(([id, labels]) => { const label = TRAVAUX_CARROSSERIE.find((t) => t.id === id)?.label; return labels.map((item) => `${label} : ${item}`); }).join(" · ") || selectedSubType}${descriptionLibre ? ` — ${descriptionLibre}` : ""} — Assurance : ${priseEnChargeAssurance} — Véhicule de courtoisie : ${vehiculeCourtoisie === "oui" ? "oui" : "non"} — Délai : ${urgence}`,
       ville: positionSearch || undefined,
       photos: [...photosAvant, ...photosApres],
       devisType: "pieces_main_oeuvre",
@@ -666,17 +670,38 @@ export default function CarrosserieGarage() {
             <div className="mt-4 flex items-center gap-2 rounded-2xl border border-[#DCE6EE] bg-[#F8FBFC] px-4 py-3"><Search size={20} className="text-[#0BA6BD]" /><input value={carrosserieSearch} onChange={(e) => setCarrosserieSearch(e.target.value)} className="w-full bg-transparent text-sm text-[#102A43] outline-none placeholder:text-[#94A3B8]" placeholder="Rechercher : aile, pare-chocs, peinture, vitrage…" /></div>
             <div className="mt-4 grid grid-cols-2 gap-2"><button type="button" onClick={() => setCarrosserieCategory("carrosserie")} className={`rounded-xl px-3 py-3 text-sm font-black transition ${carrosserieCategory === "carrosserie" ? "bg-[#0BA6BD] text-white" : "bg-[#F5F8FA] text-[#64748B]"}`}>Carrosserie & esthétique</button><button type="button" onClick={() => setCarrosserieCategory("vitrage")} className={`rounded-xl px-3 py-3 text-sm font-black transition ${carrosserieCategory === "vitrage" ? "bg-[#0BA6BD] text-white" : "bg-[#F5F8FA] text-[#64748B]"}`}>Carrosserie & vitrage</button></div>
             <div className="mt-4 divide-y divide-[#DCE6EE]">
-              {visibleTravaux.map((t) => (
-                <div key={t.id} className="py-3">
-                  <button type="button" onClick={() => { setSelectedTravauxId(t.id); setSelectedSubType(t.subTypes[0]?.label || ""); }} className="flex w-full items-center justify-between gap-3 text-left"><span><span className="block text-sm font-extrabold text-[#102A43]">{t.label}</span><span className="mt-0.5 block text-xs text-[#64748B]">{t.desc}</span></span><span className={`text-xl transition ${selectedTravauxId === t.id ? "rotate-180 text-[#0BA6BD]" : "text-[#F28C28]"}`}>⌄</span></button>
-                  {selectedTravauxId === t.id && <div className="mt-3 rounded-2xl bg-[#F3F8FA] p-3"><div className="grid gap-2 sm:grid-cols-2">{t.subTypes.map((st) => <button key={st.label} type="button" onClick={() => setSelectedSubType(st.label)} className={`rounded-xl border-2 p-3 text-left text-xs font-semibold transition ${selectedSubType === st.label ? "border-[#0BA6BD] bg-white text-[#102A43]" : "border-transparent bg-white text-[#64748B]"}`}>{st.label}</button>)}</div><textarea className="mt-3 min-h-20 w-full rounded-xl border border-[#DCE6EE] bg-white p-3 text-sm text-[#102A43] outline-none placeholder:text-[#94A3B8]" placeholder="Décrivez les dégâts ou les éléments à remplacer…" value={descriptionLibre} onChange={(e) => setDescriptionLibre(e.target.value)} /></div>}
-                </div>
-              ))}
+              {visibleTravaux.map((t) => {
+                const expanded = expandedTravauxIds.includes(t.id);
+                const checked = selectedTravauxIds.includes(t.id);
+                return (
+                  <div key={t.id} className="py-2">
+                    <button type="button" onClick={() => { setExpandedTravauxIds((prev) => prev.includes(t.id) ? prev.filter((id) => id !== t.id) : [...prev, t.id]); setSelectedTravauxId(t.id); }} className="flex w-full items-center gap-3 rounded-xl px-2 py-3 text-left transition hover:bg-[#F8FBFC]">
+                      <span className="min-w-0 flex-1"><span className="block text-sm font-extrabold text-[#102A43]">{t.label}</span><span className="mt-0.5 block text-xs text-[#64748B]">{t.desc}</span></span>
+                      <input type="checkbox" checked={checked} onChange={() => { setSelectedTravauxId(t.id); setSelectedTravauxIds((prev) => prev.includes(t.id) ? prev.filter((id) => id !== t.id) : [...prev, t.id]); if (checked) setSelectedPrestations((prev) => { const next = { ...prev }; delete next[t.id]; return next; }); }} onClick={(event) => event.stopPropagation()} className="h-5 w-5 shrink-0 accent-[#0BA6BD]" aria-label={`Sélectionner ${t.label}`} />
+                      <span className={`text-xl transition ${expanded ? "rotate-180 text-[#0BA6BD]" : "text-[#F28C28]"}`}>⌄</span>
+                    </button>
+                    {expanded && (
+                      <div className="mt-1 rounded-2xl bg-[#F3F8FA] px-3">
+                        {t.subTypes.map((st) => {
+                          const selected = selectedPrestations[t.id]?.includes(st.label) ?? false;
+                          return (
+                            <label key={st.label} className="flex cursor-pointer items-center justify-between gap-3 border-b border-[#DCE6EE] py-3 last:border-b-0">
+                              <span className="text-sm text-[#34465D]">{st.label}</span>
+                              <input type="checkbox" checked={selected} onChange={() => { setSelectedSubType(st.label); setSelectedPrestations((prev) => { const current = prev[t.id] ?? []; const next = current.includes(st.label) ? current.filter((label) => label !== st.label) : [...current, st.label]; return { ...prev, [t.id]: next }; }); setSelectedTravauxIds((prev) => prev.includes(t.id) ? prev : [...prev, t.id]); setSelectedTravauxId(t.id); }} className="h-5 w-5 shrink-0 accent-[#0BA6BD]" />
+                            </label>
+                          );
+                        })}
+                        <textarea className="my-3 min-h-20 w-full rounded-xl border border-[#DCE6EE] bg-white p-3 text-sm text-[#102A43] outline-none placeholder:text-[#94A3B8]" placeholder="Décrivez les dégâts ou les éléments à remplacer…" value={descriptionLibre} onChange={(e) => setDescriptionLibre(e.target.value)} />
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
               {visibleTravaux.length === 0 && <p className="py-6 text-center text-sm text-[#64748B]">Aucune prestation ne correspond à votre recherche.</p>}
             </div>
           </div>
 
-          <div className="mt-5 flex gap-3"><button onClick={() => setStep(2)} className="rounded-xl border border-[#D1D5DB] px-5 py-3 text-sm font-medium text-[#374151]"><ArrowLeft size={14} /></button><button onClick={() => setStep(4)} disabled={!selectedTravauxId} className="flex-1 rounded-xl bg-[#D4AF37] py-3 text-sm font-bold text-white shadow-md disabled:opacity-50">Continuer vers les photos <ArrowRight size={14} className="ml-1 inline" /></button></div>
+          <div className="mt-5 flex gap-3"><button onClick={() => setStep(2)} className="rounded-xl border border-[#D1D5DB] px-5 py-3 text-sm font-medium text-[#374151]"><ArrowLeft size={14} /></button><button onClick={() => setStep(4)} disabled={selectedPrestationCount === 0} className="flex-1 rounded-xl bg-[#D4AF37] py-3 text-sm font-bold text-white shadow-md disabled:opacity-50">Continuer vers les photos <ArrowRight size={14} className="ml-1 inline" /></button></div>
         </div>
       )}
 
