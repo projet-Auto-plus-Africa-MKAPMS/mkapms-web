@@ -4,7 +4,7 @@ import {
   ChevronLeft, ChevronRight, ChevronDown, Paintbrush, Camera, FileText,
   Check, Clock, Star, MapPin, Phone, MessageSquare, Shield, Lock,
   CheckCircle, ArrowLeft, ArrowRight, Search, Info, Calendar, Eye,
-  Headphones, Building2, Upload, Zap,
+  Headphones, Building2, Upload, Zap, Wrench,
 } from "lucide-react";
 import { trpc } from "../../lib/trpc";
 import { useAuth } from "../../lib/auth";
@@ -234,6 +234,7 @@ export default function CarrosserieGarage() {
 
   /* Identification */
   const [identTab, setIdentTab] = useState<"plaque" | "vin">("plaque");
+  const [identificationPanel, setIdentificationPanel] = useState<"vehicle" | "manual" | null>(null);
   const [plaque, setPlaque] = useState("");
   const [vin, setVin] = useState("");
   const [plateLoading, setPlateLoading] = useState(false);
@@ -439,7 +440,7 @@ export default function CarrosserieGarage() {
      FLUX CARROSSERIE — 7 ÉTAPES
      ════════════════════════════════════════════════════════════ */
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#F5F3EF] via-white to-[#EEF7F8] pb-24">
+    <div className="min-h-screen bg-[#EAF8FA] pb-24">
       {/* Header */}
       <div className="bg-white/95 border-b border-[#DCE6EE] shadow-sm px-4 py-3">
         <div className="max-w-4xl mx-auto flex items-center gap-3">
@@ -480,53 +481,91 @@ export default function CarrosserieGarage() {
         </button>
       </div>
 
-      {/* ÉTAPE 2 — IDENTIFICATION VÉHICULE */}
+      {/* ÉTAPE 1 — DEVIS CARROSSERIE : présentation réseau carrosserie */}
       {step <= 2 && (
-        <div className="max-w-4xl mx-auto px-4 mt-6">
-          <h1 className="text-2xl font-black text-[#111] text-center">IDENTIFIEZ VOTRE <span className="text-[#D4AF37]">VÉHICULE</span></h1>
-          <p className="mt-2 text-sm text-[#6B7280] text-center max-w-lg mx-auto">Renseignez votre plaque ou VIN pour identifier automatiquement votre véhicule.</p>
-
-          <div className="mt-6 max-w-lg mx-auto rounded-2xl bg-white/95 border border-[#DCE6EE] shadow-[0_8px_24px_rgba(16,42,67,0.06)] p-6 shadow-sm">
-            <div className="flex border-b border-[#DCE6EE] mb-4">
-              <button onClick={() => setIdentTab("plaque")} className={`flex-1 py-2.5 text-sm font-bold text-center border-b-2 transition ${identTab === "plaque" ? "border-[#D4AF37] text-[#111]" : "border-transparent text-[#9CA3AF]"}`}>PLAQUE D'IMMATRICULATION</button>
-              <button onClick={() => setIdentTab("vin")} className={`flex-1 py-2.5 text-sm font-bold text-center border-b-2 transition ${identTab === "vin" ? "border-[#D4AF37] text-[#111]" : "border-transparent text-[#9CA3AF]"}`}>NUMÉRO VIN</button>
-            </div>
-
-            {identTab === "plaque" ? (
-              <div className="flex items-center gap-2 rounded-xl border-2 border-[#DCE6EE] p-3">
-                <div className="flex h-8 w-8 items-center justify-center rounded bg-[#003399] text-white text-[10px] font-bold shrink-0">FR</div>
-                <input className="flex-1 text-lg font-bold text-[#111] outline-none placeholder:text-[#D1D5DB] bg-transparent" placeholder="Ex : AB-123-CD" value={plaque} onChange={(e) => setPlaque(e.target.value.toUpperCase())} />
-              </div>
-            ) : (
-              <input className="w-full rounded-xl border-2 border-[#DCE6EE] p-3 text-sm font-bold text-[#111] outline-none placeholder:text-[#D1D5DB]" placeholder="Ex : VF1XXXXXXXXXX" value={vin} onChange={(e) => setVin(e.target.value.toUpperCase())} maxLength={17} />
-            )}
-
-            <button className="mt-4 w-full rounded-xl bg-[#D4AF37] py-3.5 text-sm font-bold text-white shadow-md hover:bg-[#C5A028] disabled:opacity-50 flex items-center justify-center gap-2 transition" disabled={(!plaque.trim() && !vin.trim()) || plateLoading} onClick={identifierVehicule}>
-              <Search size={16} /> {plateLoading ? "Recherche..." : "Identifier mon véhicule"}
-            </button>
-            <div className="mt-3 text-center">
-              <button className="text-sm font-semibold text-[#D4AF37] hover:underline" onClick={() => setSaisieManuelle((v) => !v)}>
-                {saisieManuelle ? "Masquer la saisie manuelle" : "Saisir manuellement →"}
-              </button>
-            </div>
-
-            {saisieManuelle && (
-              <div className="mt-3 space-y-2 rounded-xl border border-[#DCE6EE] p-3">
-                <div className="grid grid-cols-2 gap-2">
-                  <input className="rounded-lg border border-[#DCE6EE] px-3 py-2 text-sm" placeholder="Marque *" value={vehicule.marque} onChange={(e) => setVehicule({ ...vehicule, marque: e.target.value })} />
-                  <input className="rounded-lg border border-[#DCE6EE] px-3 py-2 text-sm" placeholder="Modèle *" value={vehicule.modele} onChange={(e) => setVehicule({ ...vehicule, modele: e.target.value })} />
-                  <input className="rounded-lg border border-[#DCE6EE] px-3 py-2 text-sm" placeholder="Année" inputMode="numeric" value={vehicule.annee} onChange={(e) => setVehicule({ ...vehicule, annee: e.target.value })} />
-                  <input className="rounded-lg border border-[#DCE6EE] px-3 py-2 text-sm" placeholder="Énergie" value={vehicule.carburant} onChange={(e) => setVehicule({ ...vehicule, carburant: e.target.value })} />
+        <div className="mx-auto max-w-4xl px-4 pb-8 pt-5 sm:pt-7">
+          <div className="overflow-hidden rounded-b-[2.25rem] bg-gradient-to-br from-[#0D6178] via-[#087C91] to-[#10AFC5] px-5 pb-8 pt-6 text-center text-white shadow-[0_14px_30px_rgba(11,111,143,0.2)] sm:px-10">
+            <p className="mx-auto max-w-2xl text-sm leading-6 text-white/85 sm:text-base">Un seul formulaire pour comparer les offres de carrosserie adaptées à votre véhicule, les prix, les avis vérifiés et les créneaux disponibles.</p>
+            <div className="mt-6 grid grid-cols-3 border-t border-white/25 pt-5">
+              {[['01', 'Identifiez'], ['02', 'Comparez'], ['03', 'Réservez']].map(([number, label]) => (
+                <div key={number}>
+                  <p className="text-xl font-black sm:text-2xl">{number}</p>
+                  <p className="mt-1 text-xs text-white/80 sm:text-sm">{label}</p>
                 </div>
-                <button
-                  className="w-full rounded-xl bg-gradient-to-br from-[#102A43] via-[#123E56] to-[#0B6B8F] py-2.5 text-sm font-bold text-white disabled:opacity-50"
-                  disabled={!vehicule.marque.trim() || !vehicule.modele.trim()}
-                  onClick={() => setStep(3)}
-                >
-                  Continuer avec ce véhicule
-                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="mt-5 flex gap-2 overflow-x-auto pb-1 text-xs font-black whitespace-nowrap scrollbar-thin scrollbar-thumb-[#D4AF37]/50">
+            {STEPS_LABELS.slice(0, 5).map((s, i) => (
+              <div key={s.num} className="flex items-center gap-2">
+                <span className={`rounded-full px-3 py-2 ${i === 0 ? "bg-[#D4AF37] text-white" : "bg-white/75 text-[#94A3B8]"}`}>{s.num} {s.label}</span>
+                {i < 4 && <ChevronRight size={15} className="shrink-0 text-[#C7D5DF]" />}
               </div>
-            )}
+            ))}
+          </div>
+
+          <div className="mt-5 rounded-[2rem] border border-[#C5E7EC] bg-white p-5 shadow-[0_12px_28px_rgba(16,42,67,0.08)] sm:p-8">
+            <div className="flex items-start gap-4">
+              <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-[#E8F8FB] text-[#078BA3]"><FileText size={29} /></span>
+              <div>
+                <p className="text-xs font-black uppercase tracking-[0.2em] text-[#078BA3]">Devis carrosserie</p>
+                <h1 className="mt-1 text-2xl font-black text-[#102A43] sm:text-3xl">Préparez votre demande</h1>
+                <p className="mt-2 text-sm leading-6 text-[#64748B]">Identifiez d’abord le véhicule, puis complétez les informations utiles à votre demande.</p>
+              </div>
+            </div>
+
+            <div className="mt-6 space-y-3">
+              <div className="overflow-hidden rounded-3xl border-2 border-[#CBD8E5] bg-white">
+                <button type="button" onClick={() => { setIdentificationPanel(identificationPanel === "vehicle" ? null : "vehicle"); setSaisieManuelle(false); }} className="flex w-full items-center gap-4 px-4 py-5 text-left sm:px-6">
+                  <Search size={30} className="shrink-0 text-[#08A8C1]" />
+                  <span className="min-w-0 flex-1"><span className="block text-lg font-black text-[#102A43] sm:text-xl">Identifier mon véhicule</span><span className="mt-1 block text-sm text-[#64748B]">Plaque d’immatriculation ou numéro VIN</span></span>
+                  <ChevronDown size={24} className={`shrink-0 text-[#078BA3] transition-transform ${identificationPanel === "vehicle" ? "rotate-180" : ""}`} />
+                </button>
+                {identificationPanel === "vehicle" && (
+                  <div className="border-t border-[#DCE6EE] px-4 pb-5 pt-4 sm:px-6">
+                    <div className="flex border-b border-[#DCE6EE]">
+                      <button type="button" onClick={() => setIdentTab("plaque")} className={`flex-1 py-2.5 text-xs font-black text-center border-b-2 transition ${identTab === "plaque" ? "border-[#D4AF37] text-[#102A43]" : "border-transparent text-[#9CA3AF]"}`}>PLAQUE D’IMMATRICULATION</button>
+                      <button type="button" onClick={() => setIdentTab("vin")} className={`flex-1 py-2.5 text-xs font-black text-center border-b-2 transition ${identTab === "vin" ? "border-[#D4AF37] text-[#102A43]" : "border-transparent text-[#9CA3AF]"}`}>NUMÉRO VIN</button>
+                    </div>
+                    {identTab === "plaque" ? (
+                      <div className="mt-4 flex items-center gap-3 rounded-2xl border-2 border-[#DCE6EE] px-3 py-3"><span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#003399] text-xs font-black text-white">FR</span><input className="min-w-0 flex-1 bg-transparent text-base font-bold text-[#102A43] outline-none placeholder:text-[#CBD2DC]" placeholder="Ex : AB-123-CD" value={plaque} onChange={(e) => setPlaque(e.target.value.toUpperCase())} /></div>
+                    ) : (
+                      <input className="mt-4 w-full rounded-2xl border-2 border-[#DCE6EE] bg-white px-4 py-3 text-base font-bold text-[#102A43] outline-none placeholder:text-[#CBD2DC]" placeholder="Ex : VF1XXXXXXXXXX" value={vin} onChange={(e) => setVin(e.target.value.toUpperCase())} maxLength={17} />
+                    )}
+                    <button type="button" className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl bg-[#D4AF37] py-3.5 text-sm font-black text-white shadow-md transition hover:bg-[#C5A028] disabled:opacity-50" disabled={(!plaque.trim() && !vin.trim()) || plateLoading} onClick={identifierVehicule}><Search size={17} />{plateLoading ? "Recherche…" : "Identifier mon véhicule"}</button>
+                  </div>
+                )}
+              </div>
+
+              <div className="overflow-hidden rounded-3xl border-2 border-[#CBD8E5] bg-white">
+                <button type="button" onClick={() => { setIdentificationPanel(identificationPanel === "manual" ? null : "manual"); setSaisieManuelle(true); }} className="flex w-full items-center gap-4 px-4 py-5 text-left sm:px-6">
+                  <Wrench size={30} className="shrink-0 text-[#08A8C1]" />
+                  <span className="min-w-0 flex-1"><span className="block text-lg font-black text-[#102A43] sm:text-xl">Saisie manuelle</span><span className="mt-1 block text-sm text-[#64748B]">Compléter le véhicule et votre intervention</span></span>
+                  <ChevronDown size={24} className={`shrink-0 text-[#078BA3] transition-transform ${identificationPanel === "manual" ? "rotate-180" : ""}`} />
+                </button>
+                {identificationPanel === "manual" && (
+                  <div className="border-t border-[#DCE6EE] px-4 pb-5 pt-4 sm:px-6">
+                    <div className="grid grid-cols-2 gap-2">
+                      <input className="rounded-xl border border-[#DCE6EE] px-3 py-2.5 text-sm" placeholder="Marque *" value={vehicule.marque} onChange={(e) => setVehicule({ ...vehicule, marque: e.target.value })} />
+                      <input className="rounded-xl border border-[#DCE6EE] px-3 py-2.5 text-sm" placeholder="Modèle *" value={vehicule.modele} onChange={(e) => setVehicule({ ...vehicule, modele: e.target.value })} />
+                      <input className="rounded-xl border border-[#DCE6EE] px-3 py-2.5 text-sm" placeholder="Année" inputMode="numeric" value={vehicule.annee} onChange={(e) => setVehicule({ ...vehicule, annee: e.target.value })} />
+                      <input className="rounded-xl border border-[#DCE6EE] px-3 py-2.5 text-sm" placeholder="Énergie" value={vehicule.carburant} onChange={(e) => setVehicule({ ...vehicule, carburant: e.target.value })} />
+                    </div>
+                    <button type="button" className="mt-3 w-full rounded-2xl bg-[#111111] py-3.5 text-sm font-black text-white disabled:opacity-50" disabled={!vehicule.marque.trim() || !vehicule.modele.trim()} onClick={() => setStep(3)}>Continuer avec ce véhicule <ArrowRight size={16} className="ml-1 inline" /></button>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="mt-6 flex items-center justify-between gap-3">
+              <button type="button" onClick={() => setMode("landing")} className="rounded-2xl border-2 border-[#CBD8E5] bg-white px-5 py-3 text-sm font-black text-[#34465D] hover:bg-[#F7FAFC]"><ArrowLeft size={16} className="mr-1 inline" /> Garages</button>
+              <button type="button" onClick={() => {
+                if (plaque.trim() || vin.trim()) identifierVehicule();
+                else if (vehicule.marque.trim() && vehicule.modele.trim()) setStep(3);
+                else setIdentificationPanel("vehicle");
+              }} className="rounded-2xl bg-[#111111] px-6 py-3 text-sm font-black text-white shadow-md hover:bg-[#252525]">Suivant <ArrowRight size={16} className="ml-1 inline" /></button>
+            </div>
           </div>
         </div>
       )}
