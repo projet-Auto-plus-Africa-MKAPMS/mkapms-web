@@ -217,6 +217,23 @@ const TRAVAUX_CARROSSERIE = [
   },
 ];
 
+const GROUPES_PRESTATIONS_CARROSSERIE = [
+  {
+    id: "carrosserie-esthetique",
+    label: "Carrosserie et esthétique",
+    desc: "Tôlerie, peinture et remise en état",
+    category: "carrosserie" as const,
+    ids: ["debosselage", "peinture", "pare-chocs", "ailes", "capot", "portes", "optiques", "marbre", "remplacement", "tolerie"],
+  },
+  {
+    id: "vision-pare-brise",
+    label: "Vision et pare-brise",
+    desc: "Pare-brise, vitrages et visibilité",
+    category: "vitrage" as const,
+    ids: ["pare-brise", "vitres-laterales", "lunette-arriere", "retroviseurs", "phares-feux"],
+  },
+];
+
 /* Carrossiers : données réelles via trpc.garages.list (table garages_publics,
    déjà utilisée par PriseRendezVous.tsx — jamais un second annuaire). Aucun
    calcul de distance : pas de clé Google Maps configurée (tâche #50). */
@@ -232,6 +249,7 @@ export default function CarrosserieGarage() {
   const [landingEstimationService, setLandingEstimationService] = useState("");
   const [landingEstimationSearch, setLandingEstimationSearch] = useState("");
   const [landingEstimationLocation, setLandingEstimationLocation] = useState("");
+  const [landingIdentTab, setLandingIdentTab] = useState<"plaque" | "vin" | "manuel">("plaque");
   const [step, setStep] = useState(1);
   const [carrosserieCategory, setCarrosserieCategory] = useState<"carrosserie" | "vitrage">("carrosserie");
   const [carrosserieSearch, setCarrosserieSearch] = useState("");
@@ -252,6 +270,7 @@ export default function CarrosserieGarage() {
   const [selectedTravauxId, setSelectedTravauxId] = useState("");
   const [selectedTravauxIds, setSelectedTravauxIds] = useState<string[]>([]);
   const [expandedTravauxIds, setExpandedTravauxIds] = useState<string[]>([]);
+  const [expandedPrestationGroups, setExpandedPrestationGroups] = useState<string[]>([]);
   const [selectedPrestations, setSelectedPrestations] = useState<Record<string, string[]>>({});
   const [selectedSubType, setSelectedSubType] = useState("");
   const [descriptionLibre, setDescriptionLibre] = useState("");
@@ -278,6 +297,7 @@ export default function CarrosserieGarage() {
   const vitrageIds = new Set(["pare-brise", "vitres-laterales", "lunette-arriere", "retroviseurs", "phares-feux"]);
   const visibleTravaux = TRAVAUX_CARROSSERIE.filter((t) => (carrosserieCategory === "vitrage" ? vitrageIds.has(t.id) : !vitrageIds.has(t.id))).filter((t) => !carrosserieSearch.trim() || `${t.label} ${t.desc}`.toLowerCase().includes(carrosserieSearch.toLowerCase()));
   const selectedPrestationCount = Object.values(selectedPrestations).reduce((sum, items) => sum + items.length, 0);
+  const visiblePrestationGroups = GROUPES_PRESTATIONS_CARROSSERIE.filter((group) => group.category === carrosserieCategory).map((group) => ({ ...group, travaux: visibleTravaux.filter((t) => group.ids.includes(t.id)) }));
   const selectedCarrossier = CARROSSIERS.find((c) => c.id === selectedCarrossierId);
 
   const create = trpc.devis.create.useMutation({
@@ -434,14 +454,22 @@ export default function CarrosserieGarage() {
                         </button>
                         {landingEstimationPanel === "vehicle" && (
                           <div className="rounded-2xl border border-[#DCE6EE] bg-[#FAFCFD] p-3">
-                            <div className="grid grid-cols-2 border-b border-[#DCE6EE]">
-                              <button type="button" onClick={() => setIdentTab("plaque")} className={`py-2 text-xs font-black ${identTab === "plaque" ? "border-b-2 border-[#D4AF37] text-[#102A43]" : "text-[#94A3B8]"}`}>PLAQUE D’IMMATRICULATION</button>
-                              <button type="button" onClick={() => setIdentTab("vin")} className={`py-2 text-xs font-black ${identTab === "vin" ? "border-b-2 border-[#D4AF37] text-[#102A43]" : "text-[#94A3B8]"}`}>NUMÉRO VIN</button>
+                            <div className="grid grid-cols-3 border-b border-[#DCE6EE]">
+                              <button type="button" onClick={() => setLandingIdentTab("plaque")} className={`rounded-t-xl py-2 text-[11px] font-black ${landingIdentTab === "plaque" ? "border-2 border-b-0 border-[#08A8C1] bg-[#E8F8FB] text-[#087C91]" : "text-[#64748B]"}`}>Plaque d’immatriculation</button>
+                              <button type="button" onClick={() => setLandingIdentTab("vin")} className={`rounded-t-xl py-2 text-[11px] font-black ${landingIdentTab === "vin" ? "border-2 border-b-0 border-[#08A8C1] bg-[#E8F8FB] text-[#087C91]" : "text-[#64748B]"}`}>Numéro VIN</button>
+                              <button type="button" onClick={() => setLandingIdentTab("manuel")} className={`rounded-t-xl py-2 text-[11px] font-black ${landingIdentTab === "manuel" ? "border-2 border-b-0 border-[#08A8C1] bg-[#E8F8FB] text-[#087C91]" : "text-[#64748B]"}`}>Saisie manuelle</button>
                             </div>
-                            <div className="mt-3 flex items-center gap-2 rounded-2xl border border-[#DCE6EE] bg-white px-3 py-2.5">
-                              <span className="rounded-lg bg-[#0B6B8F] px-2 py-1 text-xs font-black text-white">{identTab === "plaque" ? "FR" : "VIN"}</span>
-                              <input value={identTab === "plaque" ? plaque : vin} onChange={(event) => identTab === "plaque" ? setPlaque(event.target.value.toUpperCase()) : setVin(event.target.value.toUpperCase())} placeholder={identTab === "plaque" ? "Ex. AB-123-CD" : "Saisir le numéro VIN"} className="min-w-0 flex-1 bg-transparent text-sm font-semibold text-[#102A43] outline-none placeholder:text-[#A0AEC0]" />
-                            </div>
+                            {landingIdentTab === "manuel" ? (
+                              <div className="mt-3 grid grid-cols-2 gap-2">
+                                <input value={vehicule.marque} onChange={(event) => setVehicule({ ...vehicule, marque: event.target.value })} placeholder="Marque" className="rounded-xl border border-[#DCE6EE] bg-white px-3 py-2.5 text-sm text-[#102A43] outline-none" />
+                                <input value={vehicule.modele} onChange={(event) => setVehicule({ ...vehicule, modele: event.target.value })} placeholder="Modèle" className="rounded-xl border border-[#DCE6EE] bg-white px-3 py-2.5 text-sm text-[#102A43] outline-none" />
+                              </div>
+                            ) : (
+                              <div className="mt-3 flex items-center gap-2 rounded-2xl border border-[#DCE6EE] bg-white px-3 py-2.5">
+                                <span className="rounded-lg bg-[#0B6B8F] px-2 py-1 text-xs font-black text-white">{landingIdentTab === "plaque" ? "FR" : "VIN"}</span>
+                                <input value={landingIdentTab === "plaque" ? plaque : vin} onChange={(event) => landingIdentTab === "plaque" ? setPlaque(event.target.value.toUpperCase()) : setVin(event.target.value.toUpperCase())} placeholder={landingIdentTab === "plaque" ? "Ex. AB-123-CD" : "Saisir le numéro VIN"} className="min-w-0 flex-1 bg-transparent text-sm font-semibold text-[#102A43] outline-none placeholder:text-[#A0AEC0]" />
+                              </div>
+                            )}
                             <button type="button" onClick={() => setLandingEstimationPanel(null)} className="mt-3 w-full rounded-xl bg-[#D4AF37] py-2.5 text-xs font-black text-white">Valider le véhicule</button>
                           </div>
                         )}
@@ -474,8 +502,8 @@ export default function CarrosserieGarage() {
                           </div>
                         )}
                       </div>
-                      <p className="mt-4 text-center text-xs text-[#64748B]">{plaque || vin ? "Véhicule identifié" : "Véhicule à identifier"} · {landingEstimationLocation || "zone à renseigner"} · {landingEstimationService ? TRAVAUX_CARROSSERIE.find((t) => t.id === landingEstimationService)?.label : "prestation à choisir"}</p>
-                      <button type="button" disabled={!plaque.trim() && !vin.trim()} onClick={() => navigate(`/devis?estimation=1&service=carrosserie-esthetique&prestation=${encodeURIComponent(landingEstimationService)}&zone=${encodeURIComponent(landingEstimationLocation)}`)} className="mt-3 flex w-full items-center justify-center gap-2 rounded-2xl bg-[#F8CFA5] py-3.5 text-sm font-black text-white shadow-sm transition hover:bg-[#F3B980] disabled:cursor-not-allowed disabled:opacity-50">Voir l’estimation <ArrowRight size={17} /></button>
+                      <p className="mt-4 text-center text-xs text-[#64748B]">{plaque || vin || (vehicule.marque.trim() && vehicule.modele.trim()) ? "Véhicule identifié" : "Véhicule à identifier"} · {landingEstimationLocation || "zone à renseigner"} · {landingEstimationService ? TRAVAUX_CARROSSERIE.find((t) => t.id === landingEstimationService)?.label : "prestation à choisir"}</p>
+                      <button type="button" disabled={!plaque.trim() && !vin.trim() && !(vehicule.marque.trim() && vehicule.modele.trim())} onClick={() => navigate(`/devis?estimation=1&service=carrosserie-esthetique&prestation=${encodeURIComponent(landingEstimationService)}&zone=${encodeURIComponent(landingEstimationLocation)}&marque=${encodeURIComponent(vehicule.marque)}&modele=${encodeURIComponent(vehicule.modele)}`)} className="mt-3 flex w-full items-center justify-center gap-2 rounded-2xl bg-[#F8CFA5] py-3.5 text-sm font-black text-white shadow-sm transition hover:bg-[#F3B980] disabled:cursor-not-allowed disabled:opacity-50">Voir l’estimation <ArrowRight size={17} /></button>
                     </div>
                   )}
                 </div>
@@ -668,32 +696,37 @@ export default function CarrosserieGarage() {
           <div className="mt-6 rounded-3xl border-2 border-[#0BA6BD] bg-white p-4 shadow-[0_12px_32px_rgba(11,166,189,0.12)] sm:p-6">
             <div className="flex items-center gap-3 border-b border-[#DCE6EE] pb-4"><span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#EAF8FA] text-2xl">🔧</span><div><h2 className="text-lg font-black text-[#102A43]">Choisissez votre prestation</h2><p className="text-xs text-[#64748B]">Sélection multiple possible</p></div></div>
             <div className="mt-4 flex items-center gap-2 rounded-2xl border border-[#DCE6EE] bg-[#F8FBFC] px-4 py-3"><Search size={20} className="text-[#0BA6BD]" /><input value={carrosserieSearch} onChange={(e) => setCarrosserieSearch(e.target.value)} className="w-full bg-transparent text-sm text-[#102A43] outline-none placeholder:text-[#94A3B8]" placeholder="Rechercher : aile, pare-chocs, peinture, vitrage…" /></div>
-            <div className="mt-4 grid grid-cols-2 gap-2"><button type="button" onClick={() => setCarrosserieCategory("carrosserie")} className={`rounded-xl px-3 py-3 text-sm font-black transition ${carrosserieCategory === "carrosserie" ? "bg-[#0BA6BD] text-white" : "bg-[#F5F8FA] text-[#64748B]"}`}>Carrosserie & esthétique</button><button type="button" onClick={() => setCarrosserieCategory("vitrage")} className={`rounded-xl px-3 py-3 text-sm font-black transition ${carrosserieCategory === "vitrage" ? "bg-[#0BA6BD] text-white" : "bg-[#F5F8FA] text-[#64748B]"}`}>Carrosserie & vitrage</button></div>
+            <div className="mt-4 grid grid-cols-2 gap-2"><button type="button" onClick={() => setCarrosserieCategory("carrosserie")} className={`rounded-xl px-3 py-3 text-sm font-black transition ${carrosserieCategory === "carrosserie" ? "bg-[#0BA6BD] text-white" : "bg-[#F5F8FA] text-[#64748B]"}`}>Carrosserie & esthétique</button><button type="button" onClick={() => setCarrosserieCategory("vitrage")} className={`rounded-xl px-3 py-3 text-sm font-black transition ${carrosserieCategory === "vitrage" ? "bg-[#0BA6BD] text-white" : "bg-[#F5F8FA] text-[#64748B]"}`}>Vision & vitrage</button></div>
             <div className="mt-4 divide-y divide-[#DCE6EE]">
-              {visibleTravaux.map((t) => {
-                const expanded = expandedTravauxIds.includes(t.id);
-                const checked = selectedTravauxIds.includes(t.id);
+              {visiblePrestationGroups.map((group) => {
+                const groupExpanded = expandedPrestationGroups.includes(group.id);
                 return (
-                  <div key={t.id} className="py-2">
-                    <button type="button" onClick={() => { setExpandedTravauxIds((prev) => prev.includes(t.id) ? prev.filter((id) => id !== t.id) : [...prev, t.id]); setSelectedTravauxId(t.id); }} className="flex w-full items-center gap-3 rounded-xl px-2 py-3 text-left transition hover:bg-[#F8FBFC]">
-                      <span className="min-w-0 flex-1"><span className="block text-sm font-extrabold text-[#102A43]">{t.label}</span><span className="mt-0.5 block text-xs text-[#64748B]">{t.desc}</span></span>
-                      <input type="checkbox" checked={checked} onChange={() => { setSelectedTravauxId(t.id); setSelectedTravauxIds((prev) => prev.includes(t.id) ? prev.filter((id) => id !== t.id) : [...prev, t.id]); if (checked) setSelectedPrestations((prev) => { const next = { ...prev }; delete next[t.id]; return next; }); }} onClick={(event) => event.stopPropagation()} className="h-5 w-5 shrink-0 accent-[#0BA6BD]" aria-label={`Sélectionner ${t.label}`} />
-                      <span className={`text-xl transition ${expanded ? "rotate-180 text-[#0BA6BD]" : "text-[#F28C28]"}`}>⌄</span>
+                  <div key={group.id} className="py-1">
+                    <button type="button" onClick={() => setExpandedPrestationGroups((prev) => prev.includes(group.id) ? prev.filter((id) => id !== group.id) : [...prev, group.id])} className="flex w-full items-center gap-3 px-2 py-4 text-left">
+                      <span className="min-w-0 flex-1"><span className="block text-base font-black text-[#2F3640]">{group.label}</span><span className="mt-0.5 block text-xs text-[#64748B]">{group.desc}</span></span>
+                      <ChevronDown size={21} className={`shrink-0 text-[#F28C28] transition-transform ${groupExpanded ? "rotate-180" : ""}`} />
                     </button>
-                    {expanded && (
-                      <div className="mt-1 rounded-2xl bg-[#F3F8FA] px-3">
-                        {t.subTypes.map((st) => {
-                          const selected = selectedPrestations[t.id]?.includes(st.label) ?? false;
-                          return (
-                            <label key={st.label} className="flex cursor-pointer items-center justify-between gap-3 border-b border-[#DCE6EE] py-3 last:border-b-0">
-                              <span className="text-sm text-[#34465D]">{st.label}</span>
-                              <input type="checkbox" checked={selected} onChange={() => { setSelectedSubType(st.label); setSelectedPrestations((prev) => { const current = prev[t.id] ?? []; const next = current.includes(st.label) ? current.filter((label) => label !== st.label) : [...current, st.label]; return { ...prev, [t.id]: next }; }); setSelectedTravauxIds((prev) => prev.includes(t.id) ? prev : [...prev, t.id]); setSelectedTravauxId(t.id); }} className="h-5 w-5 shrink-0 accent-[#0BA6BD]" />
-                            </label>
-                          );
-                        })}
-                        <textarea className="my-3 min-h-20 w-full rounded-xl border border-[#DCE6EE] bg-white p-3 text-sm text-[#102A43] outline-none placeholder:text-[#94A3B8]" placeholder="Décrivez les dégâts ou les éléments à remplacer…" value={descriptionLibre} onChange={(e) => setDescriptionLibre(e.target.value)} />
-                      </div>
-                    )}
+                    {groupExpanded && <div className="mb-2 rounded-2xl bg-[#F8FBFC] px-3">
+                      {group.travaux.map((t) => {
+                        const expanded = expandedTravauxIds.includes(t.id);
+                        const checked = selectedTravauxIds.includes(t.id);
+                        return (
+                          <div key={t.id} className="border-b border-[#DCE6EE] py-1 last:border-b-0">
+                            <button type="button" onClick={() => { setExpandedTravauxIds((prev) => prev.includes(t.id) ? prev.filter((id) => id !== t.id) : [...prev, t.id]); setSelectedTravauxId(t.id); }} className="flex w-full items-center gap-3 py-3 text-left">
+                              <span className="min-w-0 flex-1"><span className="block text-sm font-extrabold text-[#34465D]">{t.label}</span><span className="mt-0.5 block text-xs text-[#64748B]">{t.desc}</span></span>
+                              <input type="checkbox" checked={checked} onChange={() => { setSelectedTravauxId(t.id); setSelectedTravauxIds((prev) => prev.includes(t.id) ? prev.filter((id) => id !== t.id) : [...prev, t.id]); if (checked) setSelectedPrestations((prev) => { const next = { ...prev }; delete next[t.id]; return next; }); }} onClick={(event) => event.stopPropagation()} className="h-5 w-5 shrink-0 accent-[#0BA6BD]" aria-label={`Sélectionner ${t.label}`} />
+                              <ChevronDown size={19} className={`shrink-0 text-[#F28C28] transition-transform ${expanded ? "rotate-180" : ""}`} />
+                            </button>
+                            {expanded && <div className="mb-3 rounded-xl bg-white px-3">
+                              {t.subTypes.map((st) => {
+                                const selected = selectedPrestations[t.id]?.includes(st.label) ?? false;
+                                return <label key={st.label} className="flex cursor-pointer items-center justify-between gap-3 border-b border-[#E6EEF2] py-3 last:border-b-0"><span className="text-sm text-[#34465D]">{st.label}</span><input type="checkbox" checked={selected} onChange={() => { setSelectedSubType(st.label); setSelectedPrestations((prev) => { const current = prev[t.id] ?? []; const next = current.includes(st.label) ? current.filter((label) => label !== st.label) : [...current, st.label]; return { ...prev, [t.id]: next }; }); setSelectedTravauxIds((prev) => prev.includes(t.id) ? prev : [...prev, t.id]); setSelectedTravauxId(t.id); }} className="h-5 w-5 shrink-0 accent-[#0BA6BD]" /></label>;
+                              })}
+                            </div>}
+                          </div>
+                        );
+                      })}
+                    </div>}
                   </div>
                 );
               })}
