@@ -228,6 +228,10 @@ export default function CarrosserieGarage() {
 
   const [mode, setMode] = useState<"landing" | "flow">("landing");
   const [landingCard, setLandingCard] = useState<"devis" | "estimation" | null>(null);
+  const [landingEstimationPanel, setLandingEstimationPanel] = useState<"vehicle" | "location" | "service" | null>(null);
+  const [landingEstimationService, setLandingEstimationService] = useState("");
+  const [landingEstimationSearch, setLandingEstimationSearch] = useState("");
+  const [landingEstimationLocation, setLandingEstimationLocation] = useState("");
   const [step, setStep] = useState(1);
   const [carrosserieCategory, setCarrosserieCategory] = useState<"carrosserie" | "vitrage">("carrosserie");
   const [carrosserieSearch, setCarrosserieSearch] = useState("");
@@ -367,6 +371,24 @@ export default function CarrosserieGarage() {
           </div>
         </div>
 
+        {/* Suivi du parcours Carrosserie : conservé sur l’accueil et défilable sur mobile. */}
+        <div className="border-b border-[#DCE6EE] bg-white px-4 py-3 shadow-sm">
+          <div className="mx-auto max-w-6xl overflow-x-auto overscroll-x-contain scrollbar-thin scrollbar-thumb-[#D4AF37]/50">
+            <div className="flex min-w-max items-start justify-center gap-2 px-1 md:gap-4">
+              {STEPS_LABELS.slice(0, 5).map((s, i) => (
+                <div key={s.num} className="flex items-center gap-2 md:gap-4">
+                  <div className="flex min-w-[74px] flex-col items-center">
+                    <span className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-black ${i === 0 ? "bg-[#D4AF37] text-white" : "bg-[#E5E7EB] text-[#9CA3AF]"}`}>{s.num}</span>
+                    <span className={`mt-1 text-[10px] font-bold ${i === 0 ? "text-[#102A43]" : "text-[#9CA3AF]"}`}>{s.label}</span>
+                  </div>
+                  {i < 4 && <div className="h-0.5 w-8 bg-[#E5E7EB] md:w-14" />}
+                </div>
+              ))}
+            </div>
+            <p className="mt-2 text-center text-[10px] text-[#9CA3AF] md:hidden">Faites glisser pour voir toutes les étapes</p>
+          </div>
+        </div>
+
         {/* DEUX ACCÈS COMPACTS : le contenu s’ouvre dans la carte choisie. */}
         <div className="relative z-10 mx-auto -mt-8 max-w-6xl px-4 md:px-8">
           <div className="grid gap-3 md:grid-cols-2 md:gap-4">
@@ -383,7 +405,7 @@ export default function CarrosserieGarage() {
                     <span className="min-w-0 flex-1"><span className="block text-sm font-black text-[#102A43] sm:text-base">{card.title}</span><span className="mt-0.5 block text-xs text-[#64748B]">{card.text}</span></span>
                     <ChevronDown size={19} className={`shrink-0 text-[#64748B] transition-transform ${open ? "rotate-180" : ""}`} />
                   </button>
-                  {open && (
+                  {open && card.id === "devis" && (
                     <div className="border-t border-[#DCE6EE] px-4 pb-4 pt-3 sm:px-5 sm:pb-5">
                       <div className="grid grid-cols-2 border-b border-[#DCE6EE]">
                         <button type="button" onClick={() => setIdentTab("plaque")} className={`py-2 text-xs font-black ${identTab === "plaque" ? "border-b-2 border-[#D4AF37] text-[#102A43]" : "text-[#94A3B8]"}`}>PLAQUE D’IMMATRICULATION</button>
@@ -396,6 +418,60 @@ export default function CarrosserieGarage() {
                       <button type="button" disabled={!plaque.trim() && !vin.trim()} onClick={() => { if (card.id === "devis") { if (!user) { navigate("/connexion"); return; } setMode("flow"); setStep(1); } else { navigate("/devis?estimation=1&service=carrosserie-esthetique"); } }} className="mt-3 flex w-full items-center justify-center gap-2 rounded-2xl bg-[#D4AF37] py-3 text-sm font-black text-white shadow-sm transition hover:bg-[#C5A028] disabled:cursor-not-allowed disabled:opacity-40">
                         {card.id === "devis" ? "Continuer vers le devis" : "Voir l’estimation"}<ArrowRight size={16} />
                       </button>
+                    </div>
+                  )}
+                  {open && card.id === "estimation" && (
+                    <div className="border-t border-[#DCE6EE] bg-[#F3FBFC] px-4 pb-5 pt-4 sm:px-6 sm:pb-6">
+                      <div className="space-y-3 rounded-[1.75rem] bg-white p-3 shadow-sm sm:p-4">
+                        <button type="button" onClick={() => setLandingEstimationPanel(landingEstimationPanel === "vehicle" ? null : "vehicle")} className="flex w-full items-center gap-3 rounded-2xl border-2 border-[#CBD8E5] bg-white px-4 py-4 text-left">
+                          <span className="text-2xl">🚗</span>
+                          <span className="min-w-0 flex-1"><span className="block text-base font-black text-[#102A43]">Identifier mon véhicule</span><span className="mt-0.5 block text-xs text-[#64748B]">Plaque, VIN ou saisie manuelle</span></span>
+                          <ChevronDown size={20} className={`shrink-0 text-[#F28C28] transition-transform ${landingEstimationPanel === "vehicle" ? "rotate-180" : ""}`} />
+                        </button>
+                        {landingEstimationPanel === "vehicle" && (
+                          <div className="rounded-2xl border border-[#DCE6EE] bg-[#FAFCFD] p-3">
+                            <div className="grid grid-cols-2 border-b border-[#DCE6EE]">
+                              <button type="button" onClick={() => setIdentTab("plaque")} className={`py-2 text-xs font-black ${identTab === "plaque" ? "border-b-2 border-[#D4AF37] text-[#102A43]" : "text-[#94A3B8]"}`}>PLAQUE D’IMMATRICULATION</button>
+                              <button type="button" onClick={() => setIdentTab("vin")} className={`py-2 text-xs font-black ${identTab === "vin" ? "border-b-2 border-[#D4AF37] text-[#102A43]" : "text-[#94A3B8]"}`}>NUMÉRO VIN</button>
+                            </div>
+                            <div className="mt-3 flex items-center gap-2 rounded-2xl border border-[#DCE6EE] bg-white px-3 py-2.5">
+                              <span className="rounded-lg bg-[#0B6B8F] px-2 py-1 text-xs font-black text-white">{identTab === "plaque" ? "FR" : "VIN"}</span>
+                              <input value={identTab === "plaque" ? plaque : vin} onChange={(event) => identTab === "plaque" ? setPlaque(event.target.value.toUpperCase()) : setVin(event.target.value.toUpperCase())} placeholder={identTab === "plaque" ? "Ex. AB-123-CD" : "Saisir le numéro VIN"} className="min-w-0 flex-1 bg-transparent text-sm font-semibold text-[#102A43] outline-none placeholder:text-[#A0AEC0]" />
+                            </div>
+                            <button type="button" onClick={() => setLandingEstimationPanel(null)} className="mt-3 w-full rounded-xl bg-[#D4AF37] py-2.5 text-xs font-black text-white">Valider le véhicule</button>
+                          </div>
+                        )}
+
+                        <button type="button" onClick={() => setLandingEstimationPanel(landingEstimationPanel === "location" ? null : "location")} className="flex w-full items-center gap-3 rounded-2xl border-2 border-[#CBD8E5] bg-white px-4 py-4 text-left">
+                          <MapPin size={27} className="shrink-0 text-[#08A8C1]" />
+                          <span className="min-w-0 flex-1"><span className="block text-base font-black text-[#102A43]">Ajouter ma localisation</span><span className="mt-0.5 block text-xs text-[#64748B]">Ville ou code postal</span></span>
+                          <ChevronDown size={20} className={`shrink-0 text-[#F28C28] transition-transform ${landingEstimationPanel === "location" ? "rotate-180" : ""}`} />
+                        </button>
+                        {landingEstimationPanel === "location" && (
+                          <div className="rounded-2xl border border-[#DCE6EE] bg-[#FAFCFD] p-3">
+                            <input value={landingEstimationLocation} onChange={(event) => setLandingEstimationLocation(event.target.value)} placeholder="Ex. Paris ou 75015" className="w-full rounded-xl border border-[#DCE6EE] bg-white px-3 py-2.5 text-sm text-[#102A43] outline-none placeholder:text-[#A0AEC0]" />
+                            <button type="button" onClick={() => setLandingEstimationPanel(null)} className="mt-3 w-full rounded-xl bg-[#0BA6BD] py-2.5 text-xs font-black text-white">Valider la localisation</button>
+                          </div>
+                        )}
+
+                        <button type="button" onClick={() => setLandingEstimationPanel(landingEstimationPanel === "service" ? null : "service")} className="flex w-full items-center gap-3 rounded-2xl border-2 border-[#CBD8E5] bg-white px-4 py-4 text-left">
+                          <span className="text-2xl">🔧</span>
+                          <span className="min-w-0 flex-1"><span className="block text-base font-black text-[#102A43]">Choisissez votre prestation</span><span className="mt-0.5 block text-xs text-[#64748B]">Carrosserie et vitrage uniquement</span></span>
+                          <ChevronDown size={20} className={`shrink-0 text-[#F28C28] transition-transform ${landingEstimationPanel === "service" ? "rotate-180" : ""}`} />
+                        </button>
+                        {landingEstimationPanel === "service" && (
+                          <div className="rounded-2xl border border-[#DCE6EE] bg-[#FAFCFD] p-3">
+                            <div className="flex items-center gap-2 rounded-xl border border-[#DCE6EE] bg-white px-3 py-2"><Search size={17} className="text-[#08A8C1]" /><input value={landingEstimationSearch} onChange={(event) => setLandingEstimationSearch(event.target.value)} placeholder="Rechercher une prestation carrosserie…" className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-[#A0AEC0]" /></div>
+                            <div className="mt-2 max-h-64 overflow-y-auto divide-y divide-[#DCE6EE]">
+                              {TRAVAUX_CARROSSERIE.filter((t) => !landingEstimationSearch.trim() || `${t.label} ${t.desc}`.toLowerCase().includes(landingEstimationSearch.toLowerCase())).map((t) => (
+                                <button key={t.id} type="button" onClick={() => { setLandingEstimationService(t.id); setLandingEstimationPanel(null); }} className={`flex w-full items-center justify-between gap-3 py-3 text-left ${landingEstimationService === t.id ? "text-[#0B6B8F]" : "text-[#102A43]"}`}><span><span className="block text-sm font-black">{t.label}</span><span className="block text-xs text-[#64748B]">{t.desc}</span></span><span className="text-[#F28C28]">⌄</span></button>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                      <p className="mt-4 text-center text-xs text-[#64748B]">{plaque || vin ? "Véhicule identifié" : "Véhicule à identifier"} · {landingEstimationLocation || "zone à renseigner"} · {landingEstimationService ? TRAVAUX_CARROSSERIE.find((t) => t.id === landingEstimationService)?.label : "prestation à choisir"}</p>
+                      <button type="button" disabled={!plaque.trim() && !vin.trim()} onClick={() => navigate(`/devis?estimation=1&service=carrosserie-esthetique&prestation=${encodeURIComponent(landingEstimationService)}&zone=${encodeURIComponent(landingEstimationLocation)}`)} className="mt-3 flex w-full items-center justify-center gap-2 rounded-2xl bg-[#F8CFA5] py-3.5 text-sm font-black text-white shadow-sm transition hover:bg-[#F3B980] disabled:cursor-not-allowed disabled:opacity-50">Voir l’estimation <ArrowRight size={17} /></button>
                     </div>
                   )}
                 </div>
