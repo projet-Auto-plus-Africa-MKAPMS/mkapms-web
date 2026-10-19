@@ -9,6 +9,8 @@ import {
   annonces,
   users,
   partsOrders,
+  partsOrderItems,
+  partsStock,
   partsOrderTracking,
   wallets,
   payouts as ledgerPayouts,
@@ -65,6 +67,41 @@ async function superviserPaiement(opts: {
   } catch (err) {
     console.error("[payment] journal Smart Engine échoué:", (err as Error).message);
   }
+}
+
+/**
+ * Libère un brouillon de commande de pièces dont le paiement Stripe n'a pas abouti.
+ * Le stock réservé ne doit jamais rester bloqué après un abandon ou un refus.
+ */
+async function annulerBrouillonPieces(orderId: number) {
+  const [order] = await db
+    .select({ id: partsOrders.id, status: partsOrders.status })
+    .from(partsOrders)
+    .where(eq(partsOrders.id, orderId))
+    .limit(1);
+  if (!order || order.status !== "panier") return;
+
+  const items = await db.select().from(partsOrderItems).where(eq(partsOrderItems.orderId, orderId));
+  for (const item of items) {
+    const [stock] = await db
+      .select()
+      .from(partsStock)
+      .where(eq(partsStock.catalogId, item.catalogId))
+      .limit(1);
+    if (stock) {
+      await db
+        .update(partsStock)
+        .set({
+          quantiteReservee: Math.max(0, stock.quantiteReservee - item.quantite),
+          updatedAt: new Date(),
+        })
+        .where(eq(partsStock.id, stock.id));
+    }
+  }
+  await db
+    .update(partsOrders)
+    .set({ status: "annule", updatedAt: new Date() })
+    .where(and(eq(partsOrders.id, orderId), eq(partsOrders.status, "panier")));
 }
 
 /**
@@ -451,6 +488,9 @@ export async function handleStripeWebhook(req: Request, res: Response) {
             .update(payments)
             .set({ status: "cancelled", updatedAt: new Date() })
             .where(eq(payments.id, paymentId));
+          if (m.payment_kind === "pieces_order" && m.order_id) {
+            await annulerBrouillonPieces(Number(m.order_id));
+          }
           await superviserPaiement({
             userId,
             title: "Paiement non finalisé",
@@ -483,6 +523,9 @@ export async function handleStripeWebhook(req: Request, res: Response) {
             .update(payments)
             .set({ status: "failed", updatedAt: new Date() })
             .where(eq(payments.stripePaymentIntentId, pi.id));
+        }
+        if (m.payment_kind === "pieces_order" && m.order_id) {
+          await annulerBrouillonPieces(Number(m.order_id));
         }
         const reason = pi.last_payment_error?.message ?? "Votre paiement a été refusé.";
         await superviserPaiement({
