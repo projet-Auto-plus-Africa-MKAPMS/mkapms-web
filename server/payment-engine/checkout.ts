@@ -187,6 +187,9 @@ export async function createPaymentCheckout(input: CheckoutInput): Promise<Check
   try {
     session = await stripe.checkout.sessions.create({
       mode: "payment",
+      // Paiement par carte uniquement : Visa, Mastercard, CB, Amex, etc.
+      // Évite que Stripe affiche des moyens externes (Klarna, Bancontact, Amazon Pay...).
+      payment_method_types: ["card"],
       client_reference_id: String(input.userId),
       metadata: stringifiedMeta,
       // Propage les métadonnées au PaymentIntent : indispensable pour rattacher
