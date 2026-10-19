@@ -80,7 +80,7 @@ jobs:
         run: |
           if [ -n "$MKAPMS_KEYSTORE_BASE64" ]; then
             # Tolère retours à la ligne / espaces / CR collés avec le secret.
-            if printf '%s' "$MKAPMS_KEYSTORE_BASE64" | tr -d '[:space:]' | base64 -d > "$RUNNER_TEMP/mkapms-release.keystore" 2>/dev/null \
+            if printf '%s' "$MKAPMS_KEYSTORE_BASE64" | tr -d '[:space:]' | tr '_-' '/+' | base64 -d > "$RUNNER_TEMP/mkapms-release.keystore" 2>/dev/null \
               && [ -s "$RUNNER_TEMP/mkapms-release.keystore" ]; then
               echo "MKAPMS_KEYSTORE_FILE=$RUNNER_TEMP/mkapms-release.keystore" >> "$GITHUB_ENV"
             else
