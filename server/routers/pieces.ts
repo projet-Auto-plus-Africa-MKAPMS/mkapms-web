@@ -541,22 +541,8 @@ export const piecesRouter = router({
           }
         }
 
-        await tx.insert(partsOrderTracking).values({
-          orderId: nouvelleCommande.id,
-          status: "panier",
-          label: "Commande créée",
-          detail: input.modeRetrait === "retrait" ? "Retrait en magasin sélectionné" : `Livraison par ${input.livraisonType ?? "standard"}`,
-        });
-
-        await tx.insert(serviceTracking).values({
-          userId: ctx.user.uid,
-          serviceType: "commande_pieces",
-          serviceId: nouvelleCommande.id,
-          reference: ref,
-          titre: `Commande pièces ${ref}`,
-          status: "panier",
-          statusLabel: "Commande en panier",
-        });
+        // Ce brouillon sert uniquement à rattacher le paiement et à réserver le stock.
+        // Aucune trace client (« commande créée »), suivi ou notification avant Stripe.
 
         return nouvelleCommande;
       });
@@ -591,15 +577,7 @@ export const piecesRouter = router({
           payload: { source: "parts_catalog", sourceId: it.catalogId, declencheur: "vente" },
         });
       }
-      await notifyEvent({
-        userId: ctx.user.uid,
-        event: "commande_pieces_creee",
-        vars: {
-          reference: ref,
-          detail: `Votre commande de ${input.items.length} pièce(s) a été créée. ${input.modeRetrait === "retrait" ? "Retrait en magasin." : `Livraison par ${input.livraisonType ?? "standard"}.`}`,
-        },
-        url: `/compte`,
-      });
+      // Aucun événement de commande avant confirmation Stripe.
 
       return order;
     }),
@@ -716,7 +694,7 @@ export const piecesRouter = router({
     }),
 
   myOrders: protectedProcedure.query(async ({ ctx }) => {
-    const orders = await db.select().from(partsOrders).where(eq(partsOrders.buyerId, ctx.user.uid)).orderBy(desc(partsOrders.createdAt));
+    const orders = await db.select().from(partsOrders).where(and(eq(partsOrders.buyerId, ctx.user.uid), sql`${partsOrders.status} <> 'panier'`)).orderBy(desc(partsOrders.createdAt));
     return orders;
   }),
 
