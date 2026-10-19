@@ -202,8 +202,8 @@ export default function Pieces() {
       setErreurPaiement(e instanceof Error ? e.message : "Erreur lors de la commande. Veuillez réessayer.");
       return;
     }
-    // Le panier reste disponible en cas d'abandon ou de refus du paiement.
     idempotencyKeyRef.current = null;
+    setCart([]);
     setShowCart(false);
     await ouvrirPaiement(orderId);
   };
