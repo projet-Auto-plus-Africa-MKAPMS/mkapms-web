@@ -172,11 +172,8 @@ export default function Pieces() {
   const idempotencyKeyRef = useRef<string | null>(null);
 
   /**
-   * Panier → commande → paiement, sans coupure.
-   *
-   * La commande créée est immédiatement suivie de l'ouverture du paiement : le
-   * panier n'est vidé qu'une fois la commande réellement enregistrée, et un
-   * échec de paiement laisse la commande consultable au lieu de la perdre.
+   * Panier → Stripe sans étape intermédiaire visible.
+   * Le serveur garde seulement un brouillon technique jusqu'au webhook Stripe.
    */
   const handleOrder = async () => {
     if (cart.length === 0) return;
@@ -205,8 +202,9 @@ export default function Pieces() {
       setErreurPaiement(e instanceof Error ? e.message : "Erreur lors de la commande. Veuillez réessayer.");
       return;
     }
+    // Ne vide pas le panier avant le paiement : en cas d'abandon ou de refus,
+    // le client doit pouvoir réessayer sans reconstruire son panier.
     idempotencyKeyRef.current = null;
-    setCart([]);
     setShowCart(false);
     await ouvrirPaiement(orderId);
   };
