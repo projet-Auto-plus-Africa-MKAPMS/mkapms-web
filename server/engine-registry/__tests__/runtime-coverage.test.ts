@@ -20,10 +20,19 @@ test("les 96 moteurs déclarés ont une surface runtime", () => {
 });
 
 test("chaque moteur n'a qu'une seule source de liaison runtime", () => {
-  const duplicates = [...new Set(allBindings)].filter(
-    (id) => allBindings.filter((candidate) => candidate === id).length > 1,
+  assert.equal(new Set(contracts).size, contracts.length, "Les contrats doivent être uniques.");
+  assert.equal(new Set(probes).size, probes.length, "Les sondes doivent être uniques.");
+  assert.equal(new Set(osBridges).size, osBridges.length, "Les ponts OS doivent être uniques.");
+  assert.deepEqual(
+    contracts.filter((id) => probes.includes(id)),
+    ["atelier"],
+    "Seul Atelier peut avoir à la fois un contrat central et une sonde métier dédiée.",
   );
-  assert.deepEqual(duplicates, [], "Un moteur ne doit pas être lié par plusieurs mécanismes concurrents.");
+  assert.deepEqual(
+    [...new Set([...contracts, ...probes])].filter((id) => osBridges.includes(id)),
+    [],
+    "Un moteur OS ne doit pas être déclaré avec un second pont de liaison.",
+  );
 });
 
 test("chaque sonde déclare au moins une table ou dépendance observable", () => {
