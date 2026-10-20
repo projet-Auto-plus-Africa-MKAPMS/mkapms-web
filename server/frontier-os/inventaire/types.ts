@@ -31,6 +31,8 @@ export interface LigneInventaire {
   readonly code: readonly string[];
   /** Service qui exécute le moteur. */
   readonly serviceExecution: string;
+  /** Liaison runtime observée par le registre (contrat, sonde ou pont OS). */
+  readonly liaisonRuntime?: string;
   /** Points d'entrée relevés (routes HTTP pour la Boutique, routeurs tRPC pour la plateforme). */
   readonly entrees: readonly string[];
   /** Nombre de points d'entrée réellement trouvés dans le code pour les motifs de liaison. */
