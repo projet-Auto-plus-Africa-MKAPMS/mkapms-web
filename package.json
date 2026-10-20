@@ -31,7 +31,7 @@
     "check:android-appids": "node scripts/check-android-appids.mjs",
     "gen:moteurs": "node scripts/gen-moteurs.mjs",
     "build:graph": "node scripts/code-graph.mjs",
-    "build": "npm run check:routers && npm run check:naming && npm run check:identite && npm run check:providers && npm run check:public-provider-leaks && npm run check:intelligence-chat && npm run check:routes && npm run check:boutons && npm run check:cliquables && npm run check:sections && npm run check:moteurs && npm run check:migrations && npm run build:graph && npm run build:client && npm run build:server",
+    "build": "npm run check:routers && npm run check:naming && npm run check:identite && npm run check:providers && npm run check:public-provider-leaks && npm run check:intelligence-chat && npm run check:routes && npm run check:boutons && npm run check:cliquables && npm run check:sections && npm run check:moteurs && npm run check:migrations && npm run test:engine-coverage && npm run build:graph && npm run build:client && npm run build:server",
     "build:client": "vite build",
     "build:server": "esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outfile=dist/server.js",
     "start": "node dist/server.js",
@@ -43,7 +43,8 @@
     "db:migrate": "tsx server/migrate.ts",
     "seed": "SEED_DIRECT=1 tsx server/seed.ts",
     "audit:intelligence-coverage": "tsx scripts/gen-intelligence-coverage.ts",
-    "test:button-motor": "node scripts/test-button-motor.mjs"
+    "test:button-motor": "node scripts/test-button-motor.mjs",
+    "test:engine-coverage": "node --import tsx --test server/engine-registry/__tests__/runtime-coverage.test.ts"
   },
   "dependencies": {
     "@capacitor/android": "^6.2.1",
