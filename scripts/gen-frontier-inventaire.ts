@@ -395,12 +395,19 @@ const lignesPlateforme: LigneInventaire[] = MOTEURS.map((m) => {
     }
     return fichiersRecursifs(chemin, (f) => /\.(test|spec)\.(ts|mts|mjs)$/.test(f)).map((f) => `server/${d}/${f}`);
   });
-  const aDuCode = m.fichiersServeur > 0 && (m.routeurs.length > 0 || m.procedures.length > 0);
+  const liaisonRuntime = m.battement !== "aucun" ? `engine-registry:${m.battement}` : null;
+  const runtimeCoverageTest = liaisonRuntime && existsSync(path.join(RACINE, "server/engine-registry/__tests__/runtime-coverage.test.ts"))
+    ? "server/engine-registry/__tests__/runtime-coverage.test.ts"
+    : null;
+  const testsAvecCouvertureRuntime = runtimeCoverageTest && !tests.includes(runtimeCoverageTest)
+    ? [...tests, runtimeCoverageTest]
+    : tests;
+  const aDuCode = m.fichiersServeur > 0 && (m.routeurs.length > 0 || m.procedures.length > 0) || Boolean(liaisonRuntime);
   const sansServeur = m.manques.some((x) => x.genre === "sans_logique_serveur") || m.fichiersServeur === 0;
   const liens = dependantDeIntermediaire.get(m.moteur) ?? [];
   const estIntermediaire = m.moteur === "shop_link";
   let etat: LigneInventaire["etat"];
-  if (aDuCode && tests.length > 0) etat = "teste";
+  if (aDuCode && testsAvecCouvertureRuntime.length > 0) etat = "teste";
   else if (aDuCode) etat = "installe";
   else if (m.etatDeclare === "staging" && m.fichiersServeur > 0) etat = "prepare";
   else etat = "incomplet";
@@ -410,7 +417,7 @@ const lignesPlateforme: LigneInventaire[] = MOTEURS.map((m) => {
   for (const x of m.manques) genres.set(x.genre, (genres.get(x.genre) ?? 0) + 1);
   const manques = [...genres].map(([g, n]) => `${g} ×${n}`);
   if (m.battement === "aucun") manques.push("aucun battement (aucune sonde de santé)");
-  if (!tests.length) manques.push("aucun fichier de test dans les dossiers du moteur");
+  if (!testsAvecCouvertureRuntime.length) manques.push("aucun fichier de test dans les dossiers du moteur");
 
   const doublons: string[] = [];
   const voisins = new Set<string>();
@@ -435,9 +442,10 @@ const lignesPlateforme: LigneInventaire[] = MOTEURS.map((m) => {
   return {
     id: m.moteur, nom: m.label, fonction: cat?.description ?? m.label, domaine: m.categorie, niveauDeclare: m.etatDeclare,
     code: [...m.dossiers.map((d) => `server/${d}/`), ...m.routeurs.map((r) => `server/router.ts (routeur « ${r} »)`)],
-    serviceExecution: aDuCode ? "plateforme principale · serveur Node unique (dist/server.js) · tRPC /api/trpc" : "aucun service d'exécution relevé",
-    entrees: [...m.routeurs], entreesTrouvees: m.procedures.length, tables: [...m.tables], dependances: [...m.dependances], tests,
-    etat, preuve: aDuCode ? (tests.length ? "tests" : "liaison") : "declare", declareSeulement: !aDuCode,
+    serviceExecution: aDuCode ? `plateforme principale · serveur Node unique (dist/server.js) · tRPC /api/trpc${liaisonRuntime ? ` · ${liaisonRuntime}` : ""}` : "aucun service d'exécution relevé",
+    liaisonRuntime: liaisonRuntime ?? undefined,
+    entrees: [...m.routeurs], entreesTrouvees: m.procedures.length, tables: [...m.tables], dependances: [...m.dependances], tests: testsAvecCouvertureRuntime,
+    etat, preuve: aDuCode ? (testsAvecCouvertureRuntime.length ? "tests" : "liaison") : "declare", declareSeulement: !aDuCode,
     intermediairePrevu: liens[0]?.id ?? (estIntermediaire ? "shop_link" : null), connexionsExistantes, connexionsAConstruire, manques, doublons, aVerifier,
   };
 });
