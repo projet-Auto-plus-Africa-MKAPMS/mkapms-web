@@ -38,6 +38,13 @@ interface OsEngineBinding {
  * `loadFeed` importe dynamiquement la surface publique du moteur : on ne
  * dépend jamais de son implémentation interne, seulement de son feed MOS.
  */
+export const OS_ENGINE_NAMES: readonly string[] = [
+  "country", "language", "identity", "notification", "document", "messaging",
+  "support", "contract", "investment", "journey", "search", "scheduler",
+  "media", "monitoring", "audit", "backup", "ai_learning", "risque_import",
+  "livraison_vehicule", "estimation", "visibility", "shop_link", "frontier_os",
+];
+
 const OS_ENGINES: OsEngineBinding[] = [
   // ── Fondateurs (déjà présents dans le catalogue) ──────────────────────
   {
