@@ -19,6 +19,18 @@ test("les 96 moteurs déclarés ont une surface runtime", () => {
   assert.deepEqual(missing, [], "Chaque moteur doit avoir un contrat, une sonde ou un pont OS.");
 });
 
+test("les moteurs signalés incomplets ont une liaison runtime réelle", () => {
+  const incomplete = MOTEURS.filter((engine) =>
+    engine.manques.some((missing) => missing.genre === "sans_logique_serveur"),
+  );
+  assert.equal(incomplete.length, 10, "Le registre doit rendre visibles les 10 moteurs signalés incomplets.");
+  assert.deepEqual(
+    incomplete.filter((engine) => engine.battement === "aucun"),
+    [],
+    "Un moteur signalé incomplet doit tout de même avoir une liaison runtime observable avant sa clôture.",
+  );
+});
+
 test("chaque moteur n'a qu'une seule source de liaison runtime", () => {
   assert.equal(new Set(contracts).size, contracts.length, "Les contrats doivent être uniques.");
   assert.equal(new Set(probes).size, probes.length, "Les sondes doivent être uniques.");
