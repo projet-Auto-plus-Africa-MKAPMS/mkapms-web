@@ -372,7 +372,14 @@ export const PERIMETRES: PerimetreDeclare[] = [
     moteur: "order_engine",
     dossiers: ["order-engine"],
     routeurs: ["orderEngine"],
-    routes: [],
+    routes: [
+      "/vehicule-sur-commande",
+      "/vehicule-sur-commande/depot",
+      "/vehicule-sur-commande/mes-vehicules",
+      "/vehicule-sur-commande/mes-vehicules/:orderItemId",
+      "/vehicule-sur-commande/mes-commandes",
+      "/vehicule-sur-commande/mes-commandes/:orderItemId",
+    ],
   },
   {
     moteur: "financial_intelligence",

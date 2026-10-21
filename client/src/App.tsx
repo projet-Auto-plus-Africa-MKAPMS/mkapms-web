@@ -31,6 +31,12 @@ const Acheter = lazy(() => import("./pages/Acheter"));
 const Louer = lazy(() => import("./pages/Louer"));
 const Vehicule = lazy(() => import("./pages/Vehicule"));
 const Vendre = lazy(() => import("./pages/Vendre"));
+const PortailVehiculeSurCommande = lazy(() => import("./pages/vehicule-sur-commande/Portail"));
+const DepotRapideVehiculeSurCommande = lazy(() => import("./pages/vehicule-sur-commande/DepotRapide"));
+const MesVehiculesEmploye = lazy(() => import("./pages/vehicule-sur-commande/MesVehiculesEmploye"));
+const CommandeDetailEmploye = lazy(() => import("./pages/vehicule-sur-commande/CommandeDetailEmploye"));
+const MesCommandesClient = lazy(() => import("./pages/vehicule-sur-commande/MesCommandes"));
+const CommandeDetailClient = lazy(() => import("./pages/vehicule-sur-commande/CommandeDetailClient"));
 const Devis = lazy(() => import("./pages/Devis"));
 const Garages = lazy(() => import("./pages/Garages"));
 const GaragePlus = lazy(() => import("./pages/GaragePlus"));
@@ -1007,6 +1013,13 @@ export default function App() {
             {/* Fallback générique — redirige vers le bon univers une fois l'annonce chargée */}
             <Route path="/vehicule/:id" element={<U name="Vente"><Vehicule /></U>} />
             <Route path="/vendre" element={<U name="Vente"><Vendre /></U>} />
+            {/* Portail « Véhicule sur commande » (demande PDG) — totalement séparé du VO existant */}
+            <Route path="/vehicule-sur-commande" element={<U name="Véhicule sur commande"><PortailVehiculeSurCommande /></U>} />
+            <Route path="/vehicule-sur-commande/depot" element={<U name="Véhicule sur commande"><DepotRapideVehiculeSurCommande /></U>} />
+            <Route path="/vehicule-sur-commande/mes-vehicules" element={<U name="Véhicule sur commande"><MesVehiculesEmploye /></U>} />
+            <Route path="/vehicule-sur-commande/mes-vehicules/:orderItemId" element={<U name="Véhicule sur commande"><CommandeDetailEmploye /></U>} />
+            <Route path="/vehicule-sur-commande/mes-commandes" element={<U name="Véhicule sur commande"><MesCommandesClient /></U>} />
+            <Route path="/vehicule-sur-commande/mes-commandes/:orderItemId" element={<U name="Véhicule sur commande"><CommandeDetailClient /></U>} />
             <Route path="/devis" element={<U name="Devis"><Devis /></U>} />
             <Route path="/garages" element={<U name="Réseau de garages"><Garages /></U>} />
             <Route path="/garages/:slug" element={<U name="Réseau de garages"><GaragePublicFiche /></U>} />

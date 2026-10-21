@@ -1,5 +1,5 @@
 import { useState, useRef, useMemo } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import {
   ChevronLeft, ChevronRight, ChevronDown, PlusCircle, Car, Bike, Truck,
   Camera, Check, Upload, FileText, Search, Sparkles, Bot, Star, Video, X,
@@ -331,6 +331,14 @@ const PHOTO_CATS_MOTO = [
 
 export default function DepotAnnonce() {
   const navigate = useNavigate();
+  // Bouton « Manuel » du portail « Véhicule sur commande » (demande PDG) :
+  // ce dépôt existant s'ouvre ici tel quel, sans second formulaire — seul le
+  // contexte fournisseur est transmis en query string, pour lier l'annonce
+  // qui en sortira dans l'Order Engine (server/routers/annonces.ts, champ
+  // `vehiculeSurCommande`). Absent → comportement strictement inchangé.
+  const [searchParams] = useSearchParams();
+  const supplierProfileIdParam = searchParams.get("supplierProfileId");
+  const vehiculeSurCommande = searchParams.get("vehiculeSurCommande") === "1" && supplierProfileIdParam ? { supplierProfileId: Number(supplierProfileIdParam) } : undefined;
   const [selectedType, setSelectedType] = useState<string | null>(null);
   const [step, setStep] = useState(0);
   const [plaqueMode, setPlaqueMode] = useState<"plaque" | "vin" | "manuel">("plaque");
@@ -510,6 +518,7 @@ export default function DepotAnnonce() {
       securite: securiteItems,
       multimedia: multimediaItems,
       videosNormales: videoUrls,
+      ...(vehiculeSurCommande ? { vehiculeSurCommande } : {}),
     });
   }
 

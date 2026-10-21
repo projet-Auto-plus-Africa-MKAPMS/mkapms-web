@@ -236,6 +236,12 @@ export default function Vehicule({ univers }: { univers?: string }) {
       if (r.url) window.location.href = r.url;
     },
   });
+  // Véhicule sur commande (Order Engine, demande PDG) — système totalement
+  // séparé de la réservation classique ci-dessus, jamais mélangé.
+  const commanderVehiculeSurCommande = trpc.orderEngine.creerCommande.useMutation({
+    onSuccess: (r) => navigate(`/vehicule-sur-commande/mes-commandes/${r.id}`),
+    onError: (e) => alert(e.message),
+  });
   // Ouvre (ou récupère) la conversation liée à cette annonce, puis va à la messagerie.
   const openThread = trpc.messages.openThread.useMutation({
     onSuccess: (r) => navigate(`/messagerie?thread=${r.threadId}`),
@@ -2226,8 +2232,28 @@ export default function Vehicule({ univers }: { univers?: string }) {
             </div>
           </div>
 
+          {/* Véhicule sur commande (Order Engine, demande PDG) — système
+              totalement séparé de la réservation classique ci-dessous. */}
+          {v.ownership === "partenaire" && (
+            <div id="commander" className="card p-5">
+              <h3 className="font-bold text-noir">
+                {v.vehiculeSurCommandeLabel === "disponible_sur_visite" ? "Disponible sur visite" : "Disponible sur commande"}
+              </h3>
+              <p className="mt-1 text-sm text-slate-500">
+                Ce véhicule est sourcé chez un fournisseur partenaire. Commandez-le dès maintenant : nous nous occupons de la suite.
+              </p>
+              <button
+                className="btn-reserver mt-4 w-full"
+                disabled={commanderVehiculeSurCommande.isPending}
+                onClick={() => requireLogin(() => commanderVehiculeSurCommande.mutate({ annonceId: v.id }))}
+              >
+                {commanderVehiculeSurCommande.isPending ? "Envoi…" : "Commander ce véhicule"}
+              </button>
+            </div>
+          )}
+
           {/* Réserver avec acompte (vente) — pour NON-MKA.P-MS, position ici ; pour MKA.P-MS, après Finance+ */}
-          {!isLocation && !isMkapmsStock && (
+          {!isLocation && !isMkapmsStock && v.ownership !== "partenaire" && (
             <div id="reserver" className="card p-5">
               <h3 className="font-bold text-noir">Réserver avec acompte</h3>
               <p className="mt-1 text-sm text-slate-500">
@@ -2327,7 +2353,7 @@ export default function Vehicule({ univers }: { univers?: string }) {
           )}
 
           {/* Réserver avec acompte — MKA.P-MS Officiel : positionné SOUS Finance+ */}
-          {!isLocation && isMkapmsStock && (
+          {!isLocation && isMkapmsStock && v.ownership !== "partenaire" && (
             <div id="reserver" className="card border-[#D4AF37]/20 p-5">
               <h3 className="font-bold text-noir">Réserver ce véhicule</h3>
               <p className="mt-1 text-sm text-slate-500">

@@ -8,7 +8,8 @@
  * automatiquement. Le client ne peut que consulter ses propres commandes.
  */
 import { z } from "zod";
-import { adminProcedure, protectedProcedure, publicProcedure, router } from "../trpc.js";
+import { adminProcedure, directionProcedure, protectedProcedure, publicProcedure, router } from "../trpc.js";
+import { lancerAssistantDepot, preparerPublicationAssistee, publierEtLierVehiculeSurCommande } from "./vehicule-sur-commande-ia.js";
 import { INTERNAL_ORDER_STATUSES, LISTING_CREATION_MODES, ORDER_DECISIONS, ORDER_DOCUMENT_TYPES, ORDER_ENGINE_META } from "./contract.js";
 import {
   OrderEngineError,
@@ -66,6 +67,44 @@ export const orderEngineRouter = router({
     .mutation(async ({ input, ctx }) => {
       try {
         return await enregistrerAnnonceSurCommande({ ...input, employeeId: ctx.user.uid });
+      } catch (e) {
+        toTrpcError(e);
+      }
+    }),
+
+  // ── Mode assisté par IA (sections 2, 4, 5, demande PDG) : outil d'aide
+  // uniquement, jamais une condition. Réutilise le Vehicle Engine existant.
+  assistantDepot: adminProcedure
+    .input(
+      z.object({
+        supplierProfileId: z.number().int().positive(),
+        supplierVehicleId: z.string().min(1).max(128),
+        ingestMethod: z.string().min(1).max(32),
+        rawData: z.record(z.unknown()),
+      }),
+    )
+    .mutation(({ input, ctx }) => lancerAssistantDepot({ ...input, actorId: ctx.user.uid })),
+
+  preparerPublicationAssistee: adminProcedure
+    .input(
+      z.object({
+        vehicleItemId: z.number().int().positive(),
+        supplierPrice: z.number().positive(),
+        supplierCurrency: z.string().min(3).max(8),
+        commissionRatePct: z.number().min(0).max(100),
+        pickupCity: z.string().max(120).optional(),
+        pickupCountryCode: z.string().min(2).max(4).optional(),
+      }),
+    )
+    .mutation(({ input, ctx }) => preparerPublicationAssistee({ ...input, actorId: ctx.user.uid })),
+
+  // Publication réelle : réservée à la Direction, même garde que
+  // `vehicleEngine.validerEtPublier` — jamais une mise en ligne automatique.
+  publierVehiculeSurCommande: directionProcedure
+    .input(z.object({ vehicleItemId: z.number().int().positive() }))
+    .mutation(async ({ input, ctx }) => {
+      try {
+        return await publierEtLierVehiculeSurCommande({ vehicleItemId: input.vehicleItemId, actorId: ctx.user.uid });
       } catch (e) {
         toTrpcError(e);
       }
@@ -249,12 +288,16 @@ export const orderEngineRouter = router({
         if (commande.customerId !== ctx.user.uid) throw new Error("Accès refusé.");
         const documents = await listerDocuments(input.orderItemId, { employeeView: false });
         return {
+          orderItemId: commande.id,
           reference: commande.reference,
           statutClient: deriveCustomerStatus(commande.status as never, decision?.decision as never),
           estimatedReadyAt: commande.estimatedReadyAt,
           totalAmount: commande.totalAmount,
           depositAmount: commande.depositAmount,
           balanceAmount: commande.balanceAmount,
+          // Jamais l'id de paiement interne — seulement « payé ou non ».
+          depositPaid: commande.depositPaymentRef !== null,
+          balancePaid: commande.balancePaymentRef !== null,
           currency: commande.currency,
           documents,
           etapes: historique.length,
