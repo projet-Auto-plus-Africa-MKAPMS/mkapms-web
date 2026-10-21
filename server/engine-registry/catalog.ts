@@ -252,6 +252,15 @@ export const ENGINE_CATALOG: EngineSeed[] = [
     state: "staging",
   },
   {
+    name: "order_engine",
+    label: "Order Engine",
+    category: "transversal",
+    dependencies: ["core", "permission", "payment", "event_bus", "vehicle_engine", "supplier_engine", "document_engine"],
+    description:
+      "Plan Maître Fournisseurs §36-37 (section COMMANDES) : portail « Véhicule sur commande » (demande PDG). Prend le relais du Vehicle Engine une fois un véhicule publié — suivi interne en 10 étapes (employé), statut client dérivé en 7 étapes, attribution employé, décision finale (accepté/retour/gardé), documents de commande via le Document OS existant. Système VO existant (server/modules/vo.ts) totalement séparé, jamais touché. Staging tant qu'aucune commande réelle n'a été menée de bout en bout.",
+    state: "staging",
+  },
+  {
     name: "search",
     label: "Search Engine",
     category: "transversal",

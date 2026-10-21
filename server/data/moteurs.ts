@@ -99,17 +99,18 @@ export interface PerimetreMoteur {
   readonly manques: readonly ManqueMoteur[];
 }
 
-export const MOTEURS_TOTAL = 96;
-export const MANQUES_TOTAL = 528;
+export const MOTEURS_TOTAL = 97;
+export const MANQUES_TOTAL = 535;
 export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
   "bouton_sans_action": 52,
-  "dependance_non_declaree": 67,
+  "dependance_non_declaree": 68,
   "sans_logique_serveur": 10,
   "ecran_sans_contenu": 340,
-  "sans_ecran": 8,
-  "dependance_sans_preuve": 41,
+  "sans_ecran": 9,
+  "dependance_sans_preuve": 45,
   "bouton_declare_absent_ecran": 6,
   "emission_dynamique": 2,
+  "sans_battement": 1,
   "destination_inconnue": 2
 };
 
@@ -6278,6 +6279,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "messaging",
       "monitoring",
       "notification",
+      "order_engine",
       "partner_engine",
       "parts_engine",
       "payment",
@@ -8063,7 +8065,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       ]
     },
     "dependants": [
-      "event_bus"
+      "event_bus",
+      "order_engine"
     ],
     "evenementsPublies": [
       "document.custody.handed_over",
@@ -8456,6 +8459,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "logistics_engine",
       "media_authenticity",
       "monitoring",
+      "order_engine",
       "parts_engine",
       "payment",
       "payout_engine",
@@ -9415,8 +9419,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "cliquables": 35,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 205,
-        "mots": 779
+        "textes": 210,
+        "mots": 799
       },
       {
         "fichier": "client/src/pages/garage/CentreLavage.tsx",
@@ -9913,8 +9917,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "professionnel",
       "public"
     ],
-    "textes": 783,
-    "mots": 2845,
+    "textes": 788,
+    "mots": 2865,
     "battement": "sonde",
     "manques": [
       {
@@ -10148,6 +10152,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "messaging",
       "monitoring",
       "notification",
+      "order_engine",
       "parts_engine",
       "payout_engine",
       "permission",
@@ -14701,6 +14706,142 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     ]
   },
   {
+    "moteur": "order_engine",
+    "label": "Order Engine",
+    "categorie": "transversal",
+    "etatDeclare": "staging",
+    "dossiers": [
+      "order-engine"
+    ],
+    "routeurs": [
+      "orderEngine"
+    ],
+    "fichiersServeur": 4,
+    "dependancesDeclarees": [
+      "core",
+      "document_engine",
+      "event_bus",
+      "payment",
+      "permission",
+      "supplier_engine",
+      "vehicle_engine"
+    ],
+    "dependancesDetectees": [
+      "core",
+      "event_bus",
+      "identity",
+      "permission"
+    ],
+    "dependances": [
+      "core",
+      "document_engine",
+      "event_bus",
+      "identity",
+      "payment",
+      "permission",
+      "supplier_engine",
+      "vehicle_engine"
+    ],
+    "integrationsTechniques": [
+      "identity",
+      "permission"
+    ],
+    "preuvesDependances": {
+      "core": [
+        "order-engine/index.ts importe trpc.ts",
+        "order-engine/service.ts importe db.ts"
+      ],
+      "event_bus": [
+        "order-engine/service.ts importe event-bus/service.ts",
+        "order-engine/service.ts publie des événements"
+      ],
+      "identity": [
+        "order-engine/service.ts importe identity-os/contract.ts"
+      ],
+      "permission": [
+        "order-engine/index.ts filtre par rôle (procédure pro/admin/direction/PDG)"
+      ]
+    },
+    "dependants": [],
+    "evenementsPublies": [
+      "commande.creee",
+      "commande.decision_prise",
+      "commande.document_genere",
+      "commande.employe_attribue",
+      "commande.statut_change"
+    ],
+    "evenementsConsommes": [],
+    "abonnements": [],
+    "sourcesEmission": [],
+    "boutons": [],
+    "routes": [],
+    "ecrans": [],
+    "ecransHotes": [],
+    "procedures": [
+      "attribuerEmploye",
+      "avancerStatut",
+      "controlCenterFeed",
+      "creerCommande",
+      "dashboard",
+      "detailCommandeClient",
+      "detailCommandeEmploye",
+      "enregistrerDocument",
+      "healthStatus",
+      "journalAudit",
+      "mesCommandes",
+      "mesVehiculesAttribues",
+      "meta",
+      "poserDecision"
+    ],
+    "tables": [
+      "order_decisions",
+      "order_documents",
+      "order_engine_audit_log",
+      "order_items",
+      "order_status_history"
+    ],
+    "acces": [
+      "admin",
+      "connecte",
+      "public",
+      "role:annulee",
+      "role:prix_marge_valides"
+    ],
+    "textes": 0,
+    "mots": 0,
+    "battement": "aucun",
+    "manques": [
+      {
+        "genre": "dependance_non_declaree",
+        "detail": "identity — order-engine/service.ts importe identity-os/contract.ts"
+      },
+      {
+        "genre": "dependance_sans_preuve",
+        "detail": "payment"
+      },
+      {
+        "genre": "dependance_sans_preuve",
+        "detail": "vehicle_engine"
+      },
+      {
+        "genre": "dependance_sans_preuve",
+        "detail": "supplier_engine"
+      },
+      {
+        "genre": "dependance_sans_preuve",
+        "detail": "document_engine"
+      },
+      {
+        "genre": "sans_battement",
+        "detail": "ni sonde, ni pont OS, ni contrat, ni heartbeat dans le code"
+      },
+      {
+        "genre": "sans_ecran",
+        "detail": "aucune route client ne mène à ce moteur"
+      }
+    ]
+  },
+  {
     "moteur": "partner_engine",
     "label": "Partner Engine",
     "categorie": "transversal",
@@ -15279,6 +15420,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "intelligences",
       "livraison",
       "location",
+      "order_engine",
       "payment_orchestrator",
       "payout_engine",
       "pieces",
@@ -15920,6 +16062,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "document_engine",
       "frontier_os",
       "location",
+      "order_engine",
       "payment",
       "payout_engine",
       "redirection",
@@ -21778,6 +21921,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "dependants": [
       "document_engine",
       "logistics_engine",
+      "order_engine",
       "parts_engine",
       "payout_engine",
       "vehicle_engine"
@@ -22320,6 +22464,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "document_engine",
       "event_bus",
       "logistics_engine",
+      "order_engine",
       "payout_engine"
     ],
     "evenementsPublies": [
