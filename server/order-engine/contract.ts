@@ -22,7 +22,15 @@ export const INTERNAL_ORDER_STATUSES = [
   "inspection_realisee",
   "pret_visite_livraison",
   "decision_finale",
-  // Branches terminales / d'exception (§36 du Plan Maître).
+  // Issues de la décision finale (section 10, demande PDG du 21/10) — chacune
+  // son propre terminal, jamais un "remboursee" générique qui confondrait
+  // une vente réussie avec un retour.
+  "vendue",
+  "retour_en_cours",
+  "retournee",
+  "remise_en_stock",
+  // Branches terminales / d'exception (§36 du Plan Maître), possibles à tout
+  // moment avant la décision finale.
   "annulee",
   "litige",
   "remboursee",
@@ -30,12 +38,20 @@ export const INTERNAL_ORDER_STATUSES = [
 export type InternalOrderStatus = (typeof INTERNAL_ORDER_STATUSES)[number];
 
 export const TERMINAL_INTERNAL_STATUSES: InternalOrderStatus[] = [
+  "vendue",
+  "retournee",
+  "remise_en_stock",
   "annulee",
-  "litige",
   "remboursee",
 ];
 
-/** Transitions internes autorisées. "decision_finale" se résout ensuite via `order_decisions`, jamais un statut terminal en lui-même. */
+/**
+ * Transitions internes autorisées. "decision_finale" ne se résout JAMAIS par
+ * une transition manuelle libre : `poserDecision()` fait elle-même avancer
+ * vers l'issue correspondante (vendue / retour_en_cours / remise_en_stock),
+ * dans le même appel que l'enregistrement de la décision — jamais deux
+ * actions humaines séparées pour une seule décision.
+ */
 export const INTERNAL_STATUS_TRANSITIONS: Record<InternalOrderStatus, InternalOrderStatus[]> = {
   vehicule_selectionne: ["disponibilite_confirmee", "annulee"],
   disponibilite_confirmee: ["documents_controles", "annulee"],
@@ -46,7 +62,14 @@ export const INTERNAL_STATUS_TRANSITIONS: Record<InternalOrderStatus, InternalOr
   transport_organise: ["inspection_realisee", "litige"],
   inspection_realisee: ["pret_visite_livraison", "litige"],
   pret_visite_livraison: ["decision_finale", "litige"],
-  decision_finale: ["remboursee"],
+  decision_finale: ["vendue", "retour_en_cours", "remise_en_stock"],
+  vendue: [],
+  // Un remboursement partiel/total "selon contrat" (section 10) reste une
+  // action distincte (`rembourserCommande`), jamais une transition de statut
+  // supplémentaire : "retournee" décrit déjà complètement le sort du véhicule.
+  retour_en_cours: ["retournee"],
+  retournee: [],
+  remise_en_stock: [],
   annulee: [],
   litige: ["remboursee", "pret_visite_livraison"],
   remboursee: [],
@@ -121,9 +144,18 @@ export interface OrderEngineEventBase {
   orderItemId: number;
 }
 
+/**
+ * Origine d'une annonce « véhicule sur commande » (`order_listings`) —
+ * traçabilité uniquement, jamais une condition de fonctionnement (règle PDG
+ * absolue : l'IA n'est jamais un passage obligé).
+ */
+export const LISTING_CREATION_MODES = ["ia_assistee", "manuelle"] as const;
+export type ListingCreationMode = (typeof LISTING_CREATION_MODES)[number];
+
 /** Bus d'événements typés (voir server/event-bus/catalog.ts — domaine "commande"). */
 export type OrderEngineEvent =
-  | ({ type: "commande.creee"; vehicleItemId: number; customerId: number } & OrderEngineEventBase)
+  | { type: "commande.annonce_liee"; annonceId: number; supplierProfileId: number; vehicleItemId: number | null; creationMode: ListingCreationMode; employeeId: number }
+  | ({ type: "commande.creee"; vehicleItemId: number | null; customerId: number } & OrderEngineEventBase)
   | ({ type: "commande.employe_attribue"; employeeId: number; actorId: number } & OrderEngineEventBase)
   | ({ type: "commande.statut_change"; from: InternalOrderStatus; to: InternalOrderStatus; actorId: number | null } & OrderEngineEventBase)
   | ({ type: "commande.acompte_recu"; amount: number; currency: string } & OrderEngineEventBase)

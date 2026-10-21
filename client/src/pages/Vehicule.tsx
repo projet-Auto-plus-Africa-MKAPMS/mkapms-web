@@ -2030,6 +2030,7 @@ export default function Vehicule({ univers }: { univers?: string }) {
                   id: v.id, vendeurType: v.vendeurType, type: v.type,
                   status: v.status, boosted: v.boosted, certified: v.certified,
                   tier: v.tier, planCode: v.planCode, createdAt: v.createdAt,
+                  vehiculeSurCommandeLabel: v.vehiculeSurCommandeLabel,
                 }).filter((b) => !(isMkapmsStock && (b.code === "vendeur_pro" || b.code === "garage_verifie")));
                 return vehicleBadges.length > 0 ? (
                   <div className="absolute left-3 top-3 flex flex-col gap-1">

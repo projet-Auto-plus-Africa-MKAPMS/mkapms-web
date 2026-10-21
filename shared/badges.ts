@@ -23,6 +23,17 @@ export const BADGE_STOCK_OFFICIEL: Badge = {
   color: "bg-[#D4AF37]", textColor: "text-white",
   priority: 2, category: "mkapms",
 };
+/* ── Véhicule sur commande (Order Engine, Plan Maître §36-37) ── */
+export const BADGE_DISPONIBLE_SUR_COMMANDE: Badge = {
+  code: "disponible_sur_commande", label: "DISPONIBLE SUR COMMANDE",
+  color: "bg-blue-700", textColor: "text-white", borderColor: "border-[#D4AF37]",
+  priority: 2, category: "mkapms",
+};
+export const BADGE_DISPONIBLE_SUR_VISITE: Badge = {
+  code: "disponible_sur_visite", label: "DISPONIBLE SUR VISITE",
+  color: "bg-emerald-700", textColor: "text-white", borderColor: "border-[#D4AF37]",
+  priority: 2, category: "mkapms",
+};
 export const BADGE_CERTIFIE: Badge = {
   code: "certifie", label: "CERTIFIÉ",
   color: "bg-emerald-600", textColor: "text-white", borderColor: "border-[#D4AF37]",
@@ -195,6 +206,8 @@ export interface BadgeInput {
   vendeurRating?: number | null;     // note moyenne
   vendeurLitiges?: number | null;    // nombre de litiges graves
   segmentLocation?: string | null;
+  /** Statut public dérivé par l'Order Engine (section 3) — jamais un 3e statut stocké ici. */
+  vehiculeSurCommandeLabel?: "disponible_sur_commande" | "disponible_sur_visite" | null;
 }
 
 export function computeBadges(v: BadgeInput): Badge[] {
@@ -205,6 +218,11 @@ export function computeBadges(v: BadgeInput): Badge[] {
     badges.push(BADGE_MKAPMS_OFFICIEL);
     badges.push(BADGE_STOCK_OFFICIEL);
   }
+
+  // Véhicule sur commande (Order Engine) — statut déjà exclusif au stock
+  // officiel MKA.P-MS (IDs 8000-8005, ci-dessus) : jamais les deux à la fois.
+  if (v.vehiculeSurCommandeLabel === "disponible_sur_commande") badges.push(BADGE_DISPONIBLE_SUR_COMMANDE);
+  else if (v.vehiculeSurCommandeLabel === "disponible_sur_visite") badges.push(BADGE_DISPONIBLE_SUR_VISITE);
 
   // Certifié
   if (v.certified) badges.push(BADGE_CERTIFIE);

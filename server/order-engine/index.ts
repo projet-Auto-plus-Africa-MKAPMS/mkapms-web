@@ -9,24 +9,31 @@
  */
 import { z } from "zod";
 import { adminProcedure, protectedProcedure, publicProcedure, router } from "../trpc.js";
-import { INTERNAL_ORDER_STATUSES, ORDER_DECISIONS, ORDER_DOCUMENT_TYPES, ORDER_ENGINE_META } from "./contract.js";
+import { INTERNAL_ORDER_STATUSES, LISTING_CREATION_MODES, ORDER_DECISIONS, ORDER_DOCUMENT_TYPES, ORDER_ENGINE_META } from "./contract.js";
 import {
   OrderEngineError,
   VERSION,
   attribuerEmploye,
   avancerStatut,
   controlCenterFeed,
+  creerCheckoutAcompte,
+  creerCheckoutSolde,
   creerCommande,
   dashboard,
   deriveCustomerStatus,
+  enregistrerAnnonceSurCommande,
   enregistrerDocument,
+  genererDocumentCommande,
   healthStatus,
   journalAudit,
   listerCommandesClient,
   listerCommandesEmploye,
   listerDocuments,
   obtenirCommandeDetail,
+  obtenirLabelPublicParAnnonce,
   poserDecision,
+  rembourserCommande,
+  validerPrixEtMarge,
 } from "./service.js";
 
 function toTrpcError(e: unknown): never {
@@ -44,19 +51,37 @@ export const orderEngineRouter = router({
   controlCenterFeed: publicProcedure.query(() => controlCenterFeed()),
   dashboard: adminProcedure.query(() => dashboard()),
 
-  creerCommande: adminProcedure
+  // Lie une annonce déjà publiée (mode assisté par IA OU bouton « Manuel »,
+  // jamais l'inverse — voir section « règle Manuel », demande PDG du 21/10)
+  // à son fournisseur, avant même toute commande client.
+  enregistrerAnnonceSurCommande: adminProcedure
     .input(
       z.object({
-        vehicleItemId: z.number().int().positive(),
         annonceId: z.number().int().positive(),
         supplierProfileId: z.number().int().positive(),
-        customerId: z.number().int().positive(),
-        currency: z.string().length(3).optional(),
+        vehicleItemId: z.number().int().positive().optional(),
+        creationMode: z.enum(LISTING_CREATION_MODES),
       }),
     )
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
       try {
-        return await creerCommande(input);
+        return await enregistrerAnnonceSurCommande({ ...input, employeeId: ctx.user.uid });
+      } catch (e) {
+        toTrpcError(e);
+      }
+    }),
+
+  // Statut public dérivé (sections 3 et 6) — appelé par `annonces.get`,
+  // jamais en lisant `order_items` directement depuis un autre moteur.
+  labelPublic: publicProcedure.input(z.object({ annonceId: z.number().int().positive() })).query(({ input }) => obtenirLabelPublicParAnnonce(input.annonceId)),
+
+  // Le client ne connaît et ne transmet jamais vehicleItemId/supplierProfileId
+  // (confidentiels, section 6) : l'engine les relit depuis l'annonce liée.
+  creerCommande: protectedProcedure
+    .input(z.object({ annonceId: z.number().int().positive(), currency: z.string().length(3).optional() }))
+    .mutation(async ({ input, ctx }) => {
+      try {
+        return await creerCommande({ annonceId: input.annonceId, customerId: ctx.user.uid, currency: input.currency });
       } catch (e) {
         toTrpcError(e);
       }
@@ -102,6 +127,78 @@ export const orderEngineRouter = router({
     .mutation(async ({ input, ctx }) => {
       try {
         await poserDecision({ orderItemId: input.orderItemId, decision: input.decision, decidedBy: ctx.user.uid, note: input.note, returnReference: input.returnReference });
+        return { ok: true };
+      } catch (e) {
+        toTrpcError(e);
+      }
+    }),
+
+  // Étape 8 « Prix et marge validés » : toujours une saisie humaine. Le
+  // prix fournisseur reste strictement confidentiel (jamais lu côté client).
+  validerPrixEtMarge: adminProcedure
+    .input(
+      z.object({
+        orderItemId: z.number().int().positive(),
+        totalAmount: z.number().positive(),
+        depositAmount: z.number().nonnegative(),
+        balanceAmount: z.number().nonnegative(),
+        supplierPrice: z.number().positive(),
+        currency: z.string().length(3).optional(),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      try {
+        return await validerPrixEtMarge({ ...input, actorId: ctx.user.uid });
+      } catch (e) {
+        toTrpcError(e);
+      }
+    }),
+
+  // Paiement réel (Stripe, jamais un second système) — toujours à
+  // l'initiative du client ; la confirmation n'arrive que par webhook.
+  creerCheckoutAcompte: protectedProcedure
+    .input(z.object({ orderItemId: z.number().int().positive(), successPath: z.string(), cancelPath: z.string() }))
+    .mutation(async ({ input, ctx }) => {
+      try {
+        return await creerCheckoutAcompte({ orderItemId: input.orderItemId, customerId: ctx.user.uid, successPath: input.successPath, cancelPath: input.cancelPath });
+      } catch (e) {
+        toTrpcError(e);
+      }
+    }),
+
+  creerCheckoutSolde: protectedProcedure
+    .input(z.object({ orderItemId: z.number().int().positive(), successPath: z.string(), cancelPath: z.string() }))
+    .mutation(async ({ input, ctx }) => {
+      try {
+        return await creerCheckoutSolde({ orderItemId: input.orderItemId, customerId: ctx.user.uid, successPath: input.successPath, cancelPath: input.cancelPath });
+      } catch (e) {
+        toTrpcError(e);
+      }
+    }),
+
+  // Section 11 — génère réellement un document via le Document OS existant.
+  genererDocument: adminProcedure
+    .input(z.object({ orderItemId: z.number().int().positive(), documentType: z.enum(ORDER_DOCUMENT_TYPES) }))
+    .mutation(async ({ input, ctx }) => {
+      try {
+        return await genererDocumentCommande({ orderItemId: input.orderItemId, documentType: input.documentType, actorId: ctx.user.uid });
+      } catch (e) {
+        toTrpcError(e);
+      }
+    }),
+
+  rembourserCommande: adminProcedure
+    .input(
+      z.object({
+        orderItemId: z.number().int().positive(),
+        amount: z.number().positive(),
+        currency: z.string().length(3),
+        note: z.string().max(2000).optional(),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      try {
+        await rembourserCommande({ orderItemId: input.orderItemId, amount: input.amount, currency: input.currency, actorId: ctx.user.uid, note: input.note });
         return { ok: true };
       } catch (e) {
         toTrpcError(e);

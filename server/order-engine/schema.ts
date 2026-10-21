@@ -52,9 +52,17 @@ export const orderItems = pgTable(
     id: serial("id").primaryKey(),
     reference: varchar("reference", { length: 24 }).notNull().unique(),
 
-    /** `vehicle_items.id` (Vehicle Engine, LOT 2) — entier libre, jamais de FK dure inter-moteur. */
-    vehicleItemId: integer("vehicle_item_id").notNull(),
-    /** `annonces.id` — la fiche publique réutilisée telle quelle, jamais dupliquée. */
+    /**
+     * `vehicle_items.id` (Vehicle Engine, LOT 2) — entier libre, jamais de FK
+     * dure inter-moteur. NULLABLE : une annonce « véhicule sur commande »
+     * déposée via le bouton « Manuel » (système de dépôt existant,
+     * `annonces.create`) n'a jamais été ingérée par le Vehicle Engine — ce
+     * champ n'est renseigné que lorsque le mode assisté par IA (Vehicle AI
+     * Engine / Vehicle Engine) a produit l'annonce. L'IA ne doit jamais être
+     * une condition pour commander : ce champ ne peut donc jamais être requis.
+     */
+    vehicleItemId: integer("vehicle_item_id"),
+    /** `annonces.id` — la fiche publique réutilisée telle quelle, jamais dupliquée. Seule ancre réellement requise. */
     annonceId: integer("annonce_id").notNull(),
     /** `supplier_profiles.id` (Supplier Engine, LOT 1) — copié pour éviter une jointure inter-moteur à chaque lecture. */
     supplierProfileId: integer("supplier_profile_id").notNull(),
@@ -75,6 +83,19 @@ export const orderItems = pgTable(
     balanceAmount: numeric("balance_amount", { precision: 12, scale: 2 }),
     currency: varchar("currency", { length: 4 }).notNull().default("EUR"),
 
+    /**
+     * Prix fournisseur et marge — posés par un employé à l'étape « Prix et
+     * marge validés » (section 8, demande PDG). STRICTEMENT confidentiels :
+     * jamais lus par une procédure client (`detailCommandeClient`), jamais
+     * renvoyés par `annonces.get`. Nécessaires au versement fournisseur réel
+     * (Payout Engine) une fois la vente acceptée — même principe que
+     * `vehicle_pricing.supplierPrice` (Vehicle Engine), jamais recopiés en clair ailleurs.
+     */
+    supplierPriceConfidential: numeric("supplier_price_confidential", { precision: 12, scale: 2 }),
+    marginConfidential: numeric("margin_confidential", { precision: 12, scale: 2 }),
+    priceMarginValidatedBy: integer("price_margin_validated_by"),
+    priceMarginValidatedAt: timestamp("price_margin_validated_at"),
+
     /** `payments.id` / `bookings.id` existants — entiers libres, jamais un second système de paiement. */
     depositPaymentRef: integer("deposit_payment_ref"),
     balancePaymentRef: integer("balance_payment_ref"),
@@ -92,6 +113,40 @@ export const orderItems = pgTable(
     customerIdx: index("order_items_customer_idx").on(t.customerId),
     employeeIdx: index("order_items_employee_idx").on(t.assignedEmployeeId),
     statusIdx: index("order_items_status_idx").on(t.status),
+  }),
+);
+
+/**
+ * Lien entre une annonce « véhicule sur commande » déjà publiée (mode IA
+ * assistée OU bouton « Manuel » — sections 2-4, demande PDG) et son
+ * fournisseur, dès la publication, avant même qu'un client ne commande.
+ * Permet au statut public dérivé (sections 3 et 6) et à `creerCommande()`
+ * de retrouver `supplierProfileId`/`vehicleItemId` sans jamais exiger que
+ * l'appelant (client) les connaisse ou les fournisse — ces identifiants
+ * restent confidentiels, jamais transmis par un client (règle MOS :
+ * aucune donnée fournisseur côté client).
+ */
+export const orderListings = pgTable(
+  "order_listings",
+  {
+    id: serial("id").primaryKey(),
+    annonceId: integer("annonce_id").notNull().unique(),
+    /** `vehicle_items.id` (Vehicle Engine) — absent si déposée via le bouton « Manuel » (système de dépôt existant, jamais un second formulaire). */
+    vehicleItemId: integer("vehicle_item_id"),
+    supplierProfileId: integer("supplier_profile_id").notNull(),
+    /**
+     * "ia_assistee" | "manuelle" — traçabilité de l'origine uniquement,
+     * jamais une condition de fonctionnement : règle PDG absolue, l'IA
+     * n'est jamais un passage obligé pour publier, commander ou valider.
+     */
+    creationMode: varchar("creation_mode", { length: 16 }).notNull(),
+    createdByEmployeeId: integer("created_by_employee_id").notNull(),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  },
+  (t) => ({
+    annonceIdx: index("order_listings_annonce_idx").on(t.annonceId),
+    supplierIdx: index("order_listings_supplier_idx").on(t.supplierProfileId),
   }),
 );
 

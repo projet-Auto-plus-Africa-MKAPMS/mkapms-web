@@ -876,10 +876,18 @@ export const EVENT_TYPES: EventTypeSpec[] = [
   // commande » (demande PDG). Nouveau domaine "commande" : relais du Vehicle
   // Engine une fois un véhicule publié, jusqu'à la décision finale.
   {
+    code: "commande.annonce_liee",
+    domaine: "commande",
+    label: "Annonce liée à un fournisseur (véhicule sur commande)",
+    description: "Une annonce vient d'être publiée comme « véhicule sur commande » (mode assisté par IA ou bouton « Manuel », jamais l'inverse) et liée à son fournisseur.",
+    champs: ["annonceId", "supplierProfileId", "vehicleItemId", "creationMode", "employeeId"],
+    emetteurs: ["order_engine"],
+  },
+  {
     code: "commande.creee",
     domaine: "commande",
     label: "Commande créée",
-    description: "Un client vient d'engager une commande sur un véhicule publié « disponible sur commande ». Démarre le suivi interne en 10 étapes.",
+    description: "Un client vient d'engager une commande sur un véhicule publié « disponible sur commande ». Démarre le suivi interne en 10 étapes. `vehicleItemId` peut être absent (annonce déposée via le bouton « Manuel »).",
     champs: ["orderItemId", "vehicleItemId", "customerId"],
     emetteurs: ["order_engine"],
   },

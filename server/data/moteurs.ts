@@ -100,14 +100,14 @@ export interface PerimetreMoteur {
 }
 
 export const MOTEURS_TOTAL = 97;
-export const MANQUES_TOTAL = 535;
+export const MANQUES_TOTAL = 538;
 export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
   "bouton_sans_action": 52,
-  "dependance_non_declaree": 68,
+  "dependance_non_declaree": 72,
   "sans_logique_serveur": 10,
   "ecran_sans_contenu": 340,
   "sans_ecran": 9,
-  "dependance_sans_preuve": 45,
+  "dependance_sans_preuve": 44,
   "bouton_declare_absent_ecran": 6,
   "emission_dynamique": 2,
   "sans_battement": 1,
@@ -466,6 +466,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "livraison_vehicule",
       "messaging",
       "notification",
+      "order_engine",
       "payment",
       "permission",
       "redirection",
@@ -489,6 +490,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "livraison_vehicule",
       "messaging",
       "notification",
+      "order_engine",
       "payment",
       "permission",
       "redirection",
@@ -548,6 +550,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routers/annonces.ts importe modules/search-alerts.ts",
         "routers/annonces.ts importe services/email.ts",
         "routers/annonces.ts envoie un email"
+      ],
+      "order_engine": [
+        "routers/annonces.ts importe order-engine/service.ts"
       ],
       "payment": [
         "routers/annonces.ts importe payment-engine/checkout.ts",
@@ -616,7 +621,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "genre": "formulaire",
         "ecran": "/vehicule/:id",
         "fichier": "client/src/pages/Vehicule.tsx",
-        "ligne": 3150
+        "ligne": 3151
       }
     ],
     "routes": [
@@ -1350,6 +1355,10 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "genre": "dependance_non_declaree",
         "detail": "boutons — client/src/pages/Vehicule.tsx embarque lib/boutonMoteur.tsx (trpc.buttonEngine)"
+      },
+      {
+        "genre": "dependance_non_declaree",
+        "detail": "order_engine — routers/annonces.ts importe order-engine/service.ts"
       }
     ]
   },
@@ -1433,7 +1442,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "genre": "formulaire",
         "ecran": "/acheter/mkapms-officiel/vehicule/:id",
         "fichier": "client/src/pages/Vehicule.tsx",
-        "ligne": 3150
+        "ligne": 3151
       }
     ],
     "routes": [
@@ -1562,7 +1571,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "genre": "formulaire",
         "ecran": "/acheter/particulier/vehicule/:id",
         "fichier": "client/src/pages/Vehicule.tsx",
-        "ligne": 3150
+        "ligne": 3151
       }
     ],
     "routes": [
@@ -1691,7 +1700,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "genre": "formulaire",
         "ecran": "/acheter/professionnel/vehicule/:id",
         "fichier": "client/src/pages/Vehicule.tsx",
-        "ligne": 3150
+        "ligne": 3151
       }
     ],
     "routes": [
@@ -7776,6 +7785,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "frontier_os",
       "importafrica",
       "intelligences",
+      "order_engine",
       "vo_espaces"
     ],
     "evenementsPublies": [],
@@ -14728,16 +14738,21 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     ],
     "dependancesDetectees": [
       "core",
+      "document",
       "event_bus",
       "identity",
+      "payment",
+      "payout_engine",
       "permission"
     ],
     "dependances": [
       "core",
+      "document",
       "document_engine",
       "event_bus",
       "identity",
       "payment",
+      "payout_engine",
       "permission",
       "supplier_engine",
       "vehicle_engine"
@@ -14749,7 +14764,13 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "preuvesDependances": {
       "core": [
         "order-engine/index.ts importe trpc.ts",
-        "order-engine/service.ts importe db.ts"
+        "order-engine/service.ts importe db.ts",
+        "order-engine/service.ts importe schema.ts"
+      ],
+      "document": [
+        "order-engine/index.ts produit un document via Document OS",
+        "order-engine/service.ts importe document-os/index.ts",
+        "order-engine/service.ts produit un document via Document OS"
       ],
       "event_bus": [
         "order-engine/service.ts importe event-bus/service.ts",
@@ -14758,16 +14779,29 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "identity": [
         "order-engine/service.ts importe identity-os/contract.ts"
       ],
+      "payment": [
+        "order-engine/service.ts importe payment-engine/checkout.ts"
+      ],
+      "payout_engine": [
+        "order-engine/service.ts importe payout-engine/service.ts"
+      ],
       "permission": [
         "order-engine/index.ts filtre par rôle (procédure pro/admin/direction/PDG)"
       ]
     },
-    "dependants": [],
+    "dependants": [
+      "achat",
+      "payment"
+    ],
     "evenementsPublies": [
+      "commande.acompte_recu",
+      "commande.annonce_liee",
       "commande.creee",
       "commande.decision_prise",
       "commande.document_genere",
       "commande.employe_attribue",
+      "commande.remboursee",
+      "commande.solde_recu",
       "commande.statut_change"
     ],
     "evenementsConsommes": [],
@@ -14781,23 +14815,31 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "attribuerEmploye",
       "avancerStatut",
       "controlCenterFeed",
+      "creerCheckoutAcompte",
+      "creerCheckoutSolde",
       "creerCommande",
       "dashboard",
       "detailCommandeClient",
       "detailCommandeEmploye",
+      "enregistrerAnnonceSurCommande",
       "enregistrerDocument",
+      "genererDocument",
       "healthStatus",
       "journalAudit",
+      "labelPublic",
       "mesCommandes",
       "mesVehiculesAttribues",
       "meta",
-      "poserDecision"
+      "poserDecision",
+      "rembourserCommande",
+      "validerPrixEtMarge"
     ],
     "tables": [
       "order_decisions",
       "order_documents",
       "order_engine_audit_log",
       "order_items",
+      "order_listings",
       "order_status_history"
     ],
     "acces": [
@@ -14813,11 +14855,15 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "manques": [
       {
         "genre": "dependance_non_declaree",
+        "detail": "document — order-engine/index.ts produit un document via Document OS"
+      },
+      {
+        "genre": "dependance_non_declaree",
         "detail": "identity — order-engine/service.ts importe identity-os/contract.ts"
       },
       {
-        "genre": "dependance_sans_preuve",
-        "detail": "payment"
+        "genre": "dependance_non_declaree",
+        "detail": "payout_engine — order-engine/service.ts importe payout-engine/service.ts"
       },
       {
         "genre": "dependance_sans_preuve",
@@ -15340,6 +15386,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "country",
       "event_bus",
       "livraison_vehicule",
+      "order_engine",
       "payment_orchestrator",
       "permission",
       "smart",
@@ -15352,6 +15399,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "country",
       "event_bus",
       "livraison_vehicule",
+      "order_engine",
       "payment_orchestrator",
       "permission",
       "smart",
@@ -15384,6 +15432,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       ],
       "livraison_vehicule": [
         "client/src/pages/PaiementVehicule.tsx appelle trpc.livraisonVehicule"
+      ],
+      "order_engine": [
+        "stripeWebhook.ts importe order-engine/service.ts"
       ],
       "payment_orchestrator": [
         "payment-engine/checkout.ts importe payment-orchestrator/service.ts",
@@ -15746,6 +15797,10 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "genre": "dependance_non_declaree",
         "detail": "cartegrise — stripeWebhook.ts importe modules/cartegrise.ts"
+      },
+      {
+        "genre": "dependance_non_declaree",
+        "detail": "order_engine — stripeWebhook.ts importe order-engine/service.ts"
       }
     ]
   },
@@ -15925,6 +15980,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "dependants": [
       "document_engine",
       "event_bus",
+      "order_engine",
       "vehicle_engine"
     ],
     "evenementsPublies": [

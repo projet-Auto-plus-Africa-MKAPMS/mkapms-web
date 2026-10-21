@@ -22,6 +22,7 @@ import { resolvePermission } from "../permission-engine/intelligence.js";
 import { termGroups } from "../search-os/index.js";
 import { IDENTITE_OFFICIELLE, estDirection } from "../identity-os/identite-officielle.js";
 import type { UserRole } from "@shared/roles.js";
+import { enregistrerAnnonceSurCommande, obtenirLabelPublicParAnnonce } from "../order-engine/service.js";
 
 /**
  * Les politiques contextuelles du Permission Engine (refus par pays, par
@@ -395,6 +396,13 @@ export const annoncesRouter = router({
         ? await db.select().from(users).where(eq(users.id, a.ownerId)).limit(1)
         : [];
 
+      // Order Engine — statut public « disponible sur commande / sur visite »
+      // (sections 3 et 6, demande PDG). Uniquement pour les annonces
+      // « partenaire » (fournisseur, pas encore possédées par MKA.P-MS) —
+      // jamais calculé pour les annonces normales, pour ne pas alourdir
+      // chaque lecture d'annonce.
+      const vehiculeSurCommandeLabel = a.ownership === "partenaire" ? await obtenirLabelPublicParAnnonce(a.id) : null;
+
       // Corriger les champs JSONB qui auraient été double-encodés (stockés
       // comme chaîne JSON au lieu d'un tableau). Garantit que le frontend
       // reçoit toujours un tableau, jamais une chaîne.
@@ -406,6 +414,7 @@ export const annoncesRouter = router({
 
       return {
         ...a,
+        vehiculeSurCommandeLabel,
         pointsForts: safeArray(a.pointsForts),
         equipements: safeArray(a.equipements),
         imperfections: safeArray(a.imperfections),
@@ -827,10 +836,18 @@ export const annoncesRouter = router({
         categorieAnnonce: z.enum(["officielle", "professionnelle", "particulier"]).optional(),
         // Employé: publier au nom d'un client
         onBehalfOfUserId: z.number().optional(),
+        // Employé uniquement — bouton « Manuel » du portail « Véhicule sur
+        // commande » (demande PDG) : réutilise ce même dépôt existant plutôt
+        // que de créer un second formulaire. Marque l'annonce comme
+        // « partenaire » (fournisseur, pas encore possédée par MKA.P-MS) et
+        // la lie à son fournisseur dans l'Order Engine, dans le même appel.
+        vehiculeSurCommande: z
+          .object({ supplierProfileId: z.number().int().positive(), vehicleItemId: z.number().int().positive().optional() })
+          .optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const { photos, pointsForts, equipements, imperfections, garanties, confort, multimedia, securite, videos360, videosNormales, categorieAnnonce: inputCatAnnonce, onBehalfOfUserId, ...rest } = input;
+      const { photos, pointsForts, equipements, imperfections, garanties, confort, multimedia, securite, videos360, videosNormales, categorieAnnonce: inputCatAnnonce, onBehalfOfUserId, vehiculeSurCommande, ...rest } = input;
       await refusParPolitique(ctx.user, "creer", rest.pays ?? null);
 
       // Déterminer la catégorie d'annonce — vérifier le rôle ACTUEL en DB (le JWT peut être périmé)
@@ -863,7 +880,10 @@ export const annoncesRouter = router({
 
       // Déduire vendeurType et ownership depuis categorieAnnonce
       const vendeurType = categorieAnnonce === "particulier" ? "particulier" : "professionnel";
-      const ownership = categorieAnnonce === "officielle" ? "plateforme" : "client";
+      // « partenaire » (véhicule sur commande, fournisseur — jamais encore
+      // possédé par MKA.P-MS) ne peut jamais être déduit par un particulier
+      // ou un pro : seul un employé, via `vehiculeSurCommande`, l'obtient.
+      const ownership = vehiculeSurCommande ? "partenaire" : categorieAnnonce === "officielle" ? "plateforme" : "client";
 
       // Propriétaire effectif : si un employé publie au nom d'un client
       const effectiveOwnerId = (isEmployee && onBehalfOfUserId) ? onBehalfOfUserId : ctx.user.uid;
@@ -875,6 +895,9 @@ export const annoncesRouter = router({
       }
       if (categorieAnnonce === "professionnelle" && !isProUser && !isEmployee) {
         throw new TRPCError({ code: "FORBIDDEN", message: "Seuls les professionnels et la direction peuvent créer des annonces professionnelles" });
+      }
+      if (vehiculeSurCommande && !isEmployee) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Seuls les employés peuvent déposer un véhicule sur commande." });
       }
 
       const [created] = await db
@@ -946,6 +969,19 @@ export const annoncesRouter = router({
       const reference = makeReference("A", created.id);
       await db.update(annonces).set({ reference }).where(eq(annonces.id, created.id));
       created.reference = reference;
+
+      // Bouton « Manuel » du portail « Véhicule sur commande » (demande PDG) :
+      // ce dépôt existant sert tel quel, sans second formulaire — on se
+      // contente de lier l'annonce qu'il vient de produire à son fournisseur.
+      if (vehiculeSurCommande) {
+        await enregistrerAnnonceSurCommande({
+          annonceId: created.id,
+          supplierProfileId: vehiculeSurCommande.supplierProfileId,
+          vehicleItemId: vehiculeSurCommande.vehicleItemId,
+          creationMode: "manuelle",
+          employeeId: ctx.user.uid,
+        });
+      }
 
       if (photos.length) {
         await db.insert(annoncePhotos).values(
