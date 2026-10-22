@@ -43,7 +43,6 @@ const SUPPLIER_PROFILE_ID = 930001;
 const EMPLOYEE_ID = 930002;
 const CUSTOMER_ID = 930003;
 const AUTRE_CLIENT_ID = 930004;
-const VEHICLE_ITEM_ID = 930005;
 
 let idsAnnonces: number[] = [];
 let idsOrders: number[] = [];
@@ -94,7 +93,7 @@ async function creerAnnonceFixture(): Promise<number> {
       modele: "308",
       prix: "15000",
       ownership: "partenaire",
-      categorieAnnonce: "officielle",
+      categorieAnnonce: "professionnelle",
       status: "publiee",
     })
     .returning({ id: annonces.id });
@@ -112,11 +111,10 @@ async function main() {
   const listing = await orderEngine.enregistrerAnnonceSurCommande({
     annonceId,
     supplierProfileId: SUPPLIER_PROFILE_ID,
-    vehicleItemId: VEHICLE_ITEM_ID,
     creationMode: "manuelle",
     employeeId: EMPLOYEE_ID,
   });
-  verif("1b. annonce liée en mode 'manuelle' (bouton Manuel, jamais un second formulaire)", listing.creationMode === "manuelle" && listing.vehicleItemId === VEHICLE_ITEM_ID);
+  verif("1b. annonce liée en mode 'manuelle' (bouton Manuel, jamais un second formulaire), sans vehicleItemId (aucun Vehicle Engine impliqué)", listing.creationMode === "manuelle" && listing.vehicleItemId === null);
   await assert.rejects(
     () => orderEngine.enregistrerAnnonceSurCommande({ annonceId, supplierProfileId: SUPPLIER_PROFILE_ID, creationMode: "ia_assistee", employeeId: EMPLOYEE_ID }),
     /déjà enregistrée/,
@@ -126,7 +124,7 @@ async function main() {
   // ── 2. Création de commande : jamais vehicleItemId/supplierProfileId transmis ──
   const commande = await orderEngine.creerCommande({ annonceId, customerId: CUSTOMER_ID });
   idsOrders.push(commande.id);
-  verif("2. commande créée, vehicleItemId relu depuis order_listings (jamais transmis par le client)", commande.vehicleItemId === VEHICLE_ITEM_ID && commande.supplierProfileId === SUPPLIER_PROFILE_ID);
+  verif("2. commande créée, supplierProfileId relu depuis order_listings (jamais transmis par le client)", commande.vehicleItemId === null && commande.supplierProfileId === SUPPLIER_PROFILE_ID);
   verif("2b. statut initial 'vehicule_selectionne'", commande.status === "vehicule_selectionne");
 
   await assert.rejects(() => orderEngine.creerCommande({ annonceId, customerId: AUTRE_CLIENT_ID }), /déjà en cours/);

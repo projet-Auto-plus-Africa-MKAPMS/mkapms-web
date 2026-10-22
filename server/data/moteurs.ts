@@ -623,7 +623,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "genre": "formulaire",
         "ecran": "/vehicule/:id",
         "fichier": "client/src/pages/Vehicule.tsx",
-        "ligne": 3177
+        "ligne": 3188
       }
     ],
     "routes": [
@@ -1456,7 +1456,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "genre": "formulaire",
         "ecran": "/acheter/mkapms-officiel/vehicule/:id",
         "fichier": "client/src/pages/Vehicule.tsx",
-        "ligne": 3177
+        "ligne": 3188
       }
     ],
     "routes": [
@@ -1594,7 +1594,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "genre": "formulaire",
         "ecran": "/acheter/particulier/vehicule/:id",
         "fichier": "client/src/pages/Vehicule.tsx",
-        "ligne": 3177
+        "ligne": 3188
       }
     ],
     "routes": [
@@ -1732,7 +1732,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "genre": "formulaire",
         "ecran": "/acheter/professionnel/vehicule/:id",
         "fichier": "client/src/pages/Vehicule.tsx",
-        "ligne": 3177
+        "ligne": 3188
       }
     ],
     "routes": [
@@ -14832,6 +14832,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "order-engine/vehicule-sur-commande-ia.ts filtre par rôle (procédure pro/admin/direction/PDG)"
       ],
       "vehicle_engine": [
+        "order-engine/service.ts importe vehicle-engine/service.ts",
         "order-engine/vehicule-sur-commande-ia.ts importe vehicle-engine/service.ts"
       ]
     },

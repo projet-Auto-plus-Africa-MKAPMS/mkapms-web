@@ -433,10 +433,15 @@ export default function Vehicule({ univers }: { univers?: string }) {
   };
 
   // « Acheter » : achat comptant → page de paiement du véhicule.
+  // Véhicule sur commande (Order Engine, demande PDG) : système totalement
+  // séparé — ce bouton (et « Réserver » ci-dessous) commande la commande
+  // plutôt que de passer par l'ancien paiement véhicule direct.
   const primaryAction = () =>
     requireLogin(() => {
       if (risqueRetient()) return;
-      if (isLocation) {
+      if (v.ownership === "partenaire") {
+        commanderVehiculeSurCommande.mutate({ annonceId: v.id });
+      } else if (isLocation) {
         navigate("/compte/messages");
       } else {
         navigate(`/paiement-vehicule/${annonceId}`);
@@ -446,6 +451,10 @@ export default function Vehicule({ univers }: { univers?: string }) {
   const reserveAction = () =>
     requireLogin(() => {
       if (risqueRetient()) return;
+      if (v.ownership === "partenaire") {
+        commanderVehiculeSurCommande.mutate({ annonceId: v.id });
+        return;
+      }
       navigate(`/paiement-vehicule/${annonceId}?mode=acompte`);
     });
   /**
@@ -458,7 +467,9 @@ export default function Vehicule({ univers }: { univers?: string }) {
    */
   const acompteAction = () =>
     requireLogin(() => {
-      if (isDemo) navigate("/compte/messages");
+      if (v.ownership === "partenaire") {
+        commanderVehiculeSurCommande.mutate({ annonceId: v.id });
+      } else if (isDemo) navigate("/compte/messages");
       else navigate(`/paiement-vehicule/${annonceId}?mode=acompte`);
     });
   // « Contacter le vendeur » : messagerie liée à cette annonce précise.

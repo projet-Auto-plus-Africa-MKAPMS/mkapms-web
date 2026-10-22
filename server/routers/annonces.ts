@@ -857,7 +857,13 @@ export const annoncesRouter = router({
       const isEmployee = isAdminUser || currentRole === "employee";
       const isProUser = currentRole === "pro" || currentRole === "garage" || currentRole === "society";
       let categorieAnnonce: "officielle" | "professionnelle" | "particulier";
-      if (isEmployee && inputCatAnnonce) {
+      if (vehiculeSurCommande) {
+        // Jamais "officielle" : ce libellé déclenche l'affichage "MKA.P-MS
+        // Officiel" côté fiche produit (pensé pour le stock déjà possédé,
+        // VO), ce qui mélangerait visuellement un véhicule pas encore
+        // possédé avec le VO existant — jamais voulu (demande PDG).
+        categorieAnnonce = "professionnelle";
+      } else if (isEmployee && inputCatAnnonce) {
         // L'employé/admin peut choisir explicitement la catégorie
         categorieAnnonce = inputCatAnnonce;
       } else if (isEmployee) {

@@ -99,7 +99,7 @@ export default function DepotRapideVehiculeSurCommande() {
                 {assistantResult.ia.status === "NOT_CONNECTED" && " — n'empêche pas la suite."}
               </p>
               {assistantResult.doublons?.length > 0 && <p className="text-amber-700">⚠ {assistantResult.doublons.length} doublon(s) potentiel(s) à trancher.</p>}
-              {assistantResult.qualite?.result === "error" && <p className="text-red-700">⚠ Contrôle qualité en erreur — vérifier les données avant publication.</p>}
+              {assistantResult.qualite?.resultat === "error" && <p className="text-red-700">⚠ Contrôle qualité en erreur — vérifier les données avant publication.</p>}
 
               <div className="pt-2 border-t border-[#E5E7EB] space-y-1.5">
                 <p className="font-bold text-[#111]">Prix et territoires</p>

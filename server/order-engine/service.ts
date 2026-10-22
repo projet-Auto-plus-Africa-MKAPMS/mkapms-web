@@ -14,6 +14,7 @@ import { emitSafe } from "../event-bus/service.js";
 import { createDocument } from "../document-os/index.js";
 import { createPaymentCheckout } from "../payment-engine/checkout.js";
 import { openPayoutSchedule } from "../payout-engine/service.js";
+import { libererReservation, marquerVendu, reserverVehicule } from "../vehicle-engine/service.js";
 import type { ControlCenterFeed, EngineDashboard, MaturityLevel } from "../identity-os/contract.js";
 import {
   orderDecisions,
@@ -151,6 +152,11 @@ export async function creerCommande(input: { annonceId: number; customerId: numb
     type: "commande.creee",
     payload: { orderItemId: row.id, vehicleItemId: listing.vehicleItemId, customerId: input.customerId },
   });
+  // Cohérence avec le Vehicle Engine (mode assisté par IA) : best-effort,
+  // ne doit jamais faire échouer la commande déjà créée côté client.
+  if (listing.vehicleItemId) {
+    await reserverVehicule({ vehicleItemId: listing.vehicleItemId, reservedBy: input.customerId, actorId: input.customerId }).catch(() => {});
+  }
   return row;
 }
 
@@ -216,9 +222,16 @@ export async function avancerStatut(input: {
  * remise_en_stock) dans le même appel — jamais une seconde action humaine
  * séparée pour une seule décision. "garde" remet automatiquement l'annonce
  * en disponibilité (section « décision finale », demande PDG du 21/10) :
- * ce moteur ne touche `annonces.status` que pour "accepte" → "vendue" (même
- * convention que le Vehicle Engine) ; dans tous les autres cas l'annonce
- * n'a jamais quitté "publiee", donc rien à y remettre.
+ * dans tous les cas sauf "accepte" l'annonce n'a jamais quitté "publiee",
+ * donc rien à y remettre.
+ *
+ * Pour "accepte" : si la commande vient du mode assisté par IA
+ * (`vehicleItemId` renseigné), le Vehicle Engine possède déjà sa propre
+ * chaîne complète et déjà câblée (vehicule vendu → annonce "vendue" →
+ * versement fournisseur réel via l'événement `vehicule.vendu`, voir
+ * `server/event-bus/handlers.ts: payout_vehicule_vendu`) — jamais dupliquée
+ * ici, sous peine d'un double versement. Sinon (bouton « Manuel », aucun
+ * Vehicle Engine impliqué), ce moteur reste seul responsable.
  */
 export async function poserDecision(input: { orderItemId: number; decision: OrderDecision; decidedBy: number; note?: string; returnReference?: string }) {
   const commande = await obtenirCommande(input.orderItemId);
@@ -246,23 +259,40 @@ export async function poserDecision(input: { orderItemId: number; decision: Orde
   await avancerStatut({ orderItemId: input.orderItemId, to: issue, actorType: "employe", actorId: input.decidedBy, note: `Décision « ${input.decision} » appliquée.` });
 
   if (input.decision === "accepte") {
-    await db.update(annonces).set({ status: "vendue", updatedAt: new Date() }).where(eq(annonces.id, commande.annonceId));
-    // Versement fournisseur réel dans le ledger existant (Payout Engine) —
-    // conséquence déterministe de la décision humaine qui vient d'être
-    // posée, jamais une action automatique indépendante. Rien à verser si
-    // le prix fournisseur n'a jamais été validé (étape "prix_marge_valides"
-    // jamais passée, ex. décision prise manuellement hors séquence en test).
-    if (commande.supplierPriceConfidential) {
-      await openPayoutSchedule({
-        sourceType: "vehicle_sale",
-        sourceId: input.orderItemId,
-        targetType: "supplier",
-        supplierProfileId: commande.supplierProfileId,
-        grossAmount: Number(commande.supplierPriceConfidential),
-        currency: commande.currency,
-        commissionRatePct: 0,
-      });
+    if (commande.vehicleItemId) {
+      // Mode assisté par IA : délègue entièrement au Vehicle Engine, qui
+      // met l'annonce à "vendue" lui-même et déclenche son propre versement.
+      await marquerVendu({ vehicleItemId: commande.vehicleItemId, actorId: input.decidedBy });
+    } else {
+      await db.update(annonces).set({ status: "vendue", updatedAt: new Date() }).where(eq(annonces.id, commande.annonceId));
+      // Versement fournisseur réel dans le ledger existant (Payout Engine) —
+      // conséquence déterministe de la décision humaine qui vient d'être
+      // posée, jamais une action automatique indépendante. Rien à verser si
+      // le prix fournisseur n'a jamais été validé (étape "prix_marge_valides"
+      // jamais passée, ex. décision prise manuellement hors séquence en test).
+      if (commande.supplierPriceConfidential) {
+        await openPayoutSchedule({
+          sourceType: "vehicle_sale",
+          sourceId: input.orderItemId,
+          targetType: "supplier",
+          supplierProfileId: commande.supplierProfileId,
+          grossAmount: Number(commande.supplierPriceConfidential),
+          currency: commande.currency,
+          commissionRatePct: 0,
+        });
+      }
     }
+  } else if (commande.vehicleItemId) {
+    // "retourne" / "garde" : la vente n'a pas eu lieu — la réservation posée
+    // par `creerCommande` sur le Vehicle Engine doit être relâchée (best-
+    // effort), sans quoi ce véhicule resterait verrouillé "RESERVED" pour
+    // toujours, jamais présentable à un autre client (section « décision
+    // finale », demande PDG du 21/10).
+    await libererReservation({
+      vehicleItemId: commande.vehicleItemId,
+      reason: input.decision === "retourne" ? "Retour du véhicule au fournisseur." : "Véhicule gardé en stock, remis en disponibilité.",
+      actorId: input.decidedBy,
+    }).catch(() => {});
   }
 }
 
