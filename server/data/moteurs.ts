@@ -99,17 +99,18 @@ export interface PerimetreMoteur {
   readonly manques: readonly ManqueMoteur[];
 }
 
-export const MOTEURS_TOTAL = 96;
-export const MANQUES_TOTAL = 528;
+export const MOTEURS_TOTAL = 97;
+export const MANQUES_TOTAL = 542;
 export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
   "bouton_sans_action": 52,
-  "dependance_non_declaree": 67,
+  "dependance_non_declaree": 76,
   "sans_logique_serveur": 10,
-  "ecran_sans_contenu": 340,
+  "ecran_sans_contenu": 342,
   "sans_ecran": 8,
-  "dependance_sans_preuve": 41,
+  "dependance_sans_preuve": 43,
   "bouton_declare_absent_ecran": 6,
   "emission_dynamique": 2,
+  "sans_battement": 1,
   "destination_inconnue": 2
 };
 
@@ -465,6 +466,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "livraison_vehicule",
       "messaging",
       "notification",
+      "order_engine",
       "payment",
       "permission",
       "redirection",
@@ -488,6 +490,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "livraison_vehicule",
       "messaging",
       "notification",
+      "order_engine",
       "payment",
       "permission",
       "redirection",
@@ -548,6 +551,10 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routers/annonces.ts importe services/email.ts",
         "routers/annonces.ts envoie un email"
       ],
+      "order_engine": [
+        "routers/annonces.ts importe order-engine/service.ts",
+        "client/src/pages/Vehicule.tsx appelle trpc.orderEngine"
+      ],
       "payment": [
         "routers/annonces.ts importe payment-engine/checkout.ts",
         "routers/devis.ts importe payment-engine/checkout.ts",
@@ -593,6 +600,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "location",
       "location_particulier",
       "location_pro",
+      "order_engine",
       "payment",
       "search",
       "vente",
@@ -615,7 +623,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "genre": "formulaire",
         "ecran": "/vehicule/:id",
         "fichier": "client/src/pages/Vehicule.tsx",
-        "ligne": 3150
+        "ligne": 3188
       }
     ],
     "routes": [
@@ -710,11 +718,11 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/vehicule/:id"
         ],
-        "cliquables": 149,
+        "cliquables": 150,
         "parMoteur": 1,
         "sansAction": 0,
-        "textes": 620,
-        "mots": 2512
+        "textes": 621,
+        "mots": 2530
       },
       {
         "fichier": "client/src/pages/VenteCamions.tsx",
@@ -1081,6 +1089,13 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         ]
       },
       {
+        "fichier": "client/src/pages/vehicule-sur-commande/Portail.tsx",
+        "route": "/vehicule-sur-commande",
+        "composants": [
+          "trpc.annonces"
+        ]
+      },
+      {
         "fichier": "client/src/pages/Garages.tsx",
         "route": "/garages",
         "composants": [
@@ -1334,8 +1349,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "connecte",
       "public"
     ],
-    "textes": 1580,
-    "mots": 5603,
+    "textes": 1581,
+    "mots": 5621,
     "battement": "sonde",
     "manques": [
       {
@@ -1349,6 +1364,10 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "genre": "dependance_non_declaree",
         "detail": "boutons — client/src/pages/Vehicule.tsx embarque lib/boutonMoteur.tsx (trpc.buttonEngine)"
+      },
+      {
+        "genre": "dependance_non_declaree",
+        "detail": "order_engine — routers/annonces.ts importe order-engine/service.ts"
       }
     ]
   },
@@ -1377,6 +1396,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "country",
       "estimation",
       "messaging",
+      "order_engine",
       "risque_import"
     ],
     "dependances": [
@@ -1387,6 +1407,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "country",
       "estimation",
       "messaging",
+      "order_engine",
       "risque_import"
     ],
     "integrationsTechniques": [],
@@ -1416,6 +1437,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "messaging": [
         "client/src/pages/Vehicule.tsx appelle trpc.messages"
       ],
+      "order_engine": [
+        "client/src/pages/Vehicule.tsx appelle trpc.orderEngine"
+      ],
       "risque_import": [
         "client/src/pages/Vehicule.tsx embarque components/AlerteRisqueImport.tsx (trpc.risqueImport)"
       ]
@@ -1432,7 +1456,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "genre": "formulaire",
         "ecran": "/acheter/mkapms-officiel/vehicule/:id",
         "fichier": "client/src/pages/Vehicule.tsx",
-        "ligne": 3150
+        "ligne": 3188
       }
     ],
     "routes": [
@@ -1445,11 +1469,11 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/acheter/mkapms-officiel/vehicule/:id"
         ],
-        "cliquables": 149,
+        "cliquables": 150,
         "parMoteur": 1,
         "sansAction": 0,
-        "textes": 620,
-        "mots": 2512
+        "textes": 621,
+        "mots": 2530
       },
       {
         "fichier": "client/src/pages/VenteMKAPMS.tsx",
@@ -1467,13 +1491,17 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "procedures": [],
     "tables": [],
     "acces": [],
-    "textes": 672,
-    "mots": 2635,
+    "textes": 673,
+    "mots": 2653,
     "battement": "sonde",
     "manques": [
       {
         "genre": "dependance_non_declaree",
         "detail": "boutons — client/src/pages/Vehicule.tsx embarque lib/boutonMoteur.tsx (trpc.buttonEngine)"
+      },
+      {
+        "genre": "dependance_non_declaree",
+        "detail": "order_engine — client/src/pages/Vehicule.tsx appelle trpc.orderEngine"
       },
       {
         "genre": "sans_logique_serveur",
@@ -1506,6 +1534,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "country",
       "estimation",
       "messaging",
+      "order_engine",
       "risque_import"
     ],
     "dependances": [
@@ -1516,6 +1545,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "country",
       "estimation",
       "messaging",
+      "order_engine",
       "risque_import"
     ],
     "integrationsTechniques": [],
@@ -1545,6 +1575,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "messaging": [
         "client/src/pages/Vehicule.tsx appelle trpc.messages"
       ],
+      "order_engine": [
+        "client/src/pages/Vehicule.tsx appelle trpc.orderEngine"
+      ],
       "risque_import": [
         "client/src/pages/Vehicule.tsx embarque components/AlerteRisqueImport.tsx (trpc.risqueImport)"
       ]
@@ -1561,7 +1594,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "genre": "formulaire",
         "ecran": "/acheter/particulier/vehicule/:id",
         "fichier": "client/src/pages/Vehicule.tsx",
-        "ligne": 3150
+        "ligne": 3188
       }
     ],
     "routes": [
@@ -1574,11 +1607,11 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/acheter/particulier/vehicule/:id"
         ],
-        "cliquables": 149,
+        "cliquables": 150,
         "parMoteur": 1,
         "sansAction": 0,
-        "textes": 620,
-        "mots": 2512
+        "textes": 621,
+        "mots": 2530
       },
       {
         "fichier": "client/src/pages/VenteParticulier.tsx",
@@ -1596,13 +1629,17 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "procedures": [],
     "tables": [],
     "acces": [],
-    "textes": 680,
-    "mots": 2638,
+    "textes": 681,
+    "mots": 2656,
     "battement": "sonde",
     "manques": [
       {
         "genre": "dependance_non_declaree",
         "detail": "boutons — client/src/pages/Vehicule.tsx embarque lib/boutonMoteur.tsx (trpc.buttonEngine)"
+      },
+      {
+        "genre": "dependance_non_declaree",
+        "detail": "order_engine — client/src/pages/Vehicule.tsx appelle trpc.orderEngine"
       },
       {
         "genre": "sans_logique_serveur",
@@ -1635,6 +1672,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "country",
       "estimation",
       "messaging",
+      "order_engine",
       "risque_import"
     ],
     "dependances": [
@@ -1645,6 +1683,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "country",
       "estimation",
       "messaging",
+      "order_engine",
       "risque_import"
     ],
     "integrationsTechniques": [],
@@ -1674,6 +1713,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "messaging": [
         "client/src/pages/Vehicule.tsx appelle trpc.messages"
       ],
+      "order_engine": [
+        "client/src/pages/Vehicule.tsx appelle trpc.orderEngine"
+      ],
       "risque_import": [
         "client/src/pages/Vehicule.tsx embarque components/AlerteRisqueImport.tsx (trpc.risqueImport)"
       ]
@@ -1690,7 +1732,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "genre": "formulaire",
         "ecran": "/acheter/professionnel/vehicule/:id",
         "fichier": "client/src/pages/Vehicule.tsx",
-        "ligne": 3150
+        "ligne": 3188
       }
     ],
     "routes": [
@@ -1703,11 +1745,11 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/acheter/professionnel/vehicule/:id"
         ],
-        "cliquables": 149,
+        "cliquables": 150,
         "parMoteur": 1,
         "sansAction": 0,
-        "textes": 620,
-        "mots": 2512
+        "textes": 621,
+        "mots": 2530
       },
       {
         "fichier": "client/src/pages/VentePro.tsx",
@@ -1725,13 +1767,17 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "procedures": [],
     "tables": [],
     "acces": [],
-    "textes": 674,
-    "mots": 2623,
+    "textes": 675,
+    "mots": 2641,
     "battement": "sonde",
     "manques": [
       {
         "genre": "dependance_non_declaree",
         "detail": "boutons — client/src/pages/Vehicule.tsx embarque lib/boutonMoteur.tsx (trpc.buttonEngine)"
+      },
+      {
+        "genre": "dependance_non_declaree",
+        "detail": "order_engine — client/src/pages/Vehicule.tsx appelle trpc.orderEngine"
       },
       {
         "genre": "sans_logique_serveur",
@@ -6278,6 +6324,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "messaging",
       "monitoring",
       "notification",
+      "order_engine",
       "partner_engine",
       "parts_engine",
       "payment",
@@ -7774,6 +7821,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "frontier_os",
       "importafrica",
       "intelligences",
+      "order_engine",
       "vo_espaces"
     ],
     "evenementsPublies": [],
@@ -8063,7 +8111,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       ]
     },
     "dependants": [
-      "event_bus"
+      "event_bus",
+      "order_engine"
     ],
     "evenementsPublies": [
       "document.custody.handed_over",
@@ -8456,6 +8505,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "logistics_engine",
       "media_authenticity",
       "monitoring",
+      "order_engine",
       "parts_engine",
       "payment",
       "payout_engine",
@@ -9412,11 +9462,11 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/garage/carrosserie-garage"
         ],
-        "cliquables": 35,
+        "cliquables": 36,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 205,
-        "mots": 779
+        "textes": 210,
+        "mots": 799
       },
       {
         "fichier": "client/src/pages/garage/CentreLavage.tsx",
@@ -9913,8 +9963,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "professionnel",
       "public"
     ],
-    "textes": 783,
-    "mots": 2845,
+    "textes": 788,
+    "mots": 2865,
     "battement": "sonde",
     "manques": [
       {
@@ -10148,6 +10198,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "messaging",
       "monitoring",
       "notification",
+      "order_engine",
       "parts_engine",
       "payout_engine",
       "permission",
@@ -14701,6 +14752,303 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     ]
   },
   {
+    "moteur": "order_engine",
+    "label": "Order Engine",
+    "categorie": "transversal",
+    "etatDeclare": "staging",
+    "dossiers": [
+      "order-engine"
+    ],
+    "routeurs": [
+      "orderEngine"
+    ],
+    "fichiersServeur": 5,
+    "dependancesDeclarees": [
+      "core",
+      "document_engine",
+      "event_bus",
+      "payment",
+      "permission",
+      "supplier_engine",
+      "vehicle_engine"
+    ],
+    "dependancesDetectees": [
+      "achat",
+      "core",
+      "document",
+      "event_bus",
+      "identity",
+      "payment",
+      "payout_engine",
+      "permission",
+      "vehicle_engine"
+    ],
+    "dependances": [
+      "achat",
+      "core",
+      "document",
+      "document_engine",
+      "event_bus",
+      "identity",
+      "payment",
+      "payout_engine",
+      "permission",
+      "supplier_engine",
+      "vehicle_engine"
+    ],
+    "integrationsTechniques": [
+      "identity",
+      "permission"
+    ],
+    "preuvesDependances": {
+      "achat": [
+        "client/src/pages/vehicule-sur-commande/Portail.tsx appelle trpc.annonces"
+      ],
+      "core": [
+        "order-engine/index.ts importe trpc.ts",
+        "order-engine/service.ts importe db.ts",
+        "order-engine/service.ts importe schema.ts"
+      ],
+      "document": [
+        "order-engine/index.ts produit un document via Document OS",
+        "order-engine/service.ts importe document-os/index.ts",
+        "order-engine/service.ts produit un document via Document OS"
+      ],
+      "event_bus": [
+        "order-engine/service.ts importe event-bus/service.ts",
+        "order-engine/service.ts publie des événements"
+      ],
+      "identity": [
+        "order-engine/service.ts importe identity-os/contract.ts"
+      ],
+      "payment": [
+        "order-engine/service.ts importe payment-engine/checkout.ts"
+      ],
+      "payout_engine": [
+        "order-engine/service.ts importe payout-engine/service.ts"
+      ],
+      "permission": [
+        "order-engine/index.ts filtre par rôle (procédure pro/admin/direction/PDG)",
+        "order-engine/vehicule-sur-commande-ia.ts filtre par rôle (procédure pro/admin/direction/PDG)"
+      ],
+      "vehicle_engine": [
+        "order-engine/service.ts importe vehicle-engine/service.ts",
+        "order-engine/vehicule-sur-commande-ia.ts importe vehicle-engine/service.ts"
+      ]
+    },
+    "dependants": [
+      "achat",
+      "achat_officiel",
+      "achat_particulier",
+      "achat_pro",
+      "payment"
+    ],
+    "evenementsPublies": [
+      "commande.acompte_recu",
+      "commande.annonce_liee",
+      "commande.creee",
+      "commande.decision_prise",
+      "commande.document_genere",
+      "commande.employe_attribue",
+      "commande.remboursee",
+      "commande.solde_recu",
+      "commande.statut_change"
+    ],
+    "evenementsConsommes": [],
+    "abonnements": [],
+    "sourcesEmission": [],
+    "boutons": [],
+    "routes": [
+      "/vehicule-sur-commande",
+      "/vehicule-sur-commande/depot",
+      "/vehicule-sur-commande/mes-commandes",
+      "/vehicule-sur-commande/mes-commandes/:orderItemId",
+      "/vehicule-sur-commande/mes-vehicules",
+      "/vehicule-sur-commande/mes-vehicules/:orderItemId"
+    ],
+    "ecrans": [
+      {
+        "fichier": "client/src/pages/vehicule-sur-commande/CommandeDetailClient.tsx",
+        "routes": [
+          "/vehicule-sur-commande/mes-commandes/:orderItemId"
+        ],
+        "cliquables": 1,
+        "parMoteur": 0,
+        "sansAction": 0,
+        "textes": 19,
+        "mots": 49
+      },
+      {
+        "fichier": "client/src/pages/vehicule-sur-commande/CommandeDetailEmploye.tsx",
+        "routes": [
+          "/vehicule-sur-commande/mes-vehicules/:orderItemId"
+        ],
+        "cliquables": 7,
+        "parMoteur": 0,
+        "sansAction": 0,
+        "textes": 42,
+        "mots": 155
+      },
+      {
+        "fichier": "client/src/pages/vehicule-sur-commande/DepotRapide.tsx",
+        "routes": [
+          "/vehicule-sur-commande/depot"
+        ],
+        "cliquables": 3,
+        "parMoteur": 0,
+        "sansAction": 0,
+        "textes": 24,
+        "mots": 131
+      },
+      {
+        "fichier": "client/src/pages/vehicule-sur-commande/MesCommandes.tsx",
+        "routes": [
+          "/vehicule-sur-commande/mes-commandes"
+        ],
+        "cliquables": 1,
+        "parMoteur": 0,
+        "sansAction": 0,
+        "textes": 2,
+        "mots": 5
+      },
+      {
+        "fichier": "client/src/pages/vehicule-sur-commande/MesVehiculesEmploye.tsx",
+        "routes": [
+          "/vehicule-sur-commande/mes-vehicules"
+        ],
+        "cliquables": 1,
+        "parMoteur": 0,
+        "sansAction": 0,
+        "textes": 2,
+        "mots": 6
+      },
+      {
+        "fichier": "client/src/pages/vehicule-sur-commande/Portail.tsx",
+        "routes": [
+          "/vehicule-sur-commande"
+        ],
+        "cliquables": 3,
+        "parMoteur": 0,
+        "sansAction": 0,
+        "textes": 7,
+        "mots": 38
+      }
+    ],
+    "ecransHotes": [
+      {
+        "fichier": "client/src/pages/Vehicule.tsx",
+        "route": "/acheter/particulier/vehicule/:id",
+        "composants": [
+          "trpc.orderEngine"
+        ]
+      },
+      {
+        "fichier": "client/src/pages/Vehicule.tsx",
+        "route": "/acheter/professionnel/vehicule/:id",
+        "composants": [
+          "trpc.orderEngine"
+        ]
+      },
+      {
+        "fichier": "client/src/pages/Vehicule.tsx",
+        "route": "/acheter/mkapms-officiel/vehicule/:id",
+        "composants": [
+          "trpc.orderEngine"
+        ]
+      },
+      {
+        "fichier": "client/src/pages/Vehicule.tsx",
+        "route": "/vehicule/:id",
+        "composants": [
+          "trpc.orderEngine"
+        ]
+      }
+    ],
+    "procedures": [
+      "assistantDepot",
+      "attribuerEmploye",
+      "avancerStatut",
+      "controlCenterFeed",
+      "creerCheckoutAcompte",
+      "creerCheckoutSolde",
+      "creerCommande",
+      "dashboard",
+      "detailCommandeClient",
+      "detailCommandeEmploye",
+      "enregistrerAnnonceSurCommande",
+      "enregistrerDocument",
+      "genererDocument",
+      "healthStatus",
+      "journalAudit",
+      "labelPublic",
+      "mesCommandes",
+      "mesVehiculesAttribues",
+      "meta",
+      "poserDecision",
+      "preparerPublicationAssistee",
+      "publierVehiculeSurCommande",
+      "rembourserCommande",
+      "validerPrixEtMarge"
+    ],
+    "tables": [
+      "order_decisions",
+      "order_documents",
+      "order_engine_audit_log",
+      "order_items",
+      "order_listings",
+      "order_status_history"
+    ],
+    "acces": [
+      "admin",
+      "connecte",
+      "direction",
+      "public",
+      "role:annulee",
+      "role:prix_marge_valides"
+    ],
+    "textes": 96,
+    "mots": 384,
+    "battement": "aucun",
+    "manques": [
+      {
+        "genre": "ecran_sans_contenu",
+        "detail": "client/src/pages/vehicule-sur-commande/MesCommandes.tsx (2 texte(s))"
+      },
+      {
+        "genre": "ecran_sans_contenu",
+        "detail": "client/src/pages/vehicule-sur-commande/MesVehiculesEmploye.tsx (2 texte(s))"
+      },
+      {
+        "genre": "dependance_non_declaree",
+        "detail": "achat — client/src/pages/vehicule-sur-commande/Portail.tsx appelle trpc.annonces"
+      },
+      {
+        "genre": "dependance_non_declaree",
+        "detail": "document — order-engine/index.ts produit un document via Document OS"
+      },
+      {
+        "genre": "dependance_non_declaree",
+        "detail": "identity — order-engine/service.ts importe identity-os/contract.ts"
+      },
+      {
+        "genre": "dependance_non_declaree",
+        "detail": "payout_engine — order-engine/service.ts importe payout-engine/service.ts"
+      },
+      {
+        "genre": "dependance_sans_preuve",
+        "detail": "supplier_engine"
+      },
+      {
+        "genre": "dependance_sans_preuve",
+        "detail": "document_engine"
+      },
+      {
+        "genre": "sans_battement",
+        "detail": "ni sonde, ni pont OS, ni contrat, ni heartbeat dans le code"
+      }
+    ]
+  },
+  {
     "moteur": "partner_engine",
     "label": "Partner Engine",
     "categorie": "transversal",
@@ -15199,6 +15547,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "country",
       "event_bus",
       "livraison_vehicule",
+      "order_engine",
       "payment_orchestrator",
       "permission",
       "smart",
@@ -15211,6 +15560,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "country",
       "event_bus",
       "livraison_vehicule",
+      "order_engine",
       "payment_orchestrator",
       "permission",
       "smart",
@@ -15243,6 +15593,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       ],
       "livraison_vehicule": [
         "client/src/pages/PaiementVehicule.tsx appelle trpc.livraisonVehicule"
+      ],
+      "order_engine": [
+        "stripeWebhook.ts importe order-engine/service.ts"
       ],
       "payment_orchestrator": [
         "payment-engine/checkout.ts importe payment-orchestrator/service.ts",
@@ -15279,6 +15632,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "intelligences",
       "livraison",
       "location",
+      "order_engine",
       "payment_orchestrator",
       "payout_engine",
       "pieces",
@@ -15604,6 +15958,10 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "genre": "dependance_non_declaree",
         "detail": "cartegrise — stripeWebhook.ts importe modules/cartegrise.ts"
+      },
+      {
+        "genre": "dependance_non_declaree",
+        "detail": "order_engine — stripeWebhook.ts importe order-engine/service.ts"
       }
     ]
   },
@@ -15783,6 +16141,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "dependants": [
       "document_engine",
       "event_bus",
+      "order_engine",
       "vehicle_engine"
     ],
     "evenementsPublies": [
@@ -15920,6 +16279,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "document_engine",
       "frontier_os",
       "location",
+      "order_engine",
       "payment",
       "payout_engine",
       "redirection",
@@ -21778,6 +22138,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "dependants": [
       "document_engine",
       "logistics_engine",
+      "order_engine",
       "parts_engine",
       "payout_engine",
       "vehicle_engine"
@@ -22320,6 +22681,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "document_engine",
       "event_bus",
       "logistics_engine",
+      "order_engine",
       "payout_engine"
     ],
     "evenementsPublies": [

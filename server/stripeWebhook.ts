@@ -22,6 +22,7 @@ import { awardPoints } from "./routers/operations.js";
 import { logActivity } from "./smart-engine/services/activity-log.js";
 import { env } from "./env.js";
 import { emitSafe } from "./event-bus/service.js";
+import { confirmerAcompteRecu, confirmerSoldeRecu } from "./order-engine/service.js";
 
 /**
  * Supervision d'un paiement (§2) — fire-and-forget, jamais bloquant pour le
@@ -293,6 +294,30 @@ export async function handleStripeWebhook(req: Request, res: Response) {
         // jamais une simple redirection sans effet en base.
         if (m.payment_kind === "rental_deposit" && m.applicationId) {
           await confirmerCautionLocation(Number(m.applicationId), userId);
+        }
+        // Order Engine — acompte/solde d'une commande « véhicule sur
+        // commande » (demande PDG). N'avance jamais le statut interne elle-
+        // même : rend seulement le paiement visible, l'employé reste seul
+        // décisionnaire de la suite (règle PDG : aucune action automatique).
+        if ((m.payment_kind === "vehicule_sur_commande_acompte" || m.payment_kind === "vehicule_sur_commande_solde") && m.orderItemId && paymentId) {
+          const montantPaye = session.amount_total ? session.amount_total / 100 : 0;
+          const devisePayee = session.currency ?? "eur";
+          const traite =
+            m.payment_kind === "vehicule_sur_commande_acompte"
+              ? await confirmerAcompteRecu({ orderItemId: Number(m.orderItemId), amount: montantPaye, currency: devisePayee, paymentId })
+              : await confirmerSoldeRecu({ orderItemId: Number(m.orderItemId), amount: montantPaye, currency: devisePayee, paymentId });
+          if (traite) {
+            const estAcompte = m.payment_kind === "vehicule_sur_commande_acompte";
+            await superviserPaiement({
+              userId,
+              title: estAcompte ? "Acompte reçu" : "Solde reçu",
+              body: estAcompte ? "Votre acompte a été reçu : votre commande est en cours de traitement." : "Votre solde a été reçu : votre véhicule est prêt pour la suite.",
+              url: "/compte/commandes",
+              action: estAcompte ? "vehicule_sur_commande_acompte_paid" : "vehicule_sur_commande_solde_paid",
+              targetType: "order_item",
+              targetId: Number(m.orderItemId),
+            });
+          }
         }
         // Boost annonce
         if (session.mode === "payment" && m.annonce_id && planCode) {

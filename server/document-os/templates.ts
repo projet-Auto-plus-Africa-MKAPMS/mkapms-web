@@ -217,6 +217,13 @@ export const DEFAULT_TEMPLATES = [
   { typeCode: "rapport_expertise", language: "fr", htmlBody: wrap(BODY_INVOICE,  "Rapport d'expertise") },
   { typeCode: "bon_livraison",     language: "fr", htmlBody: wrap(BODY_INVOICE,  "Bon de livraison") },
   { typeCode: "proces_verbal",     language: "fr", htmlBody: wrap(BODY_CONTRACT, "Procès-verbal") },
+  // Order Engine (Plan Maître Fournisseurs §36-37) — portail « Véhicule sur
+  // commande » (demande PDG) : types encore manquants au registre, ajoutés
+  // ici plutôt que recréés ailleurs.
+  { typeCode: "reservation",              language: "fr", htmlBody: wrap(BODY_QUOTE,    "Réservation") },
+  { typeCode: "recu",                     language: "fr", htmlBody: wrap(BODY_INVOICE,  "Reçu") },
+  { typeCode: "ordre_mission_transporteur", language: "fr", htmlBody: wrap(BODY_CONTRACT, "Ordre de mission transporteur") },
+  { typeCode: "dossier_retour",            language: "fr", htmlBody: wrap(BODY_CONTRACT, "Dossier de retour") },
 ];
 
 /**

@@ -699,6 +699,17 @@ export async function validerEtPublier(input: { vehicleItemId: number; actorId: 
       ville: territoires?.pickupCity ?? null,
       pays: territoires?.pickupCountryCode ?? "FR",
       vendeurType: "professionnel",
+      // Partie 11 — tout véhicule publié par ce moteur vient d'un
+      // fournisseur et n'est pas encore possédé par MKA.P-MS (jamais
+      // confondu avec le VO existant, "plateforme"). Catégorie
+      // "professionnelle" (et non "officielle") : "officielle" déclenche
+      // l'affichage "MKA.P-MS Officiel" (isMkapmsStock côté fiche produit,
+      // pensé pour le stock déjà possédé), ce qui mélangerait visuellement
+      // un véhicule pas encore possédé avec le VO — jamais voulu ici. Sert
+      // notamment au portail « Véhicule sur commande » (Order Engine) pour
+      // distinguer ces annonces sans second champ.
+      ownership: "partenaire",
+      categorieAnnonce: "professionnelle",
       vin: item.vin,
       plaque: item.plaque,
     } as typeof annonces.$inferInsert)

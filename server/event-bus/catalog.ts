@@ -22,6 +22,7 @@ export const DOMAINES = [
   "vehicule",
   "logistique",
   "document",
+  "commande",
 ] as const;
 
 export type Domaine = (typeof DOMAINES)[number];
@@ -870,6 +871,97 @@ export const EVENT_TYPES: EventTypeSpec[] = [
     description: "Une étape déclarée comme exigeant un document ne peut pas avancer : au moins un document obligatoire n'est pas en possession.",
     champs: ["entityType", "entityId", "step", "missing"],
     emetteurs: ["document_engine"],
+  },
+  // Order Engine (Plan Maître Fournisseurs §36-37) — portail « Véhicule sur
+  // commande » (demande PDG). Nouveau domaine "commande" : relais du Vehicle
+  // Engine une fois un véhicule publié, jusqu'à la décision finale.
+  {
+    code: "commande.annonce_liee",
+    domaine: "commande",
+    label: "Annonce liée à un fournisseur (véhicule sur commande)",
+    description: "Une annonce vient d'être publiée comme « véhicule sur commande » (mode assisté par IA ou bouton « Manuel », jamais l'inverse) et liée à son fournisseur.",
+    champs: ["annonceId", "supplierProfileId", "vehicleItemId", "creationMode", "employeeId"],
+    emetteurs: ["order_engine"],
+  },
+  {
+    code: "commande.creee",
+    domaine: "commande",
+    label: "Commande créée",
+    description: "Un client vient d'engager une commande sur un véhicule publié « disponible sur commande ». Démarre le suivi interne en 10 étapes. `vehicleItemId` peut être absent (annonce déposée via le bouton « Manuel »).",
+    champs: ["orderItemId", "vehicleItemId", "customerId"],
+    emetteurs: ["order_engine"],
+  },
+  {
+    code: "commande.employe_attribue",
+    domaine: "commande",
+    label: "Employé attribué à la commande",
+    description: "Un employé vient d'être désigné responsable de cette commande : il la voit désormais dans son portail dédié.",
+    champs: ["orderItemId", "employeeId", "actorId"],
+    emetteurs: ["order_engine"],
+  },
+  {
+    code: "commande.statut_change",
+    domaine: "commande",
+    label: "Statut interne de la commande changé",
+    description: "La commande vient d'avancer d'une étape à l'autre du suivi interne (§36-37). Ne concerne jamais directement le statut affiché au client, qui est dérivé.",
+    champs: ["orderItemId", "from", "to"],
+    emetteurs: ["order_engine"],
+  },
+  {
+    code: "commande.acompte_recu",
+    domaine: "commande",
+    label: "Acompte reçu",
+    description: "Le paiement de l'acompte client vient d'être confirmé pour cette commande.",
+    champs: ["orderItemId", "amount", "currency"],
+    emetteurs: ["order_engine"],
+  },
+  {
+    code: "commande.solde_recu",
+    domaine: "commande",
+    label: "Solde reçu",
+    description: "Le paiement du solde client vient d'être confirmé pour cette commande, après inspection ou livraison.",
+    champs: ["orderItemId", "amount", "currency"],
+    emetteurs: ["order_engine"],
+  },
+  {
+    code: "commande.decision_prise",
+    domaine: "commande",
+    label: "Décision finale posée",
+    description: "Un employé vient de trancher après visite/inspection : client accepté, retour du véhicule, ou véhicule gardé en stock (section 10).",
+    champs: ["orderItemId", "decision", "actorId"],
+    emetteurs: ["order_engine"],
+  },
+  {
+    code: "commande.document_genere",
+    domaine: "commande",
+    label: "Document de commande généré",
+    description: "Un document lié à la commande (devis, contrat, facture, PV…) vient d'être généré et rattaché dans le Document OS (section 11).",
+    champs: ["orderItemId", "documentType", "docDocumentId"],
+    emetteurs: ["order_engine"],
+  },
+  {
+    code: "commande.annulee",
+    domaine: "commande",
+    label: "Commande annulée",
+    description: "La commande vient d'être annulée avant la décision finale — jamais une annulation silencieuse.",
+    champs: ["orderItemId", "reason"],
+    emetteurs: ["order_engine"],
+  },
+  {
+    code: "commande.litige_ouvert",
+    domaine: "commande",
+    label: "Litige ouvert sur la commande",
+    description: "Un désaccord ou blocage vient d'être déclaré sur cette commande (ex : fournisseur, transport, inspection).",
+    champs: ["orderItemId", "reason"],
+    emetteurs: ["order_engine"],
+  },
+  {
+    code: "commande.remboursee",
+    domaine: "commande",
+    label: "Commande remboursée",
+    description: "Un remboursement (acompte ou solde) vient d'être effectué pour cette commande.",
+    champs: ["orderItemId", "amount", "currency"],
+    emetteurs: ["order_engine"],
   },
 ];
 

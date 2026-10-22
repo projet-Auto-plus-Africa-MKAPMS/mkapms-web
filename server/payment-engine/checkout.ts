@@ -43,7 +43,9 @@ export type PaymentKind =
   | "kyc_verification"       // vérification KYC payante
   | "carte_grise_service"    // service carte grise
   | "reservation_acompte"    // acompte d'une réservation déjà ouverte
-  | "rental_deposit";        // acompte d'une candidature de location flotte — encaissement immédiat (mode "payment"), jamais une simple autorisation bloquée
+  | "rental_deposit"         // acompte d'une candidature de location flotte — encaissement immédiat (mode "payment"), jamais une simple autorisation bloquée
+  | "vehicule_sur_commande_acompte" // Order Engine — acompte d'une commande « véhicule sur commande »
+  | "vehicule_sur_commande_solde";  // Order Engine — solde d'une commande « véhicule sur commande »
 
 export interface CheckoutInput {
   userId: number;
@@ -128,6 +130,8 @@ export async function createPaymentCheckout(input: CheckoutInput): Promise<Check
     carte_grise_service: "vehicle_boost",
     reservation_acompte: "society_acompte",
     rental_deposit: "society_acompte",
+    vehicule_sur_commande_acompte: "society_acompte",
+    vehicule_sur_commande_solde: "vehicle_purchase",
   };
   const paymentTypeSql = input.paymentTypeSql ?? sqlTypeMap[input.kind] ?? "vehicle_boost";
 

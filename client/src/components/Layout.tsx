@@ -33,6 +33,7 @@ import { useDomain } from "../lib/domain";
 const NAV = [
   { to: "/acheter", label: "Acheter", redirKey: "nav_acheter" },
   { to: "/louer", label: "Louer", redirKey: "nav_louer" },
+  { to: "/vehicule-sur-commande", label: "Sur commande", redirKey: "nav_sur_commande" },
   { to: "/pieces", label: "Pièces", redirKey: "nav_pieces" },
   { to: "/devis", label: "Devis & Garage", redirKey: "nav_garages" },
   { to: "/univers", label: "Univers", redirKey: "nav_univers" },
