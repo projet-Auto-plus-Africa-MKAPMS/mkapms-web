@@ -1013,11 +1013,13 @@ export default function App() {
             {/* Fallback générique — redirige vers le bon univers une fois l'annonce chargée */}
             <Route path="/vehicule/:id" element={<U name="Vente"><Vehicule /></U>} />
             <Route path="/vendre" element={<U name="Vente"><Vendre /></U>} />
-            {/* Portail « Véhicule sur commande » (demande PDG) — totalement séparé du VO existant */}
+            {/* Portail « Véhicule sur commande » (demande PDG) — totalement séparé du VO existant.
+                Dépôt et suivi employé : réservés aux équipes MKA.P-MS (back_office), jamais à un
+                particulier ou un autre type de compte, sans permission à accorder au cas par cas. */}
             <Route path="/vehicule-sur-commande" element={<U name="Véhicule sur commande"><PortailVehiculeSurCommande /></U>} />
-            <Route path="/vehicule-sur-commande/depot" element={<U name="Véhicule sur commande"><DepotRapideVehiculeSurCommande /></U>} />
-            <Route path="/vehicule-sur-commande/mes-vehicules" element={<U name="Véhicule sur commande"><MesVehiculesEmploye /></U>} />
-            <Route path="/vehicule-sur-commande/mes-vehicules/:orderItemId" element={<U name="Véhicule sur commande"><CommandeDetailEmploye /></U>} />
+            <Route path="/vehicule-sur-commande/depot" element={<P name="Véhicule sur commande" module="back_office"><DepotRapideVehiculeSurCommande /></P>} />
+            <Route path="/vehicule-sur-commande/mes-vehicules" element={<P name="Véhicule sur commande" module="back_office"><MesVehiculesEmploye /></P>} />
+            <Route path="/vehicule-sur-commande/mes-vehicules/:orderItemId" element={<P name="Véhicule sur commande" module="back_office"><CommandeDetailEmploye /></P>} />
             <Route path="/vehicule-sur-commande/mes-commandes" element={<U name="Véhicule sur commande"><MesCommandesClient /></U>} />
             <Route path="/vehicule-sur-commande/mes-commandes/:orderItemId" element={<U name="Véhicule sur commande"><CommandeDetailClient /></U>} />
             <Route path="/devis" element={<U name="Devis"><Devis /></U>} />
