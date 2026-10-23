@@ -11,8 +11,8 @@ const probes = ENGINE_PROBES.map((engine) => engine.engine);
 const osBridges = [...OS_ENGINE_NAMES];
 const allBindings = [...contracts, ...probes, ...osBridges];
 
-test("les 96 moteurs déclarés ont une surface runtime", () => {
-  assert.equal(declared.length, 96, "Le registre principal doit déclarer 96 moteurs.");
+test("les 97 moteurs déclarés ont une surface runtime", () => {
+  assert.equal(declared.length, 97, "Le registre principal doit déclarer 97 moteurs.");
   assert.equal(new Set(declared).size, declared.length, "Les identifiants moteurs doivent être uniques.");
 
   const missing = declared.filter((id) => !allBindings.includes(id));
