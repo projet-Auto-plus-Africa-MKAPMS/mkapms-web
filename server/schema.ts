@@ -1173,6 +1173,9 @@ export const users = pgTable("users", {
   proCategory: proCategoryEnum("pro_category"),
   staffPosition: staffPositionEnum("staff_position"),
   managerId: integer("manager_id"),
+  /** Accès au coffre de secrets (server/intelligences/coffre.ts) attribué par le PDG à un
+   * employé donné — jamais automatique. Sans effet pour super_admin, déjà toujours autorisé. */
+  coffreAcces: boolean("coffre_acces").notNull().default(false),
   twoFactorEnabled: boolean("two_factor_enabled").notNull().default(false),
   twoFactorCode: varchar("two_factor_code", { length: 12 }),
   twoFactorExpiresAt: timestamp("two_factor_expires_at"),

@@ -455,6 +455,7 @@ export const adminRouter = router({
         phone: users.phone,
         role: users.role,
         staffPosition: users.staffPosition,
+        coffreAcces: users.coffreAcces,
         createdAt: users.createdAt,
       })
       .from(users)
@@ -518,6 +519,21 @@ export const adminRouter = router({
       await db.update(users).set({ staffPosition: input.staffPosition, updatedAt: new Date() }).where(eq(users.id, input.userId));
       await logAction(ctx.user.uid, "staff.assign_position", "user", input.userId, { from: target.staffPosition, to: input.staffPosition });
       return { ok: true, staffPosition: input.staffPosition };
+    }),
+
+  // Accès au coffre de secrets (server/intelligences/coffre.ts) : jamais automatique
+  // pour un rôle, toujours un octroi explicite du PDG, compte par compte. Sans effet
+  // sur le PDG lui-même, déjà toujours autorisé.
+  assignCoffreAcces: pdgProcedure
+    .input(z.object({ userId: z.number().int().positive(), coffreAcces: z.boolean() }))
+    .mutation(async ({ ctx, input }) => {
+      if (input.userId === ctx.user.uid) throw new TRPCError({ code: "BAD_REQUEST", message: "Impossible de modifier son propre accès au coffre" });
+      const [target] = await db.select({ id: users.id, role: users.role, coffreAcces: users.coffreAcces }).from(users).where(eq(users.id, input.userId)).limit(1);
+      if (!target) throw new TRPCError({ code: "NOT_FOUND", message: "Compte introuvable" });
+      if (target.role === "super_admin") throw new TRPCError({ code: "FORBIDDEN", message: "L'accès du PDG au coffre ne se retire pas" });
+      await db.update(users).set({ coffreAcces: input.coffreAcces, updatedAt: new Date() }).where(eq(users.id, input.userId));
+      await logAction(ctx.user.uid, "staff.assign_coffre_acces", "user", input.userId, { from: target.coffreAcces, to: input.coffreAcces });
+      return { ok: true, coffreAcces: input.coffreAcces };
     }),
 
   // Suppression d'un compte — PDG : tout. Directeur : particuliers uniquement.

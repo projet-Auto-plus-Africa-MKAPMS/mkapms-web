@@ -175,6 +175,10 @@ export function Coffre() {
   const etat = trpc.intelligences.coffreEtat.useQuery(undefined, { refetchOnWindowFocus: false });
   const secrets = trpc.intelligences.coffreSecrets.useQuery(undefined, { refetchOnWindowFocus: false });
   const journal = trpc.intelligences.coffreJournal.useQuery(undefined, { refetchOnWindowFocus: false });
+  const codeEtat = trpc.intelligences.coffreCodeEtat.useQuery(undefined, { refetchOnWindowFocus: false });
+
+  const [codeSecret, setCodeSecret] = useState("");
+  const [nouveauCode, setNouveauCode] = useState("");
 
   const [nom, setNom] = useState("");
   const [service, setService] = useState("");
@@ -228,8 +232,18 @@ export function Coffre() {
     onSuccess: async (r) => { setMessage(r.detail); await rafraichir(); },
     onError: (e) => setMessage(e.message),
   });
+  const definirCode = trpc.intelligences.coffreCodeDefinir.useMutation({
+    onSuccess: async () => {
+      setMessage("Code secret du coffre enregistré.");
+      setNouveauCode("");
+      await utils.intelligences.coffreCodeEtat.invalidate();
+    },
+    onError: (e) => setMessage(e.message),
+  });
 
   const disponible = etat.data?.disponible === true;
+  const codeConfigure = codeEtat.data?.configure === true;
+  const longueurCode = codeEtat.data?.longueurRequise ?? 6;
 
   const etatConnu = etat.data !== undefined && !etat.isError;
   const secretsExistants = (etat.data?.total ?? 0) > 0;
@@ -262,14 +276,14 @@ export function Coffre() {
     const analyse = contenuDepuis(type, valeur);
     if (!analyse.ok) { setMessage(analyse.raison); return; }
     setMessage("");
-    ajouter.mutate({ nom: nom.trim(), service: service.trim(), contenu: analyse.contenu });
+    ajouter.mutate({ nom: nom.trim(), service: service.trim(), contenu: analyse.contenu, codeSecret });
   }
 
   function remplacerValeur(id: number, typeSecret: TypeSecret) {
     const analyse = contenuDepuis(typeSecret, valeurRemplacement);
     if (!analyse.ok) { setMessage(analyse.raison); return; }
     setMessage("");
-    remplacer.mutate({ id, contenu: analyse.contenu });
+    remplacer.mutate({ id, contenu: analyse.contenu, codeSecret });
   }
 
   /** Ouvre le panneau « Modifier » (nom et service) d'un secret déjà déposé, dans la liste « Secrets déposés ». */
@@ -284,7 +298,7 @@ export function Coffre() {
     if (modifId === null) return;
     if (modifNom.trim().length < 2) { setMessage("Le nom doit faire 2 caractères minimum."); return; }
     setMessage("");
-    modifier.mutate({ id: modifId, nom: modifNom.trim(), service: modifService.trim() });
+    modifier.mutate({ id: modifId, nom: modifNom.trim(), service: modifService.trim(), codeSecret });
   }
 
   /** Pré-remplit le formulaire d'ajout pour un élément du catalogue, sans jamais rien envoyer. */
@@ -299,15 +313,16 @@ export function Coffre() {
   }
   const nomsPresents = (secrets.data ?? []).map((s) => s.nom);
   const parNom = new Map((secrets.data ?? []).map((s) => [nomNormalise(s.nom), s]));
-  const retirer = (id: number, nomSecret: string) => { if (window.confirm(`Supprimer définitivement « ${nomSecret} » ?`)) supprimer.mutate({ id }); };
+  const retirer = (id: number, nomSecret: string) => { if (window.confirm(`Supprimer définitivement « ${nomSecret} » ?`)) supprimer.mutate({ id, codeSecret }); };
 
   return (
     <section className="space-y-4" aria-label="Coffre secret">
       <div className="rounded-xl border border-black/10 p-4 space-y-2">
         <h2 className="flex items-center gap-2 text-base font-black"><KeyRound className="h-4 w-4" /> Coffre secret</h2>
         <p className="text-sm">
-          Vos identifiants, clés et fichiers, chiffrés. Le moteur peut s'en servir pour agir à votre place, mais il ne les voit jamais, et vous
-          non plus une fois déposés : on ne peut que les remplacer ou les supprimer. Réservé à votre compte.
+          Les identifiants, clés et fichiers du coffre, chiffrés et partagés par le PDG et chaque employé que le PDG a
+          explicitement habilité (Super Admin → Employés). Le moteur peut s'en servir pour agir, mais il ne les voit jamais, et vous
+          non plus une fois déposés : on ne peut que les remplacer ou les supprimer.
         </p>
         <p className="text-xs text-black/60">
           La Boutique garde son propre coffre : rien n'est partagé automatiquement entre les deux plateformes.
@@ -317,6 +332,32 @@ export function Coffre() {
           <Plus className="h-4 w-4" /> Ajouter un secret
         </button>
         <p className="text-[11px] text-black/60">Autant que vous voulez, de n'importe quel type (clé API, jeton Railway ou d'une autre boutique, accès d'un fournisseur…), et vous pouvez en supprimer quand vous voulez.</p>
+      </div>
+
+      <div className="rounded-xl border border-black/10 p-4 space-y-2" aria-label="Code secret du coffre">
+        <h3 className="text-sm font-black">Votre code secret du coffre · {longueurCode} chiffres</h3>
+        <p className="text-xs text-black/60">
+          Un code numérique que vous choisissez vous-même — rien à installer. Il vous sera redemandé à chaque action sensible du
+          coffre (dépôt, remplacement, renommage, suppression), pour confirmer que c'est bien vous. Chaque personne autorisée a le
+          sien ; il ne donne jamais plus de droits que votre compte n'en a déjà.
+        </p>
+        <label className="block text-xs">
+          {codeConfigure ? "Nouveau code" : "Choisissez votre code"}
+          <input type="password" inputMode="numeric" pattern={`[0-9]{${longueurCode}}`} maxLength={longueurCode} value={nouveauCode}
+            onChange={(e) => setNouveauCode(e.target.value.replace(/\D/g, "").slice(0, longueurCode))} autoComplete="off"
+            className="mt-1 w-full max-w-[160px] rounded-lg border p-2 text-sm" />
+        </label>
+        <button type="button" disabled={definirCode.isPending || nouveauCode.length !== longueurCode}
+          onClick={() => definirCode.mutate({ code: nouveauCode })}
+          className="rounded-lg bg-[#111] px-3 py-2 text-sm font-bold text-white disabled:opacity-40">
+          {definirCode.isPending ? "Enregistrement…" : codeConfigure ? "Changer mon code secret" : "Activer mon code secret"}
+        </button>
+        <label className="block pt-2 text-xs font-bold">
+          Code secret à fournir pour les actions ci-dessous
+          <input type="password" inputMode="numeric" value={codeSecret} onChange={(e) => setCodeSecret(e.target.value.replace(/\D/g, ""))}
+            autoComplete="off" placeholder={codeConfigure ? "Votre code" : "Configurez d'abord votre code ci-dessus"}
+            className="mt-1 w-full max-w-[160px] rounded-lg border p-2 text-sm font-normal" />
+        </label>
       </div>
 
       {etat.isLoading ? <p className="text-xs" role="status">Vérification du coffre…</p> : null}
@@ -400,7 +441,7 @@ export function Coffre() {
                           <>
                             <button type="button" onClick={() => ouvrirModification(parNom.get(nomNormalise(e.nom))!)}
                               aria-label={`Modifier ${e.nom}`} className="whitespace-nowrap rounded border px-2 py-1 font-bold">Modifier</button>
-                            <button type="button" disabled={supprimer.isPending} onClick={() => retirer(parNom.get(nomNormalise(e.nom))!.id, e.nom)}
+                            <button type="button" disabled={supprimer.isPending || !codeConfigure} onClick={() => retirer(parNom.get(nomNormalise(e.nom))!.id, e.nom)}
                               aria-label={`Supprimer ${e.nom}`} className="rounded border px-2 py-1 font-bold text-red-700"><Trash2 className="h-3 w-3" /></button>
                           </>
                         ) : null}
@@ -421,7 +462,7 @@ export function Coffre() {
                           <span className="min-w-0 truncate"><Check className="mr-1 inline h-3 w-3 text-green-700" aria-hidden="true" />{x.nom}<span className="text-black/50"> · {x.apercu}</span></span>
                           <span className="flex shrink-0 gap-1">
                             <button type="button" onClick={() => ouvrirModification(x)} aria-label={`Modifier ${x.nom}`} className="whitespace-nowrap rounded border px-2 py-1 font-bold">Modifier</button>
-                            <button type="button" disabled={supprimer.isPending} onClick={() => retirer(x.id, x.nom)} aria-label={`Supprimer ${x.nom}`} className="rounded border px-2 py-1 font-bold text-red-700"><Trash2 className="h-3 w-3" /></button>
+                            <button type="button" disabled={supprimer.isPending || !codeConfigure} onClick={() => retirer(x.id, x.nom)} aria-label={`Supprimer ${x.nom}`} className="rounded border px-2 py-1 font-bold text-red-700"><Trash2 className="h-3 w-3" /></button>
                           </span>
                         </li>
                       ))}
@@ -462,7 +503,7 @@ export function Coffre() {
           </select>
         </label>
         <ChampsValeur type={type} valeur={valeur} onChange={setValeur} desactive={!disponible || ajouter.isPending} />
-        <button type="button" onClick={deposer} disabled={!disponible || ajouter.isPending}
+        <button type="button" onClick={deposer} disabled={!disponible || !codeConfigure || ajouter.isPending}
           className="rounded-lg bg-[#111] px-3 py-2 text-sm font-bold text-white disabled:opacity-40">
           {ajouter.isPending ? "Chiffrement…" : "Enregistrer dans le coffre"}
         </button>
@@ -492,8 +533,8 @@ export function Coffre() {
                   <button type="button" disabled={remplacer.isPending}
                     onClick={() => guider(() => { setModifId(null); setRemplacementId(remplacementId === s.id ? null : s.id); setValeurRemplacement(VALEUR_VIDE); })}
                     className="whitespace-nowrap rounded border px-2 py-1 text-xs font-bold">Remplacer</button>
-                  <button type="button" disabled={supprimer.isPending}
-                    onClick={() => { if (window.confirm(`Supprimer définitivement « ${s.nom} » ?`)) supprimer.mutate({ id: s.id }); }}
+                  <button type="button" disabled={supprimer.isPending || !codeConfigure}
+                    onClick={() => { if (window.confirm(`Supprimer définitivement « ${s.nom} » ?`)) supprimer.mutate({ id: s.id, codeSecret }); }}
                     aria-label={`Supprimer ${s.nom}`} className="rounded border px-2 py-1 text-xs font-bold text-red-700"><Trash2 className="h-3 w-3" /></button>
                 </span>
               </div>
@@ -511,7 +552,7 @@ export function Coffre() {
                   </label>
                   <p className="text-[11px] text-black/60">Seuls le nom et le service changent. La valeur reste chiffrée et inchangée : pour la changer, utilisez « Remplacer ».</p>
                   <div className="flex gap-2">
-                    <button type="button" disabled={modifier.isPending} onClick={enregistrerModification}
+                    <button type="button" disabled={modifier.isPending || !codeConfigure} onClick={enregistrerModification}
                       className="rounded-lg bg-[#111] px-3 py-1.5 text-xs font-bold text-white disabled:opacity-40">
                       {modifier.isPending ? "Enregistrement…" : "Enregistrer"}
                     </button>
@@ -522,7 +563,7 @@ export function Coffre() {
               {remplacementId === s.id ? (
                 <div className="space-y-2 rounded-lg border p-3">
                   <ChampsValeur type={s.type as TypeSecret} valeur={valeurRemplacement} onChange={setValeurRemplacement} desactive={remplacer.isPending} />
-                  <button type="button" disabled={remplacer.isPending} onClick={() => remplacerValeur(s.id, s.type as TypeSecret)}
+                  <button type="button" disabled={remplacer.isPending || !codeConfigure} onClick={() => remplacerValeur(s.id, s.type as TypeSecret)}
                     className="rounded-lg bg-[#111] px-3 py-1.5 text-xs font-bold text-white disabled:opacity-40">
                     {remplacer.isPending ? "Chiffrement…" : "Remplacer la valeur"}
                   </button>

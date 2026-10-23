@@ -84,6 +84,100 @@ test("aperçus : jamais de mot de passe, jamais la clé entière", () => {
 
 const hoteLocal = ["localhost", "127.0.0.1"].includes(process.env.PGHOST ?? "") && !process.env.DATABASE_URL;
 
+test(
+  "code secret du coffre : longueur par rôle, refus si absent ou faux, coffre partagé PDG/employé, jamais plus de droits",
+  { skip: !hoteLocal && "aucune base locale explicite (PGHOST=localhost requis) — jamais de test contre une base partagée" },
+  async () => {
+    const { pool } = await import("../../db.js");
+    const coffre = await import("../coffre.js");
+    const ancienne = process.env.COFFRE_CLE_MAITRE;
+    let pdgId: number | null = null;
+    let employeId: number | null = null;
+    try {
+      // Migrations réelles, telles qu'elles seront déployées, sur une base vierge pour ces deux tables.
+      await pool.query("DROP TABLE IF EXISTS in_coffre_codes, in_coffre_acces, in_coffre_secrets CASCADE");
+      for (const fichier of ["drizzle/0150_coffre_secrets.sql", "drizzle/0159_coffre_codes.sql"]) {
+        for (const instruction of readFileSync(fichier, "utf8").split("--> statement-breakpoint")) {
+          if (instruction.trim()) await pool.query(instruction);
+        }
+      }
+      process.env.COFFRE_CLE_MAITRE = randomBytes(32).toString("hex");
+
+      // Fixtures manifestement fictives, jamais de vraies personnes.
+      const pdg = await pool.query(
+        "INSERT INTO users (email, name, role) VALUES ($1, 'Fixture PDG TEST', 'super_admin') RETURNING id",
+        [`fixture-pdg-${randomBytes(4).toString("hex")}@example.invalid`],
+      );
+      pdgId = pdg.rows[0].id as number;
+      const employe = await pool.query(
+        "INSERT INTO users (email, name, role, coffre_acces) VALUES ($1, 'Fixture Employé TEST', 'employee', true) RETURNING id",
+        [`fixture-employe-${randomBytes(4).toString("hex")}@example.invalid`],
+      );
+      employeId = employe.rows[0].id as number;
+
+      // Propriétaire résolu : toujours le PDG, jamais l'employé — même quand l'employé est habilité.
+      assert.equal(await coffre.proprietaireCoffre(), pdgId);
+
+      // Longueur par rôle : 7 pour le PDG, 6 pour tout le reste (y compris un rôle inconnu ou absent).
+      assert.equal(coffre.longueurCodeRequise("super_admin"), 7);
+      assert.equal(coffre.longueurCodeRequise("employee"), 6);
+      assert.equal(coffre.longueurCodeRequise("admin"), 6);
+      assert.equal(coffre.longueurCodeRequise(null), 6);
+
+      // Pas encore configuré : refus net, jamais un code qui "marcherait par défaut".
+      assert.deepEqual(await coffre.etatCode(pdgId), { configure: false });
+      assert.deepEqual(await coffre.verifierCode(pdgId, "1234567"), { ok: false, motif: "CODE_NON_CONFIGURE" });
+
+      // Mauvaise longueur ou non numérique refusés à la configuration, pour chaque rôle.
+      assert.equal((await coffre.definirCode({ userId: pdgId, role: "super_admin", code: "123456" })).ok, false, "6 chiffres refusés pour le PDG");
+      assert.equal((await coffre.definirCode({ userId: employeId, role: "employee", code: "1234567" })).ok, false, "7 chiffres refusés pour un employé");
+      assert.equal((await coffre.definirCode({ userId: pdgId, role: "super_admin", code: "abcdefg" })).ok, false, "non numérique refusé");
+      assert.deepEqual(await coffre.etatCode(pdgId), { configure: false }, "aucune de ces tentatives refusées n'a rien posé");
+
+      // Configuration correcte, par rôle.
+      const posePdg = await coffre.definirCode({ userId: pdgId, role: "super_admin", code: "2093845" });
+      assert.equal(posePdg.ok, true, posePdg.detail);
+      const poseEmploye = await coffre.definirCode({ userId: employeId, role: "employee", code: "481927" });
+      assert.equal(poseEmploye.ok, true, poseEmploye.detail);
+      assert.deepEqual(await coffre.etatCode(pdgId), { configure: true });
+
+      // Mauvais code toujours refusé ; bon code accepté ; le code de l'un n'ouvre jamais le compte de l'autre.
+      assert.deepEqual(await coffre.verifierCode(pdgId, "0000000"), { ok: false, motif: "CODE_INCORRECT" });
+      assert.deepEqual(await coffre.verifierCode(pdgId, "2093845"), { ok: true, motif: "" });
+      assert.deepEqual(await coffre.verifierCode(employeId, "481927"), { ok: true, motif: "" });
+      assert.deepEqual(await coffre.verifierCode(employeId, "2093845"), { ok: false, motif: "CODE_INCORRECT" }, "le code du PDG n'ouvre pas le compte de l'employé");
+      assert.deepEqual(await coffre.verifierCode(pdgId, "481927"), { ok: false, motif: "CODE_INCORRECT" }, "le code de l'employé n'ouvre pas le compte du PDG");
+
+      // Changer son propre code : le mot de passe du compte n'est pas redemandé ici (authentification déjà faite par
+      // la session tRPC avant d'appeler definirCode) ; l'ancien code n'est pas nécessaire pour en choisir un nouveau.
+      const nouveauPdg = await coffre.definirCode({ userId: pdgId, role: "super_admin", code: "7654321" });
+      assert.equal(nouveauPdg.ok, true);
+      assert.deepEqual(await coffre.verifierCode(pdgId, "2093845"), { ok: false, motif: "CODE_INCORRECT" });
+      assert.deepEqual(await coffre.verifierCode(pdgId, "7654321"), { ok: true, motif: "" });
+
+      // Coffre PARTAGÉ : le PDG et l'employé habilité opèrent sur le même ownerId (celui du PDG, résolu par
+      // proprietaireCoffre) — contrairement au cloisonnement normal entre deux ownerId différents (testé plus bas),
+      // un secret déposé pour ce ownerId est visible par les deux.
+      const proprietaire = await coffre.proprietaireCoffre();
+      const depot = await coffre.ajouterSecret({ ownerId: proprietaire, nom: "Fournisseur partagé TEST", contenu: { type: "cle_api", valeur: "valeur-fictive-partagee-123456" } });
+      assert.equal(depot.ok, true, depot.detail);
+      assert.ok((await coffre.listerSecrets(proprietaire)).some((s) => s.nom === "Fournisseur partagé TEST"));
+
+      // Non-élévation : coffre.ts ne porte aucune notion de rôle — verifierCode confirme seulement que c'est bien ce
+      // compte, jamais plus. C'est la surface tRPC (coffreProcedure pour le coffre partagé, pdgProcedure pour tout le
+      // reste) qui refuse les actions réservées au PDG, quel que soit le code fourni ; un code d'employé correct ne
+      // transite jamais par un chemin qui accorderait le rôle super_admin.
+    } finally {
+      if (pdgId !== null) await pool.query("DELETE FROM users WHERE id=$1", [pdgId]);
+      if (employeId !== null) await pool.query("DELETE FROM users WHERE id=$1", [employeId]);
+      await pool.query("DROP TABLE IF EXISTS in_coffre_codes, in_coffre_acces, in_coffre_secrets CASCADE");
+      if (ancienne === undefined) delete process.env.COFFRE_CLE_MAITRE;
+      else process.env.COFFRE_CLE_MAITRE = ancienne;
+      // Le pool reste ouvert : le test "base locale" ci-dessous réutilise le même module mis en cache et le ferme lui-même.
+    }
+  },
+);
+
 test("base locale : migration 0150, dépôt, usage serveur journalisé, cloisonnement, refus sans clé", { skip: !hoteLocal && "aucune base locale explicite (PGHOST=localhost requis) — jamais de test contre une base partagée" }, async () => {
   const { pool } = await import("../../db.js");
   const coffre = await import("../coffre.js");
