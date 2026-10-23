@@ -33,7 +33,7 @@ jobs:
       - name: Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "22"
 
       - name: Dépendances npm
         run: npm ci
@@ -63,7 +63,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
       - run: npm ci
       - run: node --import tsx --test server/__tests__/auth-google.test.ts
       - run: node --import tsx --test server/intelligences/__tests__/shop-knowledge.test.ts server/intelligences/__tests__/shop-knowledge.integration.test.ts

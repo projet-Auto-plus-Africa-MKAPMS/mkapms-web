@@ -1,7 +1,7 @@
 providers = ["node"]
 
 [variables]
-NODE_VERSION = "20"
+NODE_VERSION = "22"
 NPM_CONFIG_PRODUCTION = "false"
 
 [phases.install]
