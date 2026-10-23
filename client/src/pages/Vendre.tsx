@@ -1121,6 +1121,9 @@ export default function Vendre() {
                     <button onClick={() => setCategorieAnnonce("professionnelle")} className={`flex-1 rounded-lg border-2 p-2 text-center text-xs font-bold transition ${categorieAnnonce === "professionnelle" ? "border-blue-500 bg-blue-500 text-white" : "border-[#E5E7EB] bg-white text-[#6B7280]"}`}>Professionnelle</button>
                     <button onClick={() => setCategorieAnnonce("particulier")} className={`flex-1 rounded-lg border-2 p-2 text-center text-xs font-bold transition ${categorieAnnonce === "particulier" ? "border-green-500 bg-green-500 text-white" : "border-[#E5E7EB] bg-white text-[#6B7280]"}`}>Particulier</button>
                   </div>
+                  <Link to="/vehicule-sur-commande/depot" className="mt-2 block rounded-lg border-2 border-dashed border-[#D4AF37]/40 p-2 text-center text-xs font-bold text-[#D4AF37] transition hover:bg-[#D4AF37]/10">
+                    Véhicule sur commande (fournisseur) →
+                  </Link>
                 </div>
               )}
 

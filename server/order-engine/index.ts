@@ -8,7 +8,7 @@
  * automatiquement. Le client ne peut que consulter ses propres commandes.
  */
 import { z } from "zod";
-import { adminProcedure, directionProcedure, protectedProcedure, publicProcedure, router } from "../trpc.js";
+import { adminProcedure, protectedProcedure, publicProcedure, router } from "../trpc.js";
 import { lancerAssistantDepot, preparerPublicationAssistee, publierEtLierVehiculeSurCommande } from "./vehicule-sur-commande-ia.js";
 import { INTERNAL_ORDER_STATUSES, LISTING_CREATION_MODES, ORDER_DECISIONS, ORDER_DOCUMENT_TYPES, ORDER_ENGINE_META } from "./contract.js";
 import {
@@ -98,9 +98,10 @@ export const orderEngineRouter = router({
     )
     .mutation(({ input, ctx }) => preparerPublicationAssistee({ ...input, actorId: ctx.user.uid })),
 
-  // Publication réelle : réservée à la Direction, même garde que
-  // `vehicleEngine.validerEtPublier` — jamais une mise en ligne automatique.
-  publierVehiculeSurCommande: directionProcedure
+  // Publication réelle : réservée aux comptes internes (employé compris, demande PDG
+  // du 23/10 — l'employé qui dépose l'annonce doit pouvoir la publier), jamais une
+  // mise en ligne automatique, jamais un particulier ou un autre type de compte.
+  publierVehiculeSurCommande: adminProcedure
     .input(z.object({ vehicleItemId: z.number().int().positive() }))
     .mutation(async ({ input, ctx }) => {
       try {

@@ -14995,7 +14995,6 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "acces": [
       "admin",
       "connecte",
-      "direction",
       "public",
       "role:annulee",
       "role:prix_marge_valides"
@@ -23109,11 +23108,11 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/vendre"
         ],
-        "cliquables": 39,
+        "cliquables": 40,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 220,
-        "mots": 982
+        "textes": 221,
+        "mots": 987
       },
       {
         "fichier": "client/src/pages/depot-annonce/AnalyseIA.tsx",
@@ -23814,8 +23813,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "procedures": [],
     "tables": [],
     "acces": [],
-    "textes": 980,
-    "mots": 3544,
+    "textes": 981,
+    "mots": 3549,
     "battement": "sonde",
     "manques": [
       {
