@@ -68,6 +68,7 @@ export const ENGINE_PROBES: EngineProbe[] = [
   { engine: "logistics_engine", tables: ["logistics_shipments", "logistics_legs", "logistics_carrier_connections", "logistics_quotes", "logistics_tracking_events"] },
   { engine: "payout_engine", tables: ["payout_policies", "payout_schedules", "payout_audit_log"] },
   { engine: "document_engine", tables: ["supplier_documents", "vehicle_documents", "custody_records", "custody_requirements"] },
+  { engine: "order_engine", tables: ["order_items", "order_listings", "order_status_history", "order_decisions", "order_documents"] },
 
   // ── Univers ──
   { engine: "vo", tables: ["vehicules", "vehicule_dossiers", "vehicule_historique"] },

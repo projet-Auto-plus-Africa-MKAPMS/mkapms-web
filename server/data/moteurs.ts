@@ -100,7 +100,7 @@ export interface PerimetreMoteur {
 }
 
 export const MOTEURS_TOTAL = 97;
-export const MANQUES_TOTAL = 542;
+export const MANQUES_TOTAL = 541;
 export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
   "bouton_sans_action": 52,
   "dependance_non_declaree": 76,
@@ -110,7 +110,6 @@ export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
   "dependance_sans_preuve": 43,
   "bouton_declare_absent_ecran": 6,
   "emission_dynamique": 2,
-  "sans_battement": 1,
   "destination_inconnue": 2
 };
 
@@ -15008,7 +15007,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     ],
     "textes": 96,
     "mots": 384,
-    "battement": "aucun",
+    "battement": "sonde",
     "manques": [
       {
         "genre": "ecran_sans_contenu",
@@ -15041,10 +15040,6 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "genre": "dependance_sans_preuve",
         "detail": "document_engine"
-      },
-      {
-        "genre": "sans_battement",
-        "detail": "ni sonde, ni pont OS, ni contrat, ni heartbeat dans le code"
       }
     ]
   },
