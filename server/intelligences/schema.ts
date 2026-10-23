@@ -481,6 +481,20 @@ export const inCoffreAcces = pgTable(
   }),
 );
 
+/**
+ * Code secret du coffre : chaque personne autorisée (PDG ou employé que le
+ * PDG a explicitement habilité, server/routers/admin.ts: assignCoffreAcces)
+ * choisit son propre code numérique pour confirmer les actions sensibles du
+ * coffre — jamais stocké en clair, jamais une valeur de secret elle-même.
+ */
+export const inCoffreCodes = pgTable("in_coffre_codes", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().unique(),
+  codeHash: text("code_hash").notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
 export const inCapaciteEtat = pgTable("in_capacite_etat", {
   id: serial("id").primaryKey(),
   capacite: varchar("capacite", { length: 32 }).notNull().unique(),

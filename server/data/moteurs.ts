@@ -6630,6 +6630,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "adminStats",
       "annoncesAll",
       "annoncesPending",
+      "assignCoffreAcces",
       "assignStaffPosition",
       "auditLog",
       "certifyVehicle",
@@ -11097,8 +11098,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       ],
       "identity": [
         "intelligences/api-v1.ts importe auth.ts",
-        "intelligences/fondations.ts exige une session Identity (procédure protégée)",
-        "intelligences/index.ts exige une session Identity (procédure protégée)"
+        "intelligences/coffre.ts importe auth.ts",
+        "intelligences/fondations.ts exige une session Identity (procédure protégée)"
       ],
       "livraison": [
         "estimate-gateway/gateway.ts importe routers/livraison.ts"
@@ -11252,13 +11253,6 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "chantierProjet",
       "chantierProjets",
       "coder",
-      "coffreAjouter",
-      "coffreEtat",
-      "coffreJournal",
-      "coffreModifier",
-      "coffreRemplacer",
-      "coffreSecrets",
-      "coffreSupprimer",
       "comparaisonsShadow",
       "configStatus",
       "configStatusDirection",
@@ -11372,6 +11366,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "in_chantier_executions",
       "in_chantier_previews",
       "in_coffre_acces",
+      "in_coffre_codes",
       "in_coffre_secrets",
       "in_connaissance",
       "in_conversation_resume",
@@ -24848,7 +24843,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "genre": "formulaire",
         "ecran": "/superadmin/gestion-employes-m-k-a-p-m-s",
         "fichier": "client/src/pages/superadmin/GestionEmployesMKAPMS.tsx",
-        "ligne": 30
+        "ligne": 31
       },
       {
         "code": "admin_employe_enregistrer",
@@ -24856,7 +24851,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "genre": "formulaire",
         "ecran": "/superadmin/gestion-employes-m-k-a-p-m-s",
         "fichier": "client/src/pages/superadmin/GestionEmployesMKAPMS.tsx",
-        "ligne": 42
+        "ligne": 43
       },
       {
         "code": "admin_employes_ajouter_mission",
@@ -25327,8 +25322,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "cliquables": 4,
         "parMoteur": 2,
         "sansAction": 0,
-        "textes": 17,
-        "mots": 76
+        "textes": 18,
+        "mots": 89
       }
     ],
     "ecransHotes": [
@@ -25458,8 +25453,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "direction",
       "public"
     ],
-    "textes": 248,
-    "mots": 793,
+    "textes": 249,
+    "mots": 806,
     "battement": "sonde",
     "manques": [
       {

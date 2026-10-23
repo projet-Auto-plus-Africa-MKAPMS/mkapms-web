@@ -12,6 +12,11 @@ export interface AuthUser {
   uid: number;
   role: string;
   email: string;
+  /** Accès au coffre (server/intelligences/coffre.ts) attribué par le PDG. Sans effet
+   * pour super_admin, déjà toujours autorisé — voir requireCoffreAcces ci-dessous.
+   * Facultatif : de nombreuses fixtures de tests construisent un AuthUser directement
+   * sans passer par createContext ; absent vaut toujours "non accordé", jamais "accordé". */
+  coffreAcces?: boolean;
 }
 
 /**
@@ -29,9 +34,9 @@ export async function createContext({ req, res }: CreateExpressContextOptions) {
   if (token) {
     const payload = verifyToken(token);
     if (payload) {
-      const [row] = await db.select({ status: users.status }).from(users).where(eq(users.id, payload.uid)).limit(1);
+      const [row] = await db.select({ status: users.status, coffreAcces: users.coffreAcces }).from(users).where(eq(users.id, payload.uid)).limit(1);
       if (row?.status === "active") {
-        user = { uid: payload.uid, role: payload.role, email: payload.email };
+        user = { uid: payload.uid, role: payload.role, email: payload.email, coffreAcces: row.coffreAcces };
       }
     }
   }
@@ -92,6 +97,19 @@ const requirePdg = t.middleware(({ ctx, next }) => {
   return next({ ctx: { ...ctx, user: ctx.user } });
 });
 
+/**
+ * Coffre de secrets (server/intelligences/coffre.ts) : le PDG l'a toujours,
+ * un employé seulement si le PDG l'y a explicitement habilité
+ * (users.coffreAcces, server/routers/admin.ts: assignCoffreAcces) — jamais
+ * automatique pour le seul fait d'être "admin" ou "employee".
+ */
+const requireCoffreAcces = t.middleware(({ ctx, next }) => {
+  if (!ctx.user || (ctx.user.role !== "super_admin" && !ctx.user.coffreAcces)) {
+    throw new TRPCError({ code: "FORBIDDEN", message: "Accès au coffre non autorisé pour ce compte" });
+  }
+  return next({ ctx: { ...ctx, user: ctx.user } });
+});
+
 // LOT 7 (suite) — RBAC Fournisseur/Transporteur : porte d'accès isolée,
 // jamais cumulée avec requireAdmin/requireDirection/requirePro. Un
 // fournisseur ou un transporteur n'accède qu'aux procédures qui l'exigent
@@ -108,4 +126,5 @@ export const adminProcedure = publicProcedure.use(requireAdmin);
 export const directionProcedure = publicProcedure.use(requireDirection);
 export const proProcedure = publicProcedure.use(requirePro);
 export const pdgProcedure = publicProcedure.use(requirePdg);
+export const coffreProcedure = publicProcedure.use(requireCoffreAcces);
 export const supplierCarrierProcedure = publicProcedure.use(requireSupplierOrCarrier);

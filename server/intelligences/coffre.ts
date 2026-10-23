@@ -20,12 +20,28 @@
  * Boutique (SHOP) garde ses propres secrets, sa propre mémoire et ses propres
  * permissions (décision du Fondateur du 27 septembre 2026, voir
  * server/intelligences/fondations.ts) — rien n'est partagé automatiquement.
+ *
+ * Propriétaire : chaque fonction ci-dessous reste cloisonnée par ownerId (deux
+ * ownerId différents ne voient jamais les secrets l'un de l'autre, garanti
+ * par les tests). C'est la surface tRPC (server/intelligences/index.ts) qui
+ * décide quel ownerId utiliser : toujours celui du PDG (proprietaireCoffre),
+ * pour que le PDG et chaque employé qu'il a explicitement habilité
+ * (users.coffreAcces, server/routers/admin.ts: assignCoffreAcces) travaillent
+ * sur le même coffre partagé de l'entreprise.
+ *
+ * Code secret (fin de fichier) : chaque personne autorisée choisit son propre
+ * code numérique pour confirmer les actions sensibles — 7 chiffres pour le
+ * PDG, 6 pour un employé habilité. Il ne remplace jamais la vérification du
+ * rôle : il ne fait que confirmer que c'est bien cette personne, jamais plus
+ * de droits que son compte n'en a déjà.
  */
 import { createCipheriv, createDecipheriv, hkdfSync, randomBytes } from "node:crypto";
 import { and, count, desc, eq } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "../db.js";
-import { inCoffreAcces, inCoffreSecrets } from "./schema.js";
+import { hashPassword, comparePassword } from "../auth.js";
+import { users } from "../schema.js";
+import { inCoffreAcces, inCoffreCodes, inCoffreSecrets } from "./schema.js";
 
 export const TYPES_SECRET = ["identifiants", "cle_api", "fichier"] as const;
 export type TypeSecret = (typeof TYPES_SECRET)[number];
@@ -439,4 +455,51 @@ export async function journalCoffre(ownerId: number, limite = 50): Promise<Entre
     .where(eq(inCoffreAcces.acteurId, ownerId))
     .orderBy(desc(inCoffreAcces.createdAt))
     .limit(Math.min(Math.max(limite, 1), 200));
+}
+
+/**
+ * Le PDG : toujours l'unique compte super_admin (jamais attribuable, voir
+ * shared/roles.ts). C'est ce compte qui est le propriétaire réel du coffre
+ * partagé — un employé habilité y travaille, il ne le possède pas.
+ */
+export async function proprietaireCoffre(): Promise<number> {
+  const [pdg] = await db.select({ id: users.id }).from(users).where(eq(users.role, "super_admin")).orderBy(users.id).limit(1);
+  if (!pdg) throw new Error("Aucun compte PDG (super_admin) trouvé : le coffre ne peut pas être résolu.");
+  return pdg.id;
+}
+
+/** PDG : 7 chiffres. Employé habilité : 6. Jamais l'inverse, jamais une autre longueur. */
+export function longueurCodeRequise(role: string | null | undefined): number {
+  return role === "super_admin" ? 7 : 6;
+}
+
+export async function etatCode(userId: number): Promise<{ configure: boolean }> {
+  const [ligne] = await db.select({ id: inCoffreCodes.id }).from(inCoffreCodes).where(eq(inCoffreCodes.userId, userId)).limit(1);
+  return { configure: !!ligne };
+}
+
+/**
+ * Pose ou remplace le code de CE compte, jamais celui d'un autre. Perdre son
+ * code n'enferme personne hors du coffre : être connecté suffit pour en
+ * choisir un nouveau, exactement comme pour le mot de passe du compte.
+ */
+export async function definirCode(input: { userId: number; role: string | null | undefined; code: string }): Promise<ResultatCoffre> {
+  const longueur = longueurCodeRequise(input.role);
+  if (!/^\d+$/.test(input.code) || input.code.length !== longueur) {
+    return { ok: false, detail: `Choisissez un code à ${longueur} chiffres.` };
+  }
+  const codeHash = await hashPassword(input.code);
+  await db
+    .insert(inCoffreCodes)
+    .values({ userId: input.userId, codeHash })
+    .onConflictDoUpdate({ target: inCoffreCodes.userId, set: { codeHash, updatedAt: new Date() } });
+  return { ok: true, detail: "Code secret du coffre enregistré." };
+}
+
+/** Jamais plus de droits que le compte n'en a déjà : confirme seulement que c'est bien cette personne. */
+export async function verifierCode(userId: number, code: unknown): Promise<{ ok: boolean; motif: "" | "CODE_NON_CONFIGURE" | "CODE_INCORRECT" }> {
+  const [ligne] = await db.select({ codeHash: inCoffreCodes.codeHash }).from(inCoffreCodes).where(eq(inCoffreCodes.userId, userId)).limit(1);
+  if (!ligne) return { ok: false, motif: "CODE_NON_CONFIGURE" };
+  if (typeof code !== "string" || !(await comparePassword(code, ligne.codeHash))) return { ok: false, motif: "CODE_INCORRECT" };
+  return { ok: true, motif: "" };
 }

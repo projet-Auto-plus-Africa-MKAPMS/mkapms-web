@@ -10,6 +10,7 @@ export default function GestionEmployesMKAPMS() {
   const equipe = trpc.admin.staffList.useQuery();
   const creer = trpc.admin.createStaff.useMutation();
   const attribuer = trpc.admin.assignStaffPosition.useMutation({ onSuccess: () => { void equipe.refetch(); } });
+  const attribuerCoffre = trpc.admin.assignCoffreAcces.useMutation({ onSuccess: () => { void equipe.refetch(); } });
   const estPdg = user?.role === "super_admin";
   const [ouvert, setOuvert] = useState(false);
   const [succes, setSucces] = useState("");
@@ -51,8 +52,14 @@ export default function GestionEmployesMKAPMS() {
             <option value="">Poste non renseigné</option>
             {POSITIONS_ATTRIBUABLES.map(key => <option key={key} value={key}>{STAFF_LABELS[key]}</option>)}
           </select></label>}
+        {estPdg && e.role !== "super_admin" && e.id !== user?.id && <label className="mt-2 flex items-center gap-2 text-sm">
+          <input type="checkbox" disabled={attribuerCoffre.isPending} checked={e.coffreAcces}
+            onChange={ev => attribuerCoffre.mutate({ userId: e.id, coffreAcces: ev.target.checked })} />
+          Accès au coffre de secrets (code à 6 chiffres propre à ce compte)
+        </label>}
       </article>)}
       {attribuer.error && <p role="alert" className="text-red-700">{attribuer.error.message}</p>}
+      {attribuerCoffre.error && <p role="alert" className="text-red-700">{attribuerCoffre.error.message}</p>}
     </div>
   </main>;
 }

@@ -12,7 +12,7 @@
 import { z } from "zod";
 import { createHash } from "node:crypto";
 import { TRPCError } from "@trpc/server";
-import { pdgProcedure, protectedProcedure, publicProcedure, router } from "../trpc.js";
+import { coffreProcedure, pdgProcedure, protectedProcedure, publicProcedure, router } from "../trpc.js";
 import { COMMANDES, NOM_MOTEUR, REGLES } from "./regles.js";
 import {
   CAPACITES,
@@ -68,12 +68,17 @@ import {
 import {
   ajouterSecret as ajouterSecretCoffre,
   contenuSecretSchema,
+  definirCode as definirCodeCoffre,
+  etatCode as etatCodeCoffre,
   etatCoffre,
   journalCoffre,
   listerSecrets as listerSecretsCoffre,
+  longueurCodeRequise as longueurCodeRequiseCoffre,
+  proprietaireCoffre,
   remplacerSecret as remplacerSecretCoffre,
   modifierSecret as modifierSecretCoffre,
   supprimerSecret as supprimerSecretCoffre,
+  verifierCode as verifierCodeCoffre,
 } from "./coffre.js";
 import {
   enAttentePour as deploiementsEnAttentePour,
@@ -279,6 +284,20 @@ async function exigerProprieteConversation(sessionId: number, userId: number): P
     throw new TRPCError({
       code: verdict.motif === "Conversation introuvable." ? "NOT_FOUND" : "FORBIDDEN",
       message: verdict.motif,
+    });
+  }
+}
+
+/**
+ * Exigé avant toute action sensible du coffre : le code du COMPTE APPELANT,
+ * jamais celui d'un autre, et jamais plus de droits que ce compte n'en a déjà.
+ */
+async function exigerCodeCoffre(userId: number, code: string): Promise<void> {
+  const verdict = await verifierCodeCoffre(userId, code);
+  if (!verdict.ok) {
+    throw new TRPCError({
+      code: verdict.motif === "CODE_NON_CONFIGURE" ? "PRECONDITION_FAILED" : "FORBIDDEN",
+      message: verdict.motif === "CODE_NON_CONFIGURE" ? "Configurez d'abord votre code secret du coffre." : "Code secret du coffre incorrect.",
     });
   }
 }
@@ -1003,39 +1022,72 @@ export const intelligencesRouter = router({
     .mutation(({ input, ctx }) => retirerApprobateur({ ...input, actorId: ctx.user?.uid })),
 
   /**
-   * Coffre de secrets du PDG (server/intelligences/coffre.ts). Aucune
-   * procédure ne renvoie jamais une valeur : la lecture ne rend que des
-   * métadonnées masquées, le contenu est en écriture seule, et seul le code
-   * serveur d'un outil précis peut le déchiffrer (chaque usage est journalisé).
+   * Coffre de secrets, partagé entre le PDG et chaque employé qu'il a
+   * explicitement habilité (users.coffreAcces). Aucune procédure ne renvoie
+   * jamais une valeur : la lecture ne rend que des métadonnées masquées, le
+   * contenu est en écriture seule, et seul le code serveur d'un outil précis
+   * peut le déchiffrer (chaque usage est journalisé). Les quatre mutations
+   * exigent en plus le code secret du COMPTE APPELANT (pas celui du PDG) :
+   * 7 chiffres pour le PDG, 6 pour un employé habilité.
    */
-  coffreEtat: pdgProcedure.query(({ ctx }) => etatCoffre(ctx.user.uid)),
+  coffreEtat: coffreProcedure.query(async () => etatCoffre(await proprietaireCoffre())),
 
-  coffreSecrets: pdgProcedure.query(({ ctx }) => listerSecretsCoffre(ctx.user.uid)),
+  coffreSecrets: coffreProcedure.query(async () => listerSecretsCoffre(await proprietaireCoffre())),
 
-  coffreJournal: pdgProcedure.query(({ ctx }) => journalCoffre(ctx.user.uid, 50)),
+  coffreJournal: coffreProcedure.query(async () => journalCoffre(await proprietaireCoffre(), 50)),
 
-  coffreAjouter: pdgProcedure
+  /** Code secret de CE compte : jamais celui d'un autre, jamais le même pour tous. */
+  coffreCodeEtat: coffreProcedure.query(async ({ ctx }) => ({
+    ...(await etatCodeCoffre(ctx.user.uid)),
+    longueurRequise: longueurCodeRequiseCoffre(ctx.user.role),
+  })),
+
+  coffreCodeDefinir: coffreProcedure
+    .input(z.object({ code: z.string().regex(/^\d{6,7}$/, "6 ou 7 chiffres") }))
+    .mutation(async ({ input, ctx }) => {
+      const resultat = await definirCodeCoffre({ userId: ctx.user.uid, role: ctx.user.role, code: input.code });
+      if (!resultat.ok) throw new TRPCError({ code: "BAD_REQUEST", message: resultat.detail });
+      return resultat;
+    }),
+
+  coffreAjouter: coffreProcedure
     .input(
       z.object({
         nom: z.string().trim().min(2).max(120),
         service: z.string().trim().max(120).default(""),
         contenu: contenuSecretSchema,
+        codeSecret: z.string().min(1).max(10),
       }),
     )
-    .mutation(({ input, ctx }) => ajouterSecretCoffre({ ownerId: ctx.user.uid, ...input })),
+    .mutation(async ({ input, ctx }) => {
+      await exigerCodeCoffre(ctx.user.uid, input.codeSecret);
+      const { codeSecret, ...reste } = input;
+      return ajouterSecretCoffre({ ownerId: await proprietaireCoffre(), ...reste });
+    }),
 
-  coffreRemplacer: pdgProcedure
-    .input(z.object({ id: z.number().int().positive(), contenu: contenuSecretSchema }))
-    .mutation(({ input, ctx }) => remplacerSecretCoffre({ ownerId: ctx.user.uid, ...input })),
+  coffreRemplacer: coffreProcedure
+    .input(z.object({ id: z.number().int().positive(), contenu: contenuSecretSchema, codeSecret: z.string().min(1).max(10) }))
+    .mutation(async ({ input, ctx }) => {
+      await exigerCodeCoffre(ctx.user.uid, input.codeSecret);
+      const { codeSecret, ...reste } = input;
+      return remplacerSecretCoffre({ ownerId: await proprietaireCoffre(), ...reste });
+    }),
 
   /** Renomme un secret ou change son service ; la valeur chiffrée n'est ni lue ni modifiée. */
-  coffreModifier: pdgProcedure
-    .input(z.object({ id: z.number().int().positive(), nom: z.string().trim().min(2).max(120), service: z.string().trim().max(120).default("") }))
-    .mutation(({ input, ctx }) => modifierSecretCoffre({ ownerId: ctx.user.uid, ...input })),
+  coffreModifier: coffreProcedure
+    .input(z.object({ id: z.number().int().positive(), nom: z.string().trim().min(2).max(120), service: z.string().trim().max(120).default(""), codeSecret: z.string().min(1).max(10) }))
+    .mutation(async ({ input, ctx }) => {
+      await exigerCodeCoffre(ctx.user.uid, input.codeSecret);
+      const { codeSecret, ...reste } = input;
+      return modifierSecretCoffre({ ownerId: await proprietaireCoffre(), ...reste });
+    }),
 
-  coffreSupprimer: pdgProcedure
-    .input(z.object({ id: z.number().int().positive() }))
-    .mutation(({ input, ctx }) => supprimerSecretCoffre({ ownerId: ctx.user.uid, ...input })),
+  coffreSupprimer: coffreProcedure
+    .input(z.object({ id: z.number().int().positive(), codeSecret: z.string().min(1).max(10) }))
+    .mutation(async ({ input, ctx }) => {
+      await exigerCodeCoffre(ctx.user.uid, input.codeSecret);
+      return supprimerSecretCoffre({ ownerId: await proprietaireCoffre(), id: input.id });
+    }),
 
   /** Demandes de déploiement en attente de LA personne connectée (jamais un rôle). */
   deploiementsEnAttente: protectedProcedure.query(({ ctx }) => {
