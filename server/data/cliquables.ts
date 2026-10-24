@@ -40,7 +40,7 @@ export interface AnomalieCliquable {
   readonly motif: MotifAnomalie;
 }
 
-export const CLIQUABLES_TOTAL = 2879;
+export const CLIQUABLES_TOTAL = 2880;
 
 export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/components/AccessDenied.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
@@ -688,7 +688,7 @@ export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/pages/Validation.tsx", total: 2, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 1, zones: 0 },
   { fichier: "client/src/pages/vehicule-sur-commande/CommandeDetailClient.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/vehicule-sur-commande/CommandeDetailEmploye.tsx", total: 7, moteur: 0, liens: 1, boutonsLocaux: 6, sansAction: 0, zones: 0 },
-  { fichier: "client/src/pages/vehicule-sur-commande/DepotRapide.tsx", total: 3, moteur: 0, liens: 1, boutonsLocaux: 2, sansAction: 0, zones: 0 },
+  { fichier: "client/src/pages/vehicule-sur-commande/DepotRapide.tsx", total: 4, moteur: 0, liens: 1, boutonsLocaux: 3, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/vehicule-sur-commande/MesCommandes.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/vehicule-sur-commande/MesVehiculesEmploye.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/vehicule-sur-commande/Portail.tsx", total: 3, moteur: 0, liens: 3, boutonsLocaux: 0, sansAction: 0, zones: 0 },
