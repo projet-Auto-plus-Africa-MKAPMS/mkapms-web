@@ -1,22 +1,11 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ChevronLeft, Sparkles, PenLine, Loader2, AlertTriangle, CheckCircle, Paperclip, X, FileText } from "lucide-react";
+import { ChevronLeft, Sparkles, PenLine, Loader2, AlertTriangle, CheckCircle, X } from "lucide-react";
 import { trpc } from "../../lib/trpc";
 import { useAuth } from "../../lib/auth";
 import { isDirection } from "@shared/roles";
 import MicroVocal from "../../components/MicroVocal";
-
-// La requête entière passe par express.json({ limit: "50mb" }) (server/index.ts) : le
-// base64 ajoute ~33 % à la taille d'origine, donc ces plafonds restent nettement en
-// dessous pour laisser de la marge au reste du corps de la requête.
-const TAILLE_MAX_DOCUMENT = 4 * 1024 * 1024;
-const MAX_DOCUMENTS = 6;
-
-interface DocumentJoint {
-  nom: string;
-  type: string;
-  contenuBase64: string;
-}
+import FileUpload from "../../components/FileUpload";
 
 /* ══════════════════════════════════════════════════════════════════════════
    DÉPÔT RAPIDE — Véhicule sur commande (sections 2, 4, 5, demande PDG)
@@ -40,8 +29,10 @@ export default function DepotRapideVehiculeSurCommande() {
   const [annee, setAnnee] = useState("");
   const [prixFournisseurSaisi, setPrixFournisseurSaisi] = useState("");
   const [description, setDescription] = useState("");
-  const [documents, setDocuments] = useState<DocumentJoint[]>([]);
-  const [erreurFichier, setErreurFichier] = useState("");
+  // Même emplacement, même système que le reste de la plateforme (DepotAnnonce.tsx) :
+  // FileUpload envoie réellement les fichiers au serveur et renvoie leur URL — jamais
+  // un encodage base64 local distinct.
+  const [documentsUrls, setDocumentsUrls] = useState<{ url: string; originalName: string }[]>([]);
   const [assistantResult, setAssistantResult] = useState<any>(null);
   const [prix, setPrix] = useState({ supplierPrice: "", supplierCurrency: "EUR", commissionRatePct: "10", pickupCity: "", pickupCountryCode: "FR" });
   const [prepResult, setPrepResult] = useState<any>(null);
@@ -55,27 +46,6 @@ export default function DepotRapideVehiculeSurCommande() {
   const preparer = trpc.orderEngine.preparerPublicationAssistee.useMutation({ onSuccess: setPrepResult });
   const publier = trpc.orderEngine.publierVehiculeSurCommande.useMutation({ onSuccess: (r) => navigate(`/vehicule/${r.annonceId}`) });
 
-  function ajouterDocuments(fichiers: FileList | null) {
-    if (!fichiers?.length) return;
-    setErreurFichier("");
-    const liste = Array.from(fichiers);
-    if (documents.length + liste.length > MAX_DOCUMENTS) { setErreurFichier(`Maximum ${MAX_DOCUMENTS} fichiers.`); return; }
-    for (const fichier of liste) {
-      if (fichier.size > TAILLE_MAX_DOCUMENT) { setErreurFichier(`${fichier.name} dépasse 4 Mo.`); continue; }
-      const lecteur = new FileReader();
-      lecteur.onload = () => {
-        const resultat = typeof lecteur.result === "string" ? lecteur.result : "";
-        setDocuments((d) => [...d, { nom: fichier.name, type: fichier.type, contenuBase64: resultat.slice(resultat.indexOf(",") + 1) }]);
-      };
-      lecteur.onerror = () => setErreurFichier(`Lecture de ${fichier.name} impossible.`);
-      lecteur.readAsDataURL(fichier);
-    }
-  }
-
-  function retirerDocument(nom: string) {
-    setDocuments((d) => d.filter((doc) => doc.nom !== nom));
-  }
-
   function lancerAssistant() {
     if (!supplierProfileId || !supplierVehicleId) { alert("Fournisseur et identifiant véhicule fournisseur requis."); return; }
     const rawData: Record<string, unknown> = {
@@ -84,7 +54,7 @@ export default function DepotRapideVehiculeSurCommande() {
       ...(annee.trim() ? { annee: annee.trim() } : {}),
       ...(prixFournisseurSaisi.trim() ? { prixFournisseur: prixFournisseurSaisi.trim() } : {}),
       ...(description.trim() ? { description: description.trim() } : {}),
-      ...(documents.length ? { documents } : {}),
+      ...(documentsUrls.length ? { documents: documentsUrls } : {}),
     };
     assistant.mutate({ supplierProfileId: Number(supplierProfileId), supplierVehicleId, ingestMethod, rawData });
   }
@@ -151,17 +121,19 @@ export default function DepotRapideVehiculeSurCommande() {
           </div>
 
           <div className="space-y-1.5">
-            <label className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg border border-dashed border-[#D4AF37]/50 bg-[#D4AF37]/5 py-2.5 text-xs font-bold text-[#111]">
-              <Paperclip size={14} className="text-[#D4AF37]" /> Joindre photos, carte grise ou documents PDF
-              <input type="file" multiple accept="image/*,application/pdf" hidden onChange={(e) => { ajouterDocuments(e.target.files); e.currentTarget.value = ""; }} />
-            </label>
-            {erreurFichier && <p role="alert" className="text-[11px] text-red-700">{erreurFichier}</p>}
-            {documents.length > 0 && (
+            <FileUpload
+              label={`Joindre photos, carte grise ou documents PDF (${documentsUrls.length})`}
+              accept="image/*,application/pdf"
+              multiple
+              maxFiles={6}
+              onUploaded={(files) => setDocumentsUrls((d) => [...d, ...files.map((f) => ({ url: f.url, originalName: f.originalName }))])}
+            />
+            {documentsUrls.length > 0 && (
               <ul className="space-y-1">
-                {documents.map((doc) => (
-                  <li key={doc.nom} className="flex items-center justify-between gap-2 rounded-lg bg-[#F5F3EF] px-2.5 py-1.5 text-xs">
-                    <span className="flex items-center gap-1.5 truncate text-[#374151]"><FileText size={12} className="shrink-0 text-[#6B7280]" /> {doc.nom}</span>
-                    <button type="button" onClick={() => retirerDocument(doc.nom)} aria-label={`Retirer ${doc.nom}`} className="shrink-0 text-[#9CA3AF] hover:text-red-600"><X size={14} /></button>
+                {documentsUrls.map((doc) => (
+                  <li key={doc.url} className="flex items-center justify-between gap-2 rounded-lg bg-[#F5F3EF] px-2.5 py-1.5 text-xs">
+                    <span className="truncate text-[#374151]">{doc.originalName}</span>
+                    <button type="button" onClick={() => setDocumentsUrls((d) => d.filter((x) => x.url !== doc.url))} aria-label={`Retirer ${doc.originalName}`} className="shrink-0 text-[#9CA3AF] hover:text-red-600"><X size={14} /></button>
                   </li>
                 ))}
               </ul>
@@ -200,6 +172,23 @@ export default function DepotRapideVehiculeSurCommande() {
                 </button>
               </div>
 
+              {prepResult?.prix && (() => {
+                const p = prepResult.prix;
+                const achat = Number(p.supplierPrice), conseille = Number(p.publicPrice);
+                const margeNegociation = conseille * 0.05;
+                const prixMinimum = p.minPriceContractual != null ? Number(p.minPriceContractual) : Math.max(achat, conseille - margeNegociation);
+                const benefice = conseille - achat;
+                return (
+                  <div className="rounded-lg bg-[#F5F3EF] p-3 space-y-1.5 text-xs">
+                    <p className="font-bold text-[#111]">Estimation — avant publication (Vehicle Pricing Engine)</p>
+                    <div className="flex justify-between"><span className="text-[#6B7280]">Prix d'achat fournisseur</span><span className="font-bold text-[#111]">{achat.toLocaleString("fr-FR")} {p.supplierCurrency}</span></div>
+                    <div className="flex justify-between"><span className="text-[#6B7280]">Prix conseillé de vente</span><span className="font-bold text-[#D4AF37]">{conseille.toLocaleString("fr-FR")} {p.publicCurrency}</span></div>
+                    <div className="flex justify-between"><span className="text-[#6B7280]">Petite marge de négociation (5%)</span><span className="font-bold text-[#111]">{margeNegociation.toLocaleString("fr-FR")} {p.publicCurrency}</span></div>
+                    <div className="flex justify-between"><span className="text-[#6B7280]">Prix minimum conseillé</span><span className="font-bold text-[#111]">{prixMinimum.toLocaleString("fr-FR")} {p.publicCurrency}</span></div>
+                    <div className="flex justify-between"><span className="text-[#6B7280]">Bénéfice estimé</span><span className="font-bold text-green-600">{benefice.toLocaleString("fr-FR")} {p.publicCurrency}</span></div>
+                  </div>
+                );
+              })()}
               {prepResult && !prepResult.pret && (
                 <div className="rounded-lg bg-amber-50 p-2 text-amber-800">
                   <p className="font-bold">Préparation incomplète :</p>
