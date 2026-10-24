@@ -327,6 +327,76 @@ const PHOTO_CATS_MOTO = [
   { key: "defauts", label: "Defauts", slots: ["Defaut 1","Defaut 2"] },
 ];
 
+/* ── Helper: dropdown field with validation ──
+   Declared at module scope (not inside DepotAnnonce) — a component defined
+   inside a render function gets a new identity on every render, so React
+   unmounts/remounts its DOM node on every keystroke. For a text <input>
+   that drops focus mid-typing, which closes the on-screen keyboard on
+   mobile after a single character. */
+function SelectField({ label, value, onChange, options, required, placeholder, errorKey, errors = {} }: {
+  label: string; value: string; onChange: (v: string) => void; options: string[]; required?: boolean; placeholder?: string; errorKey?: string; errors?: Record<string, string>;
+}) {
+  const hasError = errorKey && errors[errorKey];
+  return (
+    <div>
+      <label className="block text-sm font-semibold text-[#111] mb-1.5">{label}{required && <span className="text-red-500 ml-0.5">*</span>}</label>
+      <div className="relative">
+        <select value={value} onChange={(e) => onChange(e.target.value)} className={`w-full appearance-none rounded-xl border px-4 py-3 text-sm pr-10 transition ${
+          hasError ? "border-red-400 bg-red-50" : value ? "border-[#D4AF37] bg-[#FFFDF5]" : "border-[#E5E7EB] bg-white hover:border-[#D4AF37]/50"
+        }`}>
+          <option value="">{placeholder || "Choisir..."}</option>
+          {options.map(o => <option key={o} value={o}>{o}</option>)}
+        </select>
+        <ChevronDown size={16} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#9CA3AF]" />
+      </div>
+      {hasError && <p className="text-xs text-red-500 mt-1">{errors[errorKey!]}</p>}
+    </div>
+  );
+}
+
+/* ── Helper: radio group (vertical circles like La Centrale) ── */
+function RadioGroup({ label, value, onChange, options, vertical, required }: {
+  label: string; value: string; onChange: (v: string) => void; options: string[]; vertical?: boolean; required?: boolean;
+}) {
+  return (
+    <div>
+      <label className="block text-sm font-semibold text-[#111] mb-2">{label}{required && <span className="text-red-500 ml-0.5">*</span>}</label>
+      <div className={vertical ? "space-y-2.5" : "flex flex-wrap gap-2.5"}>
+        {options.map(o => (
+          <button key={o} onClick={() => onChange(o)} className={`flex items-center gap-3 ${vertical ? "w-full" : ""} text-left`}>
+            <div className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition ${
+              value === o ? "border-[#E53E3E]" : "border-[#D1D5DB]"
+            }`}>
+              {value === o && <div className="h-2.5 w-2.5 rounded-full bg-[#E53E3E]" />}
+            </div>
+            <span className={`text-sm ${value === o ? "font-semibold text-[#111]" : "text-[#374151]"}`}>{o}</span>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ── Helper: input field ── */
+function InputField({ label, value, onChange, placeholder, suffix, type, required, errorKey, errors = {} }: {
+  label: string; value: string; onChange: (v: string) => void; placeholder?: string; suffix?: string; type?: string; required?: boolean; errorKey?: string; errors?: Record<string, string>;
+}) {
+  const hasError = errorKey && errors[errorKey];
+  return (
+    <div>
+      <label className="block text-sm font-semibold text-[#111] mb-1.5">{label}{required && <span className="text-red-500 ml-0.5">*</span>}</label>
+      <div className="relative">
+        <input value={value} onChange={(e) => onChange(e.target.value)} type={type || "text"} placeholder={placeholder}
+          className={`w-full rounded-xl border px-4 py-3 text-sm transition ${suffix ? "pr-12" : ""} ${
+            hasError ? "border-red-400 bg-red-50" : value ? "border-[#D4AF37] bg-[#FFFDF5]" : "border-[#E5E7EB] bg-white hover:border-[#D4AF37]/50"
+          }`} />
+        {suffix && <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-medium text-[#9CA3AF]">{suffix}</span>}
+      </div>
+      {hasError && <p className="text-xs text-red-500 mt-1">{errors[errorKey!]}</p>}
+    </div>
+  );
+}
+
 /* ══════════════════════════════════════════════════════════════════════════ */
 
 export default function DepotAnnonce() {
@@ -555,71 +625,6 @@ export default function DepotAnnonce() {
     );
   }
 
-  /* ── Helper: dropdown field with validation ── */
-  function SelectField({ label, value, onChange, options, required, placeholder, errorKey }: {
-    label: string; value: string; onChange: (v: string) => void; options: string[]; required?: boolean; placeholder?: string; errorKey?: string;
-  }) {
-    const hasError = errorKey && errors[errorKey];
-    return (
-      <div>
-        <label className="block text-sm font-semibold text-[#111] mb-1.5">{label}{required && <span className="text-red-500 ml-0.5">*</span>}</label>
-        <div className="relative">
-          <select value={value} onChange={(e) => onChange(e.target.value)} className={`w-full appearance-none rounded-xl border px-4 py-3 text-sm pr-10 transition ${
-            hasError ? "border-red-400 bg-red-50" : value ? "border-[#D4AF37] bg-[#FFFDF5]" : "border-[#E5E7EB] bg-white hover:border-[#D4AF37]/50"
-          }`}>
-            <option value="">{placeholder || "Choisir..."}</option>
-            {options.map(o => <option key={o} value={o}>{o}</option>)}
-          </select>
-          <ChevronDown size={16} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#9CA3AF]" />
-        </div>
-        {hasError && <p className="text-xs text-red-500 mt-1">{errors[errorKey!]}</p>}
-      </div>
-    );
-  }
-
-  /* ── Helper: radio group (vertical circles like La Centrale) ── */
-  function RadioGroup({ label, value, onChange, options, vertical, required }: {
-    label: string; value: string; onChange: (v: string) => void; options: string[]; vertical?: boolean; required?: boolean;
-  }) {
-    return (
-      <div>
-        <label className="block text-sm font-semibold text-[#111] mb-2">{label}{required && <span className="text-red-500 ml-0.5">*</span>}</label>
-        <div className={vertical ? "space-y-2.5" : "flex flex-wrap gap-2.5"}>
-          {options.map(o => (
-            <button key={o} onClick={() => onChange(o)} className={`flex items-center gap-3 ${vertical ? "w-full" : ""} text-left`}>
-              <div className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition ${
-                value === o ? "border-[#E53E3E]" : "border-[#D1D5DB]"
-              }`}>
-                {value === o && <div className="h-2.5 w-2.5 rounded-full bg-[#E53E3E]" />}
-              </div>
-              <span className={`text-sm ${value === o ? "font-semibold text-[#111]" : "text-[#374151]"}`}>{o}</span>
-            </button>
-          ))}
-        </div>
-      </div>
-    );
-  }
-
-  /* ── Helper: input field ── */
-  function InputField({ label, value, onChange, placeholder, suffix, type, required, errorKey }: {
-    label: string; value: string; onChange: (v: string) => void; placeholder?: string; suffix?: string; type?: string; required?: boolean; errorKey?: string;
-  }) {
-    const hasError = errorKey && errors[errorKey];
-    return (
-      <div>
-        <label className="block text-sm font-semibold text-[#111] mb-1.5">{label}{required && <span className="text-red-500 ml-0.5">*</span>}</label>
-        <div className="relative">
-          <input value={value} onChange={(e) => onChange(e.target.value)} type={type || "text"} placeholder={placeholder}
-            className={`w-full rounded-xl border px-4 py-3 text-sm transition ${suffix ? "pr-12" : ""} ${
-              hasError ? "border-red-400 bg-red-50" : value ? "border-[#D4AF37] bg-[#FFFDF5]" : "border-[#E5E7EB] bg-white hover:border-[#D4AF37]/50"
-            }`} />
-          {suffix && <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-medium text-[#9CA3AF]">{suffix}</span>}
-        </div>
-        {hasError && <p className="text-xs text-red-500 mt-1">{errors[errorKey!]}</p>}
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-[#F5F3EF] pb-24">
       {/* Header */}
@@ -712,11 +717,11 @@ export default function DepotAnnonce() {
               )}
 
               {/* Marque */}
-              <SelectField label="Marque" value={form.marque} onChange={(v) => { set("marque", v); set("modele", ""); set("motorisation", ""); set("version", ""); set("finition", ""); }} options={marques} required placeholder="Selectionnez la marque" errorKey="marque" />
+              <SelectField label="Marque" value={form.marque} onChange={(v) => { set("marque", v); set("modele", ""); set("motorisation", ""); set("version", ""); set("finition", ""); }} options={marques} required placeholder="Selectionnez la marque" errorKey="marque" errors={errors} />
 
               {/* Modele — cascading */}
               {form.marque && (
-                <SelectField label="Modele" value={form.modele} onChange={(v) => { set("modele", v); set("motorisation", ""); set("version", ""); set("finition", ""); const autoCat = AUTO_CATEGORIE[v]; if (autoCat) set("categorie", autoCat); }} options={availableModeles} required placeholder="Selectionnez le modele" errorKey="modele" />
+                <SelectField label="Modele" value={form.modele} onChange={(v) => { set("modele", v); set("motorisation", ""); set("version", ""); set("finition", ""); const autoCat = AUTO_CATEGORIE[v]; if (autoCat) set("categorie", autoCat); }} options={availableModeles} required placeholder="Selectionnez le modele" errorKey="modele" errors={errors} />
               )}
 
               {/* Categorie voiture */}
@@ -839,7 +844,7 @@ export default function DepotAnnonce() {
               {isEngin && (
                 <>
                   <SelectField label="CACES requis" value={form.permis} onChange={(v) => set("permis", v)} options={["Aucun","CACES 1","CACES 2","CACES 3","CACES 4","CACES 5","CACES 6","CACES 7","CACES 8","CACES 9","CACES R372","CACES R377","CACES R382","CACES R386","CACES R389","CACES R390","CACES R482","Permis PL","Autre"]} placeholder="Sélectionnez le CACES" />
-                  <SelectField label="État de l’engin" value={form.etat} onChange={(v) => set("etat", v)} options={["Neuf","Très bon état","Bon état","État correct","Pour pièces / réparation"]} required placeholder="État de l’engin" errorKey="etat" />
+                  <SelectField label="État de l’engin" value={form.etat} onChange={(v) => set("etat", v)} options={["Neuf","Très bon état","Bon état","État correct","Pour pièces / réparation"]} required placeholder="État de l’engin" errorKey="etat" errors={errors} />
                 </>
               )}
 
@@ -883,16 +888,16 @@ export default function DepotAnnonce() {
             <RadioGroup label="Premiere main" value={form.premierMain} onChange={(v) => set("premierMain", v)} options={["Oui","Non"]} required />
 
             {/* Kilometrage */}
-            <InputField label="Kilometrage" value={form.kilometrage} onChange={(v) => set("kilometrage", v)} placeholder="Indiquez un kilometrage" suffix="km" required errorKey="kilometrage" />
+            <InputField label="Kilometrage" value={form.kilometrage} onChange={(v) => set("kilometrage", v)} placeholder="Indiquez un kilometrage" suffix="km" required errorKey="kilometrage" errors={errors} />
 
             {/* Etat */}
-            <SelectField label="Etat du vehicule" value={form.etat} onChange={(v) => set("etat", v)} options={ETATS} required placeholder="Choisissez un etat" errorKey="etat" />
+            <SelectField label="Etat du vehicule" value={form.etat} onChange={(v) => set("etat", v)} options={ETATS} required placeholder="Choisissez un etat" errorKey="etat" errors={errors} />
 
             {/* Reparations */}
             <SelectField label="Reparations effectuees" value={form.reparations} onChange={(v) => set("reparations", v)} options={["Aucune","Direction","Distribution","Radiateur","Embrayage","Freins","Carrosserie","Peinture","Mecanique","Electricite","Interieur","Autre"]} placeholder="Selectionnez les reparations" />
 
             {/* Couleur exterieure */}
-            <SelectField label="Couleur exterieure" value={form.couleurExt} onChange={(v) => set("couleurExt", v)} options={COULEURS_EXT} required placeholder="Choisissez une couleur" errorKey="couleurExt" />
+            <SelectField label="Couleur exterieure" value={form.couleurExt} onChange={(v) => set("couleurExt", v)} options={COULEURS_EXT} required placeholder="Choisissez une couleur" errorKey="couleurExt" errors={errors} />
 
             {/* Type de peinture */}
             <SelectField label="Type de peinture" value={form.typePeinture} onChange={(v) => set("typePeinture", v)} options={TYPES_PEINTURE} placeholder="Choisissez un type" />
@@ -948,7 +953,7 @@ export default function DepotAnnonce() {
           {/* Prix */}
           <div className="rounded-xl bg-white border border-[#E5E7EB] p-5 space-y-3">
             <h3 className="text-sm font-bold text-[#111] flex items-center gap-2"><Gauge size={14} className="text-[#D4AF37]" /> Prix de vente</h3>
-            <InputField label="Prix" value={form.prix} onChange={(v) => set("prix", v)} placeholder="25 000" suffix="EUR" required errorKey="prix" />
+            <InputField label="Prix" value={form.prix} onChange={(v) => set("prix", v)} placeholder="25 000" suffix="EUR" required errorKey="prix" errors={errors} />
             <div className="rounded-lg bg-[#FFFDF5] border border-[#D4AF37]/20 p-3 flex items-start gap-2">
               <Sparkles size={14} className="text-[#D4AF37] shrink-0 mt-0.5" />
               <div>
@@ -1181,10 +1186,10 @@ export default function DepotAnnonce() {
 
             <InputField label="Nom / Societe" value={form.contactNom} onChange={(v) => set("contactNom", v)} placeholder="Jean Dupont" />
             <InputField label="Adresse e-mail" value={form.contactEmail} onChange={(v) => set("contactEmail", v)} placeholder="contact@exemple.com" type="email" />
-            <InputField label="Telephone" value={form.contactTelephone} onChange={(v) => set("contactTelephone", v)} placeholder="06 12 34 56 78" type="tel" required errorKey="contactTelephone" />
+            <InputField label="Telephone" value={form.contactTelephone} onChange={(v) => set("contactTelephone", v)} placeholder="06 12 34 56 78" type="tel" required errorKey="contactTelephone" errors={errors} />
 
             <div className="grid grid-cols-2 gap-3">
-              <InputField label="Ville" value={form.contactVille} onChange={(v) => set("contactVille", v)} placeholder="Paris" required errorKey="contactVille" />
+              <InputField label="Ville" value={form.contactVille} onChange={(v) => set("contactVille", v)} placeholder="Paris" required errorKey="contactVille" errors={errors} />
               <InputField label="Code postal" value={form.contactCodePostal} onChange={(v) => set("contactCodePostal", v)} placeholder="75001" />
             </div>
 
