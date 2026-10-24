@@ -466,6 +466,10 @@ export default function DepotAnnonce() {
   const [toast, setToast] = useState<string | null>(null);
   const [equipTab, setEquipTab] = useState("exterieur");
   const [equipSearch, setEquipSearch] = useState("");
+  // Echappatoire texte libre (meme principe que MOTORISATION_LIBRE/VERSION_LIBRE) :
+  // la barre de recherche ne fait que filtrer la liste figee, elle n'ajoute rien —
+  // un equipement absent du catalogue doit pouvoir etre saisi quand meme.
+  const [equipLibre, setEquipLibre] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   // Form state
@@ -538,6 +542,38 @@ export default function DepotAnnonce() {
     const q = equipSearch.toLowerCase();
     return cat.items.filter(item => item.toLowerCase().includes(q));
   }, [equipTab, equipSearch]);
+
+  function addEquipLibre() {
+    const v = equipLibre.trim();
+    if (!v) return;
+    setSelectedEquip(prev => {
+      const arr = prev.autres || [];
+      if (arr.includes(v)) return prev;
+      return { ...prev, autres: [...arr, v] };
+    });
+    setEquipLibre("");
+  }
+  // Equipements "Autres" ajoutes en texte libre (pas dans le catalogue figé),
+  // pour pouvoir les afficher en puces retirables separement des cases a cocher.
+  const equipAutresCatalogue = EQUIP_CATEGORIES.find(c => c.key === "autres")?.items || [];
+  const equipLibreAjoutes = (selectedEquip.autres || []).filter(x => !equipAutresCatalogue.includes(x));
+
+  // Score de completude reel — remplace l'ancien score fixe ("85/100") qui ne
+  // refletait jamais le contenu effectif de l'annonce (demande PDG, retour QA).
+  // La detection de fraude/doublons reste un controle serveur, jamais simule ici.
+  const completude = useMemo(() => {
+    const nbPhotos = Object.keys(photoUrls).length;
+    const nbEquip = Object.values(selectedEquip).flat().length;
+    const descLength = form.description.trim().length;
+    const criteres = [
+      { label: "Photos ajoutees", ok: nbPhotos > 0, detail: `${nbPhotos} photo(s)`, poids: 30 },
+      { label: "Equipements renseignes", ok: nbEquip > 0, detail: `${nbEquip} equipement(s)`, poids: 20 },
+      { label: "Description renseignee", ok: descLength >= 20, detail: descLength > 0 ? `${descLength} caractere(s)` : "vide", poids: 25 },
+      { label: "Prix renseigne", ok: !!form.prix, detail: form.prix ? `${form.prix} EUR` : "non renseigne", poids: 25 },
+    ];
+    const score = criteres.reduce((total, c) => total + (c.ok ? c.poids : 0), 0);
+    return { score, criteres };
+  }, [photoUrls, selectedEquip, form.description, form.prix]);
 
   // Plate lookup
   const utils = trpc.useUtils();
@@ -1136,6 +1172,36 @@ export default function DepotAnnonce() {
               )}
             </div>
 
+            {/* Equipement non liste — la recherche ci-dessus ne fait que filtrer,
+               elle n'ajoute rien : il faut une echappatoire texte libre reelle. */}
+            <div className="mt-3">
+              <label className="block text-xs font-semibold text-[#374151] mb-1.5">Un equipement absent de la liste ?</label>
+              <div className="flex gap-2">
+                <input
+                  value={equipLibre}
+                  onChange={(e) => setEquipLibre(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addEquipLibre(); } }}
+                  placeholder="Tapez-le ici puis Ajouter"
+                  className="flex-1 rounded-xl border border-[#E5E7EB] px-4 py-2.5 text-sm hover:border-[#D4AF37]/50 transition"
+                />
+                <button type="button" onClick={addEquipLibre} disabled={!equipLibre.trim()} className="shrink-0 rounded-xl bg-[#111] px-4 py-2.5 text-xs font-bold text-white disabled:opacity-40">
+                  Ajouter
+                </button>
+              </div>
+              {equipLibreAjoutes.length > 0 && (
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  {equipLibreAjoutes.map(item => (
+                    <span key={item} className="flex items-center gap-1 rounded-full bg-[#F5F3EF] border border-[#E5E7EB] px-2.5 py-1 text-[11px] font-medium text-[#374151]">
+                      {item}
+                      <button type="button" onClick={() => setSelectedEquip(prev => ({ ...prev, autres: (prev.autres || []).filter(x => x !== item) }))} className="text-[#9CA3AF] hover:text-red-500">
+                        <X size={10} />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+
             {/* Total count */}
             <div className="mt-4 flex items-center gap-2 rounded-lg bg-[#F5F3EF] p-3">
               <Check size={14} className="text-green-500" />
@@ -1208,17 +1274,19 @@ export default function DepotAnnonce() {
             </div>
           ))}
 
-          {/* Videos */}
-          <div className="rounded-xl bg-white border border-[#E5E7EB] p-4">
-            <h3 className="text-sm font-bold text-[#111] mb-0.5 flex items-center gap-2"><Video size={14} className="text-[#D4AF37]" /> Videos (optionnel)</h3>
-            <p className="text-[10px] text-[#9CA3AF] mb-3">MP4, WebM, MOV — max 50 MB par video</p>
-            <FileUpload
-              label={`Ajouter une video (${videoUrls.length}/5)`}
-              accept="video/*"
-              multiple
-              maxFiles={5 - videoUrls.length}
-              onUploaded={(files) => { setVideoUrls(prev => [...prev, ...files.map(f => f.url)].slice(0, 5)); showToast(`${files.length} video(s) ajoutee(s)`); }}
-            />
+          {/* Videos — separees visuellement des photos (fond et bordure distincts) pour
+             eviter de deposer par erreur une video dans un emplacement photo, ou l'inverse. */}
+          <div className="mt-2 border-t-2 border-dashed border-orange-200 pt-4">
+            <div className="rounded-xl bg-orange-50/40 border-2 border-orange-200 p-4">
+              <h3 className="text-sm font-bold text-[#111] mb-0.5 flex items-center gap-2"><Video size={14} className="text-orange-600" /> Videos (optionnel) — zone separee des photos</h3>
+              <p className="text-[10px] text-[#9CA3AF] mb-3">MP4, WebM, MOV — max 50 MB par video. Un fichier qui n'est pas une video est automatiquement refuse ici.</p>
+              <FileUpload
+                label={`Ajouter une video (${videoUrls.length}/5)`}
+                accept="video/*"
+                multiple
+                maxFiles={5 - videoUrls.length}
+                onUploaded={(files) => { setVideoUrls(prev => [...prev, ...files.map(f => f.url)].slice(0, 5)); showToast(`${files.length} video(s) ajoutee(s)`); }}
+              />
             {videoUrls.length > 0 && (
               <div className="mt-2 space-y-1.5">
                 {videoUrls.map((url, i) => (
@@ -1230,6 +1298,7 @@ export default function DepotAnnonce() {
                 ))}
               </div>
             )}
+            </div>
           </div>
 
           {/* Counter */}
@@ -1335,42 +1404,45 @@ export default function DepotAnnonce() {
          ═══════════════════════════════════════════════════════════════════ */}
       {step === 6 && !create.isSuccess && (
         <div className="px-4 mt-5 space-y-4">
-          {/* Intelligence Verification */}
+          {/* Verification de completude — calculee reellement depuis le contenu
+             saisi (photos, equipements, description, prix). La coherence prix
+             marche, les doublons et la fraude restent des controles serveur :
+             jamais simules ici avec une fausse coche verte. */}
           <div className="rounded-xl bg-white border border-[#E5E7EB] p-5 text-center">
             <Bot size={32} className="mx-auto text-[#D4AF37]" />
-            <h3 className="text-base font-bold text-[#111] mt-2">Verification Intelligence en cours</h3>
-            <p className="text-xs text-[#6B7280] mt-1">Analyse automatique de votre annonce</p>
+            <h3 className="text-base font-bold text-[#111] mt-2">Verification de votre annonce</h3>
+            <p className="text-xs text-[#6B7280] mt-1">Completude reelle de ce que vous avez saisi</p>
             <div className="mt-4 space-y-2 text-left">
-              {[
-                ["Coherence du prix par rapport au marche", true],
-                ["Qualite des photos", true],
-                ["Verification doublons", true],
-                ["Detection tentatives de fraude", true],
-                ["Score qualite global", true],
-              ].map(([s]) => (
-                <div key={s as string} className="flex items-center gap-3 text-sm py-1.5">
-                  <div className="h-2.5 w-2.5 rounded-full bg-green-500 animate-pulse" />
-                  <span className="font-medium text-[#111] flex-1">{s as string}</span>
-                  <Check size={14} className="text-green-500" />
+              {completude.criteres.map((c) => (
+                <div key={c.label} className="flex items-center gap-3 text-sm py-1.5">
+                  <div className={`h-2.5 w-2.5 rounded-full ${c.ok ? "bg-green-500" : "bg-[#E5E7EB]"}`} />
+                  <span className="font-medium text-[#111] flex-1">{c.label}</span>
+                  <span className="text-[10px] text-[#9CA3AF]">{c.detail}</span>
+                  {c.ok && <Check size={14} className="text-green-500" />}
                 </div>
               ))}
             </div>
-            <div className="mt-4 rounded-xl bg-green-50 border border-green-200 p-3">
-              <p className="text-sm font-bold text-green-700">Score qualite : 85/100</p>
-              <p className="text-[10px] text-green-600 mt-0.5">Votre annonce est bien complete !</p>
+            <div className={`mt-4 rounded-xl border p-3 ${completude.score >= 70 ? "bg-green-50 border-green-200" : completude.score >= 40 ? "bg-yellow-50 border-yellow-200" : "bg-red-50 border-red-200"}`}>
+              <p className={`text-sm font-bold ${completude.score >= 70 ? "text-green-700" : completude.score >= 40 ? "text-yellow-700" : "text-red-700"}`}>Score de completude : {completude.score}/100</p>
+              <p className={`text-[10px] mt-0.5 ${completude.score >= 70 ? "text-green-600" : completude.score >= 40 ? "text-yellow-600" : "text-red-600"}`}>
+                {completude.score >= 70 ? "Votre annonce est bien complete !" : completude.score >= 40 ? "Completez encore quelques champs pour une annonce optimale." : "Il manque des informations essentielles."}
+              </p>
+              <p className="text-[9px] text-[#9CA3AF] mt-1.5">La verification anti-fraude et anti-doublon s'effectue automatiquement a la publication.</p>
             </div>
           </div>
 
           {/* ── Vehicule sur commande (demande PDG) — champs supplementaires,
              uniquement visibles via le bouton « Manuel » du portail Vehicule
-             sur commande. Le formulaire, les etapes et la logique
-             d'enregistrement ci-dessus restent strictement identiques au
-             parcours manuel existant. ── */}
+             sur commande, et uniquement APRES le meme point de verification
+             que le parcours manuel normal ci-dessus (identique, jamais
+             duplique). Autant de sections que necessaire pour les donnees
+             reellement propres au sur-commande — jamais regroupees de force
+             pour tenir dans un nombre arbitraire de cartes. ── */}
           {vehiculeSurCommande && (
             <div className="rounded-xl bg-white border border-[#D4AF37] p-5 space-y-4">
               <div>
-                <p className="text-[10px] font-bold uppercase tracking-wider text-[#D4AF37]">Etape supplementaire 1/2</p>
-                <p className="text-sm font-bold text-[#111] flex items-center gap-1.5"><Key size={14} className="text-[#D4AF37]" /> Vehicule sur commande — localisation et estimation</p>
+                <p className="text-[10px] font-bold uppercase tracking-wider text-[#D4AF37]">Etape supplementaire 1/4</p>
+                <p className="text-sm font-bold text-[#111] flex items-center gap-1.5"><Key size={14} className="text-[#D4AF37]" /> Fournisseur et localisation</p>
                 <p className="text-xs text-[#6B7280] mt-0.5">Affiches aux clients dans « Voir les details » sur la fiche produit. Facultatif, mais recommande.</p>
               </div>
               <div>
@@ -1402,44 +1474,45 @@ export default function DepotAnnonce() {
                 <input type="checkbox" className="mt-0.5" checked={surCommandePaiementPlusieursFois} onChange={(e) => setSurCommandePaiementPlusieursFois(e.target.checked)} />
                 Autoriser « Paiement en plusieurs fois » sur la fiche produit — a laisser decoche tant que le vehicule reste en dropshipping pur
               </label>
+            </div>
+          )}
 
-              <div className="border-t border-[#E5E7EB] pt-4">
-                <p className="text-sm font-bold text-[#111]">Estimation de prix — avant publication</p>
+          {vehiculeSurCommande && (
+            <div className="rounded-xl bg-white border border-[#D4AF37] p-5 space-y-4">
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-wider text-[#D4AF37]">Etape supplementaire 2/4</p>
+                <p className="text-sm font-bold text-[#111] flex items-center gap-1.5"><Key size={14} className="text-[#D4AF37]" /> Estimation de prix fournisseur</p>
                 <p className="text-xs text-[#6B7280] mt-0.5">Calcul indicatif uniquement : ne modifie pas le champ Prix de l'etape Caracteristiques, ne declenche aucune connexion fournisseur.</p>
-                <div className="grid grid-cols-2 gap-3 mt-3">
-                  <div>
-                    <label className="block text-xs font-semibold text-[#111] mb-1">Prix d'achat fournisseur</label>
-                    <input className="w-full rounded-xl border border-[#E5E7EB] px-3 py-2.5 text-sm" inputMode="decimal" value={surCommandePrixAchat} onChange={(e) => setSurCommandePrixAchat(e.target.value)} placeholder="0" />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-semibold text-[#111] mb-1">Transport et frais</label>
-                    <input className="w-full rounded-xl border border-[#E5E7EB] px-3 py-2.5 text-sm" inputMode="decimal" value={surCommandeTransport} onChange={(e) => setSurCommandeTransport(e.target.value)} placeholder="0" />
-                  </div>
-                  <div className="col-span-2">
-                    <label className="block text-xs font-semibold text-[#111] mb-1">Marge MKA.P-MS ciblee (%)</label>
-                    <input className="w-full rounded-xl border border-[#E5E7EB] px-3 py-2.5 text-sm" inputMode="decimal" value={surCommandeMargeCible} onChange={(e) => setSurCommandeMargeCible(e.target.value)} placeholder="15" />
-                  </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-[#111] mb-1">Prix d'achat fournisseur</label>
+                  <input className="w-full rounded-xl border border-[#E5E7EB] px-3 py-2.5 text-sm" inputMode="decimal" value={surCommandePrixAchat} onChange={(e) => setSurCommandePrixAchat(e.target.value)} placeholder="0" />
                 </div>
-                <div className="mt-3 rounded-xl bg-[#F5F3EF] p-3 space-y-1.5 text-xs">
-                  <div className="flex justify-between"><span className="text-[#6B7280]">Cout total (achat + transport)</span><span className="font-bold text-[#111]">{estimationSurCommande.coutTotal.toFixed(2)} EUR</span></div>
-                  <div className="flex justify-between"><span className="text-[#6B7280]">Prix conseille de vente</span><span className="font-bold text-[#D4AF37]">{estimationSurCommande.prixConseille.toFixed(2)} EUR</span></div>
-                  <div className="flex justify-between"><span className="text-[#6B7280]">Petite marge de negociation (5%)</span><span className="font-bold text-[#111]">{estimationSurCommande.margeNegociation.toFixed(2)} EUR</span></div>
-                  <div className="flex justify-between"><span className="text-[#6B7280]">Prix minimum conseille</span><span className="font-bold text-[#111]">{estimationSurCommande.prixMinimum.toFixed(2)} EUR</span></div>
-                  <div className="flex justify-between"><span className="text-[#6B7280]">Benefice estime</span><span className="font-bold text-green-600">{estimationSurCommande.beneficeEstime.toFixed(2)} EUR</span></div>
+                <div>
+                  <label className="block text-xs font-semibold text-[#111] mb-1">Transport et frais</label>
+                  <input className="w-full rounded-xl border border-[#E5E7EB] px-3 py-2.5 text-sm" inputMode="decimal" value={surCommandeTransport} onChange={(e) => setSurCommandeTransport(e.target.value)} placeholder="0" />
                 </div>
+                <div className="col-span-2">
+                  <label className="block text-xs font-semibold text-[#111] mb-1">Marge MKA.P-MS ciblee (%)</label>
+                  <input className="w-full rounded-xl border border-[#E5E7EB] px-3 py-2.5 text-sm" inputMode="decimal" value={surCommandeMargeCible} onChange={(e) => setSurCommandeMargeCible(e.target.value)} placeholder="15" />
+                </div>
+              </div>
+              <div className="rounded-xl bg-[#F5F3EF] p-3 space-y-1.5 text-xs">
+                <div className="flex justify-between"><span className="text-[#6B7280]">Cout total (achat + transport)</span><span className="font-bold text-[#111]">{estimationSurCommande.coutTotal.toFixed(2)} EUR</span></div>
+                <div className="flex justify-between"><span className="text-[#6B7280]">Prix conseille de vente</span><span className="font-bold text-[#D4AF37]">{estimationSurCommande.prixConseille.toFixed(2)} EUR</span></div>
+                <div className="flex justify-between"><span className="text-[#6B7280]">Petite marge de negociation (5%)</span><span className="font-bold text-[#111]">{estimationSurCommande.margeNegociation.toFixed(2)} EUR</span></div>
+                <div className="flex justify-between"><span className="text-[#6B7280]">Prix minimum conseille</span><span className="font-bold text-[#111]">{estimationSurCommande.prixMinimum.toFixed(2)} EUR</span></div>
+                <div className="flex justify-between"><span className="text-[#6B7280]">Benefice estime</span><span className="font-bold text-green-600">{estimationSurCommande.beneficeEstime.toFixed(2)} EUR</span></div>
               </div>
             </div>
           )}
 
-          {/* ── Etape supplementaire 2/2 (demande PDG, comparaison Autohero/
-             Carvana/cinch) : reservation, livraison/retrait, presentation
-             client. Alimente les blocs correspondants sur la fiche produit
-             partagee — jamais une nouvelle page produit. ── */}
           {vehiculeSurCommande && (
             <div className="rounded-xl bg-white border border-[#D4AF37] p-5 space-y-4">
               <div>
-                <p className="text-[10px] font-bold uppercase tracking-wider text-[#D4AF37]">Etape supplementaire 2/2</p>
-                <p className="text-sm font-bold text-[#111] flex items-center gap-1.5"><Key size={14} className="text-[#D4AF37]" /> Reservation, livraison et presentation client</p>
+                <p className="text-[10px] font-bold uppercase tracking-wider text-[#D4AF37]">Etape supplementaire 3/4</p>
+                <p className="text-sm font-bold text-[#111] flex items-center gap-1.5"><Key size={14} className="text-[#D4AF37]" /> Livraison et retrait client</p>
                 <p className="text-xs text-[#6B7280] mt-0.5">Tout est facultatif, mais affiche sur la fiche produit si renseigne. Aucun nom ni prix fournisseur n'est jamais affiche.</p>
               </div>
 
@@ -1493,26 +1566,33 @@ export default function DepotAnnonce() {
                 <label className="block text-sm font-semibold text-[#111] mb-1.5">Documents necessaires a la remise</label>
                 <textarea className="w-full rounded-xl border border-[#E5E7EB] px-4 py-3 text-sm" rows={2} value={surCommandeDocumentsNecessaires} onChange={(e) => setSurCommandeDocumentsNecessaires(e.target.value)} placeholder="Ex : piece d'identite, justificatif de domicile..." maxLength={2000} />
               </div>
+            </div>
+          )}
 
-              <div className="border-t border-[#E5E7EB] pt-4">
-                <p className="text-xs font-bold text-[#111] mb-2">Acompte et conditions</p>
+          {vehiculeSurCommande && (
+            <div className="rounded-xl bg-white border border-[#D4AF37] p-5 space-y-4">
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-wider text-[#D4AF37]">Etape supplementaire 4/4</p>
+                <p className="text-sm font-bold text-[#111] flex items-center gap-1.5"><Key size={14} className="text-[#D4AF37]" /> Acompte, conditions et adresse de remise</p>
+                <p className="text-xs text-[#6B7280] mt-0.5">L'adresse exacte reste confidentielle jusqu'a confirmation de la commande du client.</p>
+              </div>
+              <div>
                 <label className="block text-sm font-semibold text-[#111] mb-1.5">Montant d'acompte standard</label>
                 <input className="w-full rounded-xl border border-[#E5E7EB] px-4 py-3 text-sm" inputMode="decimal" value={surCommandeAcompte} onChange={(e) => setSurCommandeAcompte(e.target.value)} placeholder="0" />
                 <p className="text-[10px] text-[#9CA3AF] mt-1">Le solde restant (acompte deduit du prix final) est calcule automatiquement sur la fiche produit.</p>
-                <div className="mt-3">
-                  <label className="block text-sm font-semibold text-[#111] mb-1.5">Conditions de remboursement</label>
-                  <textarea className="w-full rounded-xl border border-[#E5E7EB] px-4 py-3 text-sm" rows={2} value={surCommandeConditionsRemboursement} onChange={(e) => setSurCommandeConditionsRemboursement(e.target.value)} maxLength={2000} />
-                </div>
-                <div className="mt-3">
-                  <label className="block text-sm font-semibold text-[#111] mb-1.5">Conditions d'annulation</label>
-                  <textarea className="w-full rounded-xl border border-[#E5E7EB] px-4 py-3 text-sm" rows={2} value={surCommandeConditionsAnnulation} onChange={(e) => setSurCommandeConditionsAnnulation(e.target.value)} maxLength={2000} />
-                </div>
               </div>
-
+              <div>
+                <label className="block text-sm font-semibold text-[#111] mb-1.5">Conditions de remboursement</label>
+                <textarea className="w-full rounded-xl border border-[#E5E7EB] px-4 py-3 text-sm" rows={2} value={surCommandeConditionsRemboursement} onChange={(e) => setSurCommandeConditionsRemboursement(e.target.value)} maxLength={2000} />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-[#111] mb-1.5">Conditions d'annulation</label>
+                <textarea className="w-full rounded-xl border border-[#E5E7EB] px-4 py-3 text-sm" rows={2} value={surCommandeConditionsAnnulation} onChange={(e) => setSurCommandeConditionsAnnulation(e.target.value)} maxLength={2000} />
+              </div>
               <div className="border-t border-[#E5E7EB] pt-4">
                 <label className="block text-sm font-semibold text-[#111] mb-1.5">Adresse exacte de remise</label>
                 <input className="w-full rounded-xl border border-[#E5E7EB] px-4 py-3 text-sm" value={surCommandeAdresseExacte} onChange={(e) => setSurCommandeAdresseExacte(e.target.value)} placeholder="Jamais affichee avant confirmation de la commande" maxLength={300} />
-                <p className="text-[10px] text-[#9CA3AF] mt-1">Seule la ville/zone (etape 1/2) est visible avant commande. Cette adresse n'est communiquee qu'au client dont la commande est confirmee.</p>
+                <p className="text-[10px] text-[#9CA3AF] mt-1">Seule la ville/zone (etape 1/4) est visible avant commande. Cette adresse n'est communiquee qu'au client dont la commande est confirmee.</p>
               </div>
             </div>
           )}

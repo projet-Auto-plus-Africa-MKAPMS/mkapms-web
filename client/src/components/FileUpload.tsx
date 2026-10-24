@@ -32,6 +32,34 @@ interface FileUploadProps {
   compact?: boolean;
 }
 
+/**
+ * `accept` ne filtre que le selecteur de fichiers natif — un depot glisser-
+ * deposer l'ignore completement (dataTransfer.files n'est jamais filtre par
+ * le navigateur). Sans cette verification, une video peut atterrir dans un
+ * emplacement photo et inversement (retour PDG).
+ */
+function matchesAccept(file: File, accept: string): boolean {
+  const patterns = accept.split(",").map((p) => p.trim().toLowerCase()).filter(Boolean);
+  if (!patterns.length) return true;
+  const name = file.name.toLowerCase();
+  const type = (file.type || "").toLowerCase();
+  const EXT_BY_FAMILY: Record<string, string[]> = {
+    image: [".jpg", ".jpeg", ".png", ".gif", ".webp", ".heic", ".heif", ".bmp", ".svg"],
+    video: [".mp4", ".webm", ".mov", ".avi", ".mkv", ".m4v"],
+  };
+  return patterns.some((pattern) => {
+    if (pattern.startsWith(".")) return name.endsWith(pattern);
+    if (pattern.endsWith("/*")) {
+      const family = pattern.slice(0, -2);
+      if (type) return type.startsWith(family + "/");
+      // Type MIME absent (certains gestionnaires de fichiers mobiles) : on se
+      // rabat sur l'extension plutot que de rejeter a tort un fichier valide.
+      return (EXT_BY_FAMILY[family] || []).some((ext) => name.endsWith(ext));
+    }
+    return type ? type === pattern : false;
+  });
+}
+
 export default function FileUpload({
   label = "Ajouter des fichiers",
   accept = "image/*,.pdf,.doc,.docx",
@@ -51,12 +79,20 @@ export default function FileUpload({
   const handleFiles = async (fileList: FileList | null) => {
     if (!fileList?.length) return;
     setError(null);
+
+    const incoming = Array.from(fileList);
+    const typeRejected = incoming.filter((f) => !matchesAccept(f, accept));
+    const matched = incoming.filter((f) => matchesAccept(f, accept)).slice(0, maxFiles);
+    if (!matched.length) {
+      if (typeRejected.length) {
+        setError(typeRejected.map((f) => `${f.name} : type de fichier non accepté ici`).join(" ; "));
+      }
+      return;
+    }
     setUploading(true);
 
     try {
-      const prepared = await normalizeImages(
-        Array.from(fileList).slice(0, maxFiles),
-      );
+      const prepared = await normalizeImages(matched);
       const formData = new FormData();
       for (const f of prepared) formData.append("files", f);
 
@@ -75,10 +111,15 @@ export default function FileUpload({
       setUploaded((prev) => [...prev, ...newFiles]);
       onUploaded(newFiles);
 
-      // Envoi partiel : on garde les fichiers valides et on nomme les refusés.
-      const rejected = (data.errors ?? []) as { originalName: string; error: string }[];
-      if (rejected.length) {
-        setError(rejected.map((r) => `${r.originalName} : ${r.error}`).join(" ; "));
+      // Envoi partiel : on garde les fichiers valides et on nomme les refusés
+      // (type non accepté ici, ou refusés par le serveur).
+      const serverRejected = (data.errors ?? []) as { originalName: string; error: string }[];
+      const rejectedMsgs = [
+        ...typeRejected.map((f) => `${f.name} : type de fichier non accepté ici`),
+        ...serverRejected.map((r) => `${r.originalName} : ${r.error}`),
+      ];
+      if (rejectedMsgs.length) {
+        setError(rejectedMsgs.join(" ; "));
       }
 
       if (iaAnalysis) {
@@ -88,7 +129,10 @@ export default function FileUpload({
             taille: f.size,
             type: f.mimeType,
           })),
-          refuses: rejected.map((r) => ({ nom: r.originalName, motif: r.error })),
+          refuses: [
+            ...typeRejected.map((f) => ({ nom: f.name, motif: "type de fichier non accepté ici" })),
+            ...serverRejected.map((r) => ({ nom: r.originalName, motif: r.error })),
+          ],
         });
       }
     } catch (e) {
