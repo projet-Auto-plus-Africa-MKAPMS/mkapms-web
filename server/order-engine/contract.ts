@@ -129,6 +129,15 @@ export const ORDER_DOCUMENT_TYPES = [
   "document_cession",
   "garantie",
   "document_comptable",
+  // Documents reçus du fournisseur, propres au véhicule commandé (demande
+  // PDG, comparaison Autohero/Carvana/cinch) — visibles côté client, jamais
+  // employé-only : ce sont des pièces de réassurance pour l'acheteur, pas
+  // des documents internes.
+  "controle_technique",
+  "historique_entretien",
+  "facture_travaux_autorises",
+  "rapport_batterie",
+  "certificat_conformite",
 ] as const;
 export type OrderDocumentType = (typeof ORDER_DOCUMENT_TYPES)[number];
 

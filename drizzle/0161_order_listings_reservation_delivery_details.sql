@@ -1,0 +1,13 @@
+ALTER TABLE "order_listings" ADD COLUMN IF NOT EXISTS "prep_delay_days" integer;
+ALTER TABLE "order_listings" ADD COLUMN IF NOT EXISTS "delivery_delay_days" integer;
+ALTER TABLE "order_listings" ADD COLUMN IF NOT EXISTS "pickup_delay_days" integer;
+ALTER TABLE "order_listings" ADD COLUMN IF NOT EXISTS "prep_fee" numeric(10, 2);
+ALTER TABLE "order_listings" ADD COLUMN IF NOT EXISTS "delivery_fee" numeric(10, 2);
+ALTER TABLE "order_listings" ADD COLUMN IF NOT EXISTS "pickup_fee" numeric(10, 2);
+ALTER TABLE "order_listings" ADD COLUMN IF NOT EXISTS "delivery_zones" text;
+ALTER TABLE "order_listings" ADD COLUMN IF NOT EXISTS "handover_conditions" text;
+ALTER TABLE "order_listings" ADD COLUMN IF NOT EXISTS "required_documents" text;
+ALTER TABLE "order_listings" ADD COLUMN IF NOT EXISTS "deposit_amount_standard" numeric(10, 2);
+ALTER TABLE "order_listings" ADD COLUMN IF NOT EXISTS "refund_conditions" text;
+ALTER TABLE "order_listings" ADD COLUMN IF NOT EXISTS "cancellation_conditions" text;
+ALTER TABLE "order_listings" ADD COLUMN IF NOT EXISTS "exact_pickup_address" text;
