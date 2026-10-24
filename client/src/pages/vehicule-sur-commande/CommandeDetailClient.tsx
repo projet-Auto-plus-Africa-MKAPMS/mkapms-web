@@ -1,5 +1,5 @@
 import { useParams, Link } from "react-router-dom";
-import { ChevronLeft, Package, Euro, FileText, AlertTriangle, Loader2 } from "lucide-react";
+import { ChevronLeft, Package, Euro, FileText, AlertTriangle, Loader2, MapPin } from "lucide-react";
 import { trpc } from "../../lib/trpc";
 import { StepTracker } from "../../components/StepTracker";
 
@@ -23,6 +23,9 @@ const DOCUMENT_LABEL: Record<string, string> = {
   devis: "Devis", reservation: "Réservation", contrat: "Contrat", recu_acompte: "Reçu d'acompte",
   facture_finale: "Facture finale", facture_solde: "Facture de solde", pv_inspection: "PV d'inspection",
   pv_remise: "PV de remise", document_cession: "Document de cession", garantie: "Garantie", document_comptable: "Document comptable",
+  controle_technique: "Contrôle technique", historique_entretien: "Historique d'entretien",
+  facture_travaux_autorises: "Factures de travaux autorisées", rapport_batterie: "Rapport de batterie",
+  certificat_conformite: "Certificat de conformité",
 };
 
 export default function CommandeDetailClient() {
@@ -107,6 +110,13 @@ export default function CommandeDetailClient() {
           )}
           {!data.totalAmount && <p className="text-xs text-[#9CA3AF]">Le prix est en cours de validation par notre équipe.</p>}
         </div>
+
+        {data.exactPickupAddress && (
+          <div className="rounded-xl bg-white border border-[#E5E7EB] p-4">
+            <h2 className="text-xs font-bold text-[#6B7280] uppercase tracking-wider mb-2 flex items-center gap-1.5"><MapPin size={12} className="text-[#D4AF37]" /> Adresse de remise</h2>
+            <p className="text-sm text-[#374151]">{data.exactPickupAddress}</p>
+          </div>
+        )}
 
         <div className="rounded-xl bg-white border border-[#E5E7EB] p-4">
           <h2 className="text-xs font-bold text-[#6B7280] uppercase tracking-wider mb-2">Documents</h2>

@@ -32,6 +32,7 @@ import {
   listerDocuments,
   obtenirCommandeDetail,
   obtenirLabelPublicParAnnonce,
+  obtenirListingParAnnonce,
   poserDecision,
   rembourserCommande,
   validerPrixEtMarge,
@@ -288,6 +289,11 @@ export const orderEngineRouter = router({
         const { commande, historique, decision } = await obtenirCommandeDetail(input.orderItemId);
         if (commande.customerId !== ctx.user.uid) throw new Error("Accès refusé.");
         const documents = await listerDocuments(input.orderItemId, { employeeView: false });
+        // Adresse exacte de remise (demande PDG) : jamais sur la fiche produit
+        // publique (annonces.get) — communiquée au client uniquement une fois
+        // sa propre commande sortie de « véhicule sélectionné » (disponibilité
+        // confirmée ou au-delà), jamais avant.
+        const listing = commande.status !== "vehicule_selectionne" ? await obtenirListingParAnnonce(commande.annonceId) : null;
         return {
           orderItemId: commande.id,
           reference: commande.reference,
@@ -302,6 +308,7 @@ export const orderEngineRouter = router({
           currency: commande.currency,
           documents,
           etapes: historique.length,
+          exactPickupAddress: listing?.exactPickupAddress ?? null,
         };
       } catch (e) {
         toTrpcError(e);

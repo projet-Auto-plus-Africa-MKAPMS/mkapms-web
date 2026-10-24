@@ -154,6 +154,35 @@ export const orderListings = pgTable(
     deliveryPrepDetails: text("delivery_prep_details"),
 
     /**
+     * Bloc « Réservation et acompte » + « Livraison ou retrait » (demande
+     * PDG, comparaison Autohero/Carvana/cinch) — tous affichés sur la fiche
+     * produit partagée, jamais une page produit séparée. Non confidentiels :
+     * aucun prix ni donnée fournisseur, seulement des conditions et délais
+     * indicatifs que le client voit avant de commander.
+     */
+    prepDelayDays: integer("prep_delay_days"),
+    deliveryDelayDays: integer("delivery_delay_days"),
+    pickupDelayDays: integer("pickup_delay_days"),
+    prepFee: numeric("prep_fee", { precision: 10, scale: 2 }),
+    deliveryFee: numeric("delivery_fee", { precision: 10, scale: 2 }),
+    pickupFee: numeric("pickup_fee", { precision: 10, scale: 2 }),
+    deliveryZones: text("delivery_zones"),
+    handoverConditions: text("handover_conditions"),
+    requiredDocuments: text("required_documents"),
+    depositAmount: numeric("deposit_amount_standard", { precision: 10, scale: 2 }),
+    refundConditions: text("refund_conditions"),
+    cancellationConditions: text("cancellation_conditions"),
+    /**
+     * Adresse exacte de remise — jamais publique avant confirmation de la
+     * commande (demande PDG : seule la zone/ville, dans `vehicleLocation`,
+     * est visible sur la fiche produit). Lue uniquement par
+     * `detailCommandeClient`, une fois le client propriétaire de la commande
+     * authentifié et son statut passé « disponibilité confirmée » ou
+     * au-delà — jamais par `annonces.get` (procédure publique).
+     */
+    exactPickupAddress: text("exact_pickup_address"),
+
+    /**
      * Choix employé (demande PDG) : si la commande n'aboutit pas, le
      * véhicule peut entrer dans le stock MKA.P-MS — ce champ enregistre
      * uniquement l'intention pour le parcours après-vente existant (non

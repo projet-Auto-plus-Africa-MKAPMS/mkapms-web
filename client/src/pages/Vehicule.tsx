@@ -324,11 +324,14 @@ export default function Vehicule({ univers }: { univers?: string }) {
   const isOfficiel = tier === "officiel" || tier === "premium" || tier === "elite";
   const isMkapmsStock = (v.id >= 8000 && v.id <= 8005) || v.categorieAnnonce === "officielle" || v.ownership === "plateforme";
   const isOwnerOrAdmin = user && (v.ownerId === user.id || v.vendeur?.id === user.id || user.role === "admin" || user.role === "super_admin" || user.role === "directeur");
-  // Demande PDG : tant qu'un véhicule sur commande reste en dropshipping pur
-  // (fournisseur partenaire, pas encore entré dans le stock MKA.P-MS),
-  // « Paiement en plusieurs fois » ne doit jamais être proposé — faux par
-  // défaut côté order_listings, activé au cas par cas par un employé.
-  const paiementPlusieursFoisVisible = v.ownership !== "partenaire" || !!v.vehiculeSurCommandeInstallmentAllowed;
+  // Demande PDG (et comparaison Autohero/Carvana/cinch) : tant qu'un véhicule
+  // sur commande reste en dropshipping pur (fournisseur partenaire, pas
+  // encore entré dans le stock MKA.P-MS), AUCUN financement — ni mensualité,
+  // ni LOA, ni paiement en plusieurs fois — ne doit être proposé sur sa fiche
+  // produit. Faux par défaut côté order_listings, activé au cas par cas par
+  // un employé (ex. véhicule effectivement entré en stock).
+  const financementVisible = v.ownership !== "partenaire" || !!v.vehiculeSurCommandeInstallmentAllowed;
+  const paiementPlusieursFoisVisible = financementVisible;
 
   /* Photos catégorisées — fonctionne pour MKA.P-MS stock ET annonces particulier/pro */
   const hasPhotoCategories = isMkapmsStock && v.photoCategories && Object.keys(v.photoCategories).length > 0;
@@ -812,6 +815,7 @@ export default function Vehicule({ univers }: { univers?: string }) {
           </div>
 
           {/* ── FINANCEMENT MKA.P-MS — même système que Pro ── */}
+          {financementVisible && (
           <div className="border-t-2 border-b-2 border-[#111]/40 py-5" style={{boxShadow: '0 -2px 8px rgba(212,175,55,0.15), 0 2px 8px rgba(212,175,55,0.15)'}}>
             <h2 className="flex items-center gap-2 text-lg font-extrabold text-[#111]"><CreditCard size={18} className="text-red-500" /> Financement</h2>
             <div className="mt-3 rounded-xl border border-slate-200 p-5">
@@ -838,6 +842,7 @@ export default function Vehicule({ univers }: { univers?: string }) {
               <button className="mt-4 w-full rounded-xl bg-[#111] py-3 text-sm font-bold text-white" onClick={() => requireLogin(() => navigate(`/vente/negociation/${annonceId}`))}>Faire une offre au vendeur</button>
             </div>
           </div>
+          )}
 
           {/* ── 10. VÉHICULE CERTIFIÉ MKA.P-MS — compact, fond premium clair, style plaque vitrée ── */}
           <div className="overflow-hidden rounded-xl border-2 border-[#111] bg-gradient-to-br from-white to-[#FFFDF5]" style={{boxShadow: '0 0 14px rgba(212,175,55,0.25), 0 2px 12px rgba(0,0,0,0.08)'}}>
@@ -1564,8 +1569,8 @@ export default function Vehicule({ univers }: { univers?: string }) {
             })()}
           </div>
 
-          {/* FINANCEMENT — PRO uniquement */}
-          {!isParticulier && (
+          {/* FINANCEMENT — PRO uniquement, jamais sur une fiche sur commande en dropshipping pur */}
+          {!isParticulier && financementVisible && (
           <div className="mt-6 border-t-2 border-[#111]/40 pt-4" style={{boxShadow: '0 -2px 8px rgba(212,175,55,0.15)'}}>
             <h2 className="flex items-center gap-2 text-lg font-extrabold text-[#111]"><CreditCard size={18} className="text-red-500" /> Financement</h2>
             <div className="mt-3 rounded-xl border border-slate-200 p-5">
@@ -2252,38 +2257,104 @@ export default function Vehicule({ univers }: { univers?: string }) {
             </div>
           </div>
 
-          {/* Véhicule sur commande (Order Engine, demande PDG) — système
-              totalement séparé de la réservation classique ci-dessous. */}
-          {v.ownership === "partenaire" && (
-            <div id="commander" className="card p-5">
-              <h3 className="font-bold text-noir">
-                {v.vehiculeSurCommandeLabel === "disponible_sur_visite" ? "Disponible sur visite" : "Disponible sur commande"}
-              </h3>
-              <p className="mt-1 text-sm text-slate-500">
-                Ce véhicule est sourcé chez un fournisseur partenaire. Commandez-le dès maintenant : nous nous occupons de la suite.
-              </p>
-              <button
-                className="btn-reserver mt-4 w-full"
-                disabled={commanderVehiculeSurCommande.isPending}
-                onClick={() => requireLogin(() => commanderVehiculeSurCommande.mutate({ annonceId: v.id }))}
-              >
-                {commanderVehiculeSurCommande.isPending ? "Envoi…" : "Commander ce véhicule"}
-              </button>
-              {(v.vehiculeSurCommandeLocation || v.vehiculeSurCommandePrepDetails) && (
-                <details className="group mt-3 rounded-lg border border-slate-100 bg-slate-50">
-                  <summary className="cursor-pointer px-4 py-3 text-sm font-semibold text-[#111] hover:text-[#D4AF37]">Voir les détails</summary>
-                  <div className="space-y-2 px-4 pb-3 text-xs text-slate-600 leading-relaxed">
-                    {v.vehiculeSurCommandeLocation && (
-                      <p><span className="font-semibold text-slate-700">Localisation : </span>{v.vehiculeSurCommandeLocation}</p>
+          {/* Véhicule sur commande (Order Engine, demande PDG, comparaison
+              Autohero/Carvana/cinch) — système totalement séparé de la
+              réservation classique ci-dessous. Jamais de nom ni de prix
+              fournisseur ; l'adresse exacte de remise n'est communiquée
+              qu'une fois la commande du client confirmée (CommandeDetailClient.tsx). */}
+          {v.ownership === "partenaire" && (() => {
+            const r = v.vehiculeSurCommandeReservation;
+            const confirmee = v.vehiculeSurCommandeLabel === "disponible_sur_visite";
+            const montantRestant = r?.depositAmount != null && Number(v.prix) > 0 ? Number(v.prix) - Number(r.depositAmount) : null;
+            const aDesFraisOuConditions = !!r && (r.depositAmount != null || r.prepFee != null || r.deliveryFee != null || r.refundConditions || r.cancellationConditions);
+            const aDesDetailsLivraison = v.vehiculeSurCommandeLocation || v.vehiculeSurCommandePrepDetails || !!r;
+            return (
+              <div id="commander" className="card p-5">
+                <h3 className="font-bold text-noir">{confirmee ? "Disponible sur visite" : "Disponible sur commande"}</h3>
+                <p className="mt-1 text-sm text-slate-500">
+                  Ce véhicule est sourcé chez un fournisseur partenaire. Commandez-le dès maintenant : nous nous occupons de la suite.
+                </p>
+
+                {/* Disponibilité à confirmer */}
+                <div className="mt-3 rounded-lg bg-slate-50 p-3 text-xs text-slate-600 space-y-1">
+                  <p className="font-semibold text-slate-700">{confirmee ? "Disponibilité confirmée" : "Disponibilité à confirmer"}</p>
+                  {r?.updatedAt && <p>Dernière mise à jour : {new Date(r.updatedAt).toLocaleDateString("fr-FR")}</p>}
+                  {r?.prepDelayDays != null && <p>Délai estimé avant préparation : {r.prepDelayDays} jour{r.prepDelayDays > 1 ? "s" : ""}</p>}
+                </div>
+
+                <button
+                  className="btn-reserver mt-4 w-full"
+                  disabled={commanderVehiculeSurCommande.isPending}
+                  onClick={() => requireLogin(() => commanderVehiculeSurCommande.mutate({ annonceId: v.id }))}
+                >
+                  {commanderVehiculeSurCommande.isPending ? "Envoi…" : "Commander ce véhicule"}
+                </button>
+
+                {/* Réservation et acompte */}
+                {aDesFraisOuConditions && (
+                  <div className="mt-3 rounded-lg border border-slate-100 bg-white p-3 text-xs text-slate-600 space-y-1.5">
+                    <p className="text-sm font-semibold text-slate-800">Réservation et acompte</p>
+                    {r!.depositAmount != null && (
+                      <>
+                        <p>Acompte : <strong className="text-slate-800">{formatPrice(Number(r!.depositAmount))}</strong>{montantRestant != null && <> · Solde restant : <strong className="text-slate-800">{formatPrice(montantRestant)}</strong></>}</p>
+                        <p className="text-[11px] text-slate-400">L'acompte est déduit du prix final.</p>
+                      </>
                     )}
-                    {v.vehiculeSurCommandePrepDetails && (
-                      <p><span className="font-semibold text-slate-700">Livraison / préparation : </span>{v.vehiculeSurCommandePrepDetails}</p>
-                    )}
+                    {r!.prepFee != null && <p>Frais de préparation : {formatPrice(Number(r!.prepFee))}</p>}
+                    {r!.deliveryFee != null && <p>Frais de transport : {formatPrice(Number(r!.deliveryFee))}</p>}
+                    {r!.refundConditions && <p>Conditions de remboursement : {r!.refundConditions}</p>}
+                    {r!.cancellationConditions && <p>Conditions d'annulation : {r!.cancellationConditions}</p>}
                   </div>
+                )}
+
+                {/* Livraison ou retrait */}
+                {aDesDetailsLivraison && (
+                  <details className="group mt-3 rounded-lg border border-slate-100 bg-slate-50">
+                    <summary className="cursor-pointer px-4 py-3 text-sm font-semibold text-[#111] hover:text-[#D4AF37]">Voir les détails — livraison ou retrait</summary>
+                    <div className="space-y-2 px-4 pb-3 text-xs text-slate-600 leading-relaxed">
+                      {v.vehiculeSurCommandeLocation && <p><span className="font-semibold text-slate-700">Localisation : </span>{v.vehiculeSurCommandeLocation}</p>}
+                      {v.vehiculeSurCommandePrepDetails && <p><span className="font-semibold text-slate-700">Préparation : </span>{v.vehiculeSurCommandePrepDetails}</p>}
+                      {r?.deliveryDelayDays != null && <p>Délai de livraison estimé : {r.deliveryDelayDays} jour{r.deliveryDelayDays > 1 ? "s" : ""}</p>}
+                      {r?.pickupDelayDays != null && <p>Délai de retrait estimé : {r.pickupDelayDays} jour{r.pickupDelayDays > 1 ? "s" : ""}</p>}
+                      {r?.deliveryFee != null && <p>Frais de livraison : {formatPrice(Number(r.deliveryFee))}</p>}
+                      {r?.pickupFee != null && <p>Frais de retrait : {formatPrice(Number(r.pickupFee))}</p>}
+                      {r?.deliveryZones && <p><span className="font-semibold text-slate-700">Zones desservies : </span>{r.deliveryZones}</p>}
+                      {r?.handoverConditions && <p><span className="font-semibold text-slate-700">Conditions de remise : </span>{r.handoverConditions}</p>}
+                      {r?.requiredDocuments && <p><span className="font-semibold text-slate-700">Documents nécessaires : </span>{r.requiredDocuments}</p>}
+                      <p className="text-[11px] text-slate-400">L'adresse exacte de remise vous sera communiquée une fois votre commande confirmée.</p>
+                    </div>
+                  </details>
+                )}
+
+                {/* Comment fonctionne la commande ? */}
+                <details className="group mt-3 rounded-lg border border-slate-100 bg-slate-50">
+                  <summary className="cursor-pointer px-4 py-3 text-sm font-semibold text-[#111] hover:text-[#D4AF37]">Comment fonctionne la commande ?</summary>
+                  <ol className="list-decimal space-y-1.5 px-8 pb-3 text-xs text-slate-600 leading-relaxed">
+                    <li>Réservation — vous réservez le véhicule et réglez l'acompte.</li>
+                    <li>Confirmation de disponibilité — nous confirmons la disponibilité auprès du fournisseur.</li>
+                    <li>Préparation — le véhicule est préparé et contrôlé.</li>
+                    <li>Livraison ou retrait — selon l'option choisie à la réservation.</li>
+                    <li>Paiement du solde — une fois le véhicule prêt.</li>
+                    <li>Remise du véhicule — avec tous les documents.</li>
+                  </ol>
                 </details>
-              )}
-            </div>
-          )}
+
+                {/* Après l'achat */}
+                <details className="group mt-3 rounded-lg border border-slate-100 bg-slate-50">
+                  <summary className="cursor-pointer px-4 py-3 text-sm font-semibold text-[#111] hover:text-[#D4AF37]">Après l'achat</summary>
+                  <ul className="list-disc space-y-1.5 px-8 pb-3 text-xs text-slate-600 leading-relaxed">
+                    <li>Préparation du véhicule</li>
+                    <li>Inspection</li>
+                    <li>Remise des clés</li>
+                    <li>Documents remis ou envoyés</li>
+                    <li>Garantie</li>
+                    <li>Assistance</li>
+                    <li>En cas de problème : contactez notre service client depuis votre espace « Mes commandes ».</li>
+                  </ul>
+                </details>
+              </div>
+            );
+          })()}
 
           {/* Réserver avec acompte (vente) — pour NON-MKA.P-MS, position ici ; pour MKA.P-MS, après Finance+ */}
           {!isLocation && !isMkapmsStock && v.ownership !== "partenaire" && (

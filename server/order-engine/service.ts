@@ -87,6 +87,21 @@ export async function enregistrerAnnonceSurCommande(input: {
   deliveryPrepDetails?: string | null;
   returnToStockIfUnsold?: boolean;
   installmentPaymentAllowed?: boolean;
+  /** Bloc « Réservation et acompte » + « Livraison ou retrait » (demande PDG) — non confidentiels. */
+  prepDelayDays?: number | null;
+  deliveryDelayDays?: number | null;
+  pickupDelayDays?: number | null;
+  prepFee?: number | null;
+  deliveryFee?: number | null;
+  pickupFee?: number | null;
+  deliveryZones?: string | null;
+  handoverConditions?: string | null;
+  requiredDocuments?: string | null;
+  depositAmount?: number | null;
+  refundConditions?: string | null;
+  cancellationConditions?: string | null;
+  /** Jamais exposée avant confirmation de commande (voir schema.ts). */
+  exactPickupAddress?: string | null;
   /** Estimation indicative au dépôt — STRICTEMENT confidentielle, jamais exposée à un client. */
   supplierPurchasePriceEstimated?: number | null;
   transportCostEstimated?: number | null;
@@ -94,6 +109,7 @@ export async function enregistrerAnnonceSurCommande(input: {
 }) {
   const existant = await obtenirListingParAnnonce(input.annonceId);
   if (existant) throw new OrderEngineError(`L'annonce ${input.annonceId} est déjà enregistrée comme véhicule sur commande.`);
+  const n = (v: number | null | undefined) => (v != null ? String(v) : null);
   const [row] = await db
     .insert(orderListings)
     .values({
@@ -106,9 +122,22 @@ export async function enregistrerAnnonceSurCommande(input: {
       deliveryPrepDetails: input.deliveryPrepDetails ?? null,
       returnToStockIfUnsold: input.returnToStockIfUnsold ?? false,
       installmentPaymentAllowed: input.installmentPaymentAllowed ?? false,
-      supplierPurchasePriceEstimated: input.supplierPurchasePriceEstimated != null ? String(input.supplierPurchasePriceEstimated) : null,
-      transportCostEstimated: input.transportCostEstimated != null ? String(input.transportCostEstimated) : null,
-      targetMarginPercent: input.targetMarginPercent != null ? String(input.targetMarginPercent) : null,
+      prepDelayDays: input.prepDelayDays ?? null,
+      deliveryDelayDays: input.deliveryDelayDays ?? null,
+      pickupDelayDays: input.pickupDelayDays ?? null,
+      prepFee: n(input.prepFee),
+      deliveryFee: n(input.deliveryFee),
+      pickupFee: n(input.pickupFee),
+      deliveryZones: input.deliveryZones ?? null,
+      handoverConditions: input.handoverConditions ?? null,
+      requiredDocuments: input.requiredDocuments ?? null,
+      depositAmount: n(input.depositAmount),
+      refundConditions: input.refundConditions ?? null,
+      cancellationConditions: input.cancellationConditions ?? null,
+      exactPickupAddress: input.exactPickupAddress ?? null,
+      supplierPurchasePriceEstimated: n(input.supplierPurchasePriceEstimated),
+      transportCostEstimated: n(input.transportCostEstimated),
+      targetMarginPercent: n(input.targetMarginPercent),
     })
     .returning();
   await journaliser({ orderItemId: null, action: "commande.annonce_liee", actorId: input.employeeId, detail: { annonceId: input.annonceId, creationMode: input.creationMode } });
@@ -437,6 +466,14 @@ const DOCUMENT_TYPE_CODES: Record<OrderDocumentType, string | null> = {
   document_cession: null,
   garantie: "attestation",
   document_comptable: null,
+  // Documents reçus du fournisseur, propres au véhicule (demande PDG) —
+  // jamais générés ici, toujours rattachés une fois reçus (même principe
+  // que document_cession/document_comptable ci-dessus).
+  controle_technique: null,
+  historique_entretien: null,
+  facture_travaux_autorises: null,
+  rapport_batterie: null,
+  certificat_conformite: null,
 };
 
 function montantDocument(commande: typeof orderItems.$inferSelect, documentType: OrderDocumentType): number | undefined {
@@ -622,16 +659,28 @@ export async function obtenirLabelPublicParAnnonce(annonceId: number): Promise<P
  * qu'un employé ne l'a pas explicitement activé (règle PDG : pas de paiement
  * en plusieurs fois tant que le véhicule reste en dropshipping pur).
  */
-export async function obtenirDetailsPublicSurCommande(annonceId: number): Promise<{
-  vehicleLocation: string | null;
-  deliveryPrepDetails: string | null;
-  installmentPaymentAllowed: boolean;
-} | null> {
+export async function obtenirDetailsPublicSurCommande(annonceId: number) {
   const [row] = await db
     .select({
       vehicleLocation: orderListings.vehicleLocation,
       deliveryPrepDetails: orderListings.deliveryPrepDetails,
       installmentPaymentAllowed: orderListings.installmentPaymentAllowed,
+      prepDelayDays: orderListings.prepDelayDays,
+      deliveryDelayDays: orderListings.deliveryDelayDays,
+      pickupDelayDays: orderListings.pickupDelayDays,
+      prepFee: orderListings.prepFee,
+      deliveryFee: orderListings.deliveryFee,
+      pickupFee: orderListings.pickupFee,
+      deliveryZones: orderListings.deliveryZones,
+      handoverConditions: orderListings.handoverConditions,
+      requiredDocuments: orderListings.requiredDocuments,
+      depositAmount: orderListings.depositAmount,
+      refundConditions: orderListings.refundConditions,
+      cancellationConditions: orderListings.cancellationConditions,
+      updatedAt: orderListings.updatedAt,
+      // Jamais ici : exactPickupAddress, supplierPurchasePriceEstimated,
+      // transportCostEstimated, targetMarginPercent — confidentiels ou
+      // réservés au client une fois sa commande confirmée (detailCommandeClient).
     })
     .from(orderListings)
     .where(eq(orderListings.annonceId, annonceId))

@@ -50,6 +50,13 @@ const DOCUMENT_TYPES: { key: string; label: string; genere: boolean }[] = [
   { key: "garantie", label: "Garantie", genere: true },
   { key: "document_cession", label: "Document de cession", genere: false },
   { key: "document_comptable", label: "Document comptable", genere: false },
+  // Documents reçus du fournisseur, propres au véhicule (demande PDG) —
+  // jamais générés par la plateforme, toujours rattachés une fois reçus.
+  { key: "controle_technique", label: "Contrôle technique", genere: false },
+  { key: "historique_entretien", label: "Historique d'entretien", genere: false },
+  { key: "facture_travaux_autorises", label: "Factures de travaux autorisées", genere: false },
+  { key: "rapport_batterie", label: "Rapport de batterie", genere: false },
+  { key: "certificat_conformite", label: "Certificat de conformité", genere: false },
 ];
 
 const DOCS_EMPLOYE_SEUL = new Set(["bon_commande", "ordre_mission_transporteur", "dossier_retour", "document_comptable"]);
