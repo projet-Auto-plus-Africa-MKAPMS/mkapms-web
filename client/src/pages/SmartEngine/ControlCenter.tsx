@@ -55,29 +55,49 @@ import {
 
 type Tab = "dashboard" | "rapport" | "etat" | "qualite" | "evolution" | "alertes" | "apprentissage" | "connaissances" | "savoir" | "optimisation" | "moteurs" | "developpements" | "recherches" | "doublons" | "suspects" | "annonces" | "badges" | "sante" | "journal" | "validations" | "avis" | "comportement";
 
-const TABS: { key: Tab; label: string; icon: typeof Brain }[] = [
-  { key: "dashboard", label: "Vue d'ensemble", icon: BarChart3 },
-  { key: "rapport", label: "Rapport quotidien", icon: CalendarDays },
-  { key: "etat", label: "État plateforme", icon: HeartPulse },
-  { key: "qualite", label: "Qualité", icon: Gauge },
-  { key: "evolution", label: "Évolution autonome", icon: Lightbulb },
-  { key: "alertes", label: "Alertes", icon: AlertTriangle },
-  { key: "apprentissage", label: "Apprentissage privé", icon: GraduationCap },
-  { key: "connaissances", label: "Connaissances externes", icon: Globe },
-  { key: "savoir", label: "Base de connaissances", icon: BookOpen },
-  { key: "optimisation", label: "Auto-optimisation", icon: Zap },
-  { key: "moteurs", label: "Moteurs connectés", icon: Cpu },
-  { key: "developpements", label: "Développements", icon: Boxes },
-  { key: "recherches", label: "Recherches", icon: Search },
-  { key: "doublons", label: "Doublons", icon: Layers },
-  { key: "suspects", label: "Comptes suspects", icon: Users },
-  { key: "annonces", label: "Annonces", icon: FileWarning },
-  { key: "badges", label: "Badges", icon: Star },
-  { key: "sante", label: "Santé plateforme", icon: Activity },
-  { key: "journal", label: "Journal", icon: Database },
-  { key: "validations", label: "Validations", icon: CheckCircle2 },
-  { key: "avis", label: "Avis", icon: Eye },
-  { key: "comportement", label: "Comportement", icon: Activity },
+/**
+ * Deux groupes de navigation (demande PDG) : PILOTAGE = lecture seule, rien à
+ * décider ; TRAVAIL = chaque écran y attend une décision ou une action (valider,
+ * rejeter, résoudre, approuver…). Un onglet n'appartient qu'à un seul groupe,
+ * décidé par ce qu'il affiche réellement — pas par son nom.
+ */
+type TabGroup = "pilotage" | "travail";
+
+const TABS: { key: Tab; label: string; icon: typeof Brain; group: TabGroup }[] = [
+  // PILOTAGE — mesurer et comprendre la plateforme, sans action à prendre ici.
+  { key: "dashboard", label: "Vue d'ensemble", icon: BarChart3, group: "pilotage" },
+  { key: "rapport", label: "Rapport quotidien", icon: CalendarDays, group: "pilotage" },
+  { key: "etat", label: "État plateforme", icon: HeartPulse, group: "pilotage" },
+  { key: "qualite", label: "Qualité", icon: Gauge, group: "pilotage" },
+  { key: "moteurs", label: "Moteurs connectés", icon: Cpu, group: "pilotage" },
+  { key: "recherches", label: "Recherches", icon: Search, group: "pilotage" },
+  { key: "sante", label: "Santé plateforme", icon: Activity, group: "pilotage" },
+  { key: "journal", label: "Journal", icon: Database, group: "pilotage" },
+  // Renommé pour que « Visites » soit cherchable directement dans l'onglet
+  // (demande PDG explicite) ; icône distincte de « Santé plateforme », qui
+  // réutilisait la même icône Activity et rendait les deux impossibles à
+  // distinguer au premier coup d'œil.
+  { key: "comportement", label: "Visites & comportement", icon: TrendingUp, group: "pilotage" },
+  // TRAVAIL — chaque écran ici attend une décision du PDG (valider, rejeter,
+  // résoudre, approuver, appliquer…), jamais une simple lecture.
+  { key: "alertes", label: "Alertes", icon: AlertTriangle, group: "travail" },
+  { key: "validations", label: "Validations", icon: CheckCircle2, group: "travail" },
+  { key: "avis", label: "Avis", icon: Eye, group: "travail" },
+  { key: "annonces", label: "Annonces", icon: FileWarning, group: "travail" },
+  { key: "badges", label: "Badges", icon: Star, group: "travail" },
+  { key: "doublons", label: "Doublons", icon: Layers, group: "travail" },
+  { key: "suspects", label: "Comptes suspects", icon: Users, group: "travail" },
+  { key: "evolution", label: "Évolution autonome", icon: Lightbulb, group: "travail" },
+  { key: "optimisation", label: "Auto-optimisation", icon: Zap, group: "travail" },
+  { key: "developpements", label: "Développements", icon: Boxes, group: "travail" },
+  { key: "savoir", label: "Base de connaissances", icon: BookOpen, group: "travail" },
+  { key: "connaissances", label: "Connaissances externes", icon: Globe, group: "travail" },
+  { key: "apprentissage", label: "Apprentissage privé", icon: GraduationCap, group: "travail" },
+];
+
+const TAB_GROUPS: { key: TabGroup; label: string }[] = [
+  { key: "pilotage", label: "PILOTAGE · lecture seule" },
+  { key: "travail", label: "TRAVAIL · à traiter" },
 ];
 
 export default function ControlCenter() {
@@ -115,29 +135,38 @@ export default function ControlCenter() {
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className="flex gap-2 overflow-x-auto px-4 py-3 scrollbar-hide">
-        {TABS.map((t) => {
-          const Icon = t.icon;
-          return (
-            <button
-              key={t.key}
-              onClick={() => setTab(t.key)}
-              className={`flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition ${
-                tab === t.key
-                  ? "bg-[#D4AF37] text-white"
-                  : "bg-white text-[#374151] border border-[#E5E7EB]"
-              }`}
-            >
-              <Icon size={12} />
-              {t.label}
-            </button>
-          );
-        })}
-      </div>
+      {/* Tabs — deux groupes séparés (PDG : « diviser les parties pour travail,
+          soit uniquement parties pour travail, mais les parties contrôle,
+          elles soient à part aussi »). Chaque groupe défile horizontalement
+          pour lui-même, l'un sous l'autre, plutôt qu'un seul fil de 22 onglets
+          mélangés où rien ne se retrouve. */}
+      {TAB_GROUPS.map((g) => (
+        <div key={g.key} className="px-4 pt-3">
+          <p className="pb-1.5 text-[10px] font-bold uppercase tracking-wider text-[#9CA3AF]">{g.label}</p>
+          <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+            {TABS.filter((t) => t.group === g.key).map((t) => {
+              const Icon = t.icon;
+              return (
+                <button
+                  key={t.key}
+                  onClick={() => setTab(t.key)}
+                  className={`flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition ${
+                    tab === t.key
+                      ? "bg-[#D4AF37] text-white"
+                      : "bg-white text-[#374151] border border-[#E5E7EB]"
+                  }`}
+                >
+                  <Icon size={12} />
+                  {t.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      ))}
 
       {/* Content */}
-      <div className="px-4">
+      <div className="mt-1 border-t border-[#E5E7EB] px-4 pt-3">
         {tab === "dashboard" && <DashboardTab onNavigate={navigate} />}
         {tab === "rapport" && <RapportTab onNavigate={setTab} />}
         {tab === "etat" && <EtatPlateformeTab onNavigate={setTab} />}

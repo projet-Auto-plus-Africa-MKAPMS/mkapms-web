@@ -21787,11 +21787,11 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/superadmin/smart-engine"
         ],
-        "cliquables": 60,
+        "cliquables": 59,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 277,
-        "mots": 1448
+        "textes": 279,
+        "mots": 1458
       }
     ],
     "ecransHotes": [
@@ -21972,8 +21972,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "pdg",
       "public"
     ],
-    "textes": 338,
-    "mots": 1723,
+    "textes": 340,
+    "mots": 1733,
     "battement": "contrat",
     "manques": []
   },
