@@ -1014,9 +1014,11 @@ export default function App() {
             <Route path="/vehicule/:id" element={<U name="Vente"><Vehicule /></U>} />
             <Route path="/vendre" element={<U name="Vente"><Vendre /></U>} />
             {/* Portail « Véhicule sur commande » (demande PDG) — totalement séparé du VO existant.
-                Dépôt et suivi employé : réservés aux équipes MKA.P-MS (back_office), jamais à un
-                particulier ou un autre type de compte, sans permission à accorder au cas par cas. */}
-            <Route path="/vehicule-sur-commande" element={<U name="Véhicule sur commande"><PortailVehiculeSurCommande /></U>} />
+                Le portail (hub, dépôt, suivi employé) est réservé aux équipes MKA.P-MS (back_office) :
+                aucun particulier ni pro n'y a accès, même en tapant l'adresse à la main. Les clients
+                qui ont déjà passé une telle commande gardent leur propre suivi ("mes-commandes" ci-dessous),
+                atteint directement depuis la page produit — jamais via ce portail. */}
+            <Route path="/vehicule-sur-commande" element={<P name="Véhicule sur commande" module="back_office"><PortailVehiculeSurCommande /></P>} />
             <Route path="/vehicule-sur-commande/depot" element={<P name="Véhicule sur commande" module="back_office"><DepotRapideVehiculeSurCommande /></P>} />
             <Route path="/vehicule-sur-commande/mes-vehicules" element={<P name="Véhicule sur commande" module="back_office"><MesVehiculesEmploye /></P>} />
             <Route path="/vehicule-sur-commande/mes-vehicules/:orderItemId" element={<P name="Véhicule sur commande" module="back_office"><CommandeDetailEmploye /></P>} />

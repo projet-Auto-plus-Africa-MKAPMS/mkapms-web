@@ -14921,11 +14921,11 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/vehicule-sur-commande"
         ],
-        "cliquables": 3,
+        "cliquables": 2,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 7,
-        "mots": 38
+        "textes": 6,
+        "mots": 36
       }
     ],
     "ecransHotes": [
@@ -14999,8 +14999,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "role:annulee",
       "role:prix_marge_valides"
     ],
-    "textes": 108,
-    "mots": 471,
+    "textes": 107,
+    "mots": 469,
     "battement": "sonde",
     "manques": [
       {

@@ -1,14 +1,15 @@
 import { Link } from "react-router-dom";
 import { Car, PlusCircle, ClipboardList, Package } from "lucide-react";
 import { trpc } from "../../lib/trpc";
-import { useAuth } from "../../lib/auth";
-import { isAdmin } from "@shared/roles";
 
 /* ══════════════════════════════════════════════════════════════════════════
    PORTAIL « VÉHICULE SUR COMMANDE » (/vehicule-sur-commande)
    Demande PDG : système totalement séparé du VO existant. Réutilise
    trpc.annonces.list filtré par ownership="partenaire" — jamais un second
-   registre d'annonces. isAdmin ici inclut "employee" (@shared/roles).
+   registre d'annonces.
+   Route gardée par RequirePermission(module="back_office") dans App.tsx :
+   réservée aux équipes MKA.P-MS, jamais à un particulier ou un pro — donc
+   ce composant n'affiche que les actions employé, sans branche "client".
    ══════════════════════════════════════════════════════════════════════════ */
 
 const LABEL_STATUT: Record<string, { label: string; style: string }> = {
@@ -17,10 +18,8 @@ const LABEL_STATUT: Record<string, { label: string; style: string }> = {
 };
 
 export default function PortailVehiculeSurCommande() {
-  const { user } = useAuth();
   const { data, isLoading } = trpc.annonces.list.useQuery({ ownership: "partenaire", limit: 24 });
   const annonces = data?.items ?? [];
-  const employe = isAdmin(user?.role);
 
   return (
     <div className="min-h-screen bg-[#F5F3EF] pb-24">
@@ -31,21 +30,14 @@ export default function PortailVehiculeSurCommande() {
         <p className="mt-1 text-xs text-white/50">
           Un véhicule sourcé chez un fournisseur, commandable avant d'être physiquement chez MKA.P-MS. Système totalement séparé des véhicules d'occasion déjà en stock.
         </p>
-        {employe && (
-          <div className="mt-3 flex gap-2">
-            <Link to="/vehicule-sur-commande/depot" className="flex items-center gap-1 rounded-lg bg-[#D4AF37] px-3 py-2 text-xs font-bold text-[#111]">
-              <PlusCircle size={14} /> Déposer un véhicule
-            </Link>
-            <Link to="/vehicule-sur-commande/mes-vehicules" className="flex items-center gap-1 rounded-lg border border-white/20 px-3 py-2 text-xs font-bold text-white">
-              <ClipboardList size={14} /> Mes véhicules attribués
-            </Link>
-          </div>
-        )}
-        {user && !employe && (
-          <Link to="/vehicule-sur-commande/mes-commandes" className="mt-3 inline-flex items-center gap-1 rounded-lg border border-white/20 px-3 py-2 text-xs font-bold text-white">
-            <ClipboardList size={14} /> Mes commandes
+        <div className="mt-3 flex gap-2">
+          <Link to="/vehicule-sur-commande/depot" className="flex items-center gap-1 rounded-lg bg-[#D4AF37] px-3 py-2 text-xs font-bold text-[#111]">
+            <PlusCircle size={14} /> Déposer un véhicule
           </Link>
-        )}
+          <Link to="/vehicule-sur-commande/mes-vehicules" className="flex items-center gap-1 rounded-lg border border-white/20 px-3 py-2 text-xs font-bold text-white">
+            <ClipboardList size={14} /> Mes véhicules attribués
+          </Link>
+        </div>
       </div>
 
       <div className="px-4 mt-4">
