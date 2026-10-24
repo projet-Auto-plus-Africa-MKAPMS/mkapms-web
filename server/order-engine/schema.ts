@@ -29,6 +29,7 @@
  */
 import {
   bigserial,
+  boolean,
   index,
   integer,
   jsonb,
@@ -141,6 +142,45 @@ export const orderListings = pgTable(
      */
     creationMode: varchar("creation_mode", { length: 16 }).notNull(),
     createdByEmployeeId: integer("created_by_employee_id").notNull(),
+
+    /**
+     * Détails « véhicule sur commande » côté client (demande PDG, parcours
+     * manuel) — affichés sur la fiche produit partagée (Vehicule.tsx),
+     * section « Voir les détails » : jamais un prix ni une donnée
+     * fournisseur, donc jamais confidentiels contrairement aux champs
+     * ci-dessous.
+     */
+    vehicleLocation: varchar("vehicle_location", { length: 200 }),
+    deliveryPrepDetails: text("delivery_prep_details"),
+
+    /**
+     * Choix employé (demande PDG) : si la commande n'aboutit pas, le
+     * véhicule peut entrer dans le stock MKA.P-MS — ce champ enregistre
+     * uniquement l'intention pour le parcours après-vente existant (non
+     * modifié ici) ; aucune bascule automatique n'est déclenchée par cette
+     * valeur dans ce lot.
+     */
+    returnToStockIfUnsold: boolean("return_to_stock_if_unsold").notNull().default(false),
+    /**
+     * Tant qu'un véhicule sur commande reste en dropshipping pur (pas encore
+     * entré dans le stock MKA.P-MS), « Paiement en plusieurs fois » ne doit
+     * jamais être proposé sur sa fiche produit (demande PDG) — faux par
+     * défaut, à activer explicitement au cas par cas.
+     */
+    installmentPaymentAllowed: boolean("installment_payment_allowed").notNull().default(false),
+
+    /**
+     * Estimation de prix, saisie par l'employé avant publication (demande
+     * PDG, parcours manuel) — distincte de `order_items.supplier_price_confidential`
+     * / `margin_confidential` (posés plus tard, à la commande, « section 8 »,
+     * par le Pricing Engine / Payment Orchestrator) : ceci est une
+     * planification indicative au dépôt, jamais le montant réel facturé.
+     * STRICTEMENT confidentiel — jamais exposé à un client.
+     */
+    supplierPurchasePriceEstimated: numeric("supplier_purchase_price_estimated", { precision: 12, scale: 2 }),
+    transportCostEstimated: numeric("transport_cost_estimated", { precision: 12, scale: 2 }),
+    targetMarginPercent: numeric("target_margin_percent", { precision: 5, scale: 2 }),
+
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
   },

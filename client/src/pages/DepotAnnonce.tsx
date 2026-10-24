@@ -214,11 +214,17 @@ const MOTORISATIONS: Record<string, string[]> = {
   "Mercedes_Classe C": ["C 180 170ch","C 200 204ch","C 300 258ch","C 43 AMG 408ch","C 200d 163ch","C 220d 200ch","C 300d 265ch","C 300e 313ch"],
   "Audi_A3": ["30 TFSI 110ch","35 TFSI 150ch","40 TFSI e 204ch","S3 310ch","30 TDI 116ch","35 TDI 150ch"],
   "Volkswagen_Golf": ["1.0 TSI 110","1.5 TSI 130","1.5 TSI 150","2.0 TSI GTI 245","2.0 TSI R 320","2.0 TDI 115","2.0 TDI 150","1.4 eHybrid 204","1.4 eHybrid GTE 245"],
-  "default": ["1.0","1.2","1.4","1.5","1.6","1.8","2.0","2.2","2.5","3.0","Electrique","Hybride"],
+  // Catalogue mondial : toutes les cylindrées et configurations ne peuvent pas
+  // être couvertes ici (Ford Mustang 5.0 Ti-VCT V8, etc.) — la liste par défaut
+  // ne sert qu'à accélérer la saisie des cas courants ; MOTORISATION_LIBRE
+  // (saisie manuelle, toujours disponible) couvre tout le reste.
+  "default": ["1.0","1.2","1.4","1.5","1.6","1.8","2.0","2.2","2.5","3.0","3.5 V6","4.0 V8","4.4 V8","5.0 V8","5.7 V8","6.0 V8","6.2 V8","6.0 W12","V10","V12","Electrique","Hybride"],
 };
 
 /* ── Versions ── */
 const VERSION_LIBRE = "Autre version (saisie manuelle)";
+/* ── Motorisation ── */
+const MOTORISATION_LIBRE = "Autre motorisation (saisie manuelle)";
 const VERSIONS: Record<string, string[]> = {
   "Peugeot_308_1.2 PureTech 130": ["Active Pack","Allure","Allure Pack","GT","GT Pack"],
   "Peugeot_308_1.5 BlueHDi 130": ["Active Pack","Allure","Allure Pack","GT","GT Pack"],
@@ -409,6 +415,34 @@ export default function DepotAnnonce() {
   const [searchParams] = useSearchParams();
   const supplierProfileIdParam = searchParams.get("supplierProfileId");
   const vehiculeSurCommande = searchParams.get("vehiculeSurCommande") === "1" && supplierProfileIdParam ? { supplierProfileId: Number(supplierProfileIdParam) } : undefined;
+  // Champs propres au véhicule sur commande (demande PDG) : délibérément
+  // séparés de `form` (ci-dessous), qui reste strictement identique au
+  // parcours manuel normal — ce dépôt existant n'est pas dupliqué, seuls ces
+  // quelques champs supplémentaires s'ajoutent à l'étape Publication quand
+  // `vehiculeSurCommande` est présent.
+  const [surCommandeLocalisation, setSurCommandeLocalisation] = useState("");
+  const [surCommandePrep, setSurCommandePrep] = useState("");
+  const [surCommandeRetourStock, setSurCommandeRetourStock] = useState(false);
+  const [surCommandePaiementPlusieursFois, setSurCommandePaiementPlusieursFois] = useState(false);
+  const [surCommandePrixAchat, setSurCommandePrixAchat] = useState("");
+  const [surCommandeTransport, setSurCommandeTransport] = useState("");
+  const [surCommandeMargeCible, setSurCommandeMargeCible] = useState("15");
+  // Estimation indicative au dépôt (demande PDG) — calcul local pur, jamais
+  // une connexion fournisseur ni une IA : seule la décision finale (champ
+  // Prix de l'étape Caractéristiques, inchangé) est effectivement publiée.
+  // Distincte du prix/marge « section 8 » validés plus tard par un employé
+  // à la commande (server/order-engine/schema.ts, orderItems).
+  const estimationSurCommande = useMemo(() => {
+    const achat = parseFloat(surCommandePrixAchat.replace(",", ".")) || 0;
+    const transport = parseFloat(surCommandeTransport.replace(",", ".")) || 0;
+    const margePct = parseFloat(surCommandeMargeCible.replace(",", ".")) || 0;
+    const coutTotal = achat + transport;
+    const prixConseille = coutTotal * (1 + margePct / 100);
+    const margeNegociation = prixConseille * 0.05;
+    const prixMinimum = Math.max(coutTotal, prixConseille - margeNegociation);
+    const beneficeEstime = prixConseille - coutTotal;
+    return { coutTotal, prixConseille, margeNegociation, prixMinimum, beneficeEstime };
+  }, [surCommandePrixAchat, surCommandeTransport, surCommandeMargeCible]);
   const [selectedType, setSelectedType] = useState<string | null>(null);
   const [step, setStep] = useState(0);
   const [plaqueMode, setPlaqueMode] = useState<"plaque" | "vin" | "manuel">("plaque");
@@ -460,6 +494,11 @@ export default function DepotAnnonce() {
   const availableMotorisations = form.marque && form.modele
     ? (MOTORISATIONS[motoKey] || MOTORISATIONS["default"] || [])
     : [];
+  // La motorisation, comme la version, peut toujours être saisie à la main :
+  // aucune liste figée ne couvre toutes les cylindrées et configurations du
+  // marché mondial (ex. Ford Mustang 5.0 Ti-VCT V8 GT, absente de toute liste
+  // par défaut plafonnée à 3.0).
+  const [motorisationLibre, setMotorisationLibre] = useState(false);
   // La version peut toujours être saisie à la main : aucune liste ne couvre
   // l'intégralité du marché mondial.
   const [versionLibre, setVersionLibre] = useState(false);
@@ -588,7 +627,20 @@ export default function DepotAnnonce() {
       securite: securiteItems,
       multimedia: multimediaItems,
       videosNormales: videoUrls,
-      ...(vehiculeSurCommande ? { vehiculeSurCommande } : {}),
+      ...(vehiculeSurCommande
+        ? {
+            vehiculeSurCommande: {
+              ...vehiculeSurCommande,
+              vehicleLocation: surCommandeLocalisation.trim() || undefined,
+              deliveryPrepDetails: surCommandePrep.trim() || undefined,
+              returnToStockIfUnsold: surCommandeRetourStock,
+              installmentPaymentAllowed: surCommandePaiementPlusieursFois,
+              supplierPurchasePriceEstimated: surCommandePrixAchat ? Number(surCommandePrixAchat.replace(",", ".")) : undefined,
+              transportCostEstimated: surCommandeTransport ? Number(surCommandeTransport.replace(",", ".")) : undefined,
+              targetMarginPercent: surCommandeMargeCible ? Number(surCommandeMargeCible.replace(",", ".")) : undefined,
+            },
+          }
+        : {}),
     });
   }
 
@@ -786,7 +838,32 @@ export default function DepotAnnonce() {
 
               {/* Motorisation — cascading (pas pour engins) */}
               {form.modele && !isMoto && !isEngin && (
-                <SelectField label="Motorisation" value={form.motorisation} onChange={(v) => { set("motorisation", v); set("version", ""); set("finition", ""); }} options={availableMotorisations} required placeholder="Selectionnez la motorisation" />
+                motorisationLibre ? (
+                  <div>
+                    <label className="block text-sm font-semibold text-[#111] mb-1.5">Motorisation<span className="text-red-500 ml-0.5">*</span></label>
+                    <input
+                      className="w-full rounded-xl border border-[#D4AF37] bg-[#FFFDF5] px-4 py-3 text-sm"
+                      value={form.motorisation}
+                      onChange={(e) => { set("motorisation", e.target.value); set("version", ""); set("finition", ""); }}
+                      placeholder="Ex : 5.0 Ti-VCT V8 GT, 4.0 TDI V8, Electrique 150 kW..."
+                      autoFocus
+                    />
+                    <button type="button" onClick={() => { setMotorisationLibre(false); set("motorisation", ""); }} className="mt-1 text-xs text-[#D4AF37] hover:underline">← Revenir à la liste</button>
+                  </div>
+                ) : (
+                  <SelectField
+                    label="Motorisation"
+                    value={form.motorisation}
+                    onChange={(v) => {
+                      if (v === MOTORISATION_LIBRE) { setMotorisationLibre(true); set("motorisation", ""); }
+                      else { set("motorisation", v); }
+                      set("version", ""); set("finition", "");
+                    }}
+                    options={[...availableMotorisations, MOTORISATION_LIBRE]}
+                    required
+                    placeholder="Selectionnez la motorisation"
+                  />
+                )
               )}
 
               {/* Version — cascading (pas pour engins) */}
@@ -1255,6 +1332,75 @@ export default function DepotAnnonce() {
             </div>
           </div>
 
+          {/* ── Vehicule sur commande (demande PDG) — champs supplementaires,
+             uniquement visibles via le bouton « Manuel » du portail Vehicule
+             sur commande. Le formulaire, les etapes et la logique
+             d'enregistrement ci-dessus restent strictement identiques au
+             parcours manuel existant. ── */}
+          {vehiculeSurCommande && (
+            <div className="rounded-xl bg-white border border-[#D4AF37] p-5 space-y-4">
+              <div>
+                <p className="text-sm font-bold text-[#111] flex items-center gap-1.5"><Key size={14} className="text-[#D4AF37]" /> Vehicule sur commande — details complementaires</p>
+                <p className="text-xs text-[#6B7280] mt-0.5">Affiches aux clients dans « Voir les details » sur la fiche produit. Facultatif, mais recommande.</p>
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-[#111] mb-1.5">Localisation actuelle du vehicule</label>
+                <input
+                  className="w-full rounded-xl border border-[#E5E7EB] px-4 py-3 text-sm"
+                  value={surCommandeLocalisation}
+                  onChange={(e) => setSurCommandeLocalisation(e.target.value)}
+                  placeholder="Ex : Chez le fournisseur (Allemagne), en transit..."
+                  maxLength={200}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-[#111] mb-1.5">Details livraison / preparation</label>
+                <textarea
+                  className="w-full rounded-xl border border-[#E5E7EB] px-4 py-3 text-sm"
+                  rows={3}
+                  value={surCommandePrep}
+                  onChange={(e) => setSurCommandePrep(e.target.value)}
+                  placeholder="Etapes de preparation, delai de livraison estime, informations logistique..."
+                  maxLength={4000}
+                />
+              </div>
+              <label className="flex items-start gap-2.5 text-sm text-[#374151]">
+                <input type="checkbox" className="mt-0.5" checked={surCommandeRetourStock} onChange={(e) => setSurCommandeRetourStock(e.target.checked)} />
+                Si la commande n'aboutit pas, faire entrer ce vehicule dans le stock MKA.P-MS
+              </label>
+              <label className="flex items-start gap-2.5 text-sm text-[#374151]">
+                <input type="checkbox" className="mt-0.5" checked={surCommandePaiementPlusieursFois} onChange={(e) => setSurCommandePaiementPlusieursFois(e.target.checked)} />
+                Autoriser « Paiement en plusieurs fois » sur la fiche produit — a laisser decoche tant que le vehicule reste en dropshipping pur
+              </label>
+
+              <div className="border-t border-[#E5E7EB] pt-4">
+                <p className="text-sm font-bold text-[#111]">Estimation de prix — avant publication</p>
+                <p className="text-xs text-[#6B7280] mt-0.5">Calcul indicatif uniquement : ne modifie pas le champ Prix de l'etape Caracteristiques, ne declenche aucune connexion fournisseur.</p>
+                <div className="grid grid-cols-2 gap-3 mt-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-[#111] mb-1">Prix d'achat fournisseur</label>
+                    <input className="w-full rounded-xl border border-[#E5E7EB] px-3 py-2.5 text-sm" inputMode="decimal" value={surCommandePrixAchat} onChange={(e) => setSurCommandePrixAchat(e.target.value)} placeholder="0" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-[#111] mb-1">Transport et frais</label>
+                    <input className="w-full rounded-xl border border-[#E5E7EB] px-3 py-2.5 text-sm" inputMode="decimal" value={surCommandeTransport} onChange={(e) => setSurCommandeTransport(e.target.value)} placeholder="0" />
+                  </div>
+                  <div className="col-span-2">
+                    <label className="block text-xs font-semibold text-[#111] mb-1">Marge MKA.P-MS ciblee (%)</label>
+                    <input className="w-full rounded-xl border border-[#E5E7EB] px-3 py-2.5 text-sm" inputMode="decimal" value={surCommandeMargeCible} onChange={(e) => setSurCommandeMargeCible(e.target.value)} placeholder="15" />
+                  </div>
+                </div>
+                <div className="mt-3 rounded-xl bg-[#F5F3EF] p-3 space-y-1.5 text-xs">
+                  <div className="flex justify-between"><span className="text-[#6B7280]">Cout total (achat + transport)</span><span className="font-bold text-[#111]">{estimationSurCommande.coutTotal.toFixed(2)} EUR</span></div>
+                  <div className="flex justify-between"><span className="text-[#6B7280]">Prix conseille de vente</span><span className="font-bold text-[#D4AF37]">{estimationSurCommande.prixConseille.toFixed(2)} EUR</span></div>
+                  <div className="flex justify-between"><span className="text-[#6B7280]">Petite marge de negociation (5%)</span><span className="font-bold text-[#111]">{estimationSurCommande.margeNegociation.toFixed(2)} EUR</span></div>
+                  <div className="flex justify-between"><span className="text-[#6B7280]">Prix minimum conseille</span><span className="font-bold text-[#111]">{estimationSurCommande.prixMinimum.toFixed(2)} EUR</span></div>
+                  <div className="flex justify-between"><span className="text-[#6B7280]">Benefice estime</span><span className="font-bold text-green-600">{estimationSurCommande.beneficeEstime.toFixed(2)} EUR</span></div>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Final summary */}
           <div className="rounded-xl bg-white border border-[#E5E7EB] p-5 space-y-3">
             <p className="text-sm font-bold text-[#111]">Resume final</p>
@@ -1307,6 +1453,8 @@ export default function DepotAnnonce() {
                 setForm({ plaque: "", vin: "", marque: "", modele: "", annee: "", motorisation: "", version: "", finition: "", categorie: "", energie: "", categorieMoto: "", cylindree: "", cylindreeCcm: "", permis: "", kilometrage: "", prix: "", couleurExt: "", couleurInt: "", typePeinture: "", matiereSieges: "", portes: "", places: "", puissanceCv: "", puissanceFiscale: "", etat: "", reparations: "", boite: "", premierMain: "", nbProprietaires: "", paysOrigine: "FR", classeEnvironnementale: "", emissionsCo2: "", nbCles: "2", dateProchaineCT: "", description: "", pointsForts: "", contactNom: "", contactEmail: "", contactTelephone: "", contactVille: "", contactCodePostal: "" });
                 setSelectedEquip({ exterieur: [], interieur: [], confort: [], securite: [], antivol: [], multimedia: [], autres: [] });
                 setPhotoUrls({}); setVideoUrls([]);
+                setSurCommandeLocalisation(""); setSurCommandePrep(""); setSurCommandeRetourStock(false); setSurCommandePaiementPlusieursFois(false);
+                setSurCommandePrixAchat(""); setSurCommandeTransport(""); setSurCommandeMargeCible("15");
               }} className="flex-1 rounded-xl border border-[#E5E7EB] px-4 py-3.5 text-sm font-bold text-[#374151] hover:bg-[#F5F3EF] transition">Nouvelle annonce</button>
             </div>
           </div>

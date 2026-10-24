@@ -82,6 +82,15 @@ export async function enregistrerAnnonceSurCommande(input: {
   vehicleItemId?: number | null;
   creationMode: ListingCreationMode;
   employeeId: number;
+  /** Détails côté client (demande PDG, parcours manuel) — jamais confidentiels, affichés sur la fiche produit partagée. */
+  vehicleLocation?: string | null;
+  deliveryPrepDetails?: string | null;
+  returnToStockIfUnsold?: boolean;
+  installmentPaymentAllowed?: boolean;
+  /** Estimation indicative au dépôt — STRICTEMENT confidentielle, jamais exposée à un client. */
+  supplierPurchasePriceEstimated?: number | null;
+  transportCostEstimated?: number | null;
+  targetMarginPercent?: number | null;
 }) {
   const existant = await obtenirListingParAnnonce(input.annonceId);
   if (existant) throw new OrderEngineError(`L'annonce ${input.annonceId} est déjà enregistrée comme véhicule sur commande.`);
@@ -93,6 +102,13 @@ export async function enregistrerAnnonceSurCommande(input: {
       vehicleItemId: input.vehicleItemId ?? null,
       creationMode: input.creationMode,
       createdByEmployeeId: input.employeeId,
+      vehicleLocation: input.vehicleLocation ?? null,
+      deliveryPrepDetails: input.deliveryPrepDetails ?? null,
+      returnToStockIfUnsold: input.returnToStockIfUnsold ?? false,
+      installmentPaymentAllowed: input.installmentPaymentAllowed ?? false,
+      supplierPurchasePriceEstimated: input.supplierPurchasePriceEstimated != null ? String(input.supplierPurchasePriceEstimated) : null,
+      transportCostEstimated: input.transportCostEstimated != null ? String(input.transportCostEstimated) : null,
+      targetMarginPercent: input.targetMarginPercent != null ? String(input.targetMarginPercent) : null,
     })
     .returning();
   await journaliser({ orderItemId: null, action: "commande.annonce_liee", actorId: input.employeeId, detail: { annonceId: input.annonceId, creationMode: input.creationMode } });
@@ -596,6 +612,31 @@ export async function obtenirLabelPublicParAnnonce(annonceId: number): Promise<P
   const status = derniere.status as InternalOrderStatus;
   if (["vendue", "retournee", "annulee", "remboursee"].includes(status)) return "disponible_sur_commande";
   return derivePublicListingLabel(status);
+}
+
+/**
+ * Détails « véhicule sur commande » affichables côté client (demande PDG,
+ * section « Voir les détails » de la fiche produit partagée) — uniquement le
+ * sous-ensemble non confidentiel de `order_listings` : jamais le fournisseur,
+ * jamais un prix ou une marge. `installmentPaymentAllowed` reste faux tant
+ * qu'un employé ne l'a pas explicitement activé (règle PDG : pas de paiement
+ * en plusieurs fois tant que le véhicule reste en dropshipping pur).
+ */
+export async function obtenirDetailsPublicSurCommande(annonceId: number): Promise<{
+  vehicleLocation: string | null;
+  deliveryPrepDetails: string | null;
+  installmentPaymentAllowed: boolean;
+} | null> {
+  const [row] = await db
+    .select({
+      vehicleLocation: orderListings.vehicleLocation,
+      deliveryPrepDetails: orderListings.deliveryPrepDetails,
+      installmentPaymentAllowed: orderListings.installmentPaymentAllowed,
+    })
+    .from(orderListings)
+    .where(eq(orderListings.annonceId, annonceId))
+    .limit(1);
+  return row ?? null;
 }
 
 export async function obtenirCommandeDetail(orderItemId: number) {
