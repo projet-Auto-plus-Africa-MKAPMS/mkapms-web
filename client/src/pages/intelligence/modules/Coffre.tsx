@@ -16,7 +16,7 @@ type TypeSecret = "identifiants" | "cle_api" | "fichier";
 
 const LIBELLE_TYPE: Record<TypeSecret, string> = {
   identifiants: "E-mail et mot de passe",
-  cle_api: "Clé ou jeton",
+  cle_api: "Clé, jeton ou lien fournisseur",
   fichier: "Fichier (trousseau, compte de service…)",
 };
 
@@ -107,9 +107,9 @@ function ChampsValeur({ type, valeur, onChange, desactive }: { type: TypeSecret;
   if (type === "cle_api") {
     return (
       <label className="block text-xs">
-        Clé ou jeton
+        Clé, jeton ou lien (http:// ou https://, tel que reçu — aucune vérification réseau)
         <input type="password" value={valeur.cle} onChange={(e) => maj({ cle: e.target.value })} disabled={desactive}
-          autoComplete="new-password" spellCheck={false} maxLength={8000} className="mt-1 w-full rounded-lg border p-2 text-sm" />
+          autoComplete="new-password" spellCheck={false} maxLength={8000} placeholder="Ex. https://fournisseur.example/stock.csv?token=…" className="mt-1 w-full rounded-lg border p-2 text-sm" />
       </label>
     );
   }

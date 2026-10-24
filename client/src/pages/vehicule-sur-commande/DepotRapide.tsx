@@ -1,9 +1,22 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ChevronLeft, Sparkles, PenLine, Loader2, AlertTriangle, CheckCircle } from "lucide-react";
+import { ChevronLeft, Sparkles, PenLine, Loader2, AlertTriangle, CheckCircle, Paperclip, X, FileText } from "lucide-react";
 import { trpc } from "../../lib/trpc";
 import { useAuth } from "../../lib/auth";
 import { isDirection } from "@shared/roles";
+import MicroVocal from "../../components/MicroVocal";
+
+// La requête entière passe par express.json({ limit: "50mb" }) (server/index.ts) : le
+// base64 ajoute ~33 % à la taille d'origine, donc ces plafonds restent nettement en
+// dessous pour laisser de la marge au reste du corps de la requête.
+const TAILLE_MAX_DOCUMENT = 4 * 1024 * 1024;
+const MAX_DOCUMENTS = 6;
+
+interface DocumentJoint {
+  nom: string;
+  type: string;
+  contenuBase64: string;
+}
 
 /* ══════════════════════════════════════════════════════════════════════════
    DÉPÔT RAPIDE — Véhicule sur commande (sections 2, 4, 5, demande PDG)
@@ -22,19 +35,57 @@ export default function DepotRapideVehiculeSurCommande() {
   const [supplierProfileId, setSupplierProfileId] = useState("");
   const [supplierVehicleId, setSupplierVehicleId] = useState("");
   const [ingestMethod, setIngestMethod] = useState("manuel");
-  const [rawDataText, setRawDataText] = useState('{\n  "marque": "",\n  "modele": "",\n  "annee": "",\n  "prixFournisseur": ""\n}');
+  const [marque, setMarque] = useState("");
+  const [modele, setModele] = useState("");
+  const [annee, setAnnee] = useState("");
+  const [prixFournisseurSaisi, setPrixFournisseurSaisi] = useState("");
+  const [description, setDescription] = useState("");
+  const [documents, setDocuments] = useState<DocumentJoint[]>([]);
+  const [erreurFichier, setErreurFichier] = useState("");
   const [assistantResult, setAssistantResult] = useState<any>(null);
   const [prix, setPrix] = useState({ supplierPrice: "", supplierCurrency: "EUR", commissionRatePct: "10", pickupCity: "", pickupCountryCode: "FR" });
   const [prepResult, setPrepResult] = useState<any>(null);
 
-  const assistant = trpc.orderEngine.assistantDepot.useMutation({ onSuccess: setAssistantResult });
+  const assistant = trpc.orderEngine.assistantDepot.useMutation({
+    onSuccess: (r) => {
+      setAssistantResult(r);
+      if (prixFournisseurSaisi.trim()) setPrix((p) => ({ ...p, supplierPrice: p.supplierPrice || prixFournisseurSaisi.trim() }));
+    },
+  });
   const preparer = trpc.orderEngine.preparerPublicationAssistee.useMutation({ onSuccess: setPrepResult });
   const publier = trpc.orderEngine.publierVehiculeSurCommande.useMutation({ onSuccess: (r) => navigate(`/vehicule/${r.annonceId}`) });
 
+  function ajouterDocuments(fichiers: FileList | null) {
+    if (!fichiers?.length) return;
+    setErreurFichier("");
+    const liste = Array.from(fichiers);
+    if (documents.length + liste.length > MAX_DOCUMENTS) { setErreurFichier(`Maximum ${MAX_DOCUMENTS} fichiers.`); return; }
+    for (const fichier of liste) {
+      if (fichier.size > TAILLE_MAX_DOCUMENT) { setErreurFichier(`${fichier.name} dépasse 4 Mo.`); continue; }
+      const lecteur = new FileReader();
+      lecteur.onload = () => {
+        const resultat = typeof lecteur.result === "string" ? lecteur.result : "";
+        setDocuments((d) => [...d, { nom: fichier.name, type: fichier.type, contenuBase64: resultat.slice(resultat.indexOf(",") + 1) }]);
+      };
+      lecteur.onerror = () => setErreurFichier(`Lecture de ${fichier.name} impossible.`);
+      lecteur.readAsDataURL(fichier);
+    }
+  }
+
+  function retirerDocument(nom: string) {
+    setDocuments((d) => d.filter((doc) => doc.nom !== nom));
+  }
+
   function lancerAssistant() {
-    let rawData: Record<string, unknown>;
-    try { rawData = JSON.parse(rawDataText); } catch { alert("Données brutes invalides (JSON attendu)."); return; }
     if (!supplierProfileId || !supplierVehicleId) { alert("Fournisseur et identifiant véhicule fournisseur requis."); return; }
+    const rawData: Record<string, unknown> = {
+      ...(marque.trim() ? { marque: marque.trim() } : {}),
+      ...(modele.trim() ? { modele: modele.trim() } : {}),
+      ...(annee.trim() ? { annee: annee.trim() } : {}),
+      ...(prixFournisseurSaisi.trim() ? { prixFournisseur: prixFournisseurSaisi.trim() } : {}),
+      ...(description.trim() ? { description: description.trim() } : {}),
+      ...(documents.length ? { documents } : {}),
+    };
     assistant.mutate({ supplierProfileId: Number(supplierProfileId), supplierVehicleId, ingestMethod, rawData });
   }
 
@@ -68,7 +119,7 @@ export default function DepotRapideVehiculeSurCommande() {
         {/* ── Mode assisté par IA : outil d'aide uniquement ── */}
         <div className="rounded-xl bg-white border border-[#E5E7EB] p-4 space-y-3">
           <h2 className="flex items-center gap-2 text-sm font-bold text-[#111]"><Sparkles size={16} className="text-[#D4AF37]" /> Assisté par IA (outil d'aide)</h2>
-          <p className="text-xs text-[#6B7280]">Utilise le Vehicle Engine existant (ingestion, normalisation, détection de doublons, contrôle qualité). Si l'analyse IA n'est pas disponible, la préparation continue normalement.</p>
+          <p className="text-xs text-[#6B7280]">Décrivez le véhicule à l'oral ou à l'écrit, joignez les photos et documents reçus du fournisseur. Utilise le Vehicle Engine existant (ingestion, normalisation, détection de doublons, contrôle qualité). Exige une méthode de connexion déjà enregistrée pour ce fournisseur (Connector Engine) ; si l'analyse IA elle-même n'est pas disponible, la préparation continue normalement.</p>
 
           <input placeholder="Identifiant véhicule fournisseur" value={supplierVehicleId} onChange={(e) => setSupplierVehicleId(e.target.value)} className="w-full rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm" />
           <select value={ingestMethod} onChange={(e) => setIngestMethod(e.target.value)} className="w-full rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm">
@@ -78,7 +129,45 @@ export default function DepotRapideVehiculeSurCommande() {
             <option value="api_rest">API REST</option>
             <option value="import_programme">Import programmé</option>
           </select>
-          <textarea value={rawDataText} onChange={(e) => setRawDataText(e.target.value)} rows={5} className="w-full rounded-lg border border-[#E5E7EB] px-3 py-2 text-xs font-mono" />
+
+          <div className="grid grid-cols-2 gap-2">
+            <input placeholder="Marque" value={marque} onChange={(e) => setMarque(e.target.value)} className="rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm" />
+            <input placeholder="Modèle" value={modele} onChange={(e) => setModele(e.target.value)} className="rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm" />
+            <input placeholder="Année" inputMode="numeric" value={annee} onChange={(e) => setAnnee(e.target.value)} className="rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm" />
+            <input placeholder="Prix fournisseur" inputMode="decimal" value={prixFournisseurSaisi} onChange={(e) => setPrixFournisseurSaisi(e.target.value)} className="rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm" />
+          </div>
+
+          <div className="rounded-lg border border-[#E5E7EB] bg-[#FAFAF8] p-2.5">
+            <div className="flex items-start gap-2">
+              <textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="Décrivez le véhicule, parlez ou collez le texte reçu du fournisseur…"
+                rows={3}
+                className="flex-1 resize-none rounded-lg border border-[#E5E7EB] bg-white px-3 py-2 text-sm"
+              />
+              <MicroVocal titre="Dicter la description du véhicule" onTexte={(texte) => setDescription(texte)} className="mt-1" />
+            </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg border border-dashed border-[#D4AF37]/50 bg-[#D4AF37]/5 py-2.5 text-xs font-bold text-[#111]">
+              <Paperclip size={14} className="text-[#D4AF37]" /> Joindre photos, carte grise ou documents PDF
+              <input type="file" multiple accept="image/*,application/pdf" hidden onChange={(e) => { ajouterDocuments(e.target.files); e.currentTarget.value = ""; }} />
+            </label>
+            {erreurFichier && <p role="alert" className="text-[11px] text-red-700">{erreurFichier}</p>}
+            {documents.length > 0 && (
+              <ul className="space-y-1">
+                {documents.map((doc) => (
+                  <li key={doc.nom} className="flex items-center justify-between gap-2 rounded-lg bg-[#F5F3EF] px-2.5 py-1.5 text-xs">
+                    <span className="flex items-center gap-1.5 truncate text-[#374151]"><FileText size={12} className="shrink-0 text-[#6B7280]" /> {doc.nom}</span>
+                    <button type="button" onClick={() => retirerDocument(doc.nom)} aria-label={`Retirer ${doc.nom}`} className="shrink-0 text-[#9CA3AF] hover:text-red-600"><X size={14} /></button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+
           <button onClick={lancerAssistant} disabled={assistant.isPending} className="w-full rounded-lg bg-[#D4AF37] py-2.5 text-sm font-bold text-[#111] disabled:opacity-50">
             {assistant.isPending ? <Loader2 size={14} className="inline animate-spin mr-1" /> : null} Lancer l'assistant
           </button>
