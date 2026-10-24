@@ -24065,11 +24065,11 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/acheter/depot-annonce"
         ],
-        "cliquables": 23,
+        "cliquables": 25,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 164,
-        "mots": 1053
+        "textes": 173,
+        "mots": 1148
       },
       {
         "fichier": "client/src/pages/MesAnnonces.tsx",
@@ -24088,8 +24088,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "procedures": [],
     "tables": [],
     "acces": [],
-    "textes": 200,
-    "mots": 1179,
+    "textes": 209,
+    "mots": 1274,
     "battement": "sonde",
     "manques": [
       {
