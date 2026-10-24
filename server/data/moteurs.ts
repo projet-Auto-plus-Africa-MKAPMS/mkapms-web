@@ -14891,8 +14891,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "cliquables": 4,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 25,
-        "mots": 189
+        "textes": 30,
+        "mots": 201
       },
       {
         "fichier": "client/src/pages/vehicule-sur-commande/MesCommandes.tsx",
@@ -14999,8 +14999,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "role:annulee",
       "role:prix_marge_valides"
     ],
-    "textes": 97,
-    "mots": 442,
+    "textes": 102,
+    "mots": 454,
     "battement": "sonde",
     "manques": [
       {

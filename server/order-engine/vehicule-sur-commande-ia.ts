@@ -62,7 +62,11 @@ export async function preparerPublicationAssistee(input: {
   pickupCountryCode?: string;
   actorId: number;
 }) {
-  await vehicleEngine.calculerPrix({
+  // Le Vehicle Pricing Engine calcule déjà prix d'achat, commission et prix
+  // public — jamais recalculé ici ni dans le client : seulement renvoyé, pour
+  // que le dépôt assisté par IA affiche la même estimation avant publication
+  // que le dépôt manuel (demande PDG), à partir de la même donnée réelle.
+  const prix = await vehicleEngine.calculerPrix({
     vehicleItemId: input.vehicleItemId,
     supplierPrice: input.supplierPrice,
     supplierCurrency: input.supplierCurrency,
@@ -77,7 +81,8 @@ export async function preparerPublicationAssistee(input: {
     actorId: input.actorId,
   });
   await vehicleEngine.assurerDisponibilite(input.vehicleItemId);
-  return vehicleEngine.preparerPourPublication(input.vehicleItemId, input.actorId);
+  const preparation = await vehicleEngine.preparerPourPublication(input.vehicleItemId, input.actorId);
+  return { ...preparation, prix };
 }
 
 /**
