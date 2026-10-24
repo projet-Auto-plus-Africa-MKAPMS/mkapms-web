@@ -22,7 +22,7 @@ import { resolvePermission } from "../permission-engine/intelligence.js";
 import { termGroups } from "../search-os/index.js";
 import { IDENTITE_OFFICIELLE, estDirection } from "../identity-os/identite-officielle.js";
 import type { UserRole } from "@shared/roles.js";
-import { enregistrerAnnonceSurCommande, obtenirLabelPublicParAnnonce } from "../order-engine/service.js";
+import { enregistrerAnnonceSurCommande, obtenirDetailsPublicSurCommande, obtenirLabelPublicParAnnonce } from "../order-engine/service.js";
 
 /**
  * Les politiques contextuelles du Permission Engine (refus par pays, par
@@ -402,6 +402,10 @@ export const annoncesRouter = router({
       // jamais calculé pour les annonces normales, pour ne pas alourdir
       // chaque lecture d'annonce.
       const vehiculeSurCommandeLabel = a.ownership === "partenaire" ? await obtenirLabelPublicParAnnonce(a.id) : null;
+      // Détails non confidentiels (localisation, livraison/préparation, paiement
+      // en plusieurs fois autorisé ou non) — section « Voir les détails »
+      // (demande PDG) ; jamais de donnée fournisseur ni de prix ici.
+      const vehiculeSurCommandeDetails = a.ownership === "partenaire" ? await obtenirDetailsPublicSurCommande(a.id) : null;
 
       // Corriger les champs JSONB qui auraient été double-encodés (stockés
       // comme chaîne JSON au lieu d'un tableau). Garantit que le frontend
@@ -415,6 +419,9 @@ export const annoncesRouter = router({
       return {
         ...a,
         vehiculeSurCommandeLabel,
+        vehiculeSurCommandeLocation: vehiculeSurCommandeDetails?.vehicleLocation ?? null,
+        vehiculeSurCommandePrepDetails: vehiculeSurCommandeDetails?.deliveryPrepDetails ?? null,
+        vehiculeSurCommandeInstallmentAllowed: vehiculeSurCommandeDetails?.installmentPaymentAllowed ?? false,
         pointsForts: safeArray(a.pointsForts),
         equipements: safeArray(a.equipements),
         imperfections: safeArray(a.imperfections),
@@ -842,7 +849,21 @@ export const annoncesRouter = router({
         // « partenaire » (fournisseur, pas encore possédée par MKA.P-MS) et
         // la lie à son fournisseur dans l'Order Engine, dans le même appel.
         vehiculeSurCommande: z
-          .object({ supplierProfileId: z.number().int().positive(), vehicleItemId: z.number().int().positive().optional() })
+          .object({
+            supplierProfileId: z.number().int().positive(),
+            vehicleItemId: z.number().int().positive().optional(),
+            // Champs ajoutés (demande PDG) : détails affichés sur la fiche
+            // produit partagée (jamais confidentiels) et estimation de prix
+            // indicative au dépôt (strictement confidentielle, jamais lue par
+            // une procédure client).
+            vehicleLocation: z.string().trim().max(200).optional(),
+            deliveryPrepDetails: z.string().trim().max(4000).optional(),
+            returnToStockIfUnsold: z.boolean().optional(),
+            installmentPaymentAllowed: z.boolean().optional(),
+            supplierPurchasePriceEstimated: z.number().nonnegative().optional(),
+            transportCostEstimated: z.number().nonnegative().optional(),
+            targetMarginPercent: z.number().min(0).max(100).optional(),
+          })
           .optional(),
       }),
     )
@@ -986,6 +1007,13 @@ export const annoncesRouter = router({
           vehicleItemId: vehiculeSurCommande.vehicleItemId,
           creationMode: "manuelle",
           employeeId: ctx.user.uid,
+          vehicleLocation: vehiculeSurCommande.vehicleLocation,
+          deliveryPrepDetails: vehiculeSurCommande.deliveryPrepDetails,
+          returnToStockIfUnsold: vehiculeSurCommande.returnToStockIfUnsold,
+          installmentPaymentAllowed: vehiculeSurCommande.installmentPaymentAllowed,
+          supplierPurchasePriceEstimated: vehiculeSurCommande.supplierPurchasePriceEstimated,
+          transportCostEstimated: vehiculeSurCommande.transportCostEstimated,
+          targetMarginPercent: vehiculeSurCommande.targetMarginPercent,
         });
       }
 

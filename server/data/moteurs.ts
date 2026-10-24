@@ -622,7 +622,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "genre": "formulaire",
         "ecran": "/vehicule/:id",
         "fichier": "client/src/pages/Vehicule.tsx",
-        "ligne": 3188
+        "ligne": 3210
       }
     ],
     "routes": [
@@ -720,8 +720,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "cliquables": 150,
         "parMoteur": 1,
         "sansAction": 0,
-        "textes": 621,
-        "mots": 2530
+        "textes": 624,
+        "mots": 2539
       },
       {
         "fichier": "client/src/pages/VenteCamions.tsx",
@@ -1348,8 +1348,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "connecte",
       "public"
     ],
-    "textes": 1581,
-    "mots": 5621,
+    "textes": 1584,
+    "mots": 5630,
     "battement": "sonde",
     "manques": [
       {
@@ -1455,7 +1455,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "genre": "formulaire",
         "ecran": "/acheter/mkapms-officiel/vehicule/:id",
         "fichier": "client/src/pages/Vehicule.tsx",
-        "ligne": 3188
+        "ligne": 3210
       }
     ],
     "routes": [
@@ -1471,8 +1471,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "cliquables": 150,
         "parMoteur": 1,
         "sansAction": 0,
-        "textes": 621,
-        "mots": 2530
+        "textes": 624,
+        "mots": 2539
       },
       {
         "fichier": "client/src/pages/VenteMKAPMS.tsx",
@@ -1490,8 +1490,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "procedures": [],
     "tables": [],
     "acces": [],
-    "textes": 673,
-    "mots": 2653,
+    "textes": 676,
+    "mots": 2662,
     "battement": "sonde",
     "manques": [
       {
@@ -1593,7 +1593,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "genre": "formulaire",
         "ecran": "/acheter/particulier/vehicule/:id",
         "fichier": "client/src/pages/Vehicule.tsx",
-        "ligne": 3188
+        "ligne": 3210
       }
     ],
     "routes": [
@@ -1609,8 +1609,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "cliquables": 150,
         "parMoteur": 1,
         "sansAction": 0,
-        "textes": 621,
-        "mots": 2530
+        "textes": 624,
+        "mots": 2539
       },
       {
         "fichier": "client/src/pages/VenteParticulier.tsx",
@@ -1628,8 +1628,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "procedures": [],
     "tables": [],
     "acces": [],
-    "textes": 681,
-    "mots": 2656,
+    "textes": 684,
+    "mots": 2665,
     "battement": "sonde",
     "manques": [
       {
@@ -1731,7 +1731,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "genre": "formulaire",
         "ecran": "/acheter/professionnel/vehicule/:id",
         "fichier": "client/src/pages/Vehicule.tsx",
-        "ligne": 3188
+        "ligne": 3210
       }
     ],
     "routes": [
@@ -1747,8 +1747,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "cliquables": 150,
         "parMoteur": 1,
         "sansAction": 0,
-        "textes": 621,
-        "mots": 2530
+        "textes": 624,
+        "mots": 2539
       },
       {
         "fichier": "client/src/pages/VentePro.tsx",
@@ -1766,8 +1766,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "procedures": [],
     "tables": [],
     "acces": [],
-    "textes": 675,
-    "mots": 2641,
+    "textes": 678,
+    "mots": 2650,
     "battement": "sonde",
     "manques": [
       {
@@ -24065,11 +24065,11 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/acheter/depot-annonce"
         ],
-        "cliquables": 22,
+        "cliquables": 23,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 119,
-        "mots": 810
+        "textes": 142,
+        "mots": 952
       },
       {
         "fichier": "client/src/pages/MesAnnonces.tsx",
@@ -24088,8 +24088,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "procedures": [],
     "tables": [],
     "acces": [],
-    "textes": 155,
-    "mots": 936,
+    "textes": 178,
+    "mots": 1078,
     "battement": "sonde",
     "manques": [
       {

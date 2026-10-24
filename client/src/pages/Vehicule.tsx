@@ -324,6 +324,11 @@ export default function Vehicule({ univers }: { univers?: string }) {
   const isOfficiel = tier === "officiel" || tier === "premium" || tier === "elite";
   const isMkapmsStock = (v.id >= 8000 && v.id <= 8005) || v.categorieAnnonce === "officielle" || v.ownership === "plateforme";
   const isOwnerOrAdmin = user && (v.ownerId === user.id || v.vendeur?.id === user.id || user.role === "admin" || user.role === "super_admin" || user.role === "directeur");
+  // Demande PDG : tant qu'un véhicule sur commande reste en dropshipping pur
+  // (fournisseur partenaire, pas encore entré dans le stock MKA.P-MS),
+  // « Paiement en plusieurs fois » ne doit jamais être proposé — faux par
+  // défaut côté order_listings, activé au cas par cas par un employé.
+  const paiementPlusieursFoisVisible = v.ownership !== "partenaire" || !!v.vehiculeSurCommandeInstallmentAllowed;
 
   /* Photos catégorisées — fonctionne pour MKA.P-MS stock ET annonces particulier/pro */
   const hasPhotoCategories = isMkapmsStock && v.photoCategories && Object.keys(v.photoCategories).length > 0;
@@ -810,11 +815,13 @@ export default function Vehicule({ univers }: { univers?: string }) {
           <div className="border-t-2 border-b-2 border-[#111]/40 py-5" style={{boxShadow: '0 -2px 8px rgba(212,175,55,0.15), 0 2px 8px rgba(212,175,55,0.15)'}}>
             <h2 className="flex items-center gap-2 text-lg font-extrabold text-[#111]"><CreditCard size={18} className="text-red-500" /> Financement</h2>
             <div className="mt-3 rounded-xl border border-slate-200 p-5">
-              <div className="flex gap-2 mb-3">
-                <span onClick={() => setProFinanceTab('paiement')} className={`rounded-full px-4 py-1.5 text-xs font-bold cursor-pointer transition ${proFinanceTab === 'paiement' ? 'border-b-2 border-[#D4AF37] text-[#D4AF37]' : 'text-slate-400 hover:text-[#111]'}`}>Paiement en plusieurs fois</span>
-                <span onClick={() => setProFinanceTab('loa')} className={`rounded-full px-4 py-1.5 text-xs font-bold cursor-pointer transition ${proFinanceTab === 'loa' ? 'border-b-2 border-[#D4AF37] text-[#D4AF37]' : 'text-slate-400 hover:text-[#111]'}`}>LOA</span>
-              </div>
-              {proFinanceTab === 'paiement' ? (
+              {paiementPlusieursFoisVisible && (
+                <div className="flex gap-2 mb-3">
+                  <span onClick={() => setProFinanceTab('paiement')} className={`rounded-full px-4 py-1.5 text-xs font-bold cursor-pointer transition ${proFinanceTab === 'paiement' ? 'border-b-2 border-[#D4AF37] text-[#D4AF37]' : 'text-slate-400 hover:text-[#111]'}`}>Paiement en plusieurs fois</span>
+                  <span onClick={() => setProFinanceTab('loa')} className={`rounded-full px-4 py-1.5 text-xs font-bold cursor-pointer transition ${proFinanceTab === 'loa' ? 'border-b-2 border-[#D4AF37] text-[#D4AF37]' : 'text-slate-400 hover:text-[#111]'}`}>LOA</span>
+                </div>
+              )}
+              {paiementPlusieursFoisVisible && proFinanceTab === 'paiement' ? (
                 <>
                   <p className="text-center text-xl font-extrabold text-[#111]">Dès {Math.round(Number(v.prix) / 60)} €<span className="text-sm font-normal text-slate-500">/mois</span></p>
                   <p className="text-center text-[10px] text-slate-400 mt-1">Sur 60 mois • Sans apport</p>
@@ -1562,11 +1569,13 @@ export default function Vehicule({ univers }: { univers?: string }) {
           <div className="mt-6 border-t-2 border-[#111]/40 pt-4" style={{boxShadow: '0 -2px 8px rgba(212,175,55,0.15)'}}>
             <h2 className="flex items-center gap-2 text-lg font-extrabold text-[#111]"><CreditCard size={18} className="text-red-500" /> Financement</h2>
             <div className="mt-3 rounded-xl border border-slate-200 p-5">
-              <div className="flex gap-2 mb-3">
-                <span onClick={() => setProFinanceTab('paiement')} className={`rounded-full px-4 py-1.5 text-xs font-bold cursor-pointer transition ${proFinanceTab === 'paiement' ? 'border-b-2 border-[#D4AF37] text-[#D4AF37]' : 'text-slate-400 hover:text-[#111]'}`}>Paiement en plusieurs fois</span>
-                <span onClick={() => setProFinanceTab('loa')} className={`rounded-full px-4 py-1.5 text-xs font-bold cursor-pointer transition ${proFinanceTab === 'loa' ? 'border-b-2 border-[#D4AF37] text-[#D4AF37]' : 'text-slate-400 hover:text-[#111]'}`}>LOA</span>
-              </div>
-              {proFinanceTab === 'paiement' ? (
+              {paiementPlusieursFoisVisible && (
+                <div className="flex gap-2 mb-3">
+                  <span onClick={() => setProFinanceTab('paiement')} className={`rounded-full px-4 py-1.5 text-xs font-bold cursor-pointer transition ${proFinanceTab === 'paiement' ? 'border-b-2 border-[#D4AF37] text-[#D4AF37]' : 'text-slate-400 hover:text-[#111]'}`}>Paiement en plusieurs fois</span>
+                  <span onClick={() => setProFinanceTab('loa')} className={`rounded-full px-4 py-1.5 text-xs font-bold cursor-pointer transition ${proFinanceTab === 'loa' ? 'border-b-2 border-[#D4AF37] text-[#D4AF37]' : 'text-slate-400 hover:text-[#111]'}`}>LOA</span>
+                </div>
+              )}
+              {paiementPlusieursFoisVisible && proFinanceTab === 'paiement' ? (
                 <>
                   <p className="text-center text-xl font-extrabold text-[#111]">Dès {Math.round(Number(v.prix) / 60)} €<span className="text-sm font-normal text-slate-500">/mois</span></p>
                   <p className="text-center text-[10px] text-slate-400 mt-1">Sur 60 mois • Sans apport</p>
@@ -2260,6 +2269,19 @@ export default function Vehicule({ univers }: { univers?: string }) {
               >
                 {commanderVehiculeSurCommande.isPending ? "Envoi…" : "Commander ce véhicule"}
               </button>
+              {(v.vehiculeSurCommandeLocation || v.vehiculeSurCommandePrepDetails) && (
+                <details className="group mt-3 rounded-lg border border-slate-100 bg-slate-50">
+                  <summary className="cursor-pointer px-4 py-3 text-sm font-semibold text-[#111] hover:text-[#D4AF37]">Voir les détails</summary>
+                  <div className="space-y-2 px-4 pb-3 text-xs text-slate-600 leading-relaxed">
+                    {v.vehiculeSurCommandeLocation && (
+                      <p><span className="font-semibold text-slate-700">Localisation : </span>{v.vehiculeSurCommandeLocation}</p>
+                    )}
+                    {v.vehiculeSurCommandePrepDetails && (
+                      <p><span className="font-semibold text-slate-700">Livraison / préparation : </span>{v.vehiculeSurCommandePrepDetails}</p>
+                    )}
+                  </div>
+                </details>
+              )}
             </div>
           )}
 
