@@ -23108,11 +23108,11 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/vendre"
         ],
-        "cliquables": 40,
+        "cliquables": 42,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 221,
-        "mots": 987
+        "textes": 273,
+        "mots": 1245
       },
       {
         "fichier": "client/src/pages/depot-annonce/AnalyseIA.tsx",
@@ -23813,8 +23813,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "procedures": [],
     "tables": [],
     "acces": [],
-    "textes": 981,
-    "mots": 3549,
+    "textes": 1033,
+    "mots": 3807,
     "battement": "sonde",
     "manques": [
       {
@@ -24068,8 +24068,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "cliquables": 25,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 173,
-        "mots": 1148
+        "textes": 127,
+        "mots": 910
       },
       {
         "fichier": "client/src/pages/MesAnnonces.tsx",
@@ -24088,8 +24088,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "procedures": [],
     "tables": [],
     "acces": [],
-    "textes": 209,
-    "mots": 1274,
+    "textes": 163,
+    "mots": 1036,
     "battement": "sonde",
     "manques": [
       {
