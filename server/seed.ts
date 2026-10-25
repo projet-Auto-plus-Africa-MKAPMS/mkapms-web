@@ -1,5 +1,5 @@
 // Données de démonstration minimales (idempotent).
-import { eq, sql } from "drizzle-orm";
+import { and, eq, inArray, like, sql } from "drizzle-orm";
 import { db, pool } from "./db.js";
 import {
   users,
@@ -504,6 +504,33 @@ async function main() {
     console.log("[seed] compte directeur créé:", directeurEmail);
   }
 
+  // Les anciennes annonces de démonstration (titres fixes + photo picsum)
+  // ne sont pas des annonces métier. On les archive pour qu’elles ne remontent
+  // plus dans les catalogues, les recherches, le SEO ni les alertes.
+  const demoTitres = [
+    "Peugeot 208 1.2 PureTech",
+    "Renault Clio V dCi",
+    "Citroën DS3 THP",
+    "Yamaha XMAX 300",
+  ];
+  const demos = await db
+    .select({ id: annonces.id })
+    .from(annonces)
+    .innerJoin(annoncePhotos, eq(annoncePhotos.annonceId, annonces.id))
+    .where(and(
+      eq(annonces.ownerId, adminId),
+      eq(annonces.ville, "Paris"),
+      eq(annonces.codePostal, "75001"),
+      inArray(annonces.titre, demoTitres),
+      like(annoncePhotos.url, "https://picsum.photos/seed/mka%"),
+    ));
+  if (demos.length) {
+    await db.update(annonces)
+      .set({ status: "archivee", updatedAt: new Date() })
+      .where(inArray(annonces.id, demos.map((d) => d.id)));
+    console.log("[seed] annonces de démonstration archivées:", demos.length);
+  }
+
   const count = await db.select().from(annonces).limit(1);
   if (count.length === 0) {
     const demo = [
@@ -541,7 +568,6 @@ async function main() {
         ordre: 0,
       });
     }
-    console.log("[seed] annonces de démonstration créées");
   }
 
   const g = await db.select().from(garagesPublics).limit(1);
