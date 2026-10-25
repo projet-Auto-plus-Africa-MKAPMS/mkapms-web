@@ -130,6 +130,7 @@ export const DEFAULT_REDIRECT_RULES: DefaultRule[] = [
   // ── Navigation d'en-tête (menu principal) ─────────────────────────────
   { key: "nav_acheter", label: "Menu — Acheter", kind: "route", target: "/acheter", priority: 100 },
   { key: "nav_louer", label: "Menu — Louer", kind: "route", target: "/louer", priority: 100 },
+  { key: "nav_sur_commande", label: "Menu — Véhicule sur commande", kind: "route", target: "/vehicule-sur-commande", priority: 100 },
   { key: "nav_pieces", label: "Menu — Pièces", kind: "route", target: "/pieces", priority: 100 },
   { key: "nav_devis", label: "Menu — Devis Garage", kind: "route", target: "/devis", priority: 100 },
   { key: "nav_garages", label: "Menu — Garages", kind: "route", target: "/garages", priority: 100 },
