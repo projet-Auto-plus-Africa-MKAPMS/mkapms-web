@@ -182,7 +182,7 @@ export default function MKAPMSIntelligence() {
     <button type="button" className="selected" onClick={()=>choose("accueil")}><Database/><span>Plateforme principale</span><ChevronRight/></button>
     {boutique.url
       ? <a href={boutique.url} target="_blank" rel="noopener noreferrer" onClick={()=>setMenuOpen(false)} aria-label="Ouvrir la Boutique (nouvel onglet)"><ShoppingCart/><span>Boutique</span><ChevronRight/></a>
-      : <button type="button" disabled aria-disabled="true" title="Adresse SHOP_PUBLIC_URL non configurée côté serveur"><ShoppingCart/><span>Boutique</span><small>{boutique.chargement ? "…" : "non reliée"}</small></button>}
+      : <div role="status" className="alhud-menu-item-disabled" aria-label="Boutique non reliée"><ShoppingCart/><span>Boutique</span><small>{boutique.chargement ? "…" : "non reliée"}</small></div>}
     <h3>Notre travail</h3>
     <nav>{workItems.map(([label,Icon,key])=><button key={label} type="button" onClick={()=>choose(key)}><Icon/><span>{label}</span><ChevronRight/></button>)}</nav>
     <button type="button" className="alhud-chat-cta" onClick={()=>choose("conversation")}><MessageCircle/> Chat</button>

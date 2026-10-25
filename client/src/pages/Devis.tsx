@@ -244,6 +244,7 @@ export default function Devis() {
   const [tireAspect, setTireAspect] = useState("45");
   const [tireRim, setTireRim] = useState("17");
   const [showMoreTireWidths, setShowMoreTireWidths] = useState(false);
+  const [showTireReadingGuide, setShowTireReadingGuide] = useState(false);
   const [estimationServiceSearch, setEstimationServiceSearch] = useState("");
   const [tireDimensions, setTireDimensions] = useState({ largeur: "", hauteur: "", jante: "" });
 
@@ -545,7 +546,7 @@ export default function Devis() {
                     </div>
                     <p className="mt-3 text-center text-xs text-[#64748B]">Aucune donnée enregistrée sans votre validation.</p>
                   </div>
-                  <button type="button" disabled={!tirePlate.trim()} className="mt-5 w-full rounded-2xl bg-[#FF8A1F] py-4 text-base font-black text-white shadow-lg disabled:opacity-40">VALIDER</button>
+                  <button type="button" onClick={() => setTireSection("dimensions")} disabled={!tirePlate.trim()} className="mt-5 w-full rounded-2xl bg-[#FF8A1F] py-4 text-base font-black text-white shadow-lg disabled:opacity-40">VALIDER</button>
                 </div>
               ) : (
                 <div>
@@ -565,7 +566,8 @@ export default function Devis() {
                     </div>
                     <p className="mt-3 text-center text-xs leading-5 text-[#475569]">L’aiguille suit votre choix et vous montre immédiatement la largeur de gomme. La hauteur et la jante sont choisies juste après.</p>
                   </div>
-                  <button type="button" className="mb-5 w-full text-center text-sm font-semibold text-[#08A9C4] underline">Lire mes dimensions de pneus</button>
+                  <button type="button" onClick={() => setShowTireReadingGuide((visible) => !visible)} aria-expanded={showTireReadingGuide} className="mb-5 w-full text-center text-sm font-semibold text-[#08A9C4] underline">Lire mes dimensions de pneus</button>
+                  {showTireReadingGuide ? <p className="mb-5 rounded-xl bg-[#F8FDFF] px-4 py-3 text-center text-xs leading-5 text-[#475569]">Les dimensions sont inscrites sur le flanc du pneu, par exemple 225 / 45 R17 : largeur, hauteur et diamètre de jante.</p> : null}
                   <p className="mb-2 text-xs font-black uppercase tracking-wider text-[#64748B]">1 · Largeur de gomme</p>
                   <div className="grid grid-cols-4 gap-2">
                     {[145, 155, 165, 175, 185, 195, 205, 215, 225, 235, 245, 255].slice(0, showMoreTireWidths ? 12 : 8).map((width) => <button key={width} type="button" onClick={() => setTireWidth(String(width))} className={`rounded-xl border px-2 py-3 text-sm font-black transition ${tireWidth === String(width) ? "border-[#08A9C4] bg-[#08A9C4] text-white shadow-md" : "border-[#D9E3E8] bg-white text-[#102A43]"}`}>{width}</button>)}
