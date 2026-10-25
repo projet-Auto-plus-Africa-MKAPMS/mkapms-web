@@ -356,7 +356,10 @@ export default function Vendre() {
   // explicitement « aucun second formulaire » : il doit ouvrir directement
   // la saisie manuelle (étape 2, comme le lien « Saisir manuellement les
   // informations » de l'étape 1), jamais l'écran plaque/VIN de l'étape 1.
-  const [step, setStep] = useState(vehiculeSurCommande ? 2 : 1);
+  // Même règle pour « Modifier » (?edit=) : le véhicule est déjà identifié
+  // (l'annonce existe), remontrer l'écran plaque/VIN de l'étape 1 forçait à
+  // tout recommencer au lieu d'atterrir directement sur la fiche pré-remplie.
+  const [step, setStep] = useState(vehiculeSurCommande || editId ? 2 : 1);
   const [identTab, setIdentTab] = useState<"plaque" | "vin">("plaque");
   const [plaque, setPlaque] = useState("");
   const [vin, setVin] = useState("");
