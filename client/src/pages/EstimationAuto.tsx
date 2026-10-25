@@ -282,7 +282,7 @@ export default function EstimationAuto() {
           <div className="grid grid-cols-2 gap-2">
             <button
               type="button"
-              onClick={() => navigate("/acheter/depot-annonce")}
+              onClick={() => navigate("/vendre")}
               className="rounded-xl bg-[#D4AF37] p-3 text-left active:scale-[0.98]"
             >
               <Store size={16} className="text-white" />

@@ -128,7 +128,6 @@ const Encheres = lazy(() => import("./pages/Encheres"));
 const EstimationAuto = lazy(() => import("./pages/EstimationAuto"));
 const HistoriqueVehiculeVente = lazy(() => import("./pages/HistoriqueVehiculeVente"));
 const RepriseVehicule = lazy(() => import("./pages/RepriseVehicule"));
-const DepotAnnonce = lazy(() => import("./pages/DepotAnnonce"));
 const MesAnnonces = lazy(() => import("./pages/MesAnnonces"));
 const EspaceProVente = lazy(() => import("./pages/EspaceProVente"));
 // Inscriptions
@@ -940,7 +939,10 @@ export default function App() {
             <Route path="/acheter/estimation" element={<U name="Estimation"><EstimationAuto /></U>} />
             <Route path="/acheter/historique-vehicule" element={<U name="Historique v\u00e9hicule"><HistoriqueVehiculeVente /></U>} />
             <Route path="/acheter/reprise" element={<U name="Reprise"><RepriseVehicule /></U>} />
-            <Route path="/acheter/depot-annonce" element={<U name="D\u00e9p\u00f4t annonce"><DepotAnnonce /></U>} />
+            {/* Ancien d\u00e9p\u00f4t distinct, retir\u00e9 (demande PDG) : un seul parcours manuel sur
+                toute la plateforme, /vendre \u2014 plus de second formulaire. Redirection
+                conserv\u00e9e pour les liens et favoris existants. */}
+            <Route path="/acheter/depot-annonce" element={<Navigate to="/vendre" replace />} />
             <Route path="/acheter/mes-annonces" element={<U name="Mes annonces"><MesAnnonces /></U>} />
             <Route path="/acheter/espace-pro" element={<U name="Espace Pro Vente"><EspaceProVente /></U>} />
             {/* Inscriptions */}

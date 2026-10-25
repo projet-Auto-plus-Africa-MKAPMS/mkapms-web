@@ -130,7 +130,7 @@ export default function TableauBordProVente() {
 
       <div className="px-4 mt-3 grid grid-cols-2 gap-2">
         <Link
-          to="/acheter/depot-annonce"
+          to="/vendre"
           className="rounded-xl bg-blue-800 p-3 text-center active:scale-[0.98] transition"
         >
           <Tag size={18} className="mx-auto text-white" />

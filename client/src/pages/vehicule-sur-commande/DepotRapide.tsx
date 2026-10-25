@@ -30,7 +30,7 @@ export default function DepotRapideVehiculeSurCommande() {
   const [annee, setAnnee] = useState("");
   const [prixFournisseurSaisi, setPrixFournisseurSaisi] = useState("");
   const [description, setDescription] = useState("");
-  // Même emplacement, même système que le reste de la plateforme (DepotAnnonce.tsx) :
+  // Même emplacement, même système que le reste de la plateforme (Vendre.tsx) :
   // FileUpload envoie réellement les fichiers au serveur et renvoie leur URL — jamais
   // un encodage base64 local distinct.
   const [documentsUrls, setDocumentsUrls] = useState<{ url: string; originalName: string }[]>([]);

@@ -30,7 +30,7 @@ const SERVICES = [
   { label: "Estimation automobile", desc: "Estimez la valeur de votre véhicule en 30 secondes.", icon: Calculator, to: "/acheter/estimation" },
   { label: "Historique véhicule", desc: "VIN ou immatriculation : km, CT, sinistres, gage.", icon: History, to: "/acheter/historique-vehicule" },
   { label: "Reprise véhicule", desc: "Déposez votre véhicule, recevez une proposition.", icon: ArrowRightLeft, to: "/acheter/reprise" },
-  { label: "Déposer une annonce", desc: "Vendez votre véhicule sur MKA.P-MS.", icon: PlusCircle, to: "/acheter/depot-annonce" },
+  { label: "Déposer une annonce", desc: "Vendez votre véhicule sur MKA.P-MS.", icon: PlusCircle, to: "/vendre" },
   { label: "Espace professionnels", desc: "Garages, marchands : abonnements et gestion.", icon: Building2, to: "/acheter/espace-pro" },
 ];
 
