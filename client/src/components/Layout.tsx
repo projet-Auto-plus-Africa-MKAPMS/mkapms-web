@@ -21,6 +21,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../lib/auth";
 import { isAdmin } from "@shared/roles";
+import { canAccessModule } from "@shared/permissions";
 import { useCurrency } from "../lib/currency";
 import { CURRENCIES } from "@shared/currency";
 import { trpc } from "../lib/trpc";
@@ -72,6 +73,8 @@ function NavItem({ to, label, redirKey }: { to: string; label: string; redirKey:
 
 function Header() {
   const { user, logout } = useAuth();
+  const canSeeSurCommande = canAccessModule(user?.role, "back_office");
+  const navVisible = NAV.filter((item) => item.redirKey !== "nav_sur_commande" || canSeeSurCommande);
   const [open, setOpen] = useState(false);
   const { pathname } = useLocation();
   // Page d'accueil desktop : le header partagé cède la place au header premium
@@ -104,7 +107,7 @@ function Header() {
         </Link>
 
         <nav className="hidden min-w-0 items-center gap-1 lg:flex">
-          {NAV.map((n) => (
+          {navVisible.map((n) => (
             <NavItem key={n.to} to={n.to} label={n.label} redirKey={n.redirKey} />
           ))}
         </nav>
@@ -168,7 +171,7 @@ function Header() {
       {open && (
         <div className="border-t border-slate-200 bg-white lg:hidden">
           <div className="container-page flex flex-col py-2">
-            {NAV.map((n) => (
+            {navVisible.map((n) => (
               <SmartLink
                 key={n.to}
                 redirKey={n.redirKey}
