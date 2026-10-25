@@ -630,6 +630,7 @@ export const CLIENT_ROUTES: readonly string[] = [
   "/superadmin/core-engine-beta",
   "/superadmin/country-os",
   "/superadmin/document-os",
+  "/superadmin/fournisseurs",
   "/superadmin/gestion-employes-m-k-a-p-m-s",
   "/superadmin/identity-os",
   "/superadmin/language-os",

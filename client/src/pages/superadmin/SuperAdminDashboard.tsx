@@ -24,6 +24,7 @@ const SECTIONS = [
     { label: "Core Engine (Bêta)", icon: Cpu, to: "/superadmin/core-engine-beta", desc: "15 centres, santé, logs, orchestration" },
   ]},
   { title: "Gestion", items: [
+    { label: "Fournisseurs", icon: Truck, to: "/superadmin/fournisseurs", desc: "Créer, vérifier et activer un fournisseur (véhicule sur commande, dépôt manuel)" },
     { label: "Plan Maître Fournisseurs", icon: Truck, to: "/superadmin/plan-maitre-fournisseurs", desc: "Fournisseurs, véhicules, pièces, logistique, versements, documents" },
     { label: "Finance", icon: Euro, to: "/superadmin/admin-paiements", desc: "Paiements, commissions, CA" },
     { label: "Publicité", icon: Megaphone, to: "/superadmin/admin-moderation-annonces", desc: "Espaces, campagnes, tarifs" },
