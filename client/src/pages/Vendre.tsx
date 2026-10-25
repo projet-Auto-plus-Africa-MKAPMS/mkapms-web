@@ -313,7 +313,11 @@ export default function Vendre() {
 
   /* ── Mode : landing (page vitrine) vs deposit (flux 4 étapes) ── */
   const [mode, setMode] = useState<"landing" | "deposit">(editId || vehiculeSurCommande ? "deposit" : "landing");
-  const [step, setStep] = useState(1);
+  // Le bouton « Manuel » du portail véhicule sur commande annonce
+  // explicitement « aucun second formulaire » : il doit ouvrir directement
+  // la saisie manuelle (étape 2, comme le lien « Saisir manuellement les
+  // informations » de l'étape 1), jamais l'écran plaque/VIN de l'étape 1.
+  const [step, setStep] = useState(vehiculeSurCommande ? 2 : 1);
   const [identTab, setIdentTab] = useState<"plaque" | "vin">("plaque");
   const [plaque, setPlaque] = useState("");
   const [vin, setVin] = useState("");
@@ -494,7 +498,11 @@ export default function Vendre() {
     // Location réservée aux pros/admin ; un particulier ne peut pas déposer en location.
     if (typ === "location" && (isPro || isAdmin)) setTypeAnnonce("location");
     else setTypeAnnonce("vente");
-    if (user) { setMode("deposit"); setStep(1); }
+    // Véhicule sur commande : aller droit à la saisie manuelle (étape 2),
+    // jamais à l'écran plaque/VIN de l'étape 1 — même règle que
+    // l'initialiseur de `step` ci-dessus, pour le cas où Vendre est déjà
+    // monté quand le bouton Manuel modifie juste la query-string.
+    if (user) { setMode("deposit"); setStep(modeCommande ? 2 : 1); }
   }, [searchParams, editId, isPro, isAdmin, user]);
 
   /* ── Mode édition : pré-remplir le formulaire avec les données existantes ── */

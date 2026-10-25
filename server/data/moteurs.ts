@@ -23070,7 +23070,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "parMoteur": 0,
         "sansAction": 0,
         "textes": 275,
-        "mots": 1267
+        "mots": 1320
       },
       {
         "fichier": "client/src/pages/depot-annonce/AnalyseIA.tsx",
@@ -23772,7 +23772,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "tables": [],
     "acces": [],
     "textes": 1035,
-    "mots": 3829,
+    "mots": 3882,
     "battement": "sonde",
     "manques": [
       {
