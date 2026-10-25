@@ -1,10 +1,10 @@
 import { useState, useRef, useMemo } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   ChevronLeft, ChevronRight, ChevronDown, PlusCircle, Car, Bike, Truck,
   Camera, Check, Upload, FileText, Search, Sparkles, Bot, Star, Video, X,
   Loader2, Shield, Zap, Eye, AlertTriangle, Info, Clock, Award, MapPin,
-  Phone, Mail, User, Calendar, Gauge, Fuel, Key, Globe, Leaf, Hash, CircleDot,
+  Phone, Mail, User, Calendar, Gauge, Fuel, Globe, Leaf, Hash, CircleDot,
   HardHat, CheckCircle,
 } from "lucide-react";
 import { trpc } from "../lib/trpc";
@@ -407,58 +407,6 @@ function InputField({ label, value, onChange, placeholder, suffix, type, require
 
 export default function DepotAnnonce() {
   const navigate = useNavigate();
-  // Bouton « Manuel » du portail « Véhicule sur commande » (demande PDG) :
-  // ce dépôt existant s'ouvre ici tel quel, sans second formulaire — seul le
-  // contexte fournisseur est transmis en query string, pour lier l'annonce
-  // qui en sortira dans l'Order Engine (server/routers/annonces.ts, champ
-  // `vehiculeSurCommande`). Absent → comportement strictement inchangé.
-  const [searchParams] = useSearchParams();
-  const supplierProfileIdParam = searchParams.get("supplierProfileId");
-  const vehiculeSurCommande = searchParams.get("vehiculeSurCommande") === "1" && supplierProfileIdParam ? { supplierProfileId: Number(supplierProfileIdParam) } : undefined;
-  // Champs propres au véhicule sur commande (demande PDG) : délibérément
-  // séparés de `form` (ci-dessous), qui reste strictement identique au
-  // parcours manuel normal — ce dépôt existant n'est pas dupliqué, seuls ces
-  // quelques champs supplémentaires s'ajoutent à l'étape Publication quand
-  // `vehiculeSurCommande` est présent.
-  const [surCommandeLocalisation, setSurCommandeLocalisation] = useState("");
-  const [surCommandePrep, setSurCommandePrep] = useState("");
-  const [surCommandeRetourStock, setSurCommandeRetourStock] = useState(false);
-  const [surCommandePaiementPlusieursFois, setSurCommandePaiementPlusieursFois] = useState(false);
-  const [surCommandePrixAchat, setSurCommandePrixAchat] = useState("");
-  const [surCommandeTransport, setSurCommandeTransport] = useState("");
-  const [surCommandeMargeCible, setSurCommandeMargeCible] = useState("15");
-  // Étape supplémentaire 2/2 (demande PDG, comparaison Autohero/Carvana/cinch) :
-  // réservation, livraison/retrait, présentation client — jamais confidentiels,
-  // affichés sur la fiche produit partagée.
-  const [surCommandeDelaiPrep, setSurCommandeDelaiPrep] = useState("");
-  const [surCommandeDelaiLivraison, setSurCommandeDelaiLivraison] = useState("");
-  const [surCommandeDelaiRetrait, setSurCommandeDelaiRetrait] = useState("");
-  const [surCommandeFraisPrep, setSurCommandeFraisPrep] = useState("");
-  const [surCommandeFraisLivraison, setSurCommandeFraisLivraison] = useState("");
-  const [surCommandeFraisRetrait, setSurCommandeFraisRetrait] = useState("");
-  const [surCommandeZones, setSurCommandeZones] = useState("");
-  const [surCommandeConditionsRemise, setSurCommandeConditionsRemise] = useState("");
-  const [surCommandeDocumentsNecessaires, setSurCommandeDocumentsNecessaires] = useState("");
-  const [surCommandeAcompte, setSurCommandeAcompte] = useState("");
-  const [surCommandeConditionsRemboursement, setSurCommandeConditionsRemboursement] = useState("");
-  const [surCommandeConditionsAnnulation, setSurCommandeConditionsAnnulation] = useState("");
-  const [surCommandeAdresseExacte, setSurCommandeAdresseExacte] = useState("");
-  // Estimation indicative au dépôt (demande PDG) — calcul local pur, jamais
-  // une connexion fournisseur ni une IA : seule la décision finale (champ
-  // Prix de l'étape Caractéristiques, inchangé) est effectivement publiée.
-  // Distincte du prix/marge « section 8 » validés plus tard par un employé
-  // à la commande (server/order-engine/schema.ts, orderItems).
-  const estimationSurCommande = useMemo(() => {
-    const achat = parseFloat(surCommandePrixAchat.replace(",", ".")) || 0;
-    const transport = parseFloat(surCommandeTransport.replace(",", ".")) || 0;
-    const margePct = parseFloat(surCommandeMargeCible.replace(",", ".")) || 0;
-    const coutTotal = achat + transport;
-    const prixConseille = coutTotal * (1 + margePct / 100);
-    const margeNegociation = prixConseille * 0.05;
-    const prixMinimum = Math.max(coutTotal, prixConseille - margeNegociation);
-    const beneficeEstime = prixConseille - coutTotal;
-    return { coutTotal, prixConseille, margeNegociation, prixMinimum, beneficeEstime };
-  }, [surCommandePrixAchat, surCommandeTransport, surCommandeMargeCible]);
   const [selectedType, setSelectedType] = useState<string | null>(null);
   const [step, setStep] = useState(0);
   const [plaqueMode, setPlaqueMode] = useState<"plaque" | "vin" | "manuel">("plaque");
@@ -679,33 +627,6 @@ export default function DepotAnnonce() {
       securite: securiteItems,
       multimedia: multimediaItems,
       videosNormales: videoUrls,
-      ...(vehiculeSurCommande
-        ? {
-            vehiculeSurCommande: {
-              ...vehiculeSurCommande,
-              vehicleLocation: surCommandeLocalisation.trim() || undefined,
-              deliveryPrepDetails: surCommandePrep.trim() || undefined,
-              returnToStockIfUnsold: surCommandeRetourStock,
-              installmentPaymentAllowed: surCommandePaiementPlusieursFois,
-              supplierPurchasePriceEstimated: surCommandePrixAchat ? Number(surCommandePrixAchat.replace(",", ".")) : undefined,
-              transportCostEstimated: surCommandeTransport ? Number(surCommandeTransport.replace(",", ".")) : undefined,
-              targetMarginPercent: surCommandeMargeCible ? Number(surCommandeMargeCible.replace(",", ".")) : undefined,
-              prepDelayDays: surCommandeDelaiPrep ? Number(surCommandeDelaiPrep) : undefined,
-              deliveryDelayDays: surCommandeDelaiLivraison ? Number(surCommandeDelaiLivraison) : undefined,
-              pickupDelayDays: surCommandeDelaiRetrait ? Number(surCommandeDelaiRetrait) : undefined,
-              prepFee: surCommandeFraisPrep ? Number(surCommandeFraisPrep.replace(",", ".")) : undefined,
-              deliveryFee: surCommandeFraisLivraison ? Number(surCommandeFraisLivraison.replace(",", ".")) : undefined,
-              pickupFee: surCommandeFraisRetrait ? Number(surCommandeFraisRetrait.replace(",", ".")) : undefined,
-              deliveryZones: surCommandeZones.trim() || undefined,
-              handoverConditions: surCommandeConditionsRemise.trim() || undefined,
-              requiredDocuments: surCommandeDocumentsNecessaires.trim() || undefined,
-              depositAmount: surCommandeAcompte ? Number(surCommandeAcompte.replace(",", ".")) : undefined,
-              refundConditions: surCommandeConditionsRemboursement.trim() || undefined,
-              cancellationConditions: surCommandeConditionsAnnulation.trim() || undefined,
-              exactPickupAddress: surCommandeAdresseExacte.trim() || undefined,
-            },
-          }
-        : {}),
     });
   }
 
@@ -1431,172 +1352,6 @@ export default function DepotAnnonce() {
             </div>
           </div>
 
-          {/* ── Vehicule sur commande (demande PDG) — champs supplementaires,
-             uniquement visibles via le bouton « Manuel » du portail Vehicule
-             sur commande, et uniquement APRES le meme point de verification
-             que le parcours manuel normal ci-dessus (identique, jamais
-             duplique). Autant de sections que necessaire pour les donnees
-             reellement propres au sur-commande — jamais regroupees de force
-             pour tenir dans un nombre arbitraire de cartes. ── */}
-          {vehiculeSurCommande && (
-            <div className="rounded-xl bg-white border border-[#D4AF37] p-5 space-y-4">
-              <div>
-                <p className="text-[10px] font-bold uppercase tracking-wider text-[#D4AF37]">Etape supplementaire 1/4</p>
-                <p className="text-sm font-bold text-[#111] flex items-center gap-1.5"><Key size={14} className="text-[#D4AF37]" /> Fournisseur et localisation</p>
-                <p className="text-xs text-[#6B7280] mt-0.5">Affiches aux clients dans « Voir les details » sur la fiche produit. Facultatif, mais recommande.</p>
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-[#111] mb-1.5">Localisation actuelle du vehicule</label>
-                <input
-                  className="w-full rounded-xl border border-[#E5E7EB] px-4 py-3 text-sm"
-                  value={surCommandeLocalisation}
-                  onChange={(e) => setSurCommandeLocalisation(e.target.value)}
-                  placeholder="Ex : Chez le fournisseur (Allemagne), en transit..."
-                  maxLength={200}
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-[#111] mb-1.5">Details livraison / preparation</label>
-                <textarea
-                  className="w-full rounded-xl border border-[#E5E7EB] px-4 py-3 text-sm"
-                  rows={3}
-                  value={surCommandePrep}
-                  onChange={(e) => setSurCommandePrep(e.target.value)}
-                  placeholder="Etapes de preparation, delai de livraison estime, informations logistique..."
-                  maxLength={4000}
-                />
-              </div>
-              <label className="flex items-start gap-2.5 text-sm text-[#374151]">
-                <input type="checkbox" className="mt-0.5" checked={surCommandeRetourStock} onChange={(e) => setSurCommandeRetourStock(e.target.checked)} />
-                Si la commande n'aboutit pas, faire entrer ce vehicule dans le stock MKA.P-MS
-              </label>
-              <label className="flex items-start gap-2.5 text-sm text-[#374151]">
-                <input type="checkbox" className="mt-0.5" checked={surCommandePaiementPlusieursFois} onChange={(e) => setSurCommandePaiementPlusieursFois(e.target.checked)} />
-                Autoriser « Paiement en plusieurs fois » sur la fiche produit — a laisser decoche tant que le vehicule reste en dropshipping pur
-              </label>
-            </div>
-          )}
-
-          {vehiculeSurCommande && (
-            <div className="rounded-xl bg-white border border-[#D4AF37] p-5 space-y-4">
-              <div>
-                <p className="text-[10px] font-bold uppercase tracking-wider text-[#D4AF37]">Etape supplementaire 2/4</p>
-                <p className="text-sm font-bold text-[#111] flex items-center gap-1.5"><Key size={14} className="text-[#D4AF37]" /> Estimation de prix fournisseur</p>
-                <p className="text-xs text-[#6B7280] mt-0.5">Calcul indicatif uniquement : ne modifie pas le champ Prix de l'etape Caracteristiques, ne declenche aucune connexion fournisseur.</p>
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-semibold text-[#111] mb-1">Prix d'achat fournisseur</label>
-                  <input className="w-full rounded-xl border border-[#E5E7EB] px-3 py-2.5 text-sm" inputMode="decimal" value={surCommandePrixAchat} onChange={(e) => setSurCommandePrixAchat(e.target.value)} placeholder="0" />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-[#111] mb-1">Transport et frais</label>
-                  <input className="w-full rounded-xl border border-[#E5E7EB] px-3 py-2.5 text-sm" inputMode="decimal" value={surCommandeTransport} onChange={(e) => setSurCommandeTransport(e.target.value)} placeholder="0" />
-                </div>
-                <div className="col-span-2">
-                  <label className="block text-xs font-semibold text-[#111] mb-1">Marge MKA.P-MS ciblee (%)</label>
-                  <input className="w-full rounded-xl border border-[#E5E7EB] px-3 py-2.5 text-sm" inputMode="decimal" value={surCommandeMargeCible} onChange={(e) => setSurCommandeMargeCible(e.target.value)} placeholder="15" />
-                </div>
-              </div>
-              <div className="rounded-xl bg-[#F5F3EF] p-3 space-y-1.5 text-xs">
-                <div className="flex justify-between"><span className="text-[#6B7280]">Cout total (achat + transport)</span><span className="font-bold text-[#111]">{estimationSurCommande.coutTotal.toFixed(2)} EUR</span></div>
-                <div className="flex justify-between"><span className="text-[#6B7280]">Prix conseille de vente</span><span className="font-bold text-[#D4AF37]">{estimationSurCommande.prixConseille.toFixed(2)} EUR</span></div>
-                <div className="flex justify-between"><span className="text-[#6B7280]">Petite marge de negociation (5%)</span><span className="font-bold text-[#111]">{estimationSurCommande.margeNegociation.toFixed(2)} EUR</span></div>
-                <div className="flex justify-between"><span className="text-[#6B7280]">Prix minimum conseille</span><span className="font-bold text-[#111]">{estimationSurCommande.prixMinimum.toFixed(2)} EUR</span></div>
-                <div className="flex justify-between"><span className="text-[#6B7280]">Benefice estime</span><span className="font-bold text-green-600">{estimationSurCommande.beneficeEstime.toFixed(2)} EUR</span></div>
-              </div>
-            </div>
-          )}
-
-          {vehiculeSurCommande && (
-            <div className="rounded-xl bg-white border border-[#D4AF37] p-5 space-y-4">
-              <div>
-                <p className="text-[10px] font-bold uppercase tracking-wider text-[#D4AF37]">Etape supplementaire 3/4</p>
-                <p className="text-sm font-bold text-[#111] flex items-center gap-1.5"><Key size={14} className="text-[#D4AF37]" /> Livraison et retrait client</p>
-                <p className="text-xs text-[#6B7280] mt-0.5">Tout est facultatif, mais affiche sur la fiche produit si renseigne. Aucun nom ni prix fournisseur n'est jamais affiche.</p>
-              </div>
-
-              <div>
-                <p className="text-xs font-bold text-[#111] mb-2">Delais (en jours)</p>
-                <div className="grid grid-cols-3 gap-2">
-                  <div>
-                    <label className="block text-[10px] font-semibold text-[#6B7280] mb-1">Preparation</label>
-                    <input className="w-full rounded-xl border border-[#E5E7EB] px-2.5 py-2 text-sm" inputMode="numeric" value={surCommandeDelaiPrep} onChange={(e) => setSurCommandeDelaiPrep(e.target.value)} placeholder="7" />
-                  </div>
-                  <div>
-                    <label className="block text-[10px] font-semibold text-[#6B7280] mb-1">Livraison</label>
-                    <input className="w-full rounded-xl border border-[#E5E7EB] px-2.5 py-2 text-sm" inputMode="numeric" value={surCommandeDelaiLivraison} onChange={(e) => setSurCommandeDelaiLivraison(e.target.value)} placeholder="14" />
-                  </div>
-                  <div>
-                    <label className="block text-[10px] font-semibold text-[#6B7280] mb-1">Retrait</label>
-                    <input className="w-full rounded-xl border border-[#E5E7EB] px-2.5 py-2 text-sm" inputMode="numeric" value={surCommandeDelaiRetrait} onChange={(e) => setSurCommandeDelaiRetrait(e.target.value)} placeholder="7" />
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <p className="text-xs font-bold text-[#111] mb-2">Frais</p>
-                <div className="grid grid-cols-3 gap-2">
-                  <div>
-                    <label className="block text-[10px] font-semibold text-[#6B7280] mb-1">Preparation</label>
-                    <input className="w-full rounded-xl border border-[#E5E7EB] px-2.5 py-2 text-sm" inputMode="decimal" value={surCommandeFraisPrep} onChange={(e) => setSurCommandeFraisPrep(e.target.value)} placeholder="0" />
-                  </div>
-                  <div>
-                    <label className="block text-[10px] font-semibold text-[#6B7280] mb-1">Livraison</label>
-                    <input className="w-full rounded-xl border border-[#E5E7EB] px-2.5 py-2 text-sm" inputMode="decimal" value={surCommandeFraisLivraison} onChange={(e) => setSurCommandeFraisLivraison(e.target.value)} placeholder="0" />
-                  </div>
-                  <div>
-                    <label className="block text-[10px] font-semibold text-[#6B7280] mb-1">Retrait</label>
-                    <input className="w-full rounded-xl border border-[#E5E7EB] px-2.5 py-2 text-sm" inputMode="decimal" value={surCommandeFraisRetrait} onChange={(e) => setSurCommandeFraisRetrait(e.target.value)} placeholder="0" />
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-[#111] mb-1.5">Zones desservies</label>
-                <input className="w-full rounded-xl border border-[#E5E7EB] px-4 py-3 text-sm" value={surCommandeZones} onChange={(e) => setSurCommandeZones(e.target.value)} placeholder="Ex : France metropolitaine, Belgique, Suisse..." maxLength={500} />
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-[#111] mb-1.5">Conditions de remise</label>
-                <textarea className="w-full rounded-xl border border-[#E5E7EB] px-4 py-3 text-sm" rows={2} value={surCommandeConditionsRemise} onChange={(e) => setSurCommandeConditionsRemise(e.target.value)} placeholder="Ex : sur rendez-vous, piece d'identite requise..." maxLength={2000} />
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-[#111] mb-1.5">Documents necessaires a la remise</label>
-                <textarea className="w-full rounded-xl border border-[#E5E7EB] px-4 py-3 text-sm" rows={2} value={surCommandeDocumentsNecessaires} onChange={(e) => setSurCommandeDocumentsNecessaires(e.target.value)} placeholder="Ex : piece d'identite, justificatif de domicile..." maxLength={2000} />
-              </div>
-            </div>
-          )}
-
-          {vehiculeSurCommande && (
-            <div className="rounded-xl bg-white border border-[#D4AF37] p-5 space-y-4">
-              <div>
-                <p className="text-[10px] font-bold uppercase tracking-wider text-[#D4AF37]">Etape supplementaire 4/4</p>
-                <p className="text-sm font-bold text-[#111] flex items-center gap-1.5"><Key size={14} className="text-[#D4AF37]" /> Acompte, conditions et adresse de remise</p>
-                <p className="text-xs text-[#6B7280] mt-0.5">L'adresse exacte reste confidentielle jusqu'a confirmation de la commande du client.</p>
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-[#111] mb-1.5">Montant d'acompte standard</label>
-                <input className="w-full rounded-xl border border-[#E5E7EB] px-4 py-3 text-sm" inputMode="decimal" value={surCommandeAcompte} onChange={(e) => setSurCommandeAcompte(e.target.value)} placeholder="0" />
-                <p className="text-[10px] text-[#9CA3AF] mt-1">Le solde restant (acompte deduit du prix final) est calcule automatiquement sur la fiche produit.</p>
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-[#111] mb-1.5">Conditions de remboursement</label>
-                <textarea className="w-full rounded-xl border border-[#E5E7EB] px-4 py-3 text-sm" rows={2} value={surCommandeConditionsRemboursement} onChange={(e) => setSurCommandeConditionsRemboursement(e.target.value)} maxLength={2000} />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-[#111] mb-1.5">Conditions d'annulation</label>
-                <textarea className="w-full rounded-xl border border-[#E5E7EB] px-4 py-3 text-sm" rows={2} value={surCommandeConditionsAnnulation} onChange={(e) => setSurCommandeConditionsAnnulation(e.target.value)} maxLength={2000} />
-              </div>
-              <div className="border-t border-[#E5E7EB] pt-4">
-                <label className="block text-sm font-semibold text-[#111] mb-1.5">Adresse exacte de remise</label>
-                <input className="w-full rounded-xl border border-[#E5E7EB] px-4 py-3 text-sm" value={surCommandeAdresseExacte} onChange={(e) => setSurCommandeAdresseExacte(e.target.value)} placeholder="Jamais affichee avant confirmation de la commande" maxLength={300} />
-                <p className="text-[10px] text-[#9CA3AF] mt-1">Seule la ville/zone (etape 1/4) est visible avant commande. Cette adresse n'est communiquee qu'au client dont la commande est confirmee.</p>
-              </div>
-            </div>
-          )}
-
           {/* Final summary */}
           <div className="rounded-xl bg-white border border-[#E5E7EB] p-5 space-y-3">
             <p className="text-sm font-bold text-[#111]">Resume final</p>
@@ -1649,12 +1404,6 @@ export default function DepotAnnonce() {
                 setForm({ plaque: "", vin: "", marque: "", modele: "", annee: "", motorisation: "", version: "", finition: "", categorie: "", energie: "", categorieMoto: "", cylindree: "", cylindreeCcm: "", permis: "", kilometrage: "", prix: "", couleurExt: "", couleurInt: "", typePeinture: "", matiereSieges: "", portes: "", places: "", puissanceCv: "", puissanceFiscale: "", etat: "", reparations: "", boite: "", premierMain: "", nbProprietaires: "", paysOrigine: "FR", classeEnvironnementale: "", emissionsCo2: "", nbCles: "2", dateProchaineCT: "", description: "", pointsForts: "", contactNom: "", contactEmail: "", contactTelephone: "", contactVille: "", contactCodePostal: "" });
                 setSelectedEquip({ exterieur: [], interieur: [], confort: [], securite: [], antivol: [], multimedia: [], autres: [] });
                 setPhotoUrls({}); setVideoUrls([]);
-                setSurCommandeLocalisation(""); setSurCommandePrep(""); setSurCommandeRetourStock(false); setSurCommandePaiementPlusieursFois(false);
-                setSurCommandePrixAchat(""); setSurCommandeTransport(""); setSurCommandeMargeCible("15");
-                setSurCommandeDelaiPrep(""); setSurCommandeDelaiLivraison(""); setSurCommandeDelaiRetrait("");
-                setSurCommandeFraisPrep(""); setSurCommandeFraisLivraison(""); setSurCommandeFraisRetrait("");
-                setSurCommandeZones(""); setSurCommandeConditionsRemise(""); setSurCommandeDocumentsNecessaires("");
-                setSurCommandeAcompte(""); setSurCommandeConditionsRemboursement(""); setSurCommandeConditionsAnnulation(""); setSurCommandeAdresseExacte("");
               }} className="flex-1 rounded-xl border border-[#E5E7EB] px-4 py-3.5 text-sm font-bold text-[#374151] hover:bg-[#F5F3EF] transition">Nouvelle annonce</button>
             </div>
           </div>

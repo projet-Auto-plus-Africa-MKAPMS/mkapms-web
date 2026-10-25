@@ -10,10 +10,11 @@ import FileUpload from "../../components/FileUpload";
 /* ══════════════════════════════════════════════════════════════════════════
    DÉPÔT RAPIDE — Véhicule sur commande (sections 2, 4, 5, demande PDG)
    RÈGLE ABSOLUE : le bouton « Manuel » ouvre directement le dépôt existant
-   (/acheter/depot-annonce) — jamais un second formulaire. Le mode assisté
-   par IA n'est qu'un outil d'aide (Vehicle Engine existant, LOT 2) : si
-   l'analyse IA échoue ou n'est pas branchée, le reste de la préparation
-   continue normalement — l'IA ne bloque jamais.
+   (/vendre — le même parcours « Publier » que tout le reste de la
+   plateforme) — jamais un second formulaire. Le mode assisté par IA n'est
+   qu'un outil d'aide (Vehicle Engine existant, LOT 2) : si l'analyse IA
+   échoue ou n'est pas branchée, le reste de la préparation continue
+   normalement — l'IA ne bloque jamais.
    ══════════════════════════════════════════════════════════════════════════ */
 
 export default function DepotRapideVehiculeSurCommande() {
@@ -60,8 +61,8 @@ export default function DepotRapideVehiculeSurCommande() {
   }
 
   const manuelUrl = supplierProfileId
-    ? `/acheter/depot-annonce?vehiculeSurCommande=1&supplierProfileId=${encodeURIComponent(supplierProfileId)}`
-    : `/acheter/depot-annonce`;
+    ? `/vendre?vehiculeSurCommande=1&supplierProfileId=${encodeURIComponent(supplierProfileId)}`
+    : `/vendre`;
 
   return (
     <div className="min-h-screen bg-[#F5F3EF] pb-24">
