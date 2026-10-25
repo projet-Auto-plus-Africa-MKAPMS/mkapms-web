@@ -21,6 +21,7 @@ import {
   index,
   integer,
   jsonb,
+  numeric,
   pgTable,
   serial,
   text,
@@ -71,6 +72,23 @@ export const supplierProfiles = pgTable(
     suspendedAt: timestamp("suspended_at"),
     suspendedReason: text("suspended_reason"),
     deactivatedAt: timestamp("deactivated_at"),
+    // Politique de retour par défaut du fournisseur (demande PDG, générique
+    // pour tout fournisseur — jamais une règle universelle codée en dur :
+    // certains fournisseurs n'autorisent aucun retour, d'autres proposent
+    // un droit de retour "premium" sous conditions). Une annonce peut
+    // toujours surcharger ces valeurs via orderListings.refundConditions/
+    // cancellationConditions (texte libre, déjà existant) pour un cas
+    // particulier ; ces champs-ci sont le réglage par défaut du fournisseur.
+    returnAllowed: boolean("return_allowed").notNull().default(false),
+    returnPremiumEnabled: boolean("return_premium_enabled").notNull().default(false),
+    returnDelayHours: integer("return_delay_hours"),
+    returnEligibilityConditions: text("return_eligibility_conditions"),
+    returnFee: numeric("return_fee", { precision: 10, scale: 2 }),
+    returnRequiredVehicleCondition: text("return_required_vehicle_condition"),
+    returnRequiredDocuments: text("return_required_documents"),
+    returnRefundPolicy: text("return_refund_policy"),
+    /** "fournisseur" | "mka_pms" | "client" */
+    returnTransportResponsibility: varchar("return_transport_responsibility", { length: 24 }),
     createdBy: integer("created_by"),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),

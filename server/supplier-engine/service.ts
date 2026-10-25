@@ -354,6 +354,51 @@ export async function definirTerritoires(input: {
   return { allowed: allowedValides, excluded: excludedValides, rejetes };
 }
 
+/**
+ * Politique de retour par défaut du fournisseur (demande PDG) — jamais une
+ * règle universelle : chaque fournisseur a la sienne (aucun retour par
+ * défaut), configurée ici explicitement, jamais déduite automatiquement
+ * d'un fournisseur précis.
+ */
+export async function definirPolitiqueRetour(input: {
+  supplierProfileId: number;
+  returnAllowed: boolean;
+  returnPremiumEnabled: boolean;
+  returnDelayHours?: number | null;
+  returnEligibilityConditions?: string | null;
+  returnFee?: number | null;
+  returnRequiredVehicleCondition?: string | null;
+  returnRequiredDocuments?: string | null;
+  returnRefundPolicy?: string | null;
+  returnTransportResponsibility?: "fournisseur" | "mka_pms" | "client" | null;
+  actorId: number;
+}) {
+  await obtenirProfil(input.supplierProfileId);
+  const [row] = await db
+    .update(supplierProfiles)
+    .set({
+      returnAllowed: input.returnAllowed,
+      returnPremiumEnabled: input.returnPremiumEnabled,
+      returnDelayHours: input.returnDelayHours ?? null,
+      returnEligibilityConditions: input.returnEligibilityConditions ?? null,
+      returnFee: input.returnFee != null ? String(input.returnFee) : null,
+      returnRequiredVehicleCondition: input.returnRequiredVehicleCondition ?? null,
+      returnRequiredDocuments: input.returnRequiredDocuments ?? null,
+      returnRefundPolicy: input.returnRefundPolicy ?? null,
+      returnTransportResponsibility: input.returnTransportResponsibility ?? null,
+      updatedAt: new Date(),
+    })
+    .where(eq(supplierProfiles.id, input.supplierProfileId))
+    .returning();
+  await journaliser({
+    supplierProfileId: input.supplierProfileId,
+    action: "supplier.return_policy_set",
+    actorId: input.actorId,
+    detail: { returnAllowed: input.returnAllowed, returnPremiumEnabled: input.returnPremiumEnabled },
+  });
+  return row;
+}
+
 // ─────────────────────── Connector Engine (point 4) ───────────────────────
 
 export interface EnregistrerConnexionInput {

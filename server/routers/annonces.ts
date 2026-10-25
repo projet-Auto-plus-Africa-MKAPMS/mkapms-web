@@ -816,6 +816,12 @@ export const annoncesRouter = router({
         boite: z.string().default("manuelle"),
         annee: z.number().optional(),
         kilometrage: z.number().optional(),
+        // Déjà lus par la détection de doublons (smart-engine/services/duplicate-detection.ts)
+        // et déjà portés par le schéma (annonces.vin/annonces.plaque), mais jamais transmis
+        // depuis le dépôt manuel jusqu'ici — utiles pour les véhicules sourcés chez un
+        // fournisseur (véhicule sur commande), toujours facultatifs.
+        vin: z.string().trim().max(17).optional(),
+        plaque: z.string().trim().max(16).optional(),
         couleur: z.string().optional(),
         puissanceCv: z.number().optional(),
         portes: z.number().optional(),
@@ -980,6 +986,8 @@ export const annoncesRouter = router({
           boite: rest.boite as any,
           annee: rest.annee,
           kilometrage: rest.kilometrage,
+          vin: rest.vin || undefined,
+          plaque: rest.plaque || undefined,
           couleur: rest.couleur,
           puissanceCv: rest.puissanceCv,
           portes: rest.portes,

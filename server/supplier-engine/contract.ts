@@ -115,6 +115,12 @@ export const CANONICAL_VEHICLE_FIELDS = [
   "transmission", "puissance", "carrosserie", "portes", "places", "couleur",
   "co2", "normeEuro", "critAir", "equipements", "options", "etat",
   "prixFournisseur", "devise", "localisation", "photos", "disponibilite",
+  // Ajoutés pour les fournisseurs B2B multi-canaux (enchères, achat immédiat,
+  // stock direct, retours de leasing…) — vocabulaire générique, jamais le
+  // nom d'un fournisseur précis : "canalAchat" est une valeur libre propre
+  // à chaque fournisseur (ex. "enchere_24h", "achat_immediat", "stock_direct"),
+  // "historique" et "fraisAdditionnels" complètent la fiche déjà existante.
+  "canalAchat", "historique", "fraisAdditionnels",
 ] as const;
 
 export const CANONICAL_PART_FIELDS = [

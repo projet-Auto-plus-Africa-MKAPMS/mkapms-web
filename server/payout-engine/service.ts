@@ -194,6 +194,13 @@ async function audit(scheduleId: number | null, action: string, actorId: number 
  * vente, indépendamment du calendrier de versement au partenaire).
  */
 export async function openPayoutSchedule(input: OpenScheduleInput) {
+  // Garde directe, autonome : n'ouvre jamais un second versement pour la
+  // même source (sourceType + sourceId), même si l'appelant ne passe pas
+  // par le chemin déjà protégé indirectement (orderDecisions.orderItemId
+  // unique) — un versement fournisseur ne doit jamais pouvoir être doublé.
+  const existant = await findScheduleBySource(input.sourceType, input.sourceId);
+  if (existant) return existant;
+
   const owner: WalletOwnerRef = {
     targetType: input.targetType,
     supplierProfileId: input.supplierProfileId ?? null,

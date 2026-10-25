@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { ChevronLeft, Truck, Plus, ChevronDown, ChevronUp, CheckCircle, ShieldCheck, FileSignature, Plug, Power, PauseCircle, PlayCircle, XCircle, UserPlus } from "lucide-react";
+import { ChevronLeft, Truck, Plus, ChevronDown, ChevronUp, CheckCircle, ShieldCheck, FileSignature, Plug, Power, PauseCircle, PlayCircle, XCircle, UserPlus, Undo2 } from "lucide-react";
 import { trpc } from "../../lib/trpc";
 import { useAuth } from "../../lib/auth";
 import { isDirection } from "@shared/roles";
@@ -219,6 +219,17 @@ function FournisseurCard({ fournisseur, direction }: { fournisseur: any; directi
     onSuccess: () => { setContactNom(""); setContactEmail(""); setContactTel(""); },
   });
 
+  const [returnAllowed, setReturnAllowed] = useState(!!fournisseur.returnAllowed);
+  const [returnPremiumEnabled, setReturnPremiumEnabled] = useState(!!fournisseur.returnPremiumEnabled);
+  const [returnDelayHours, setReturnDelayHours] = useState(fournisseur.returnDelayHours ? String(fournisseur.returnDelayHours) : "");
+  const [returnFee, setReturnFee] = useState(fournisseur.returnFee ?? "");
+  const [returnTransportResponsibility, setReturnTransportResponsibility] = useState(fournisseur.returnTransportResponsibility ?? "fournisseur");
+  const [returnEligibilityConditions, setReturnEligibilityConditions] = useState(fournisseur.returnEligibilityConditions ?? "");
+  const [returnRequiredVehicleCondition, setReturnRequiredVehicleCondition] = useState(fournisseur.returnRequiredVehicleCondition ?? "");
+  const [returnRequiredDocuments, setReturnRequiredDocuments] = useState(fournisseur.returnRequiredDocuments ?? "");
+  const [returnRefundPolicy, setReturnRefundPolicy] = useState(fournisseur.returnRefundPolicy ?? "");
+  const definirPolitiqueRetour = trpc.supplierEngine.definirPolitiqueRetour.useMutation({ onSuccess: invalidate });
+
   const erreur = verifier.error || validerDirection.error || enregistrerContrat.error || enregistrerConnexion.error || activer.error || suspendre.error || reactiver.error || desactiver.error || ajouterContact.error;
 
   return (
@@ -305,6 +316,53 @@ function FournisseurCard({ fournisseur, direction }: { fournisseur: any; directi
               className="w-full rounded-lg bg-white/10 py-1.5 text-xs font-bold text-white disabled:opacity-40"
             >
               Ajouter le contact
+            </button>
+          </div>
+
+          <div className="pt-1 border-t border-white/10 space-y-2">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-white/40 flex items-center gap-1"><Undo2 size={12} /> Politique de retour / refus</p>
+            <label className="flex items-center gap-2 text-xs text-white/70">
+              <input type="checkbox" checked={returnAllowed} onChange={(e) => setReturnAllowed(e.target.checked)} />
+              Retour autorisé pour ce fournisseur
+            </label>
+            {returnAllowed && (
+              <>
+                <label className="flex items-center gap-2 text-xs text-white/70">
+                  <input type="checkbox" checked={returnPremiumEnabled} onChange={(e) => setReturnPremiumEnabled(e.target.checked)} />
+                  Retour « premium » (type garantie 24h) activé
+                </label>
+                <div className="grid grid-cols-2 gap-1.5">
+                  <input className="rounded-lg bg-white/10 border border-white/20 px-2 py-1.5 text-xs text-white placeholder-white/30" placeholder="Délai (heures)" inputMode="numeric" value={returnDelayHours} onChange={(e) => setReturnDelayHours(e.target.value)} />
+                  <input className="rounded-lg bg-white/10 border border-white/20 px-2 py-1.5 text-xs text-white placeholder-white/30" placeholder="Frais de retour" value={returnFee} onChange={(e) => setReturnFee(e.target.value)} />
+                </div>
+                <select className="w-full rounded-lg bg-white/10 border border-white/20 px-2 py-1.5 text-xs text-white" value={returnTransportResponsibility} onChange={(e) => setReturnTransportResponsibility(e.target.value)}>
+                  <option value="fournisseur">Transport retour à la charge du fournisseur</option>
+                  <option value="mka_pms">Transport retour à la charge de MKA.P-MS</option>
+                  <option value="client">Transport retour à la charge du client</option>
+                </select>
+                <textarea className="w-full rounded-lg bg-white/10 border border-white/20 px-2 py-1.5 text-xs text-white placeholder-white/30" rows={2} placeholder="Conditions d'éligibilité (ex: kilométrage max, délai de signalement)" value={returnEligibilityConditions} onChange={(e) => setReturnEligibilityConditions(e.target.value)} />
+                <textarea className="w-full rounded-lg bg-white/10 border border-white/20 px-2 py-1.5 text-xs text-white placeholder-white/30" rows={2} placeholder="État du véhicule requis au retour" value={returnRequiredVehicleCondition} onChange={(e) => setReturnRequiredVehicleCondition(e.target.value)} />
+                <textarea className="w-full rounded-lg bg-white/10 border border-white/20 px-2 py-1.5 text-xs text-white placeholder-white/30" rows={2} placeholder="Documents requis pour le retour" value={returnRequiredDocuments} onChange={(e) => setReturnRequiredDocuments(e.target.value)} />
+                <textarea className="w-full rounded-lg bg-white/10 border border-white/20 px-2 py-1.5 text-xs text-white placeholder-white/30" rows={2} placeholder="Politique de remboursement" value={returnRefundPolicy} onChange={(e) => setReturnRefundPolicy(e.target.value)} />
+              </>
+            )}
+            <button
+              onClick={() => definirPolitiqueRetour.mutate({
+                supplierProfileId: fournisseur.id,
+                returnAllowed,
+                returnPremiumEnabled,
+                returnDelayHours: returnDelayHours.trim() ? Number(returnDelayHours) : undefined,
+                returnFee: returnFee.toString().trim() ? Number(returnFee) : undefined,
+                returnTransportResponsibility: returnTransportResponsibility || undefined,
+                returnEligibilityConditions: returnEligibilityConditions.trim() || undefined,
+                returnRequiredVehicleCondition: returnRequiredVehicleCondition.trim() || undefined,
+                returnRequiredDocuments: returnRequiredDocuments.trim() || undefined,
+                returnRefundPolicy: returnRefundPolicy.trim() || undefined,
+              })}
+              disabled={definirPolitiqueRetour.isPending}
+              className="w-full rounded-lg bg-white/10 py-1.5 text-xs font-bold text-white disabled:opacity-40"
+            >
+              Enregistrer la politique de retour
             </button>
           </div>
         </div>
