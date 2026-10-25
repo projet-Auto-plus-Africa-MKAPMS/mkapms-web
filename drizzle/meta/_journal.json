@@ -1128,6 +1128,13 @@
       "when": 1788404852000,
       "tag": "0162_supplier_profiles_return_policy",
       "breakpoints": true
+    },
+    {
+      "idx": 161,
+      "version": "7",
+      "when": 1788404853000,
+      "tag": "0163_auto1_supplier_seed",
+      "breakpoints": true
     }
   ]
 }
