@@ -22165,6 +22165,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "creer",
       "dashboard",
       "definirMapping",
+      "definirPolitiqueRetour",
       "definirTerritoires",
       "desactiver",
       "detail",
@@ -23105,8 +23106,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "cliquables": 45,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 281,
-        "mots": 1528
+        "textes": 283,
+        "mots": 1548
       },
       {
         "fichier": "client/src/pages/depot-annonce/AnalyseIA.tsx",
@@ -23807,8 +23808,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "procedures": [],
     "tables": [],
     "acces": [],
-    "textes": 1041,
-    "mots": 4090,
+    "textes": 1043,
+    "mots": 4110,
     "battement": "sonde",
     "manques": [
       {
