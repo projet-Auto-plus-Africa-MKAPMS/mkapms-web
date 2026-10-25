@@ -21,6 +21,7 @@ import {
   creerFournisseur,
   dashboard,
   definirMapping,
+  definirPolitiqueRetour,
   definirTerritoires,
   desactiverFournisseur,
   enregistrerConnexion,
@@ -123,6 +124,23 @@ export const supplierEngineRouter = router({
       }),
     )
     .mutation(({ ctx, input }) => definirTerritoires({ ...input, actorId: ctx.user.uid })),
+
+  definirPolitiqueRetour: adminProcedure
+    .input(
+      z.object({
+        supplierProfileId: z.number().int().positive(),
+        returnAllowed: z.boolean(),
+        returnPremiumEnabled: z.boolean(),
+        returnDelayHours: z.number().int().min(0).max(8760).optional(),
+        returnEligibilityConditions: z.string().max(2000).optional(),
+        returnFee: z.number().nonnegative().optional(),
+        returnRequiredVehicleCondition: z.string().max(2000).optional(),
+        returnRequiredDocuments: z.string().max(2000).optional(),
+        returnRefundPolicy: z.string().max(2000).optional(),
+        returnTransportResponsibility: z.enum(["fournisseur", "mka_pms", "client"]).optional(),
+      }),
+    )
+    .mutation(({ ctx, input }) => definirPolitiqueRetour({ ...input, actorId: ctx.user.uid })),
 
   avancerEtape: adminProcedure
     .input(

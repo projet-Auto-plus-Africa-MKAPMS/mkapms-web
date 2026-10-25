@@ -910,6 +910,8 @@ export default function Vendre() {
         annee: form.annee ? Number(form.annee) : undefined,
         kilometrage: form.kilometrage ? Number(form.kilometrage) : undefined,
         prix: form.prix ? Number(form.prix) : 0,
+        vin: vin.trim() || undefined,
+        plaque: plaque.trim() || undefined,
         // Multi-tarifs location — envoyés uniquement pour typeAnnonce=location
         prixJour: typeAnnonce === "location" && form.prixJour ? Number(form.prixJour) : undefined,
         prixSemaine: typeAnnonce === "location" && form.prixSemaine ? Number(form.prixSemaine) : undefined,
@@ -1534,6 +1536,18 @@ export default function Vendre() {
                   <label className="mb-1 block text-xs font-semibold text-[#6B7280]">Kilométrage (km)</label>
                   <input className="input" type="number" value={form.kilometrage} onChange={(e) => set("kilometrage", e.target.value)} placeholder="50 000" />
                 </div>
+              </div>
+
+              <div>
+                <label className="mb-1 block text-xs font-semibold text-[#6B7280]">Numéro VIN (facultatif)</label>
+                <input
+                  className="input"
+                  value={vin}
+                  onChange={(e) => setVin(e.target.value.toUpperCase())}
+                  placeholder="Ex : VF1XXXXXXXXXX"
+                  maxLength={17}
+                />
+                <p className="mt-1 text-[10px] text-[#9CA3AF]">Utile pour les véhicules sourcés chez un fournisseur (détection de doublons, suivi interne) — jamais affiché publiquement.</p>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
