@@ -1164,14 +1164,15 @@ export default function Vendre() {
         </div>
       )}
 
-      {/* ── Stepper 4 étapes ── */}
-      <div className="bg-white border-b border-[#E5E7EB] px-4 py-4">
-        <div className="max-w-4xl lg:max-w-3xl mx-auto flex items-center justify-center gap-2 md:gap-4">
+      {/* ── Stepper 4 étapes (5 pour véhicule sur commande) ── */}
+      <div className="bg-white border-b border-[#E5E7EB] py-4">
+        <div className="max-w-4xl lg:max-w-3xl mx-auto px-4 overflow-x-auto scrollbar-hide">
+          <div className="flex items-center gap-2 md:gap-4 w-max mx-auto">
           {STEPS.map((s, i) => {
             const done = step > s.num;
             const active = step === s.num;
             return (
-              <div key={s.num} className="flex items-center gap-2 md:gap-3">
+              <div key={s.num} className="flex items-center gap-2 md:gap-3 shrink-0">
                 <div className="flex flex-col items-center">
                   <div
                     className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold transition
@@ -1187,6 +1188,7 @@ export default function Vendre() {
               </div>
             );
           })}
+          </div>
         </div>
       </div>
 
