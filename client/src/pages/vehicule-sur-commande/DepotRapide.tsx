@@ -81,10 +81,16 @@ export default function DepotRapideVehiculeSurCommande() {
         {/* ── Mode Manuel : ouvre directement le système existant ── */}
         <div className="rounded-xl bg-white border border-[#E5E7EB] p-4">
           <h2 className="flex items-center gap-2 text-sm font-bold text-[#111]"><PenLine size={16} className="text-[#6B7280]" /> Manuel</h2>
-          <p className="mt-1 text-xs text-[#6B7280]">Ouvre directement le dépôt d'annonce déjà existant sur la plateforme — aucun second formulaire. Le fournisseur ci-dessus est facultatif ; renseignez-le seulement si ce dépôt est lié à une commande fournisseur précise.</p>
-          <Link to={manuelUrl} className="mt-3 block w-full rounded-lg border border-[#111] py-2.5 text-center text-sm font-bold text-[#111]">
+          <p className="mt-1 text-xs text-[#6B7280]">Ouvre directement le dépôt d'annonce déjà existant sur la plateforme — aucun second formulaire. Le fournisseur est requis pour conserver le contexte « véhicule sur commande » et afficher uniquement ses étapes supplémentaires.</p>
+          <button type="button" onClick={() => {
+            if (!supplierProfileId.trim()) {
+              alert("Renseignez le fournisseur avant d’ouvrir le dépôt manuel véhicule sur commande.");
+              return;
+            }
+            navigate(manuelUrl);
+          }} className="mt-3 block w-full rounded-lg border border-[#111] py-2.5 text-center text-sm font-bold text-[#111]">
             Continuer en manuel
-          </Link>
+          </button>
         </div>
 
         {/* ── Mode assisté par IA : outil d'aide uniquement ── */}
