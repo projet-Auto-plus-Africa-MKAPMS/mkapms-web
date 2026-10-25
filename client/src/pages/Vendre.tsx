@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { getAnnonceUrl } from "../lib/annonceUrl";
-import { ALL_BRANDS_AUTO, getModelsForBrand, getVersionsForModel, getVersionSpec } from "../lib/vehicleData";
+import { ALL_BRANDS_AUTO, CATEGORIES_AUTO, CATEGORIES_MOTO, getModelsForBrand, getVersionsForModel, getVersionSpec } from "../lib/vehicleData";
 import {
   Search, Camera, CheckCircle, Shield, Eye, Zap, Lock,
   ChevronRight, ChevronDown, Upload, Star, Car, Bike, Truck, Bus,
@@ -163,18 +163,6 @@ const MARQUES_MOTO = [
   "Triumph", "Harley-Davidson", "Indian", "Aprilia", "Piaggio", "Vespa",
   "MV Agusta", "Benelli", "Royal Enfield", "Husqvarna", "Gas Gas",
   "CF Moto", "Sym", "Kymco", "Peugeot", "MBK", "Autre",
-];
-
-const CATEGORIES_AUTO = [
-  "Citadine", "Berline", "Break", "SUV / Crossover", "Coupé", "Cabriolet",
-  "Monospace", "Ludospace", "Pick-up", "Utilitaire", "Camping-car",
-  "4x4", "Limousine", "Luxe / Prestige",
-];
-const CATEGORIES_MOTO = [
-  "Roadster / Naked", "Sportive", "Trail / Adventure", "Custom / Cruiser",
-  "Touring / GT", "Scooter", "Scooter 125", "Scooter 3 roues",
-  "Enduro", "Supermotard", "Café Racer", "Scrambler",
-  "Quad", "Trike", "Électrique",
 ];
 
 /* ─────────────────────────────────────────────────────────────────────────

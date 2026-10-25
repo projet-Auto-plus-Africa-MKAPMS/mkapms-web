@@ -103,9 +103,22 @@ async function quotaInfo(userId: number) {
   return { used, limit, overageEur, over, approaching, planCode: sub?.planCode ?? null };
 }
 
+// Doit accepter CHAQUE valeur que CATEGORIES_AUTO / CATEGORIES_MOTO
+// (client/src/lib/vehicleData.ts) peuvent produire via `.toLowerCase()`
+// (Vendre.tsx) : sinon le choix d'une catégorie absente d'ici fait échouer
+// la création de l'annonce côté serveur sans que l'option ait jamais semblé
+// indisponible dans le formulaire (ex : SUV / Crossover, Ludospace, Pick-up,
+// Camping-car, 4x4, Limousine, Luxe / Prestige, Coupé, Minibus, Fourgon —
+// manquants avant, bien présents dans la liste déroulante du dépôt).
+// Anciennes valeurs courtes ("suv", "coupe", "luxe"…) conservées pour ne pas
+// invalider des annonces déjà enregistrées avec ces valeurs.
 const categorieEnum = z.enum([
-  "citadine", "berline", "break", "suv", "coupe", "cabriolet", "monospace",
-  "utilitaire", "camion", "moto", "scooter", "quad", "luxe", "autre",
+  "citadine", "berline", "break", "suv", "suv / crossover", "coupe", "coupé",
+  "cabriolet", "monospace", "ludospace", "pick-up", "utilitaire", "fourgon",
+  "camion", "minibus", "camping-car", "4x4", "limousine", "luxe", "luxe / prestige",
+  "moto", "scooter", "scooter 125", "scooter 3 roues", "quad", "roadster / naked",
+  "sportive", "trail / adventure", "custom / cruiser", "touring / gt", "enduro",
+  "supermotard", "café racer", "scrambler", "trike", "électrique", "autre",
 ]);
 
 export const annoncesRouter = router({

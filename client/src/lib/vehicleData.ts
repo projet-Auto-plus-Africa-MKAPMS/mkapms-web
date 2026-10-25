@@ -1081,6 +1081,12 @@ export const VEHICLE_DB: VehicleDatabase = {
     "Transit Connect": { versions: [{ name: "Base" }, { name: "Premium" }, { name: "Sport" }, { name: "Luxe" }] },
     "Transit Custom": { versions: [{ name: "Base" }, { name: "Premium" }, { name: "Sport" }, { name: "Luxe" }] },
   },
+  "Foton": {
+    "Tunland": { versions: [{ name: "Base" }, { name: "Premium" }, { name: "Sport" }, { name: "Luxe" }] },
+    "View": { versions: [{ name: "Base" }, { name: "Premium" }, { name: "Sport" }, { name: "Luxe" }] },
+    "Aumark": { versions: [{ name: "Base" }, { name: "Premium" }, { name: "Sport" }, { name: "Luxe" }] },
+    "Sauvana": { versions: [{ name: "Base" }, { name: "Premium" }, { name: "Sport" }, { name: "Luxe" }] },
+  },
 
   /* ════════ G ════════ */
 
@@ -1157,6 +1163,13 @@ export const VEHICLE_DB: VehicleDatabase = {
 
   /* ════════ H ════════ */
 
+  "Haval": {
+    "Jolion": { versions: [{ name: "Base" }, { name: "Premium" }, { name: "Sport" }, { name: "Luxe" }] },
+    "H6": { versions: [{ name: "Base" }, { name: "Premium" }, { name: "Sport" }, { name: "Luxe" }] },
+    "H9": { versions: [{ name: "Base" }, { name: "Premium" }, { name: "Sport" }, { name: "Luxe" }] },
+    "Dargo": { versions: [{ name: "Base" }, { name: "Premium" }, { name: "Sport" }, { name: "Luxe" }] },
+    "Big Dog": { versions: [{ name: "Base" }, { name: "Premium" }, { name: "Sport" }, { name: "Luxe" }] },
+  },
   "Honda": {
     "Accord": { versions: [{ name: "1.5T", puissanceCv: 192, cylindree: "1498 cm³", consommation: "6.5 L/100km" }, { name: "2.0 e:HEV", puissanceCv: 204, cylindree: "1993 cm³", consommation: "5.0 L/100km" }] },
     "Amaze": { versions: [{ name: "Base" }, { name: "Premium" }, { name: "Sport" }, { name: "Luxe" }] },
@@ -1304,6 +1317,13 @@ export const VEHICLE_DB: VehicleDatabase = {
 
   /* ════════ J ════════ */
 
+  "JAC": {
+    "T6": { versions: [{ name: "Base" }, { name: "Premium" }, { name: "Sport" }, { name: "Luxe" }] },
+    "T8": { versions: [{ name: "Base" }, { name: "Premium" }, { name: "Sport" }, { name: "Luxe" }] },
+    "S3": { versions: [{ name: "Base" }, { name: "Premium" }, { name: "Sport" }, { name: "Luxe" }] },
+    "JS4": { versions: [{ name: "Base" }, { name: "Premium" }, { name: "Sport" }, { name: "Luxe" }] },
+    "e-JS4": { versions: [{ name: "Base", puissanceCv: 136, cylindree: "Électrique", consommation: "15.5 kWh/100km" }] },
+  },
   "Jaguar": {
     "E-Pace": { versions: [
       { name: "P160", puissanceCv: 160, cylindree: "1999 cm³", consommation: "6.5 L/100km" },
@@ -1447,6 +1467,13 @@ export const VEHICLE_DB: VehicleDatabase = {
 
   /* ════════ L ════════ */
 
+  "Lada": {
+    "Granta": { versions: [{ name: "Base" }, { name: "Premium" }, { name: "Sport" }, { name: "Luxe" }] },
+    "Vesta": { versions: [{ name: "Base" }, { name: "Premium" }, { name: "Sport" }, { name: "Luxe" }] },
+    "Niva": { versions: [{ name: "Base" }, { name: "Premium" }, { name: "Legend" }] },
+    "Largus": { versions: [{ name: "Base" }, { name: "Premium" }, { name: "Sport" }, { name: "Luxe" }] },
+    "XRAY": { versions: [{ name: "Base" }, { name: "Premium" }, { name: "Sport" }, { name: "Luxe" }] },
+  },
   "Lamborghini": {
     "Aventador": { versions: [{ name: "Base" }, { name: "Premium" }, { name: "Sport" }, { name: "Luxe" }] },
     "Countach": { versions: [{ name: "Base" }, { name: "Premium" }, { name: "Sport" }, { name: "Luxe" }] },
@@ -1658,6 +1685,10 @@ export const VEHICLE_DB: VehicleDatabase = {
       { name: "Trofeo", puissanceCv: 580, cylindree: "3799 cm³", consommation: "12.5 L/100km" },
     ] },
     "Spyder": { versions: [{ name: "Base" }, { name: "Premium" }, { name: "Sport" }, { name: "Luxe" }] },
+  },
+  "Maybach": {
+    "S-Class": { versions: [{ name: "S 580" }, { name: "S 680" }, { name: "S 680 Pullman" }] },
+    "GLS": { versions: [{ name: "GLS 600" }] },
   },
   "Mazda": {
     "2": { versions: [{ name: "1.5 SkyActiv-G", puissanceCv: 90, cylindree: "1496 cm³", consommation: "5.0 L/100km" }, { name: "e-SkyActiv-G", puissanceCv: 115, cylindree: "1496 cm³", consommation: "5.2 L/100km" }] },
@@ -2996,3 +3027,27 @@ export function getVersionsForModel(brand: string, model: string): VersionSpec[]
 export function getVersionSpec(brand: string, model: string, versionName: string): VersionSpec | undefined {
   return getVersionsForModel(brand, model).find(v => v.name === versionName);
 }
+
+/**
+ * Catégories (types de carrosserie) — source unique partagée entre le dépôt
+ * d'annonce (Vendre.tsx) et les écrans de recherche/filtre (Rechercher.tsx,
+ * etc.). Une annonce enregistre toujours `categorie.toLowerCase()` : tout
+ * écran qui filtre par catégorie doit dériver ses valeurs de CETTE liste
+ * (avec le même `.toLowerCase()`), jamais retaper ses propres libellés —
+ * sinon une catégorie déposée ici n'est plus jamais trouvable par recherche.
+ * "Minibus" et "Camion" ajoutés : detectLocationMode() (Vendre.tsx) teste
+ * déjà `categorie.includes("minibus"|"camion")` pour le mode location,
+ * mais ces catégories étaient absentes de la liste sélectionnable —
+ * la détection ne pouvait donc jamais se déclencher depuis le dépôt.
+ */
+export const CATEGORIES_AUTO = [
+  "Citadine", "Berline", "Break", "SUV / Crossover", "Coupé", "Cabriolet",
+  "Monospace", "Ludospace", "Pick-up", "Utilitaire", "Fourgon", "Camion",
+  "Minibus", "Camping-car", "4x4", "Limousine", "Luxe / Prestige",
+];
+export const CATEGORIES_MOTO = [
+  "Roadster / Naked", "Sportive", "Trail / Adventure", "Custom / Cruiser",
+  "Touring / GT", "Scooter", "Scooter 125", "Scooter 3 roues",
+  "Enduro", "Supermotard", "Café Racer", "Scrambler",
+  "Quad", "Trike", "Électrique",
+];

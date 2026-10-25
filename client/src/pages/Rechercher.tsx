@@ -4,6 +4,7 @@ import {
   ArrowLeft, Search, ChevronRight, ChevronDown, Car, Truck,
   X, SlidersHorizontal,
 } from "lucide-react";
+import { ALL_BRANDS_AUTO, CATEGORIES_AUTO } from "../lib/vehicleData";
 
 /* ── Icône moto (SVG custom car lucide n'a pas de moto) ── */
 const MotoIcon = ({ size = 20, className = "" }: { size?: number; className?: string }) => (
@@ -19,29 +20,24 @@ const MotoIcon = ({ size = 20, className = "" }: { size?: number; className?: st
 
 /* ── types de véhicules par catégorie ──
    Chaque libellé porte la valeur réellement enregistrée sur l'annonce : un
-   filtre affiché sans valeur correspondante ne rendrait jamais rien. */
-const VOITURE_TYPES: readonly { label: string; value: string }[] = [
-  { label: "Citadine", value: "citadine" },
-  { label: "Berline", value: "berline" },
-  { label: "SUV", value: "suv" },
-  { label: "Coupé", value: "coupe" },
-  { label: "Cabriolet", value: "cabriolet" },
-  { label: "Break", value: "break" },
-  { label: "Monospace", value: "monospace" },
-  { label: "Luxe", value: "luxe" },
-];
+   filtre affiché sans valeur correspondante ne rendrait jamais rien. Dérivé
+   de CATEGORIES_AUTO (lib/vehicleData.ts), la même liste que le dépôt
+   d'annonce (Vendre.tsx) — sinon une catégorie comme "SUV" déposée là-bas
+   n'apparaît plus jamais dans ce filtre (valeurs qui divergent). */
+const VOITURE_TYPES: readonly { label: string; value: string }[] = CATEGORIES_AUTO.map((c) => ({
+  label: c,
+  value: c.toLowerCase(),
+}));
 const MOTO_SOUS: readonly { label: string; value: string }[] = [
   { label: "Motos", value: "moto" },
   { label: "Scooter", value: "scooter" },
   { label: "Quad", value: "quad" },
 ];
 
-const MARQUES_VOITURE = [
-  "Peugeot", "Renault", "Citroën", "Volkswagen", "BMW", "Mercedes", "Audi", "Toyota",
-  "Nissan", "Ford", "Opel", "Fiat", "Hyundai", "Kia", "Dacia", "Skoda", "Seat", "Volvo",
-  "Mazda", "Honda", "Suzuki", "Mitsubishi", "Jeep", "Land Rover", "Porsche", "Tesla",
-  "Mini", "Alfa Romeo", "DS", "Jaguar", "Lexus",
-];
+// Toutes les marques automobiles connues (lib/vehicleData.ts), pas une
+// sélection partielle — sinon une marque réellement déposée (ex: un
+// constructeur chinois ou indien) ne serait jamais filtrable ici.
+const MARQUES_VOITURE = ALL_BRANDS_AUTO;
 
 const CARBURANTS: readonly { label: string; value: string }[] = [
   { label: "Diesel", value: "diesel" },
