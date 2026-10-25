@@ -115,7 +115,8 @@ export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
 
 /** Routes client qu'aucun moteur ne revendique. */
 export const ROUTES_SANS_MOTEUR: readonly string[] = [
-  "/b2b"
+  "/b2b",
+  "/superadmin/fournisseurs"
 ];
 
 /** Routeurs tRPC montés qu'aucun moteur ne revendique. */
@@ -6433,8 +6434,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "cliquables": 0,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 25,
-        "mots": 53
+        "textes": 26,
+        "mots": 54
       }
     ],
     "ecransHotes": [
@@ -6834,8 +6835,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "pdg",
       "public"
     ],
-    "textes": 571,
-    "mots": 2938,
+    "textes": 572,
+    "mots": 2939,
     "battement": "contrat",
     "manques": [
       {
@@ -7461,6 +7462,13 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "route": "/garage/prise-rendez-vous",
         "composants": [
           "lib/currency.tsx"
+        ]
+      },
+      {
+        "fichier": "client/src/pages/superadmin/GestionFournisseurs.tsx",
+        "route": "/superadmin/fournisseurs",
+        "composants": [
+          "trpc.country"
         ]
       }
     ],
@@ -15223,6 +15231,13 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         ]
       },
       {
+        "fichier": "client/src/pages/superadmin/GestionFournisseurs.tsx",
+        "route": "/superadmin/fournisseurs",
+        "composants": [
+          "trpc.partners"
+        ]
+      },
+      {
         "fichier": "client/src/pages/investissement/DevenirInvestisseur.tsx",
         "route": "/investissement/devenir-investisseur",
         "composants": [
@@ -22131,6 +22146,13 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "composants": [
           "trpc.supplierEngine"
         ]
+      },
+      {
+        "fichier": "client/src/pages/superadmin/GestionFournisseurs.tsx",
+        "route": "/superadmin/fournisseurs",
+        "composants": [
+          "trpc.supplierEngine"
+        ]
       }
     ],
     "procedures": [
@@ -23080,7 +23102,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/vendre"
         ],
-        "cliquables": 44,
+        "cliquables": 45,
         "parMoteur": 0,
         "sansAction": 0,
         "textes": 281,

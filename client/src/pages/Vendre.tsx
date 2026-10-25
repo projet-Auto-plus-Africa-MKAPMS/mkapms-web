@@ -2130,7 +2130,14 @@ export default function Vendre() {
                     {fournisseursQuery.isLoading ? (
                       <p className="p-3 text-xs text-[#9CA3AF] text-center">Chargement…</p>
                     ) : filteredFournisseurs.length === 0 ? (
-                      <p className="p-3 text-xs text-[#9CA3AF] text-center">Aucun fournisseur trouvé</p>
+                      <div className="p-3 text-center">
+                        <p className="text-xs text-[#9CA3AF]">Aucun fournisseur trouvé</p>
+                        {isAdminOrEmployee && (
+                          <Link to="/superadmin/fournisseurs" target="_blank" className="mt-1 inline-block text-xs font-semibold text-[#D4AF37] hover:underline">
+                            Ajouter un fournisseur →
+                          </Link>
+                        )}
+                      </div>
                     ) : (
                       filteredFournisseurs.map((f: any) => (
                         <button
