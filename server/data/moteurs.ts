@@ -14861,7 +14861,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "parMoteur": 0,
         "sansAction": 0,
         "textes": 30,
-        "mots": 202
+        "mots": 209
       },
       {
         "fichier": "client/src/pages/vehicule-sur-commande/MesCommandes.tsx",
@@ -14969,7 +14969,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "role:prix_marge_valides"
     ],
     "textes": 108,
-    "mots": 472,
+    "mots": 479,
     "battement": "sonde",
     "manques": [
       {
