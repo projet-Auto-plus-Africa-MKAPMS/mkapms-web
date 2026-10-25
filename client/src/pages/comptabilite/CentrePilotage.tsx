@@ -1007,7 +1007,7 @@ export default function CentrePilotage() {
                 { label: "Cartes actives", value: "145", color: "text-purple-600" },
               ].map(s => <StatCard key={s.label} {...s} />)}
             </div>
-            <button className="w-full rounded-xl bg-white border border-[#E5E7EB] p-3 flex items-center justify-between"><span className="text-sm font-semibold text-[#111]">Consommation energetique</span><span className="text-sm font-black text-[#D4AF37]">12 450 kWh</span></button>
+            <div className="w-full rounded-xl bg-white border border-[#E5E7EB] p-3 flex items-center justify-between"><span className="text-sm font-semibold text-[#111]">Consommation energetique</span><span className="text-sm font-black text-[#D4AF37]">12 450 kWh</span></div>
           </div>
         )}
 
@@ -1024,7 +1024,7 @@ export default function CentrePilotage() {
                 { label: "Encours total", value: "245 000 EUR", color: "text-purple-600" },
               ].map(s => <StatCard key={s.label} {...s} />)}
             </div>
-            <button className="w-full rounded-xl bg-white border border-[#E5E7EB] p-3 flex items-center justify-between"><span className="text-sm font-semibold text-[#111]">Prochaines echeances</span><span className="text-sm font-black text-amber-600">12 dossiers</span></button>
+            <div className="w-full rounded-xl bg-white border border-[#E5E7EB] p-3 flex items-center justify-between"><span className="text-sm font-semibold text-[#111]">Prochaines echeances</span><span className="text-sm font-black text-amber-600">12 dossiers</span></div>
           </div>
         )}
 
