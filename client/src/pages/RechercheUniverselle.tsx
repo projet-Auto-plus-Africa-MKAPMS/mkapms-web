@@ -60,7 +60,7 @@ interface SearchResult {
 // ── Pages statiques indexables ──────────────────────────────────────
 const STATIC_PAGES: SearchResult[] = [
   // Services
-  { id: "s-depot", titre: "Deposer une annonce", description: "Publier votre vehicule a la vente sur MKA.P-MS", category: "services", to: "/acheter/depot-annonce", icon: Car, priority: 3 },
+  { id: "s-depot", titre: "Deposer une annonce", description: "Publier votre vehicule a la vente sur MKA.P-MS", category: "services", to: "/vendre", icon: Car, priority: 3 },
   { id: "s-estim", titre: "Estimer mon vehicule", description: "Estimation gratuite de la valeur de votre vehicule", category: "services", to: "/acheter/estimation", icon: Star, priority: 3 },
   { id: "s-cg", titre: "Carte grise", description: "Faire votre carte grise en ligne — demarches simplifiees", category: "services", to: "/carte-grise", icon: FileText, priority: 3 },
   { id: "s-devis", titre: "Demander un devis garage", description: "Devis gratuit pour reparation, entretien, revision", category: "garage", to: "/devis", icon: Wrench, priority: 3 },
@@ -422,7 +422,7 @@ export default function RechercheUniverselle() {
                   { label: "Acheter", icon: Car, to: "/acheter", color: "bg-blue-50 text-blue-600 border-blue-200" },
                   { label: "Louer", icon: Key, to: "/louer", color: "bg-amber-50 text-[#D4AF37] border-amber-200" },
                   { label: "Garage", icon: Wrench, to: "/garages", color: "bg-green-50 text-green-600 border-green-200" },
-                  { label: "Vendre", icon: Car, to: "/acheter/depot-annonce", color: "bg-red-50 text-red-600 border-red-200" },
+                  { label: "Vendre", icon: Car, to: "/vendre", color: "bg-red-50 text-red-600 border-red-200" },
                   { label: "Estimation", icon: Star, to: "/acheter/estimation", color: "bg-purple-50 text-purple-600 border-purple-200" },
                   { label: "Encheres", icon: Gavel, to: "/acheter/encheres", color: "bg-slate-50 text-[#111] border-slate-200" },
                   { label: "Pieces", icon: Settings, to: "/pieces", color: "bg-orange-50 text-orange-600 border-orange-200" },

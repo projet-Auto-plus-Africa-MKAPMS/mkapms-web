@@ -196,7 +196,7 @@ export default function Encheres() {
 
       {user && (
         <a
-          href="/acheter/depot-annonce"
+          href="/vendre"
           className="inline-flex items-center gap-2 mt-8 text-sm font-medium text-[#0B1B34]"
         >
           <Plus className="w-4 h-4" /> Déposer un véhicule pour le mettre en enchère

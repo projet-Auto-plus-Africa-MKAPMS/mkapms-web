@@ -100,14 +100,14 @@ export interface PerimetreMoteur {
 }
 
 export const MOTEURS_TOTAL = 97;
-export const MANQUES_TOTAL = 541;
+export const MANQUES_TOTAL = 542;
 export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
   "bouton_sans_action": 52,
   "dependance_non_declaree": 76,
   "sans_logique_serveur": 10,
   "ecran_sans_contenu": 342,
   "sans_ecran": 8,
-  "dependance_sans_preuve": 43,
+  "dependance_sans_preuve": 44,
   "bouton_declare_absent_ecran": 6,
   "emission_dynamique": 2,
   "destination_inconnue": 2
@@ -1004,13 +1004,6 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "fichier": "client/src/pages/VenteMKAPMS.tsx",
         "route": "/acheter/mkapms-officiel",
-        "composants": [
-          "trpc.annonces"
-        ]
-      },
-      {
-        "fichier": "client/src/pages/DepotAnnonce.tsx",
-        "route": "/acheter/depot-annonce",
         "composants": [
           "trpc.annonces"
         ]
@@ -21796,13 +21789,6 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     ],
     "ecransHotes": [
       {
-        "fichier": "client/src/pages/DepotAnnonce.tsx",
-        "route": "/acheter/depot-annonce",
-        "composants": [
-          "lib/learnedValues.ts"
-        ]
-      },
-      {
         "fichier": "client/src/pages/Abonnements.tsx",
         "route": "/vente/abonnements",
         "composants": [
@@ -24029,8 +24015,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "vente"
     ],
     "dependancesDetectees": [
-      "achat",
-      "smart"
+      "achat"
     ],
     "dependances": [
       "achat",
@@ -24041,11 +24026,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "integrationsTechniques": [],
     "preuvesDependances": {
       "achat": [
-        "client/src/pages/DepotAnnonce.tsx appelle trpc.annonces",
         "client/src/pages/MesAnnonces.tsx appelle trpc.annonces"
-      ],
-      "smart": [
-        "client/src/pages/DepotAnnonce.tsx embarque lib/learnedValues.ts (trpc.smartEngine)"
       ]
     },
     "dependants": [],
@@ -24060,17 +24041,6 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "/vente/mes-annonces"
     ],
     "ecrans": [
-      {
-        "fichier": "client/src/pages/DepotAnnonce.tsx",
-        "routes": [
-          "/acheter/depot-annonce"
-        ],
-        "cliquables": 25,
-        "parMoteur": 0,
-        "sansAction": 0,
-        "textes": 127,
-        "mots": 910
-      },
       {
         "fichier": "client/src/pages/MesAnnonces.tsx",
         "routes": [
@@ -24088,13 +24058,17 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "procedures": [],
     "tables": [],
     "acces": [],
-    "textes": 163,
-    "mots": 1036,
+    "textes": 36,
+    "mots": 126,
     "battement": "sonde",
     "manques": [
       {
         "genre": "dependance_sans_preuve",
         "detail": "vente"
+      },
+      {
+        "genre": "dependance_sans_preuve",
+        "detail": "smart"
       },
       {
         "genre": "sans_logique_serveur",

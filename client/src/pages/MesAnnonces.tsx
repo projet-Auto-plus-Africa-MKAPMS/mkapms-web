@@ -77,7 +77,7 @@ export default function MesAnnonces() {
           <div className="rounded-xl bg-white border border-slate-200 p-8 text-center">
             <Car size={40} className="mx-auto text-slate-300" />
             <p className="mt-3 text-sm text-slate-500">Aucune annonce pour le moment</p>
-            <Link to="/acheter/depot-annonce" className="mt-3 inline-block rounded-lg bg-red-600 px-5 py-2.5 text-sm font-bold text-white">Publier une annonce</Link>
+            <Link to="/vendre" className="mt-3 inline-block rounded-lg bg-red-600 px-5 py-2.5 text-sm font-bold text-white">Publier une annonce</Link>
           </div>
         )}
 

@@ -8,7 +8,7 @@ import { ChevronLeft, ShoppingCart, Tag, FileText, Heart, MessageSquare, Package
 
 const SECTIONS = [
   { label: "Acheter un véhicule", icon: ShoppingCart, to: "/acheter", color: "bg-[#D4AF37]", count: null },
-  { label: "Vendre mon véhicule", icon: Tag, to: "/acheter/depot-annonce", color: "bg-green-600", count: null },
+  { label: "Vendre mon véhicule", icon: Tag, to: "/vendre", color: "bg-green-600", count: null },
   { label: "Mes annonces", icon: FileText, to: "/acheter/mes-annonces", color: "bg-blue-600", count: 2 },
   { label: "Mes favoris", icon: Heart, to: "/louer/favoris", color: "bg-red-500", count: 5 },
   { label: "Mes messages", icon: MessageSquare, to: "/messagerie", color: "bg-purple-600", count: 3 },
@@ -44,7 +44,7 @@ export default function TableauBordParticulier() {
           <ShoppingCart size={20} className="mx-auto text-white" />
           <p className="text-sm font-bold text-white mt-1">Acheter</p>
         </Link>
-        <Link to="/acheter/depot-annonce" className="rounded-xl bg-white border border-[#E5E7EB] p-4 text-center active:scale-[0.98] transition shadow-md">
+        <Link to="/vendre" className="rounded-xl bg-white border border-[#E5E7EB] p-4 text-center active:scale-[0.98] transition shadow-md">
           <Tag size={20} className="mx-auto text-[#D4AF37]" />
           <p className="text-sm font-bold text-[#111] mt-1">Vendre</p>
         </Link>

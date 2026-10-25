@@ -99,7 +99,7 @@ export default function GestionStockVO() {
               lancer le suivi des étapes.
             </p>
             <Link
-              to="/acheter/depot-annonce"
+              to="/vendre"
               className="btn-primary mt-5 inline-flex items-center justify-center gap-2"
             >
               <Plus size={16} /> Ajouter un véhicule
