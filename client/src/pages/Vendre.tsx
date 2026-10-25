@@ -297,6 +297,40 @@ export default function Vendre() {
   const [surCommandeConditionsRemboursement, setSurCommandeConditionsRemboursement] = useState("");
   const [surCommandeConditionsAnnulation, setSurCommandeConditionsAnnulation] = useState("");
   const [surCommandeAdresseExacte, setSurCommandeAdresseExacte] = useState("");
+  // Sélecteur fournisseur (étape « Véhicule sur commande ») — l'employé ne
+  // connaît jamais l'identifiant numérique interne d'un fournisseur ; un
+  // champ texte libre l'amenait à taper un nom/repère inventé (ex. « AUTO1 »),
+  // rejeté par le serveur (NaN). Même patron que la recherche « Marque »
+  // ci-dessous : recherche par nom/référence, sélection d'un fournisseur réel.
+  const fournisseursQuery = trpc.supplierEngine.liste.useQuery(undefined, { enabled: !!vehiculeSurCommande });
+  const [fournisseurSearch, setFournisseurSearch] = useState("");
+  const [fournisseurDropdownOpen, setFournisseurDropdownOpen] = useState(false);
+  const fournisseurDropdownRef = useRef<HTMLDivElement>(null);
+  const fournisseurInputRef = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    function handleClickOutsideFournisseur(e: MouseEvent) {
+      if (fournisseurDropdownRef.current && !fournisseurDropdownRef.current.contains(e.target as Node)) {
+        setFournisseurDropdownOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutsideFournisseur);
+    return () => document.removeEventListener("mousedown", handleClickOutsideFournisseur);
+  }, []);
+  const fournisseursListe = fournisseursQuery.data ?? [];
+  const fournisseurSelectionne = useMemo(
+    () => fournisseursListe.find((f: any) => String(f.id) === surCommandeSupplierProfileId.trim()) ?? null,
+    [fournisseursListe, surCommandeSupplierProfileId],
+  );
+  const filteredFournisseurs = useMemo(() => {
+    if (!fournisseurSearch.trim()) return fournisseursListe;
+    const q = fournisseurSearch.toLowerCase().trim();
+    return fournisseursListe.filter((f: any) => f.companyLegalName?.toLowerCase().includes(q) || f.reference?.toLowerCase().includes(q));
+  }, [fournisseurSearch, fournisseursListe]);
+  const selectFournisseur = useCallback((f: any) => {
+    setSurCommandeSupplierProfileId(String(f.id));
+    setFournisseurSearch("");
+    setFournisseurDropdownOpen(false);
+  }, []);
   // Estimation indicative au dépôt — calcul local pur, jamais une connexion
   // fournisseur ni une IA : seule la décision finale (champ Prix de l'étape
   // Informations, inchangé) est effectivement publiée. Distincte du
@@ -810,7 +844,7 @@ export default function Vendre() {
     // garantit un retour visible à chaque clic plutôt qu'un échec silencieux
     // si jamais le bouton n'était pas réellement désactivé.
     if (vehiculeSurCommande && !surCommandeSupplierIdValide) {
-      alert("Renseignez un ID fournisseur valide (nombre entier positif) à l'étape « Véhicule sur commande » avant de publier.");
+      alert("Sélectionnez un fournisseur à l'étape « Véhicule sur commande » avant de publier.");
       return;
     }
     const confortList = selectedEquipements.filter((e) => (equipRef["Confort"] || []).includes(e));
@@ -2060,15 +2094,59 @@ export default function Vendre() {
               <p className="text-sm font-bold text-[#111] flex items-center gap-1.5"><Key size={14} className="text-[#D4AF37]" /> Fournisseur et localisation</p>
               <p className="text-xs text-[#6B7280] mt-0.5">Affichés aux clients dans « Voir les détails » sur la fiche produit. Facultatif, mais recommandé.</p>
             </div>
-            <div>
-              <label className="block text-sm font-semibold text-[#111] mb-1.5">ID fournisseur (Supplier Engine) *</label>
-              <input
-                className="w-full rounded-xl border border-[#E5E7EB] px-4 py-3 text-sm"
-                inputMode="numeric"
-                value={surCommandeSupplierProfileId}
-                onChange={(e) => setSurCommandeSupplierProfileId(e.target.value)}
-                placeholder="Ex : 42"
-              />
+            <div ref={fournisseurDropdownRef} className="relative">
+              <label className="block text-sm font-semibold text-[#111] mb-1.5">Fournisseur *</label>
+              <div
+                className="w-full rounded-xl border border-[#E5E7EB] px-4 py-3 text-sm flex items-center cursor-pointer bg-white"
+                onClick={() => { setFournisseurDropdownOpen(!fournisseurDropdownOpen); setTimeout(() => fournisseurInputRef.current?.focus(), 50); }}
+              >
+                <span className={fournisseurSelectionne ? "text-[#111]" : "text-[#9CA3AF]"}>
+                  {fournisseurSelectionne ? `${fournisseurSelectionne.companyLegalName} (${fournisseurSelectionne.reference})` : "Choisir un fournisseur"}
+                </span>
+                <ChevronDown className="ml-auto h-4 w-4 text-[#9CA3AF] shrink-0" />
+              </div>
+              {fournisseurDropdownOpen && (
+                <div className="absolute z-50 mt-1 w-full rounded-xl bg-white border border-[#E5E7EB] shadow-lg max-h-64 overflow-hidden flex flex-col">
+                  <div className="p-2 border-b border-[#E5E7EB]">
+                    <div className="flex items-center gap-2 rounded-lg bg-[#F9FAFB] border border-[#E5E7EB] px-3 py-2">
+                      <Search className="h-4 w-4 text-[#9CA3AF]" />
+                      <input
+                        ref={fournisseurInputRef}
+                        type="text"
+                        value={fournisseurSearch}
+                        onChange={(e) => setFournisseurSearch(e.target.value)}
+                        placeholder="Rechercher par nom ou référence..."
+                        className="w-full bg-transparent text-sm outline-none placeholder-[#9CA3AF]"
+                        autoFocus
+                      />
+                      {fournisseurSearch && (
+                        <button onClick={() => setFournisseurSearch("")} className="text-[#9CA3AF] hover:text-[#374151]">
+                          <X className="h-3.5 w-3.5" />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                  <div className="overflow-y-auto max-h-48">
+                    {fournisseursQuery.isLoading ? (
+                      <p className="p-3 text-xs text-[#9CA3AF] text-center">Chargement…</p>
+                    ) : filteredFournisseurs.length === 0 ? (
+                      <p className="p-3 text-xs text-[#9CA3AF] text-center">Aucun fournisseur trouvé</p>
+                    ) : (
+                      filteredFournisseurs.map((f: any) => (
+                        <button
+                          key={f.id}
+                          onClick={() => selectFournisseur(f)}
+                          className={`w-full text-left px-4 py-2 text-sm hover:bg-[#FFFBEB] hover:text-[#D4AF37] transition ${
+                            String(f.id) === surCommandeSupplierProfileId.trim() ? "bg-[#FFFBEB] text-[#D4AF37] font-semibold" : "text-[#374151]"
+                          }`}
+                        >
+                          {f.companyLegalName} <span className="text-[#9CA3AF]">({f.reference})</span>
+                        </button>
+                      ))
+                    )}
+                  </div>
+                </div>
+              )}
               <p className="text-[10px] text-[#9CA3AF] mt-1">Obligatoire pour publier — lie cette annonce à sa commande fournisseur. Jamais visible du client.</p>
             </div>
             <div>
@@ -2511,7 +2589,7 @@ export default function Vendre() {
             <div className="rounded-xl border-2 border-amber-400 bg-amber-50 p-3 flex items-start gap-2">
               <Info size={16} className="text-amber-600 shrink-0 mt-0.5" />
               <p className="text-sm font-semibold text-amber-800">
-                Impossible de publier : renseignez un ID fournisseur valide (nombre) à l'étape « Véhicule sur commande » ci-dessus.
+                Impossible de publier : sélectionnez un fournisseur à l'étape « Véhicule sur commande » ci-dessus.
               </p>
             </div>
           )}

@@ -100,9 +100,9 @@ export interface PerimetreMoteur {
 }
 
 export const MOTEURS_TOTAL = 97;
-export const MANQUES_TOTAL = 534;
+export const MANQUES_TOTAL = 535;
 export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
-  "dependance_non_declaree": 76,
+  "dependance_non_declaree": 77,
   "sans_logique_serveur": 10,
   "ecran_sans_contenu": 342,
   "sans_ecran": 8,
@@ -22088,7 +22088,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "order_engine",
       "parts_engine",
       "payout_engine",
-      "vehicle_engine"
+      "vehicle_engine",
+      "vente"
     ],
     "evenementsPublies": [],
     "evenementsConsommes": [],
@@ -22123,7 +22124,15 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "mots": 47
       }
     ],
-    "ecransHotes": [],
+    "ecransHotes": [
+      {
+        "fichier": "client/src/pages/Vendre.tsx",
+        "route": "/vendre",
+        "composants": [
+          "trpc.supplierEngine"
+        ]
+      }
+    ],
     "procedures": [
       "activer",
       "ajouterContact",
@@ -22763,6 +22772,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "pro_portal",
       "search",
       "smart",
+      "supplier_engine",
       "vo_espaces"
     ],
     "dependances": [
@@ -22780,6 +22790,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "pro_portal",
       "search",
       "smart",
+      "supplier_engine",
       "vo_espaces"
     ],
     "integrationsTechniques": [],
@@ -22831,6 +22842,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "smart": [
         "client/src/pages/Abonnements.tsx appelle trpc.smartEngine",
         "client/src/pages/Vendre.tsx embarque lib/learnedValues.ts (trpc.smartEngine)"
+      ],
+      "supplier_engine": [
+        "client/src/pages/Vendre.tsx appelle trpc.supplierEngine"
       ],
       "vo_espaces": [
         "client/src/pages/TableauBordProVente.tsx appelle trpc.voEspaces",
@@ -23066,11 +23080,11 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/vendre"
         ],
-        "cliquables": 42,
+        "cliquables": 44,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 276,
-        "mots": 1338
+        "textes": 281,
+        "mots": 1528
       },
       {
         "fichier": "client/src/pages/depot-annonce/AnalyseIA.tsx",
@@ -23771,8 +23785,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "procedures": [],
     "tables": [],
     "acces": [],
-    "textes": 1036,
-    "mots": 3900,
+    "textes": 1041,
+    "mots": 4090,
     "battement": "sonde",
     "manques": [
       {
@@ -23874,6 +23888,10 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "genre": "dependance_non_declaree",
         "detail": "search — client/src/pages/vente/CentreAlertesRecherche.tsx appelle trpc.searches"
+      },
+      {
+        "genre": "dependance_non_declaree",
+        "detail": "supplier_engine — client/src/pages/Vendre.tsx appelle trpc.supplierEngine"
       },
       {
         "genre": "dependance_sans_preuve",
