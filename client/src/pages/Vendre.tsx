@@ -272,6 +272,11 @@ export default function Vendre() {
   // `vehiculeSurCommande` est présent ; la publication normale, elle, reste
   // à 4 étapes, inchangée.
   const [surCommandeSupplierProfileId, setSurCommandeSupplierProfileId] = useState(supplierProfileIdParam ?? "");
+  // Le serveur exige un entier positif (server/routers/annonces.ts, champ
+  // vehiculeSurCommande.supplierProfileId) : valider ici la même règle,
+  // pas seulement une présence non vide, pour ne jamais envoyer un NaN ou
+  // un 0 qui ferait échouer la publication sans message clair.
+  const surCommandeSupplierIdValide = /^\d+$/.test(surCommandeSupplierProfileId.trim()) && Number(surCommandeSupplierProfileId.trim()) > 0;
   const [surCommandeLocalisation, setSurCommandeLocalisation] = useState("");
   const [surCommandePrep, setSurCommandePrep] = useState("");
   const [surCommandeRetourStock, setSurCommandeRetourStock] = useState(false);
@@ -801,6 +806,13 @@ export default function Vendre() {
   });
 
   function submit() {
+    // Garde-fou explicite, indépendant de l'attribut disabled du bouton :
+    // garantit un retour visible à chaque clic plutôt qu'un échec silencieux
+    // si jamais le bouton n'était pas réellement désactivé.
+    if (vehiculeSurCommande && !surCommandeSupplierIdValide) {
+      alert("Renseignez un ID fournisseur valide (nombre entier positif) à l'étape « Véhicule sur commande » avant de publier.");
+      return;
+    }
     const confortList = selectedEquipements.filter((e) => (equipRef["Confort"] || []).includes(e));
     const multiList = selectedEquipements.filter((e) => (equipRef["Multimédia & Connectivité"] || equipRef["Multimédia & Connectivité"] || []).includes(e));
     const secuList = selectedEquipements.filter((e) => (equipRef["Sécurité"] || []).includes(e));
@@ -901,6 +913,7 @@ export default function Vendre() {
         ...(vehiculeSurCommande
           ? {
               vehiculeSurCommande: {
+                // Validité déjà garantie par le garde-fou en tête de submit().
                 supplierProfileId: Number(surCommandeSupplierProfileId.trim()),
                 vehicleLocation: surCommandeLocalisation.trim() || undefined,
                 deliveryPrepDetails: surCommandePrep.trim() || undefined,
@@ -2492,6 +2505,17 @@ export default function Vendre() {
             </div>
           </div>
 
+          {/* Pourquoi le bouton Publier est bloqué — toujours visible AVANT le
+              bouton, jamais seulement un bouton grisé sans explication. */}
+          {vehiculeSurCommande && !surCommandeSupplierIdValide && (
+            <div className="rounded-xl border-2 border-amber-400 bg-amber-50 p-3 flex items-start gap-2">
+              <Info size={16} className="text-amber-600 shrink-0 mt-0.5" />
+              <p className="text-sm font-semibold text-amber-800">
+                Impossible de publier : renseignez un ID fournisseur valide (nombre) à l'étape « Véhicule sur commande » ci-dessus.
+              </p>
+            </div>
+          )}
+
           {/* Navigation */}
           <div className="flex gap-3">
             <button onClick={() => setStep(vehiculeSurCommande ? 4 : 3)} className="rounded-xl border border-[#D1D5DB] px-6 py-3 text-sm font-medium text-[#374151] flex items-center gap-2 hover:bg-[#F3F4F6]">
@@ -2499,7 +2523,7 @@ export default function Vendre() {
             </button>
             <button
               onClick={submit}
-              disabled={create.isPending || updateMut.isPending || !form.marque || !form.modele || !form.prix || (!!vehiculeSurCommande && !surCommandeSupplierProfileId.trim())}
+              disabled={create.isPending || updateMut.isPending || !form.marque || !form.modele || !form.prix || (!!vehiculeSurCommande && !surCommandeSupplierIdValide)}
               className="flex-1 rounded-xl bg-[#111] py-3.5 text-sm font-bold text-white shadow-lg hover:bg-[#333] disabled:opacity-50 transition"
             >
               {editId
@@ -2507,9 +2531,6 @@ export default function Vendre() {
                 : (create.isPending ? "Publication en cours..." : "Publier l'annonce")}
             </button>
           </div>
-          {vehiculeSurCommande && !surCommandeSupplierProfileId.trim() && (
-            <p className="text-sm text-amber-700 text-center">Renseignez l'ID fournisseur à l'étape « Véhicule sur commande » pour pouvoir publier.</p>
-          )}
           {(create.error || updateMut.error) && <p className="text-sm text-red-600 text-center">{(create.error || updateMut.error)!.message}</p>}
           <p className="text-xs text-[#9CA3AF] text-center pb-6">
             Des options de mise en avant (Boost, Premium) seront proposées après la publication.
