@@ -14861,7 +14861,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "parMoteur": 0,
         "sansAction": 0,
         "textes": 30,
-        "mots": 202
+        "mots": 209
       },
       {
         "fichier": "client/src/pages/vehicule-sur-commande/MesCommandes.tsx",
@@ -14969,7 +14969,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "role:prix_marge_valides"
     ],
     "textes": 108,
-    "mots": 472,
+    "mots": 479,
     "battement": "sonde",
     "manques": [
       {
@@ -23069,8 +23069,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "cliquables": 42,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 273,
-        "mots": 1247
+        "textes": 275,
+        "mots": 1267
       },
       {
         "fichier": "client/src/pages/depot-annonce/AnalyseIA.tsx",
@@ -23771,8 +23771,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "procedures": [],
     "tables": [],
     "acces": [],
-    "textes": 1033,
-    "mots": 3809,
+    "textes": 1035,
+    "mots": 3829,
     "battement": "sonde",
     "manques": [
       {

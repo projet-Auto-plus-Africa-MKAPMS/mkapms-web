@@ -258,12 +258,20 @@ export default function Vendre() {
   // l'Order Engine (server/routers/annonces.ts, champ `vehiculeSurCommande`).
   // Absent → comportement strictement inchangé.
   const supplierProfileIdParam = searchParams.get("supplierProfileId");
-  const vehiculeSurCommande = searchParams.get("vehiculeSurCommande") === "1" && supplierProfileIdParam ? { supplierProfileId: Number(supplierProfileIdParam) } : undefined;
+  // Le contexte « véhicule sur commande » s'active sur le seul flag
+  // `vehiculeSurCommande=1` — le bouton « Manuel » du portail fournisseur
+  // (DepotRapide.tsx) le transmet même quand le fournisseur n'est pas
+  // encore connu (il peut être renseigné plus tard, à l'étape 4 ci-dessous).
+  // Le faire dépendre aussi de `supplierProfileId` faisait disparaître les
+  // 5 étapes et l'étape « Véhicule sur commande » dès que ce champ était
+  // vide au départ.
+  const vehiculeSurCommande = searchParams.get("vehiculeSurCommande") === "1" ? true : undefined;
   // Champs propres au véhicule sur commande — délibérément séparés de `form`
   // ci-dessous, qui reste strictement identique au parcours normal. Ils ne
   // s'ajoutent qu'en une étape 4 supplémentaire (sur 5) quand
   // `vehiculeSurCommande` est présent ; la publication normale, elle, reste
   // à 4 étapes, inchangée.
+  const [surCommandeSupplierProfileId, setSurCommandeSupplierProfileId] = useState(supplierProfileIdParam ?? "");
   const [surCommandeLocalisation, setSurCommandeLocalisation] = useState("");
   const [surCommandePrep, setSurCommandePrep] = useState("");
   const [surCommandeRetourStock, setSurCommandeRetourStock] = useState(false);
@@ -885,7 +893,7 @@ export default function Vendre() {
         ...(vehiculeSurCommande
           ? {
               vehiculeSurCommande: {
-                ...vehiculeSurCommande,
+                supplierProfileId: Number(surCommandeSupplierProfileId.trim()),
                 vehicleLocation: surCommandeLocalisation.trim() || undefined,
                 deliveryPrepDetails: surCommandePrep.trim() || undefined,
                 returnToStockIfUnsold: surCommandeRetourStock,
@@ -2030,6 +2038,17 @@ export default function Vendre() {
               <p className="text-xs text-[#6B7280] mt-0.5">Affichés aux clients dans « Voir les détails » sur la fiche produit. Facultatif, mais recommandé.</p>
             </div>
             <div>
+              <label className="block text-sm font-semibold text-[#111] mb-1.5">ID fournisseur (Supplier Engine) *</label>
+              <input
+                className="w-full rounded-xl border border-[#E5E7EB] px-4 py-3 text-sm"
+                inputMode="numeric"
+                value={surCommandeSupplierProfileId}
+                onChange={(e) => setSurCommandeSupplierProfileId(e.target.value)}
+                placeholder="Ex : 42"
+              />
+              <p className="text-[10px] text-[#9CA3AF] mt-1">Obligatoire pour publier — lie cette annonce à sa commande fournisseur. Jamais visible du client.</p>
+            </div>
+            <div>
               <label className="block text-sm font-semibold text-[#111] mb-1.5">Localisation actuelle du véhicule</label>
               <input
                 className="w-full rounded-xl border border-[#E5E7EB] px-4 py-3 text-sm"
@@ -2470,7 +2489,7 @@ export default function Vendre() {
             </button>
             <button
               onClick={submit}
-              disabled={create.isPending || updateMut.isPending || !form.marque || !form.modele || !form.prix}
+              disabled={create.isPending || updateMut.isPending || !form.marque || !form.modele || !form.prix || (!!vehiculeSurCommande && !surCommandeSupplierProfileId.trim())}
               className="flex-1 rounded-xl bg-[#111] py-3.5 text-sm font-bold text-white shadow-lg hover:bg-[#333] disabled:opacity-50 transition"
             >
               {editId
@@ -2478,6 +2497,9 @@ export default function Vendre() {
                 : (create.isPending ? "Publication en cours..." : "Publier l'annonce")}
             </button>
           </div>
+          {vehiculeSurCommande && !surCommandeSupplierProfileId.trim() && (
+            <p className="text-sm text-amber-700 text-center">Renseignez l'ID fournisseur à l'étape « Véhicule sur commande » pour pouvoir publier.</p>
+          )}
           {(create.error || updateMut.error) && <p className="text-sm text-red-600 text-center">{(create.error || updateMut.error)!.message}</p>}
           <p className="text-xs text-[#9CA3AF] text-center pb-6">
             Des options de mise en avant (Boost, Premium) seront proposées après la publication.
