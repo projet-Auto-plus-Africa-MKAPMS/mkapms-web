@@ -21063,8 +21063,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "cliquables": 18,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 53,
-        "mots": 289
+        "textes": 45,
+        "mots": 281
       }
     ],
     "ecransHotes": [
@@ -21103,8 +21103,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "admin",
       "public"
     ],
-    "textes": 199,
-    "mots": 944,
+    "textes": 191,
+    "mots": 936,
     "battement": "pont_os",
     "manques": [
       {
@@ -23107,7 +23107,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "parMoteur": 0,
         "sansAction": 0,
         "textes": 283,
-        "mots": 1548
+        "mots": 1531
       },
       {
         "fichier": "client/src/pages/depot-annonce/AnalyseIA.tsx",
@@ -23809,7 +23809,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "tables": [],
     "acces": [],
     "textes": 1043,
-    "mots": 4110,
+    "mots": 4093,
     "battement": "sonde",
     "manques": [
       {

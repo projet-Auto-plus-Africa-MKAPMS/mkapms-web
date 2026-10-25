@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { getAnnonceUrl } from "../lib/annonceUrl";
-import { ALL_BRANDS_AUTO, getModelsForBrand, getVersionsForModel, getVersionSpec } from "../lib/vehicleData";
+import { ALL_BRANDS_AUTO, CATEGORIES_AUTO, CATEGORIES_MOTO, getModelsForBrand, getVersionsForModel, getVersionSpec } from "../lib/vehicleData";
 import {
   Search, Camera, CheckCircle, Shield, Eye, Zap, Lock,
   ChevronRight, ChevronDown, Upload, Star, Car, Bike, Truck, Bus,
@@ -163,18 +163,6 @@ const MARQUES_MOTO = [
   "Triumph", "Harley-Davidson", "Indian", "Aprilia", "Piaggio", "Vespa",
   "MV Agusta", "Benelli", "Royal Enfield", "Husqvarna", "Gas Gas",
   "CF Moto", "Sym", "Kymco", "Peugeot", "MBK", "Autre",
-];
-
-const CATEGORIES_AUTO = [
-  "Citadine", "Berline", "Break", "SUV / Crossover", "Coupé", "Cabriolet",
-  "Monospace", "Ludospace", "Pick-up", "Utilitaire", "Camping-car",
-  "4x4", "Limousine", "Luxe / Prestige",
-];
-const CATEGORIES_MOTO = [
-  "Roadster / Naked", "Sportive", "Trail / Adventure", "Custom / Cruiser",
-  "Touring / GT", "Scooter", "Scooter 125", "Scooter 3 roues",
-  "Enduro", "Supermotard", "Café Racer", "Scrambler",
-  "Quad", "Trike", "Électrique",
 ];
 
 /* ─────────────────────────────────────────────────────────────────────────
@@ -356,7 +344,10 @@ export default function Vendre() {
   // explicitement « aucun second formulaire » : il doit ouvrir directement
   // la saisie manuelle (étape 2, comme le lien « Saisir manuellement les
   // informations » de l'étape 1), jamais l'écran plaque/VIN de l'étape 1.
-  const [step, setStep] = useState(vehiculeSurCommande ? 2 : 1);
+  // Même règle pour « Modifier » (?edit=) : le véhicule est déjà identifié
+  // (l'annonce existe), remontrer l'écran plaque/VIN de l'étape 1 forçait à
+  // tout recommencer au lieu d'atterrir directement sur la fiche pré-remplie.
+  const [step, setStep] = useState(vehiculeSurCommande || editId ? 2 : 1);
   const [identTab, setIdentTab] = useState<"plaque" | "vin">("plaque");
   const [plaque, setPlaque] = useState("");
   const [vin, setVin] = useState("");
