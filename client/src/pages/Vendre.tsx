@@ -474,7 +474,12 @@ export default function Vendre() {
     const fam = searchParams.get("famille");
     const cat = searchParams.get("categorie");
     const typ = searchParams.get("type");
-    if (!depot && !fam && !cat && !typ) return;
+    const modeCommande = searchParams.get("vehiculeSurCommande") === "1";
+    // Le bouton Manuel peut modifier uniquement la query-string alors que
+    // Vendre est déjà monté. Il faut donc resynchroniser le mode ici, pas
+    // seulement dans l'initialiseur de useState, sinon l'écran reste sur la
+    // vitrine et donne l'impression d'un retour arrière.
+    if (!depot && !fam && !cat && !typ && !modeCommande) return;
     depotParamApplied.current = true;
     if (fam === "moto" || fam === "auto") setFamille(fam);
     if (cat) setForm((f) => ({ ...f, categorie: cat }));

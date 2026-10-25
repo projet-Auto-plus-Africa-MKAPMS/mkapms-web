@@ -21,9 +21,6 @@ export interface BoutonSansAction {
 }
 
 export const BOUTONS_SANS_ACTION: readonly BoutonSansAction[] = [
-  { fichier: "client/src/pages/comptabilite/CentrePilotage.tsx", ligne: 1010, libelle: "Consommation energetique 12 450 kWh" },
-  { fichier: "client/src/pages/comptabilite/CentrePilotage.tsx", ligne: 1027, libelle: "Prochaines echeances 12 dossiers" },
-  { fichier: "client/src/pages/finance/LOAFinance.tsx", ligne: 11, libelle: "Simulation indisponible" },
   { fichier: "client/src/pages/garage/ControleQualiteGarage.tsx", ligne: 16, libelle: "Validation atelier ✓" },
   { fichier: "client/src/pages/garage/ControleQualiteGarage.tsx", ligne: 16, libelle: "Validation responsable" },
   { fichier: "client/src/pages/garage/FlottesEntreprises.tsx", ligne: 17, libelle: "Ajouter un véhicule" },
@@ -33,7 +30,6 @@ export const BOUTONS_SANS_ACTION: readonly BoutonSansAction[] = [
   { fichier: "client/src/pages/garage/Pneumatiques.tsx", ligne: 19, libelle: "Montage + équilibrage" },
   { fichier: "client/src/pages/garage/Pneumatiques.tsx", ligne: 19, libelle: "Pneu seul" },
   { fichier: "client/src/pages/garage/PreparationVenteVO.tsx", ligne: 16, libelle: "" },
-  { fichier: "client/src/pages/garage/RecherchePieces.tsx", ligne: 12, libelle: "Rechercher" },
   { fichier: "client/src/pages/garage/RelanceClient.tsx", ligne: 17, libelle: "Envoyer relance" },
   { fichier: "client/src/pages/garage/TempsIntervention.tsx", ligne: 15, libelle: "Pause" },
   { fichier: "client/src/pages/garage/TempsIntervention.tsx", ligne: 15, libelle: "Fin" },
@@ -42,12 +38,10 @@ export const BOUTONS_SANS_ACTION: readonly BoutonSansAction[] = [
   { fichier: "client/src/pages/GestionConducteurs.tsx", ligne: 66, libelle: "Ajouter le conducteur" },
   { fichier: "client/src/pages/GestionConducteurs.tsx", ligne: 85, libelle: "" },
   { fichier: "client/src/pages/GestionFranchises.tsx", ligne: 89, libelle: "Appliquer la franchise" },
-  { fichier: "client/src/pages/LocationLOA.tsx", ligne: 100, libelle: "Simulation indisponible" },
   { fichier: "client/src/pages/pieces/AbonnementsProPieces.tsx", ligne: 17, libelle: "Choisir" },
   { fichier: "client/src/pages/pieces/MontageGarage.tsx", ligne: 10, libelle: "" },
   { fichier: "client/src/pages/pieces/MontageGarage.tsx", ligne: 13, libelle: "Réserver le montage" },
   { fichier: "client/src/pages/pieces/PanierPiecesDetachees.tsx", ligne: 16, libelle: "Commander" },
-  { fichier: "client/src/pages/pieces/RechercheIntelligentePieces.tsx", ligne: 10, libelle: "Rechercher" },
   { fichier: "client/src/pages/ProduitVtcTaxi.tsx", ligne: 493, libelle: "Télécharger" },
   { fichier: "client/src/pages/ProgrammeVTC.tsx", ligne: 85, libelle: "Voir le véhicule" },
   { fichier: "client/src/pages/RemplacementVehicule.tsx", ligne: 65, libelle: "+ Ajouter des photos" },
@@ -59,7 +53,6 @@ export const BOUTONS_SANS_ACTION: readonly BoutonSansAction[] = [
   { fichier: "client/src/pages/ReservationRecurrente.tsx", ligne: 75, libelle: "Prolonger" },
   { fichier: "client/src/pages/ReservationRecurrente.tsx", ligne: 76, libelle: "Modifier" },
   { fichier: "client/src/pages/ReservationRecurrente.tsx", ligne: 106, libelle: "Choisir un véhicule →" },
-  { fichier: "client/src/pages/vente/AchatExpress.tsx", ligne: 9, libelle: "Commencer un achat express" },
   { fichier: "client/src/pages/vente/AlertesAuto.tsx", ligne: 17, libelle: "Traiter" },
   { fichier: "client/src/pages/vente/CentreAchatDistance.tsx", ligne: 10, libelle: "Continuer mon achat" },
   { fichier: "client/src/pages/vente/CentreCampagnes.tsx", ligne: 16, libelle: "Nouvelle campagne" },
