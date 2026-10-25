@@ -96,7 +96,7 @@ for (const f of fichiers(RACINE)) {
     const { attributs, finBalise } = balise;
     if (/onClick|onMouseDown|onPointerDown|type="submit"|form=/.test(attributs)) continue;
     // Un bouton explicitement désactivé est un état métier honnête, pas un bouton muet.
-    if (/\\bdisabled(?:\\s*=\\s*(?:"disabled"|\\{true\\}|true))?/.test(attributs)) continue;
+    if (/\bdisabled(?:\s*=\s*(?:"disabled"|\{true\}|true))?/.test(attributs)) continue;
     if (dansFormulaireSoumis(source, m.index)) continue;
     const finFermeture = source.indexOf("</button>", finBalise);
     const corps = source.slice(finBalise + 1, finFermeture === -1 ? finBalise + 1 : finFermeture);
