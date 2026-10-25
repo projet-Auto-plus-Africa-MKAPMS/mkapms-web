@@ -304,7 +304,7 @@ export default function Vendre() {
   const utils = trpc.useUtils();
 
   /* ── Mode : landing (page vitrine) vs deposit (flux 4 étapes) ── */
-  const [mode, setMode] = useState<"landing" | "deposit">(editId ? "deposit" : "landing");
+  const [mode, setMode] = useState<"landing" | "deposit">(editId || vehiculeSurCommande ? "deposit" : "landing");
   const [step, setStep] = useState(1);
   const [identTab, setIdentTab] = useState<"plaque" | "vin">("plaque");
   const [plaque, setPlaque] = useState("");
