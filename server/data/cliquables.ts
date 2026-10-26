@@ -40,7 +40,7 @@ export interface AnomalieCliquable {
   readonly motif: MotifAnomalie;
 }
 
-export const CLIQUABLES_TOTAL = 2889;
+export const CLIQUABLES_TOTAL = 2896;
 
 export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/components/AccessDenied.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
@@ -214,6 +214,7 @@ export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/pages/DossierClient.tsx", total: 18, moteur: 0, liens: 4, boutonsLocaux: 10, sansAction: 0, zones: 4 },
   { fichier: "client/src/pages/DossierVehiculeNumerique.tsx", total: 10, moteur: 0, liens: 6, boutonsLocaux: 4, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/Encheres.tsx", total: 3, moteur: 0, liens: 0, boutonsLocaux: 3, sansAction: 0, zones: 0 },
+  { fichier: "client/src/pages/EncheresAccueil.tsx", total: 7, moteur: 0, liens: 7, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/EngineRegistry/ControlCenter.tsx", total: 12, moteur: 0, liens: 2, boutonsLocaux: 10, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/EngineRegistry/DiagnosticPanel.tsx", total: 1, moteur: 0, liens: 0, boutonsLocaux: 1, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/entreprises/CentreCarburant.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
