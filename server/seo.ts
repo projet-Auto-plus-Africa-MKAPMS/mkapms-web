@@ -129,6 +129,7 @@ const DOMAIN_SEO: Record<DomainKey, DomainSeoMeta> = {
       "/labs/data-cloud-auto",
       "/abonnements",
       "/partenaires/inscription-partenaire",
+      "/rejoindre",
       "/devis",
       "/vente/tableau-bord-vendeur",
     ],
@@ -157,6 +158,7 @@ const DOMAIN_SEO: Record<DomainKey, DomainSeoMeta> = {
       "/expansion/phase-asie",
       "/abonnements",
       "/partenaires/inscription-partenaire",
+      "/rejoindre",
     ],
   },
 };

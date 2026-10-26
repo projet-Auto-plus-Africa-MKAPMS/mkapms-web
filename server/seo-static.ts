@@ -130,6 +130,13 @@ export const STATIC_SEO: Record<string, StaticSeo> = {
       "Comparez et souscrivez votre assurance automobile en ligne. Devis rapide, garanties adaptées et meilleurs tarifs sur MKA.P-MS.",
     keywords: "assurance auto, assurance voiture, devis assurance, comparateur assurance",
   },
+  "/rejoindre": {
+    title: "Rejoindre MKA.P-MS — partenaires, fournisseurs et marchands",
+    description:
+      "Rejoignez MKA.P-MS selon votre activité : fournisseurs, transporteurs, vendeurs de véhicules, équipementiers, garages, marchands et partenaires de la Boutique.",
+    keywords:
+      "devenir partenaire automobile, fournisseur automobile, transporteur véhicule, vendeur voiture, marchand boutique, fournisseur pièces auto, MKA.P-MS",
+  },
   "/abonnements": {
     title: "Abonnements et offres MKA.P-MS",
     description:

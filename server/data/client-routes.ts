@@ -590,6 +590,7 @@ export const CLIENT_ROUTES: readonly string[] = [
   "/recrutement/depot-c-v",
   "/recrutement/offres-emploi",
   "/recrutement/recherche-talents",
+  "/rejoindre",
   "/reparer",
   "/rewards",
   "/seo-abonnements",

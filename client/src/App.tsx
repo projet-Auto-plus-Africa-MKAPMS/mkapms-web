@@ -56,6 +56,7 @@ const MesAvis = lazy(() => import("./pages/compte/MesAvis"));
 const AvisPro = lazy(() => import("./pages/pro/AvisPro"));
 const Admin = lazy(() => import("./pages/Admin"));
 const Univers = lazy(() => import("./pages/Univers"));
+const Rejoindre = lazy(() => import("./pages/Rejoindre"));
 const Pieces = lazy(() => import("./pages/Pieces"));
 const PiecesProduit = lazy(() => import("./pages/PiecesProduit"));
 const Livraison = lazy(() => import("./pages/Livraison"));
@@ -1032,6 +1033,7 @@ export default function App() {
             <Route path="/reparer" element={<Navigate to="/garages" replace />} />
             <Route path="/garage-plus" element={<U name="Garage+"><GaragePlus /></U>} />
             <Route path="/univers" element={<U name="Univers"><Univers /></U>} />
+            <Route path="/rejoindre" element={<U name="Rejoindre MKA.P-MS"><Rejoindre /></U>} />
             <Route path="/pieces" element={<U name="Pièces Auto"><Pieces /></U>} />
             <Route path="/pieces/produit/:id" element={<U name="Fiche pièce"><PiecesProduit /></U>} />
             <Route path="/pieces/commande/:id" element={<U name="Paiement"><PiecesCommande /></U>} />
