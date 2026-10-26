@@ -125,6 +125,7 @@ const VenteCamionsEngins = lazy(() => import("./pages/VenteCamionsEngins"));
 const VenteVTC = lazy(() => import("./pages/VenteVTC"));
 const VentePromotions = lazy(() => import("./pages/VentePromotions"));
 const VenteEncheres = lazy(() => import("./pages/VenteEncheres"));
+const EncheresAccueil = lazy(() => import("./pages/EncheresAccueil"));
 const Encheres = lazy(() => import("./pages/Encheres"));
 const EstimationAuto = lazy(() => import("./pages/EstimationAuto"));
 const HistoriqueVehiculeVente = lazy(() => import("./pages/HistoriqueVehiculeVente"));
@@ -935,7 +936,8 @@ export default function App() {
             <Route path="/acheter/camions-engins" element={<U name="Camions &amp; Engins"><VenteCamionsEngins /></U>} />
             <Route path="/acheter/vtc-taxi" element={<U name="Vente VTC"><VenteVTC /></U>} />
             <Route path="/acheter/promotions" element={<U name="Promotions"><VentePromotions /></U>} />
-            <Route path="/acheter/encheres" element={<U name="Ench\u00e8res"><VenteEncheres /></U>} />
+            <Route path="/acheter/encheres/operations" element={<U name="Ench\u00e8res"><VenteEncheres /></U>} />
+            <Route path="/acheter/encheres" element={<U name="Ench\u00e8res"><EncheresAccueil /></U>} />
             <Route path="/encheres/live" element={<U name="Ench\u00e8res en direct"><Encheres /></U>} />
             <Route path="/encheres" element={<Navigate to="/acheter/encheres" replace />} />
             <Route path="/acheter/estimation" element={<U name="Estimation"><EstimationAuto /></U>} />
