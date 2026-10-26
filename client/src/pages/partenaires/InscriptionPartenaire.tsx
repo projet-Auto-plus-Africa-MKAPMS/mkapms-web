@@ -8,12 +8,22 @@
  * Rien n'est accordé automatiquement : la candidature part en examen, et
  * l'écran le dit clairement plutôt que d'afficher un « bienvenue partenaire ».
  */
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link, useSearchParams } from "react-router-dom";
 import { ChevronLeft, Handshake, Check, Loader2 } from "lucide-react";
 import { trpc } from "../../lib/trpc";
 
 export default function InscriptionPartenaire() {
+  const [searchParams] = useSearchParams();
+  const profile = searchParams.get("profil") ?? "";
+  const profileProfession: Record<string, string> = {
+    "fournisseur": "pieces",
+    "transporteur": "transport_livraison",
+    "vendeur-vehicules": "vendeur",
+    "pieces-automobiles": "pieces",
+    "service-automobile": "garage",
+    "location-mobilite": "loueur",
+  };
   const professions = trpc.proPortal.professions.useQuery(undefined);
   const countries = trpc.proPortal.countries.useQuery();
   const services = trpc.partnerEngine.services.useQuery();
@@ -21,7 +31,8 @@ export default function InscriptionPartenaire() {
 
   const [companyName, setCompanyName] = useState("");
   const [profession, setProfession] = useState("");
-  const [countryCode, setCountryCode] = useState("FR");
+  const [countryCode, setCountryCode] = useState("");
+
   const [city, setCity] = useState("");
   const [zoneRadiusKm, setZoneRadiusKm] = useState(30);
   const [selected, setSelected] = useState<string[]>([]);
@@ -29,6 +40,14 @@ export default function InscriptionPartenaire() {
   const [contactEmail, setContactEmail] = useState("");
   const [contactPhone, setContactPhone] = useState("");
   const [message, setMessage] = useState("");
+  const hasContact = contactEmail.trim().length >= 5 || contactPhone.trim().length >= 6;
+
+  useEffect(() => {
+    const suggested = profileProfession[profile];
+    if (suggested && !profession && professions.data?.some((p) => p.code === suggested)) {
+      setProfession(suggested);
+    }
+  }, [profile, profession, professions.data]);
 
   /** Services proposés en priorité : ceux que le métier choisi sait couvrir. */
   const serviceList = (services.data ?? []).filter(
@@ -36,7 +55,7 @@ export default function InscriptionPartenaire() {
   );
 
   const canSubmit =
-    companyName.trim().length >= 2 && profession !== "" && countryCode !== "" && !apply.isPending;
+    companyName.trim().length >= 2 && profession !== "" && countryCode !== "" && hasContact && !apply.isPending;
 
   function toggle(code: string) {
     setSelected((prev) => (prev.includes(code) ? prev.filter((c) => c !== code) : [...prev, code]));
@@ -116,6 +135,7 @@ export default function InscriptionPartenaire() {
                 onChange={(e) => setCountryCode(e.target.value)}
                 className="w-full rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm bg-white"
               >
+                <option value="">Choisir un pays…</option>
                 {(countries.data ?? []).map((c) => (
                   <option key={c.code} value={c.code}>
                     {c.name}

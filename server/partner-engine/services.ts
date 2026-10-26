@@ -18,6 +18,24 @@ export interface PartnerServiceDef {
 
 export const PARTNER_SERVICES: PartnerServiceDef[] = [
   {
+    code: "vente_vehicule",
+    label: "Vente de véhicules / annonces",
+    professions: ["vendeur", "concessionnaire"],
+    keywords: ["vente voiture", "annonce voiture", "vehicule occasion", "véhicule occasion", "voiture neuve"],
+  },
+  {
+    code: "vehicule_sur_commande",
+    label: "Véhicules sur commande",
+    professions: ["vendeur", "concessionnaire"],
+    keywords: ["vehicule sur commande", "véhicule sur commande", "import voiture", "recherche vehicule"],
+  },
+  {
+    code: "catalogue_fournisseur",
+    label: "Catalogue fournisseur / stock professionnel",
+    professions: ["vendeur", "concessionnaire", "pieces"],
+    keywords: ["fournisseur automobile", "catalogue auto", "stock professionnel", "grossiste automobile"],
+  },
+  {
     code: "controle_technique",
     label: "Contrôle technique",
     professions: ["controle_technique"],
