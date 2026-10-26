@@ -23478,8 +23478,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "cliquables": 2,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 12,
-        "mots": 47
+        "textes": 14,
+        "mots": 58
       },
       {
         "fichier": "client/src/pages/depot-annonce/ExpirationAnnonce.tsx",
@@ -24125,8 +24125,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "procedures": [],
     "tables": [],
     "acces": [],
-    "textes": 1049,
-    "mots": 4106,
+    "textes": 1051,
+    "mots": 4117,
     "battement": "sonde",
     "manques": [
       {
