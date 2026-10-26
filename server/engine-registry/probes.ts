@@ -69,6 +69,10 @@ export const ENGINE_PROBES: EngineProbe[] = [
   { engine: "payout_engine", tables: ["payout_policies", "payout_schedules", "payout_audit_log"] },
   { engine: "document_engine", tables: ["supplier_documents", "vehicle_documents", "custody_records", "custody_requirements"] },
   { engine: "order_engine", tables: ["order_items", "order_listings", "order_status_history", "order_decisions", "order_documents"] },
+  // Demande Direction 26/10 — fiche produit adaptative. Lit `annonces`
+  // (type, ownership, drapeau constructeur) et, pour le type sur_commande,
+  // `order_listings` via Order Engine (déjà sondé ci-dessus, pas dupliqué).
+  { engine: "product_page_engine", tables: ["annonces"] },
 
   // ── Univers ──
   { engine: "vo", tables: ["vehicules", "vehicule_dossiers", "vehicule_historique"] },

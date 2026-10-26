@@ -121,6 +121,7 @@ import { logisticsEngineRouter } from "./logistics-engine/index.js";
 import { payoutEngineRouter } from "./payout-engine/index.js";
 import { documentEngineRouter } from "./document-engine/index.js";
 import { orderEngineRouter } from "./order-engine/index.js";
+import { productPageEngineRouter } from "./product-page-engine/index.js";
 import { insuranceEngineRouter } from "./insurance-engine/index.js";
 import { chargingEngineRouter } from "./charging-engine/index.js";
 import { vehicleDeliveryRouter } from "./vehicle-delivery/index.js";
@@ -292,6 +293,7 @@ export const appRouter = router({
   payoutEngine: payoutEngineRouter,
   documentEngine: documentEngineRouter,
   orderEngine: orderEngineRouter,
+  productPageEngine: productPageEngineRouter,
   // Point 45 — assurance auto (mise en relation) et bornes de recharge (annuaire)
   insuranceEngine: insuranceEngineRouter,
   chargingEngine: chargingEngineRouter,
