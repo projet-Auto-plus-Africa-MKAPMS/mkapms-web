@@ -170,7 +170,7 @@ VALUES
   ('OUT-SEED-0151', 'sales@interexautomotive.com', 'interexautomotive.com', 'Interexautomotive', NULL, 'contacte', 'campagne_26_10'),
   ('OUT-SEED-0152', 'ae@transauto.be', 'transauto.be', 'Transauto', 'Belgique', 'contacte', 'campagne_26_10'),
   ('OUT-SEED-0153', 'vehicle@autoredo.com', 'autoredo.com', 'Autoredo', NULL, 'contacte', 'campagne_26_10'),
-  ('OUT-SEED-0154', 'euregistration.fr@bca.com', 'bca.com', 'BCA', NULL, 'contacte', 'campagne_26_10'),
+  ('OUT-SEED-0154', 'euregistration.fr@bca.com', 'bca.com', 'BCA', NULL, 'contacte', 'campagne_26_10')
 ON CONFLICT ("email") DO NOTHING;
 
 -- Les 3 réponses réellement reçues — champs enrichis à la main avec le
