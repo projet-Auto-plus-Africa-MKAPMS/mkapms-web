@@ -121,6 +121,45 @@ const categorieEnum = z.enum([
   "supermotard", "café racer", "scrambler", "trike", "électrique", "autre",
 ]);
 
+// Partagé entre `create` (bouton « Manuel » du portail « Véhicule sur
+// commande ») et `update` (transformation d'une annonce existante en
+// véhicule sur commande, demande Direction 26/10) — même forme, mêmes
+// règles, une seule source de vérité.
+const vehiculeSurCommandeInputSchema = z
+  .object({
+    supplierProfileId: z.number().int().positive(),
+    vehicleItemId: z.number().int().positive().optional(),
+    // Champs ajoutés (demande PDG) : détails affichés sur la fiche
+    // produit partagée (jamais confidentiels) et estimation de prix
+    // indicative au dépôt (strictement confidentielle, jamais lue par
+    // une procédure client).
+    vehicleLocation: z.string().trim().max(200).optional(),
+    deliveryPrepDetails: z.string().trim().max(4000).optional(),
+    returnToStockIfUnsold: z.boolean().optional(),
+    installmentPaymentAllowed: z.boolean().optional(),
+    // Bloc « Réservation et acompte » + « Livraison ou retrait »
+    // (demande PDG, comparaison Autohero/Carvana/cinch) — jamais
+    // confidentiels, affichés sur la fiche produit partagée.
+    prepDelayDays: z.number().int().min(0).max(365).optional(),
+    deliveryDelayDays: z.number().int().min(0).max(365).optional(),
+    pickupDelayDays: z.number().int().min(0).max(365).optional(),
+    prepFee: z.number().nonnegative().optional(),
+    deliveryFee: z.number().nonnegative().optional(),
+    pickupFee: z.number().nonnegative().optional(),
+    deliveryZones: z.string().trim().max(500).optional(),
+    handoverConditions: z.string().trim().max(2000).optional(),
+    requiredDocuments: z.string().trim().max(2000).optional(),
+    depositAmount: z.number().nonnegative().optional(),
+    refundConditions: z.string().trim().max(2000).optional(),
+    cancellationConditions: z.string().trim().max(2000).optional(),
+    // Jamais exposée avant confirmation de commande (schema.ts).
+    exactPickupAddress: z.string().trim().max(300).optional(),
+    supplierPurchasePriceEstimated: z.number().nonnegative().optional(),
+    transportCostEstimated: z.number().nonnegative().optional(),
+    targetMarginPercent: z.number().min(0).max(100).optional(),
+  })
+  .optional();
+
 export const annoncesRouter = router({
   // Liste publique avec filtres (page Acheter / Louer)
   list: publicProcedure
@@ -887,40 +926,7 @@ export const annoncesRouter = router({
         // que de créer un second formulaire. Marque l'annonce comme
         // « partenaire » (fournisseur, pas encore possédée par MKA.P-MS) et
         // la lie à son fournisseur dans l'Order Engine, dans le même appel.
-        vehiculeSurCommande: z
-          .object({
-            supplierProfileId: z.number().int().positive(),
-            vehicleItemId: z.number().int().positive().optional(),
-            // Champs ajoutés (demande PDG) : détails affichés sur la fiche
-            // produit partagée (jamais confidentiels) et estimation de prix
-            // indicative au dépôt (strictement confidentielle, jamais lue par
-            // une procédure client).
-            vehicleLocation: z.string().trim().max(200).optional(),
-            deliveryPrepDetails: z.string().trim().max(4000).optional(),
-            returnToStockIfUnsold: z.boolean().optional(),
-            installmentPaymentAllowed: z.boolean().optional(),
-            // Bloc « Réservation et acompte » + « Livraison ou retrait »
-            // (demande PDG, comparaison Autohero/Carvana/cinch) — jamais
-            // confidentiels, affichés sur la fiche produit partagée.
-            prepDelayDays: z.number().int().min(0).max(365).optional(),
-            deliveryDelayDays: z.number().int().min(0).max(365).optional(),
-            pickupDelayDays: z.number().int().min(0).max(365).optional(),
-            prepFee: z.number().nonnegative().optional(),
-            deliveryFee: z.number().nonnegative().optional(),
-            pickupFee: z.number().nonnegative().optional(),
-            deliveryZones: z.string().trim().max(500).optional(),
-            handoverConditions: z.string().trim().max(2000).optional(),
-            requiredDocuments: z.string().trim().max(2000).optional(),
-            depositAmount: z.number().nonnegative().optional(),
-            refundConditions: z.string().trim().max(2000).optional(),
-            cancellationConditions: z.string().trim().max(2000).optional(),
-            // Jamais exposée avant confirmation de commande (schema.ts).
-            exactPickupAddress: z.string().trim().max(300).optional(),
-            supplierPurchasePriceEstimated: z.number().nonnegative().optional(),
-            transportCostEstimated: z.number().nonnegative().optional(),
-            targetMarginPercent: z.number().min(0).max(100).optional(),
-          })
-          .optional(),
+        vehiculeSurCommande: vehiculeSurCommandeInputSchema,
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -1234,6 +1240,12 @@ export const annoncesRouter = router({
       photos: z.array(z.union([z.string(), z.object({ url: z.string(), categorie: z.string().optional() })])).optional(),
       status: z.enum(["publiee", "reservee", "vendue", "archivee"]).optional(),
       categorieAnnonce: z.enum(["officielle", "professionnelle", "particulier"]).optional(),
+      // Admin uniquement — transforme une annonce déjà publiée (quelle que
+      // soit sa catégorie actuelle) en véhicule sur commande, directement
+      // depuis le récapitulatif de modification (demande Direction 26/10).
+      // Réutilise exactement le même enregistrement Order Engine que le
+      // bouton « Manuel » à la création.
+      vehiculeSurCommande: vehiculeSurCommandeInputSchema,
     }))
     .mutation(async ({ ctx, input }) => {
       const isAdmin = ctx.user.role === "admin" || ctx.user.role === "super_admin" || ctx.user.role === "directeur";
@@ -1242,14 +1254,59 @@ export const annoncesRouter = router({
         throw new TRPCError({ code: "FORBIDDEN" });
       }
       await refusParPolitique(ctx.user, "modifier", a.pays);
-      const { id, categorieAnnonce, photos: inputPhotos, ...updates } = input;
+      const { id, categorieAnnonce, photos: inputPhotos, vehiculeSurCommande, ...updates } = input;
       const filtered: Record<string, unknown> = Object.fromEntries(Object.entries(updates).filter(([, v]) => v !== undefined));
 
       // Changement de catégorie — admin uniquement
       if (categorieAnnonce && isAdmin) {
         filtered.categorieAnnonce = categorieAnnonce;
         filtered.vendeurType = categorieAnnonce === "particulier" ? "particulier" : "professionnel";
-        filtered.ownership = categorieAnnonce === "officielle" ? "plateforme" : "client";
+        // Ne jamais écraser silencieusement un véhicule sur commande déjà
+        // lié (ownership="partenaire") par un simple changement d'univers
+        // d'affichage — seule une liaison fournisseur explicite
+        // (vehiculeSurCommande ci-dessous) doit faire basculer ownership
+        // (demande Direction 26/10).
+        if (a.ownership !== "partenaire") {
+          filtered.ownership = categorieAnnonce === "officielle" ? "plateforme" : "client";
+        }
+      }
+
+      // Transformer une annonce existante (n'importe quelle catégorie) en
+      // véhicule sur commande — admin uniquement, jamais automatique.
+      // Réutilise le même enregistrement Order Engine que la création
+      // (bouton « Manuel »), jamais dupliqué.
+      if (vehiculeSurCommande && isAdmin) {
+        if (a.ownership === "partenaire") {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Cette annonce est déjà un véhicule sur commande." });
+        }
+        filtered.ownership = "partenaire";
+        await enregistrerAnnonceSurCommande({
+          annonceId: id,
+          supplierProfileId: vehiculeSurCommande.supplierProfileId,
+          vehicleItemId: vehiculeSurCommande.vehicleItemId,
+          creationMode: "manuelle",
+          employeeId: ctx.user.uid,
+          vehicleLocation: vehiculeSurCommande.vehicleLocation,
+          deliveryPrepDetails: vehiculeSurCommande.deliveryPrepDetails,
+          returnToStockIfUnsold: vehiculeSurCommande.returnToStockIfUnsold,
+          installmentPaymentAllowed: vehiculeSurCommande.installmentPaymentAllowed,
+          prepDelayDays: vehiculeSurCommande.prepDelayDays,
+          deliveryDelayDays: vehiculeSurCommande.deliveryDelayDays,
+          pickupDelayDays: vehiculeSurCommande.pickupDelayDays,
+          prepFee: vehiculeSurCommande.prepFee,
+          deliveryFee: vehiculeSurCommande.deliveryFee,
+          pickupFee: vehiculeSurCommande.pickupFee,
+          deliveryZones: vehiculeSurCommande.deliveryZones,
+          handoverConditions: vehiculeSurCommande.handoverConditions,
+          requiredDocuments: vehiculeSurCommande.requiredDocuments,
+          depositAmount: vehiculeSurCommande.depositAmount,
+          refundConditions: vehiculeSurCommande.refundConditions,
+          cancellationConditions: vehiculeSurCommande.cancellationConditions,
+          exactPickupAddress: vehiculeSurCommande.exactPickupAddress,
+          supplierPurchasePriceEstimated: vehiculeSurCommande.supplierPurchasePriceEstimated,
+          transportCostEstimated: vehiculeSurCommande.transportCostEstimated,
+          targetMarginPercent: vehiculeSurCommande.targetMarginPercent,
+        });
       }
 
       if (Object.keys(filtered).length > 0) {

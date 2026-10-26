@@ -237,7 +237,7 @@ const PHOTO_CATS_MOTO_V = [
 export default function Vendre() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const editId = searchParams.get("edit") ? Number(searchParams.get("edit")) : null;
   // Bouton « Manuel » du portail « Véhicule sur commande » (demande PDG) :
   // ce dépôt existant (le même que « Publier » en bas de l'app) s'ouvre ici
@@ -537,6 +537,11 @@ export default function Vendre() {
 
   /* ── Mode édition : pré-remplir le formulaire avec les données existantes ── */
   const [editLoaded, setEditLoaded] = useState(false);
+  // Ownership réel de l'annonce éditée (ex: "partenaire" = déjà un véhicule
+  // sur commande lié) — sert uniquement à ne jamais proposer de relier une
+  // seconde fois un véhicule sur commande déjà enregistré (demande Direction
+  // 26/10, panneau « Changer l'univers de publication » ci-dessous).
+  const [editOwnership, setEditOwnership] = useState<string | null>(null);
   const editQuery = trpc.annonces.get.useQuery({ id: editId! }, { enabled: !!editId && !editLoaded });
   useEffect(() => {
     if (!editId || editLoaded || !editQuery.data) return;
@@ -591,6 +596,7 @@ export default function Vendre() {
     if (d.imperfections?.length) setImperfections(d.imperfections);
     if (Array.isArray(d.garanties) && d.garanties.length) setGaranties(d.garanties);
     if (d.categorieAnnonce) setCategorieAnnonce(d.categorieAnnonce);
+    if (d.ownership) setEditOwnership(d.ownership);
     if (d.photos?.length) {
       const grouped: Record<string, string[]> = {};
       for (const p of d.photos) {
@@ -830,6 +836,35 @@ export default function Vendre() {
     onSuccess: () => navigate(getAnnonceUrl(editId!, categorieAnnonce, categorieAnnonce === "particulier" ? "particulier" : "professionnel")),
   });
 
+  // Panneau « Changer l'univers de publication » (admin/employé, demande
+  // Direction 26/10) — sélection rapide directement depuis le récapitulatif,
+  // en plus du sélecteur de l'étape 1 (non modifié, toujours disponible).
+  // Officielle/Professionnelle/Particulier : change seulement categorieAnnonce.
+  // Si « Sur commande » avait été activé entre-temps, on l'annule (retour à
+  // 4 étapes) et on recale `step` sur le récapitulatif pour ne jamais tomber
+  // sur une étape qui n'existe plus.
+  function choisirUnivers(cat: "officielle" | "professionnelle" | "particulier") {
+    setCategorieAnnonce(cat);
+    if (vehiculeSurCommande) {
+      setSearchParams((prev) => {
+        const next = new URLSearchParams(prev);
+        next.delete("vehiculeSurCommande");
+        return next;
+      });
+      setStep(4);
+    }
+  }
+  // Sur commande : active le flag déjà géré par l'étape dédiée existante
+  // (même formulaire fournisseur, rien de dupliqué) — jamais pour une
+  // annonce déjà liée (editOwnership === "partenaire").
+  function choisirSurCommande() {
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      next.set("vehiculeSurCommande", "1");
+      return next;
+    });
+  }
+
   function submit() {
     // Garde-fou explicite, indépendant de l'attribut disabled du bouton :
     // garantit un retour visible à chaque clic plutôt qu'un échec silencieux
@@ -890,6 +925,36 @@ export default function Vendre() {
         etatBatterie: form.etatBatterie ? Number(form.etatBatterie) : undefined,
         categorieAnnonce: isAdminOrEmployee ? categorieAnnonce : undefined,
         status: "publiee",
+        // Transformation en véhicule sur commande depuis le récapitulatif
+        // (panneau « Changer l'univers de publication », demande Direction
+        // 26/10) — jamais pour une annonce déjà liée (bouton alors masqué).
+        ...(vehiculeSurCommande && editOwnership !== "partenaire"
+          ? {
+              vehiculeSurCommande: {
+                supplierProfileId: Number(surCommandeSupplierProfileId.trim()),
+                vehicleLocation: surCommandeLocalisation.trim() || undefined,
+                deliveryPrepDetails: surCommandePrep.trim() || undefined,
+                returnToStockIfUnsold: surCommandeRetourStock,
+                installmentPaymentAllowed: surCommandePaiementPlusieursFois,
+                supplierPurchasePriceEstimated: surCommandePrixAchat ? Number(surCommandePrixAchat.replace(",", ".")) : undefined,
+                transportCostEstimated: surCommandeTransport ? Number(surCommandeTransport.replace(",", ".")) : undefined,
+                targetMarginPercent: surCommandeMargeCible ? Number(surCommandeMargeCible.replace(",", ".")) : undefined,
+                prepDelayDays: surCommandeDelaiPrep ? Number(surCommandeDelaiPrep) : undefined,
+                deliveryDelayDays: surCommandeDelaiLivraison ? Number(surCommandeDelaiLivraison) : undefined,
+                pickupDelayDays: surCommandeDelaiRetrait ? Number(surCommandeDelaiRetrait) : undefined,
+                prepFee: surCommandeFraisPrep ? Number(surCommandeFraisPrep.replace(",", ".")) : undefined,
+                deliveryFee: surCommandeFraisLivraison ? Number(surCommandeFraisLivraison.replace(",", ".")) : undefined,
+                pickupFee: surCommandeFraisRetrait ? Number(surCommandeFraisRetrait.replace(",", ".")) : undefined,
+                deliveryZones: surCommandeZones.trim() || undefined,
+                handoverConditions: surCommandeConditionsRemise.trim() || undefined,
+                requiredDocuments: surCommandeDocumentsNecessaires.trim() || undefined,
+                depositAmount: surCommandeAcompte ? Number(surCommandeAcompte.replace(",", ".")) : undefined,
+                refundConditions: surCommandeConditionsRemboursement.trim() || undefined,
+                cancellationConditions: surCommandeConditionsAnnulation.trim() || undefined,
+                exactPickupAddress: surCommandeAdresseExacte.trim() || undefined,
+              },
+            }
+          : {}),
       });
     } else {
       create.mutate({
@@ -2539,6 +2604,32 @@ export default function Vendre() {
           {/* ── Récapitulatif ── */}
           <div className="rounded-2xl bg-white border border-[#E5E7EB] p-6 shadow-sm">
             <h3 className="text-sm font-bold text-[#111] uppercase tracking-wider mb-4">Récapitulatif</h3>
+
+            {/* Changer l'univers de publication (admin/employé — demande
+                Direction 26/10) : sélection directe des 4 univers possibles
+                (Officielle MKA.P-MS / Professionnelle / Particulier / Sur
+                commande) depuis le récapitulatif, en plus du sélecteur de
+                l'étape 1 (inchangé, toujours disponible). N'enlève ni ne
+                déplace rien d'existant — ajout pur. */}
+            {isAdminOrEmployee && (
+              <div className="mb-4 rounded-xl border-2 border-[#D4AF37]/30 bg-[#FFFBEB] p-3">
+                <label className="text-[10px] font-bold text-[#D4AF37] uppercase tracking-wider mb-2 block">Changer l'univers de publication</label>
+                <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                  <button onClick={() => choisirUnivers("officielle")} className={`rounded-lg border-2 p-2 text-center text-xs font-bold transition ${!vehiculeSurCommande && categorieAnnonce === "officielle" ? "border-[#D4AF37] bg-[#D4AF37] text-white" : "border-[#E5E7EB] bg-white text-[#6B7280]"}`}>Officielle MKA.P-MS</button>
+                  <button onClick={() => choisirUnivers("professionnelle")} className={`rounded-lg border-2 p-2 text-center text-xs font-bold transition ${!vehiculeSurCommande && categorieAnnonce === "professionnelle" ? "border-blue-500 bg-blue-500 text-white" : "border-[#E5E7EB] bg-white text-[#6B7280]"}`}>Professionnelle</button>
+                  <button onClick={() => choisirUnivers("particulier")} className={`rounded-lg border-2 p-2 text-center text-xs font-bold transition ${!vehiculeSurCommande && categorieAnnonce === "particulier" ? "border-green-500 bg-green-500 text-white" : "border-[#E5E7EB] bg-white text-[#6B7280]"}`}>Particulier</button>
+                  {editOwnership === "partenaire" ? (
+                    <span className="rounded-lg border-2 border-[#D4AF37] bg-[#D4AF37]/10 p-2 text-center text-xs font-bold text-[#D4AF37]">Sur commande ✓</span>
+                  ) : (
+                    <button onClick={choisirSurCommande} className={`rounded-lg border-2 p-2 text-center text-xs font-bold transition ${vehiculeSurCommande ? "border-[#D4AF37] bg-[#D4AF37] text-white" : "border-[#E5E7EB] bg-white text-[#6B7280]"}`}>Sur commande</button>
+                  )}
+                </div>
+                {vehiculeSurCommande && (
+                  <p className="mt-2 text-[10px] text-[#D4AF37] font-semibold">Véhicule sur commande activé — complétez l'étape « Véhicule sur commande » (fournisseur obligatoire) pour publier.</p>
+                )}
+              </div>
+            )}
+
             <div className="space-y-3 rounded-xl border border-[#E5E7EB] bg-[#F9FAFB] p-5">
               {/* Badge catégorie */}
               <div className="flex items-center gap-2">
