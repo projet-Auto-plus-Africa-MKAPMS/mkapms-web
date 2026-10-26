@@ -23,6 +23,14 @@ async function loadAnnonce(annonceId: number) {
       titre: annonces.titre,
       ownerId: annonces.ownerId,
       type: annonces.type,
+      // Demande Direction (26/10) : le lien du produit affiché en messagerie
+      // doit porter le prix, côté client comme côté propriétaire — jamais
+      // seulement un titre. categorieAnnonce/vendeurType servent à construire
+      // l'URL directe du bon univers (getAnnonceUrl), sans passer par la
+      // route générique /vehicule/:id et sa redirection.
+      prix: annonces.prix,
+      categorieAnnonce: annonces.categorieAnnonce,
+      vendeurType: annonces.vendeurType,
     })
     .from(annonces)
     .where(eq(annonces.id, annonceId))
@@ -114,6 +122,9 @@ export const messagesRouter = router({
         annonceId: t.annonceId,
         annonceTitre: a?.titre ?? null,
         annonceRef: a?.reference ?? null,
+        annoncePrix: a?.prix ?? null,
+        annonceCategorieAnnonce: a?.categorieAnnonce ?? null,
+        annonceVendeurType: a?.vendeurType ?? null,
         other,
         lastMessage: last?.content ?? null,
         lastMessageAt: last?.createdAt ?? t.lastMessageAt,
@@ -143,7 +154,7 @@ export const messagesRouter = router({
       return {
         id: t.id,
         annonceId: t.annonceId,
-        annonce: a ? { id: a.id, titre: a.titre, reference: a.reference, type: a.type } : null,
+        annonce: a ? { id: a.id, titre: a.titre, reference: a.reference, type: a.type, prix: a.prix, categorieAnnonce: a.categorieAnnonce, vendeurType: a.vendeurType } : null,
         other,
         messages: msgs.map((m) => ({
           id: m.id,

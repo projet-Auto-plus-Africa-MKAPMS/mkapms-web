@@ -131,7 +131,7 @@ export default function Notifications({ filtreTypes, titre = "Notifications", so
             <button
               key={n.id}
               onClick={() => { if (!n.read) markRead.mutate({ id: n.id }); setSelectedNotif(n); }}
-              className={`w-full text-left block rounded-xl bg-white border p-4 transition hover:border-[#D4AF37] hover:shadow-md cursor-pointer ${n.read ? "border-[#E5E7EB]" : "border-[#D4AF37]/40 bg-[#D4AF37]/[0.02]"}`}
+              className={`w-full text-left block rounded-xl bg-white border p-4 transition hover:border-[#D4AF37] hover:shadow-md cursor-pointer ${n.read ? "border-[#E5E7EB]" : "border-red-300 bg-red-50/40"}`}
             >
               <div className="flex items-start gap-3">
                 <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${cfg.color}`}>
@@ -140,7 +140,7 @@ export default function Notifications({ filtreTypes, titre = "Notifications", so
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <h3 className="text-sm font-bold text-[#111] truncate">{n.title}</h3>
-                    {!n.read && <span className="h-2 w-2 rounded-full bg-[#D4AF37] shrink-0" />}
+                    <span aria-hidden="true" className={`h-2 w-2 shrink-0 rounded-full ${n.read ? "bg-white ring-1 ring-[#E5E7EB]" : "bg-red-500"}`} />
                   </div>
                   {n.body && <p className="text-xs text-[#6B7280] mt-0.5 line-clamp-2">{n.body}</p>}
                   <div className="mt-1 flex items-center gap-2">

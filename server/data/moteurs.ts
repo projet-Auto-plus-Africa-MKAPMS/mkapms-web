@@ -100,9 +100,9 @@ export interface PerimetreMoteur {
 }
 
 export const MOTEURS_TOTAL = 98;
-export const MANQUES_TOTAL = 541;
+export const MANQUES_TOTAL = 542;
 export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
-  "dependance_non_declaree": 82,
+  "dependance_non_declaree": 83,
   "sans_logique_serveur": 10,
   "ecran_sans_contenu": 342,
   "sans_ecran": 8,
@@ -6981,6 +6981,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "location_pro",
       "logistics_engine",
       "marketing",
+      "messaging",
       "partner_engine",
       "parts_engine",
       "payment",
@@ -7336,6 +7337,13 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "fichier": "client/src/pages/LocationMKAPMS.tsx",
         "route": "/louer/mkapms",
+        "composants": [
+          "lib/currency.tsx"
+        ]
+      },
+      {
+        "fichier": "client/src/pages/Messagerie.tsx",
+        "route": "/messagerie",
         "composants": [
           "lib/currency.tsx"
         ]
@@ -14003,12 +14011,14 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "dependancesDetectees": [
       "audit",
       "core",
+      "country",
       "identity",
       "notification"
     ],
     "dependances": [
       "audit",
       "core",
+      "country",
       "identity",
       "notification"
     ],
@@ -14021,6 +14031,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "messaging-os/index.ts importe db.ts",
         "messaging-os/index.ts importe schema.ts",
         "messaging-os/index.ts importe trpc.ts"
+      ],
+      "country": [
+        "client/src/pages/Messagerie.tsx embarque lib/currency.tsx (trpc.currency)"
       ],
       "identity": [
         "messaging-os/index.ts importe identity-os/contract.ts",
@@ -14057,8 +14070,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "cliquables": 2,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 7,
-        "mots": 41
+        "textes": 6,
+        "mots": 37
       }
     ],
     "ecransHotes": [
@@ -14146,10 +14159,15 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "connecte",
       "public"
     ],
-    "textes": 7,
-    "mots": 41,
+    "textes": 6,
+    "mots": 37,
     "battement": "pont_os",
-    "manques": []
+    "manques": [
+      {
+        "genre": "dependance_non_declaree",
+        "detail": "country — client/src/pages/Messagerie.tsx embarque lib/currency.tsx (trpc.currency)"
+      }
+    ]
   },
   {
     "moteur": "monitoring",
