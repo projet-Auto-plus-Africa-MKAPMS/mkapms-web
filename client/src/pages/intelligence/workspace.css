@@ -62,7 +62,7 @@
 /* Conversation: full-width composition, white canvas, gold on the active line only. */
 .alhud-approved-shell,.alhud-live-conversation [role=log]{background:#fff}
 .alhud-composer{flex-wrap:wrap;align-items:center!important;column-gap:6px!important;row-gap:8px;padding:10px 12px}
-.alhud-composer-input{order:-1;flex:1 0 100%!important;width:100%;min-width:0;min-height:120px!important;max-height:min(40dvh,320px);overflow-y:auto}
+.alhud-composer-input{order:-1;flex:1 0 100%!important;width:100%;min-width:0;min-height:44px!important;max-height:min(40dvh,320px);overflow-y:auto}
 .alhud-composer-send{margin-left:auto;border-radius:50%!important;width:40px!important;height:40px!important}
 .alhud-live-conversation{position:relative}
 .alhud-live-conversation [role=log]>.group:not(.ml-auto){background:#fff!important}
@@ -183,8 +183,11 @@
 .alhud-live-conversation .alhud-waiting-reply{font-size:16px}
 @media(max-width:767px){.alhud-conversation-panel{border:0!important;border-radius:0!important}.alhud-live-conversation [role=log]{padding:12px 6px!important}}
 
-/* Chat et Travail : les deux voix restent en pleine largeur, sans bulle ni cadre. */
-.alhud-live-conversation [role=log]>.alhud-message,
-.alhud-live-conversation [role=log]>.alhud-message.ml-auto{max-width:100%!important;margin-left:0!important;background:transparent!important;border:0!important;border-radius:0!important;box-shadow:none!important}
-.alhud-live-conversation [role=log]>.alhud-message>div:first-child{background:transparent!important;border-radius:0!important;box-shadow:none!important}
-.alhud-live-conversation [role=log]>.alhud-message[data-role=moi]>div:first-child{border-left:3px solid #1683ef;padding-left:14px!important}
+/* Travail et Chat : la réponse du moteur reste en texte plein, sans bulle, pleine largeur (comme ChatGPT). */
+.alhud-live-conversation [role=log]>.alhud-message[data-role=moteur]{max-width:100%!important;margin-left:0!important;background:transparent!important;border:0!important;border-radius:0!important;box-shadow:none!important}
+.alhud-live-conversation [role=log]>.alhud-message[data-role=moteur]>div:first-child{background:transparent!important;border-radius:0!important;box-shadow:none!important}
+/* Nos messages envoyés : vraie bulle large et colorée, alignée à droite (demande Direction 26/10,
+   capture ChatGPT à l'appui) — la largeur reste généreuse quelle que soit la longueur du texte,
+   jamais confondue avec la réponse du moteur ci-dessus. */
+.alhud-live-conversation [role=log]>.alhud-message[data-role=moi]{max-width:min(88%,900px)!important;margin-left:auto!important}
+.alhud-live-conversation [role=log]>.alhud-message[data-role=moi]>div:first-child{background:#eaf4ff!important;border:1px solid #cfe6fc!important;border-radius:18px!important;padding:12px 16px!important;border-left:3px solid #1683ef!important}
