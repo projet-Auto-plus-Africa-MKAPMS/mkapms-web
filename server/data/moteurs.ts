@@ -206,7 +206,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "parMoteur": 0,
         "sansAction": 0,
         "textes": 20,
-        "mots": 125
+        "mots": 127
       }
     ],
     "ecransHotes": [
@@ -231,7 +231,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "public"
     ],
     "textes": 40,
-    "mots": 180,
+    "mots": 182,
     "battement": "sonde",
     "manques": []
   },
