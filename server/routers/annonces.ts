@@ -934,11 +934,19 @@ export const annoncesRouter = router({
       const isEmployee = isAdminUser || currentRole === "employee";
       const isProUser = currentRole === "pro" || currentRole === "garage" || currentRole === "society";
       let categorieAnnonce: "officielle" | "professionnelle" | "particulier";
-      if (vehiculeSurCommande) {
-        // Jamais "officielle" : ce libellé déclenche l'affichage "MKA.P-MS
-        // Officiel" côté fiche produit (pensé pour le stock déjà possédé,
-        // VO), ce qui mélangerait visuellement un véhicule pas encore
-        // possédé avec le VO existant — jamais voulu (demande PDG).
+      if (vehiculeSurCommande && inputCatAnnonce) {
+        // L'employé choisit l'univers d'affichage (officielle MKA.P-MS /
+        // professionnelle / particulier) au dépôt, comme pour toute autre
+        // annonce — c'est `ownership` ("partenaire", forcé juste en dessous
+        // quel que soit categorieAnnonce) qui pilote l'affichage "véhicule
+        // sur commande" du Product Page Engine, jamais categorieAnnonce.
+        // Router selon le choix réel évite qu'une annonce "Officielle"
+        // sélectionnée finisse publiée dans l'univers Professionnel
+        // (correction Direction 26/10 — l'ancien forçage systématique vers
+        // "professionnelle" ignorait ce choix).
+        categorieAnnonce = inputCatAnnonce;
+      } else if (vehiculeSurCommande) {
+        // Valeur par défaut si aucune catégorie n'a été transmise.
         categorieAnnonce = "professionnelle";
       } else if (isEmployee && inputCatAnnonce) {
         // L'employé/admin peut choisir explicitement la catégorie
