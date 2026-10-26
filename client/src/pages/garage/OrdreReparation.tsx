@@ -4,15 +4,16 @@ import { ChevronLeft, Wrench, Clock, Check, ChevronDown } from "lucide-react";
 import VehicleIdentification from "../../components/VehicleIdentification";
 
 const TRAVAUX = [
-  { label: "Plaquettes + disques avant", mecanicien: "Ahmed B.", pont: "Pont 2", debut: "10:00", duree: "2h", statut: "termine", ref: "BOS-0986-5443", prix: "285 EUR" },
-  { label: "Filtre habitacle", mecanicien: "Ahmed B.", pont: "Pont 2", debut: "12:00", duree: "15 min", statut: "termine", ref: "MAN-8821-FC", prix: "32 EUR" },
-  { label: "Reparation direction", mecanicien: "Paul M.", pont: "Pont 3", debut: "14:00", duree: "3h", statut: "en_cours", ref: "TRW-JRM445", prix: "520 EUR" },
-  { label: "Pneu avant droit", mecanicien: "Jean D.", pont: "Pont 1", debut: "15:00", duree: "30 min", statut: "a_faire", ref: "MIC-205/55R16", prix: "89 EUR" },
+  { label: "Plaquettes + disques avant", mecanicien: "Ahmed B.", pont: "Pont 2", debut: "10:00", duree: "2h", statut: "termine", ref: "BOS-0986-5443", prix: "285 EUR", details: "Plaquettes avant Bosch + disques ventilés montés. Contrôle usure des plaquettes arrière : OK." },
+  { label: "Filtre habitacle", mecanicien: "Ahmed B.", pont: "Pont 2", debut: "12:00", duree: "15 min", statut: "termine", ref: "MAN-8821-FC", prix: "32 EUR", details: "Filtre Mann remplacé. Contrôle du débit de climatisation : OK." },
+  { label: "Reparation direction", mecanicien: "Paul M.", pont: "Pont 3", debut: "14:00", duree: "3h", statut: "en_cours", ref: "TRW-JRM445", prix: "520 EUR", details: "Remplacement de la crémaillerie de direction TRW. Essai routier à prévoir après intervention." },
+  { label: "Pneu avant droit", mecanicien: "Jean D.", pont: "Pont 1", debut: "15:00", duree: "30 min", statut: "a_faire", ref: "MIC-205/55R16", prix: "89 EUR", details: "Pneu Michelin 205/55 R16 à remplacer. Équilibrage de la roue inclus." },
 ];
 
 export default function OrdreReparation() {
   const [vehicleFound, setVehicleFound] = useState(false);
   const [expandedTravail, setExpandedTravail] = useState<number | null>(null);
+  const [detailsOuverts, setDetailsOuverts] = useState<Record<number, boolean>>({});
 
   return (
     <div className="min-h-screen bg-[#F5F3EF] pb-24">
@@ -56,8 +57,16 @@ export default function OrdreReparation() {
                     </div>
                     <div className="flex items-center justify-between mt-2">
                       <span className="text-xs font-bold text-[#111]">Prix: {t.prix}</span>
-                      <button className="rounded-lg bg-[#D4AF37] px-3 py-1.5 text-[9px] font-bold text-white">Voir details</button>
+                      <button
+                        onClick={() => setDetailsOuverts((prev) => ({ ...prev, [i]: !prev[i] }))}
+                        className="rounded-lg bg-[#D4AF37] px-3 py-1.5 text-[9px] font-bold text-white"
+                      >
+                        {detailsOuverts[i] ? "Masquer" : "Voir details"}
+                      </button>
                     </div>
+                    {detailsOuverts[i] && (
+                      <p className="mt-2 text-[10px] text-[#6B7280] bg-[#F5F3EF] rounded-lg p-2">{t.details}</p>
+                    )}
                   </div>
                 )}
               </div>

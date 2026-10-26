@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   ChevronLeft, RefreshCw, Calendar, Car, Check, Clock,
   AlertCircle, ChevronDown, CreditCard, Shield
@@ -17,15 +17,28 @@ const FREQUENCES = [
   { id: "12mois", label: "12 mois", desc: "Engagement 12 mois — meilleur tarif", icon: "🏆" },
 ];
 
-const RECURRENTES = [
+const RECURRENTES_INIT = [
   { id: 1, vehicule: "Mercedes Classe E Break", univers: "VTC & Taxi", freq: "Mensuel", debut: "2025-01-15", fin: "2025-12-15", prix: 1350, statut: "active" as const, prochaine: "15 avril 2025", photo: "https://images.unsplash.com/photo-1553440569-bcc63803a83d?w=400&h=260&fit=crop" },
   { id: 2, vehicule: "Renault Kangoo Van", univers: "Pro", freq: "6 mois", debut: "2025-02-01", fin: "2025-07-31", prix: 750, statut: "active" as const, prochaine: "1 avril 2025", photo: "https://images.unsplash.com/photo-1549194898-60fd030ecc0f?w=400&h=260&fit=crop" },
   { id: 3, vehicule: "Peugeot 508 GT", univers: "VTC & Taxi", freq: "12 mois", debut: "2024-06-01", fin: "2025-05-31", prix: 1100, statut: "expire_bientot" as const, prochaine: "31 mai 2025", photo: "https://images.unsplash.com/photo-1549317661-bd32c8ce0afa?w=400&h=260&fit=crop" },
 ];
 
 export default function ReservationRecurrente() {
+  const navigate = useNavigate();
   const [showNew, setShowNew] = useState(false);
   const [freq, setFreq] = useState("");
+  const [recurrentes, setRecurrentes] = useState(RECURRENTES_INIT);
+  const [editingId, setEditingId] = useState<number | null>(null);
+
+  const prolongerReservation = (id: number) => {
+    setRecurrentes((prev) =>
+      prev.map((r) => {
+        if (r.id !== id) return r;
+        const nouvelleFin = new Date(new Date(r.fin).getTime() + 90 * 24 * 60 * 60 * 1000);
+        return { ...r, fin: nouvelleFin.toISOString().slice(0, 10), statut: "active" as const };
+      })
+    );
+  };
 
   return (
     <div className="min-h-screen bg-[#F5F3EF] pb-24">
@@ -44,7 +57,7 @@ export default function ReservationRecurrente() {
       <div className="px-4 mt-4">
         <h2 className="text-base font-bold text-[#111]">Mes réservations récurrentes</h2>
         <div className="mt-3 space-y-3">
-          {RECURRENTES.map((r) => (
+          {recurrentes.map((r) => (
             <div key={r.id} className={`rounded-xl bg-white border overflow-hidden ${r.statut === "expire_bientot" ? "border-amber-400" : "border-[#E5E7EB]"}`}>
               <div className="flex gap-3 p-4">
                 <img src={r.photo} alt={r.vehicule} className="w-20 h-14 rounded-lg object-cover shrink-0" />
@@ -72,9 +85,30 @@ export default function ReservationRecurrente() {
                 </div>
               </div>
               <div className="px-4 pb-3 flex gap-2">
-                <button className="flex-1 rounded-lg bg-[#D4AF37] py-2 text-xs font-bold text-white">Prolonger</button>
-                <button className="rounded-lg border border-[#E5E7EB] px-4 py-2 text-xs font-semibold text-[#6B7280]">Modifier</button>
+                <button onClick={() => prolongerReservation(r.id)} className="flex-1 rounded-lg bg-[#D4AF37] py-2 text-xs font-bold text-white">Prolonger</button>
+                <button onClick={() => setEditingId((prev) => (prev === r.id ? null : r.id))} className="rounded-lg border border-[#E5E7EB] px-4 py-2 text-xs font-semibold text-[#6B7280]">
+                  {editingId === r.id ? "Fermer" : "Modifier"}
+                </button>
               </div>
+              {editingId === r.id && (
+                <div className="px-4 pb-3 space-y-2 border-t border-[#E5E7EB] pt-2">
+                  <p className="text-[10px] font-semibold text-[#6B7280]">Changer la fréquence</p>
+                  <div className="grid grid-cols-2 gap-1.5">
+                    {FREQUENCES.map((f) => (
+                      <button
+                        key={f.id}
+                        onClick={() => {
+                          setRecurrentes((prev) => prev.map((x) => (x.id === r.id ? { ...x, freq: f.label } : x)));
+                          setEditingId(null);
+                        }}
+                        className={`rounded-lg border-2 py-1.5 text-[10px] font-bold text-left px-2 transition ${r.freq === f.label ? "border-[#D4AF37] bg-[#D4AF37]/5" : "border-[#E5E7EB]"}`}
+                      >
+                        {f.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           ))}
         </div>
@@ -103,7 +137,7 @@ export default function ReservationRecurrente() {
             ))}
           </div>
           {freq && (
-            <button className="w-full rounded-xl bg-[#D4AF37] py-3 text-sm font-bold text-white active:scale-[0.98]">
+            <button onClick={() => navigate("/louer")} className="w-full rounded-xl bg-[#D4AF37] py-3 text-sm font-bold text-white active:scale-[0.98]">
               Choisir un véhicule →
             </button>
           )}
