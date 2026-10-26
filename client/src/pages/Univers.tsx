@@ -47,6 +47,10 @@ const LINKS: Record<string, string> = {
   carte_mondiale: "/carte",
   qualite: "/operations/controle-qualite-global",
   investisseurs: "/investisseurs/espace-investisseurs",
+  fournisseurs: "/rejoindre?profil=fournisseur#plateforme",
+  lavage: "/garage/centre-lavage",
+  karting: "/rejoindre#plateforme",
+  formation: "/rejoindre#plateforme",
 };
 
 type Presentation = {
@@ -75,6 +79,7 @@ const PRESENTATIONS: Record<string, Presentation> = {
   carte_mondiale: { image: "/categories/cover_mkapms.jpg", eyebrow: "Services autour du monde", action: "Explorer la carte", icon: MapPinned },
   qualite: { image: "/categories/cover_pro.jpg", eyebrow: "Contrôle & amélioration", action: "Ouvrir le centre qualité", icon: PackageCheck },
   investisseurs: { image: "/pubs/hero5-pro.jpg", eyebrow: "Vision & développement", action: "Ouvrir l’espace investisseurs", icon: Landmark },
+  fournisseurs: { image: "/categories/camion_porte_voitures.jpg", eyebrow: "Partenaires mondiaux", action: "Présenter mon activité", icon: Truck },
 };
 
 const FALLBACK: Presentation = {
@@ -170,13 +175,13 @@ export default function Univers() {
 
         <section className="mt-10 overflow-hidden rounded-[32px] bg-[#0A1630] text-white shadow-[0_18px_50px_rgba(9,21,44,.14)]">
           <div className="grid lg:grid-cols-[1.1fr_.9fr]">
-            <div className="p-7 sm:p-10">
+            <div className="min-w-0 p-7 sm:p-10">
               <p className="text-xs font-black uppercase tracking-[.2em] text-[#E2B82D]">Portail de l’écosystème</p>
-              <h2 className="mt-3 max-w-2xl text-3xl font-black tracking-tight sm:text-4xl">Rejoindre MKA.P-MS et accéder à la Boutique</h2>
+              <h2 className="mt-3 max-w-full break-words text-[clamp(1.8rem,7vw,2.25rem)] font-black leading-tight tracking-tight sm:max-w-2xl sm:text-4xl">Rejoindre MKA.P-MS et accéder à la Boutique</h2>
               <p className="mt-4 max-w-2xl text-sm leading-relaxed text-white/70 sm:text-base">Un espace clair pour les fournisseurs, transporteurs, vendeurs, marchands et partenaires. La plateforme principale et la Boutique gardent leurs parcours séparés.</p>
-              <div className="mt-7 flex flex-col gap-3 sm:flex-row">
-                <Link to="/rejoindre" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-[#E2B82D] px-6 text-sm font-black text-[#07111F]">Rejoindre l’écosystème <ArrowRight className="h-4 w-4" aria-hidden="true" /></Link>
-                <a href="https://shop.mkapms.site/" target="_blank" rel="noopener noreferrer" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl border border-white/20 px-6 text-sm font-black text-white">Ouvrir la Boutique <Store className="h-4 w-4" aria-hidden="true" /></a>
+              <div className="mt-7 flex w-full min-w-0 flex-col gap-3 sm:flex-row sm:flex-wrap">
+                <Link to="/rejoindre" className="inline-flex min-h-12 w-full max-w-full items-center justify-center gap-2 rounded-2xl bg-[#E2B82D] px-4 text-center text-sm font-black text-[#07111F] sm:w-auto sm:px-6">Rejoindre l’écosystème <ArrowRight className="h-4 w-4" aria-hidden="true" /></Link>
+                <a href="https://shop.mkapms.site/" target="_blank" rel="noopener noreferrer" className="inline-flex min-h-12 w-full max-w-full items-center justify-center gap-2 rounded-2xl border border-white/20 px-4 text-center text-sm font-black text-white sm:w-auto sm:px-6">Ouvrir la Boutique <Store className="h-4 w-4" aria-hidden="true" /></a>
               </div>
             </div>
             <div className="relative min-h-64 bg-[#101F3D]"><div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(226,184,45,.24),transparent_58%)]" /><Store className="absolute right-10 top-1/2 h-24 w-24 -translate-y-1/2 text-[#E2B82D]/80" aria-hidden="true" /></div>
