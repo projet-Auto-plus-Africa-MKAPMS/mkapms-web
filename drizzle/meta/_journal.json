@@ -1149,6 +1149,13 @@
       "when": 1788404855000,
       "tag": "0165_annonces_constructeur_mkapms",
       "breakpoints": true
+    },
+    {
+      "idx": 164,
+      "version": "7",
+      "when": 1788404856000,
+      "tag": "0166_activate_fournisseurs_mondiaux",
+      "breakpoints": true
     }
   ]
 }
