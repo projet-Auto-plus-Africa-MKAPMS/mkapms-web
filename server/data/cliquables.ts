@@ -40,7 +40,7 @@ export interface AnomalieCliquable {
   readonly motif: MotifAnomalie;
 }
 
-export const CLIQUABLES_TOTAL = 2883;
+export const CLIQUABLES_TOTAL = 2889;
 
 export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/components/AccessDenied.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
@@ -373,6 +373,7 @@ export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/pages/investissement/modules/Assistant.tsx", total: 1, moteur: 0, liens: 0, boutonsLocaux: 1, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/investissement/modules/Dashboard.tsx", total: 1, moteur: 0, liens: 0, boutonsLocaux: 1, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/investissement/modules/Kyc.tsx", total: 1, moteur: 0, liens: 0, boutonsLocaux: 1, sansAction: 0, zones: 0 },
+  { fichier: "client/src/pages/investisseurs/EspaceInvestisseurs.tsx", total: 6, moteur: 0, liens: 6, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/JournalActivite.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/LaboRD.tsx", total: 6, moteur: 0, liens: 1, boutonsLocaux: 5, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/labs/AcademieMKAPMS.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
