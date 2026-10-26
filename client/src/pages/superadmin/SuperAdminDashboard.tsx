@@ -26,6 +26,7 @@ const SECTIONS = [
   { title: "Gestion", items: [
     { label: "Fournisseurs", icon: Truck, to: "/superadmin/fournisseurs", desc: "Créer, vérifier et activer un fournisseur (véhicule sur commande, dépôt manuel)" },
     { label: "Plan Maître Fournisseurs", icon: Truck, to: "/superadmin/plan-maitre-fournisseurs", desc: "Fournisseurs, véhicules, pièces, logistique, versements, documents" },
+    { label: "Prospection partenaires", icon: Globe, to: "/superadmin/prospection-partenaires", desc: "Contacts approchés (fournisseurs, transporteurs, logisticiens, boutique) — avant candidature ou fiche fournisseur" },
     { label: "Finance", icon: Euro, to: "/superadmin/admin-paiements", desc: "Paiements, commissions, CA" },
     { label: "Publicité", icon: Megaphone, to: "/superadmin/admin-moderation-annonces", desc: "Espaces, campagnes, tarifs" },
     { label: "Connecteur Google Business", icon: MapPin, to: "/superadmin/admin-google-business", desc: "Établissements, vérification, relevés d'avis" },

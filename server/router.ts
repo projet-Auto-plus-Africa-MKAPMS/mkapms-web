@@ -114,6 +114,7 @@ import { auctionEngineRouter } from "./auction-engine/index.js";
 // Proximity Engine — « près de moi » + complétude des mini-plateformes (points 34-35)
 import { proximityEngineRouter } from "./proximity-engine/index.js";
 import { partnerEngineRouter } from "./partner-engine/index.js";
+import { partnerOutreachEngineRouter } from "./partner-outreach-engine/index.js";
 import { supplierEngineRouter } from "./supplier-engine/index.js";
 import { vehicleEngineRouter } from "./vehicle-engine/index.js";
 import { partsEngineRouter } from "./parts-engine/index.js";
@@ -286,6 +287,7 @@ export const appRouter = router({
   // Recherche locale par service + matrice des univers en mini-plateformes
   proximity: proximityEngineRouter,
   partnerEngine: partnerEngineRouter,
+  partnerOutreachEngine: partnerOutreachEngineRouter,
   supplierEngine: supplierEngineRouter,
   vehicleEngine: vehicleEngineRouter,
   partsEngine: partsEngineRouter,

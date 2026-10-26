@@ -364,6 +364,15 @@ export const ENGINE_CATALOG: EngineSeed[] = [
     state: "staging",
   },
   {
+    name: "partner_outreach_engine",
+    label: "Partner Outreach Engine",
+    category: "transversal",
+    dependencies: ["core", "partner_engine", "supplier_engine"],
+    description:
+      "Demande Direction (26/10) : registre de prospection à froid pour les fournisseurs véhicules/pièces, garages, transporteurs, logisticiens et partenaires boutique approchés par MKA.P-MS — l'étape qui manquait entre « liste de contacts envoyés » et partner_engine (candidature entrante)/supplier_engine (fiche déjà en onboarding), sans les dupliquer. 11 statuts du Plan Maître (identifié → contacté → réponse reçue → à vérifier → qualifié → pilote → actif/suspendu/refusé/non livré/dossier incomplet). Seedé avec les 159 contacts réellement approchés au 26/10, dont les 3 réponses réelles reçues (Global Air Services Sénégal, Omnipack, TransConnect) — tout le reste (catégorie, capacités, pays non ccTLD) volontairement laissé à vérifier humainement, jamais deviné.",
+    state: "active",
+  },
+  {
     name: "vehicle_engine",
     label: "Vehicle Engine",
     category: "transversal",

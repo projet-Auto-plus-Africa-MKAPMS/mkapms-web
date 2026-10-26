@@ -688,6 +688,17 @@ export const PERIMETRES: PerimetreDeclare[] = [
     routes: ["/espace-fournisseur", "/espace-transporteur"],
   },
   {
+    // LOT 1bis — Partner Outreach Engine (mission Direction 26/10) : registre
+    // de prospection à froid (contacts approchés, statuts identifié →
+    // contacté → réponse reçue → ... → actif/refusé), en amont de
+    // partner_engine (candidature) et supplier_engine (fiche fournisseur) —
+    // ne les duplique pas, les nourrit.
+    moteur: "partner_outreach_engine",
+    dossiers: ["partner-outreach-engine"],
+    routeurs: ["partnerOutreachEngine"],
+    routes: ["/superadmin/prospection-partenaires"],
+  },
+  {
     // LOT 2 du Plan Maître Fournisseurs — véhicules uniquement (jamais Pièces
     // [LOT 3] ni Transport/Livraison [LOT 4]). Pas encore d'écran dédié (LOT 7
     // "Portails") : routes vides, staging tant qu'aucun véhicule fournisseur
