@@ -1044,7 +1044,7 @@ export default function Vehicule({ univers }: { univers?: string }) {
                   <Store size={18} className="text-[#D4AF37]" />
                 </div>
                 <div>
-                  <p className="text-sm font-bold text-noir">MKA.P-MS — Garage franchisé</p>
+                  <p className="text-sm font-bold text-noir">MKA.P-MS</p>
                   <p className="text-[11px] text-slate-500">Société certifiée</p>
                   <div className="mt-0.5 flex items-center gap-1">
                     <Star size={12} className="fill-[#D4AF37] text-[#D4AF37]" />
@@ -1065,11 +1065,18 @@ export default function Vehicule({ univers }: { univers?: string }) {
               </div>
               <button className="mt-3 w-full rounded-xl bg-[#111] py-2.5 text-sm font-bold text-white" onClick={() => requireLogin(() => {
                 // Redirige vers la messagerie avec le lien produit + message
-                // pré-rempli 'Demander un essai'. Robuste : encodeURIComponent.
+                // pré-rempli. Robuste : encodeURIComponent.
+                // Véhicule sur commande (demande Direction 26/10) : pas encore
+                // en stock physique, donc pas d'essai routier possible — le
+                // bouton devient une simple prise de contact.
                 const link = `${window.location.origin}${window.location.pathname}`;
-                const msg = `Bonjour, je souhaite demander un essai pour votre véhicule : ${v.titre || `${v.marque ?? ""} ${v.modele ?? ""}`.trim()} (Réf. ${v.reference || v.id}).\n\nLien de l'annonce : ${link}\n\nMerci de me confirmer vos disponibilités pour organiser un essai routier.`;
-                navigate(`/compte/messages?to=${v.vendeurId ?? ""}&annonce=${v.id}&subject=${encodeURIComponent("Demander un essai")}&body=${encodeURIComponent(msg)}`);
-              })}>Demander un essai routier</button>
+                const surCommande = v.ownership === "partenaire";
+                const sujet = surCommande ? "Question sur ce véhicule" : "Demander un essai";
+                const msg = surCommande
+                  ? `Bonjour, j'ai une question sur ce véhicule sur commande : ${v.titre || `${v.marque ?? ""} ${v.modele ?? ""}`.trim()} (Réf. ${v.reference || v.id}).\n\nLien de l'annonce : ${link}`
+                  : `Bonjour, je souhaite demander un essai pour votre véhicule : ${v.titre || `${v.marque ?? ""} ${v.modele ?? ""}`.trim()} (Réf. ${v.reference || v.id}).\n\nLien de l'annonce : ${link}\n\nMerci de me confirmer vos disponibilités pour organiser un essai routier.`;
+                navigate(`/compte/messages?to=${v.vendeurId ?? ""}&annonce=${v.id}&subject=${encodeURIComponent(sujet)}&body=${encodeURIComponent(msg)}`);
+              })}>{v.ownership === "partenaire" ? "Poser une question" : "Demander un essai routier"}</button>
             </div>
             {/* Localisation — carte réduite */}
             <div className="border-t border-slate-100">
@@ -1785,10 +1792,17 @@ export default function Vehicule({ univers }: { univers?: string }) {
 
               <button className="mt-3 w-full rounded-xl bg-[#111] py-3 text-sm font-bold text-white" onClick={() => requireLogin(() => {
                 // Redirection messagerie avec lien produit + message pré-rempli.
+                // Véhicule sur commande (demande Direction 26/10) : pas encore
+                // en stock physique, donc pas d'essai routier possible — le
+                // bouton devient une simple prise de contact.
                 const link = `${window.location.origin}${window.location.pathname}`;
-                const msg = `Bonjour, je souhaite demander un essai pour votre véhicule : ${v.titre || `${v.marque ?? ""} ${v.modele ?? ""}`.trim()} (Réf. ${v.reference || v.id}).\n\nLien de l'annonce : ${link}\n\nMerci de me confirmer vos disponibilités pour organiser un essai routier.`;
-                navigate(`/compte/messages?to=${v.vendeurId ?? ""}&annonce=${v.id}&subject=${encodeURIComponent("Demander un essai")}&body=${encodeURIComponent(msg)}`);
-              })}>Demander un essai</button>
+                const surCommande = v.ownership === "partenaire";
+                const sujet = surCommande ? "Question sur ce véhicule" : "Demander un essai";
+                const msg = surCommande
+                  ? `Bonjour, j'ai une question sur ce véhicule sur commande : ${v.titre || `${v.marque ?? ""} ${v.modele ?? ""}`.trim()} (Réf. ${v.reference || v.id}).\n\nLien de l'annonce : ${link}`
+                  : `Bonjour, je souhaite demander un essai pour votre véhicule : ${v.titre || `${v.marque ?? ""} ${v.modele ?? ""}`.trim()} (Réf. ${v.reference || v.id}).\n\nLien de l'annonce : ${link}\n\nMerci de me confirmer vos disponibilités pour organiser un essai routier.`;
+                navigate(`/compte/messages?to=${v.vendeurId ?? ""}&annonce=${v.id}&subject=${encodeURIComponent(sujet)}&body=${encodeURIComponent(msg)}`);
+              })}>{v.ownership === "partenaire" ? "Poser une question" : "Demander un essai"}</button>
             </div>
 
             <div className="mt-3 flex items-center justify-between border-b border-[#111]/20 py-2 cursor-pointer" onClick={() => navigate(`/vendeur/${v.vendeur?.id || v.userId || 1}`)}>
@@ -2522,6 +2536,24 @@ export default function Vehicule({ univers }: { univers?: string }) {
                 onClick={() => requireLogin(() => reserve.mutate({ annonceId: v.id, acompte }))}
               >
                 {reserve.isPending ? "Redirection…" : "Réserver maintenant"}
+              </button>
+              {/* Commander le véhicule (demande Direction 26/10) — deuxième
+                  bouton ajouté sous Réserver, sur toutes les pages officielles
+                  MKA.P-MS, y compris pour un véhicule déjà en stock (pas
+                  seulement sur commande). Exprime une intention d'achat ferme
+                  sans inventer de nouveau circuit de paiement : ouvre la
+                  messagerie avec un message pré-rempli vers le vendeur, comme
+                  « Faire une offre » et « Demander un essai » déjà présents
+                  ailleurs sur cette fiche. */}
+              <button
+                className="mt-2 w-full rounded-xl border-2 border-[#111] py-3 text-sm font-bold text-[#111] transition hover:bg-[#111] hover:text-white"
+                onClick={() => requireLogin(() => {
+                  const link = `${window.location.origin}${window.location.pathname}`;
+                  const msg = `Bonjour, je souhaite commander ce véhicule : ${v.titre || `${v.marque ?? ""} ${v.modele ?? ""}`.trim()} (Réf. ${v.reference || v.id}).\n\nLien de l'annonce : ${link}\n\nMerci de me recontacter pour finaliser la commande.`;
+                  navigate(`/compte/messages?to=${v.vendeurId ?? ""}&annonce=${v.id}&subject=${encodeURIComponent("Commander ce véhicule")}&body=${encodeURIComponent(msg)}`);
+                })}
+              >
+                Commander le véhicule
               </button>
             </div>
           )}
