@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import {
-  MessageSquare, Search, Send, ChevronLeft, CheckCheck, Check, Loader2,
+  MessageSquare, Search, Send, ChevronLeft, CheckCheck, Check, Loader2, ChevronRight,
 } from "lucide-react";
 import { trpc } from "../lib/trpc";
+import { getAnnonceUrl } from "../lib/annonceUrl";
+import { useCurrency } from "../lib/currency";
 
 /* ══════════════════════════════════════════════════════════════════════════
    MESSAGERIE INTERNE UNIQUE
@@ -22,6 +24,7 @@ function fmtDate(d: string | Date | null): string {
 }
 
 export default function Messagerie() {
+  const navigate = useNavigate();
   const [params, setParams] = useSearchParams();
   const threadParam = params.get("thread");
   const selectedId = threadParam ? Number(threadParam) : null;
@@ -29,6 +32,7 @@ export default function Messagerie() {
   const [search, setSearch] = useState("");
   const [message, setMessage] = useState("");
   const utils = trpc.useUtils();
+  const { format: formatPrice } = useCurrency();
 
   const threadsQuery = trpc.messages.listThreads.useQuery();
   const threadQuery = trpc.messages.getThread.useQuery(
@@ -67,7 +71,8 @@ export default function Messagerie() {
   /* ─────────────────────────── VUE CONVERSATION ─────────────────────────── */
   if (selectedId != null) {
     const t = threadQuery.data;
-    const titre = t?.annonce?.titre;
+    const a = t?.annonce;
+    const produitUrl = a ? getAnnonceUrl(a.id, a.categorieAnnonce, a.vendeurType) : null;
     return (
       <div className="fixed inset-0 z-[60] bg-[#F5F3EF] flex flex-col">
         <div className="bg-[#111] px-4 pb-3 flex items-center gap-3" style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 12px)" }}>
@@ -76,9 +81,25 @@ export default function Messagerie() {
           </button>
           <div className="flex-1 min-w-0">
             <h2 className="text-sm font-bold text-white truncate">{t?.other?.nom ?? "Conversation"}</h2>
-            {titre && <p className="text-[10px] text-white/50 truncate">À propos de : {titre}</p>}
           </div>
         </div>
+
+        {/* Lien produit (demande Direction 26/10) — toujours visible, jamais
+            seulement un titre : un clic ramène directement sur la fiche
+            produit (prix inclus), aussi bien pour l'acheteur que pour le
+            propriétaire qui ouvre ce même fil. */}
+        {a && produitUrl && (
+          <button
+            onClick={() => navigate(produitUrl)}
+            className="flex w-full items-center gap-2 border-b border-[#E5E7EB] bg-white px-4 py-2.5 text-left active:scale-[0.99] transition"
+          >
+            <div className="min-w-0 flex-1">
+              <p className="text-xs font-semibold text-[#111] truncate">{a.titre}</p>
+              {a.prix != null && <p className="text-xs font-bold text-[#B8960C]">{formatPrice(Number(a.prix))}</p>}
+            </div>
+            <ChevronRight size={14} className="text-[#9CA3AF] shrink-0" />
+          </button>
+        )}
 
         <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
           {threadQuery.isLoading ? (
@@ -166,7 +187,11 @@ export default function Messagerie() {
                   <h3 className="text-sm font-bold text-[#111] truncate">{c.other?.nom ?? "Vendeur"}</h3>
                   <span className="text-[10px] text-[#9CA3AF] shrink-0">{fmtDate(c.lastMessageAt)}</span>
                 </div>
-                {c.annonceTitre && <p className="text-[11px] text-[#B8960C] font-semibold mt-0.5 truncate">{c.annonceTitre}</p>}
+                {c.annonceTitre && (
+                  <p className="text-[11px] text-[#B8960C] font-semibold mt-0.5 truncate">
+                    {c.annonceTitre}{c.annoncePrix != null && ` · ${formatPrice(Number(c.annoncePrix))}`}
+                  </p>
+                )}
                 <p className="text-xs text-[#6B7280] mt-0.5 truncate">{c.lastMessage ?? "Nouvelle conversation"}</p>
               </div>
               {c.unread > 0 && (

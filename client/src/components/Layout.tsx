@@ -285,12 +285,18 @@ export function NotificationsBell() {
               <button
                 key={n.id}
                 onClick={() => openNotif(n.id, n.url)}
-                className={`block w-full border-b border-slate-50 px-3 py-2.5 text-left hover:bg-slate-50 ${
-                  n.read ? "opacity-60" : ""
+                className={`flex w-full items-start gap-2 border-b border-l-2 border-slate-50 px-3 py-2.5 text-left hover:bg-slate-50 ${
+                  n.read ? "border-l-transparent" : "border-l-red-500 bg-red-50/40"
                 }`}
               >
-                <p className="text-sm font-semibold text-slate-800">{n.title}</p>
-                {n.body && <p className="text-xs text-slate-500">{n.body}</p>}
+                <span
+                  aria-hidden="true"
+                  className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${n.read ? "bg-white ring-1 ring-slate-200" : "bg-red-500"}`}
+                />
+                <span className="min-w-0 flex-1">
+                  <p className="text-sm font-semibold text-slate-800">{n.title}</p>
+                  {n.body && <p className="text-xs text-slate-500">{n.body}</p>}
+                </span>
               </button>
             ))}
           </div>
