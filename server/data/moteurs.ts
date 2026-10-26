@@ -729,7 +729,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "parMoteur": 1,
         "sansAction": 0,
         "textes": 664,
-        "mots": 2772
+        "mots": 2769
       },
       {
         "fichier": "client/src/pages/VenteCamions.tsx",
@@ -1350,7 +1350,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "public"
     ],
     "textes": 1624,
-    "mots": 5863,
+    "mots": 5860,
     "battement": "sonde",
     "manques": [
       {
@@ -1474,7 +1474,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "parMoteur": 1,
         "sansAction": 0,
         "textes": 664,
-        "mots": 2772
+        "mots": 2769
       },
       {
         "fichier": "client/src/pages/VenteMKAPMS.tsx",
@@ -1493,7 +1493,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "tables": [],
     "acces": [],
     "textes": 716,
-    "mots": 2895,
+    "mots": 2892,
     "battement": "sonde",
     "manques": [
       {
@@ -1621,7 +1621,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "parMoteur": 1,
         "sansAction": 0,
         "textes": 664,
-        "mots": 2772
+        "mots": 2769
       },
       {
         "fichier": "client/src/pages/VenteParticulier.tsx",
@@ -1640,7 +1640,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "tables": [],
     "acces": [],
     "textes": 724,
-    "mots": 2898,
+    "mots": 2895,
     "battement": "sonde",
     "manques": [
       {
@@ -1768,7 +1768,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "parMoteur": 1,
         "sansAction": 0,
         "textes": 664,
-        "mots": 2772
+        "mots": 2769
       },
       {
         "fichier": "client/src/pages/VentePro.tsx",
@@ -1787,7 +1787,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "tables": [],
     "acces": [],
     "textes": 718,
-    "mots": 2883,
+    "mots": 2880,
     "battement": "sonde",
     "manques": [
       {

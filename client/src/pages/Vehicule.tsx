@@ -1044,7 +1044,7 @@ export default function Vehicule({ univers }: { univers?: string }) {
                   <Store size={18} className="text-[#D4AF37]" />
                 </div>
                 <div>
-                  <p className="text-sm font-bold text-noir">MKA.P-MS — Garage franchisé</p>
+                  <p className="text-sm font-bold text-noir">MKA.P-MS</p>
                   <p className="text-[11px] text-slate-500">Société certifiée</p>
                   <div className="mt-0.5 flex items-center gap-1">
                     <Star size={12} className="fill-[#D4AF37] text-[#D4AF37]" />
