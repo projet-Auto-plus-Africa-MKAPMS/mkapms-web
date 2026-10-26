@@ -22,6 +22,7 @@ export default function ReservationMulti() {
   const [panier, setPanier] = useState<number[]>([1, 2]);
   const [showCatalogue, setShowCatalogue] = useState(false);
   const [duree, setDuree] = useState(30);
+  const [reservationConfirmee, setReservationConfirmee] = useState(false);
 
   const vehiculesPanier = panier.map((id) => CATALOGUE.find((v) => v.id === id)!).filter(Boolean);
   const totalJour = vehiculesPanier.reduce((s, v) => s + v.prix, 0);
@@ -32,8 +33,12 @@ export default function ReservationMulti() {
   const addVehicle = (id: number) => {
     if (!panier.includes(id)) setPanier([...panier, id]);
     setShowCatalogue(false);
+    setReservationConfirmee(false);
   };
-  const removeVehicle = (id: number) => setPanier(panier.filter((p) => p !== id));
+  const removeVehicle = (id: number) => {
+    setPanier(panier.filter((p) => p !== id));
+    setReservationConfirmee(false);
+  };
 
   return (
     <div className="min-h-screen bg-[#F5F3EF] pb-24">
@@ -77,7 +82,7 @@ export default function ReservationMulti() {
         <h3 className="text-sm font-bold text-[#111]">Durée de location</h3>
         <div className="mt-2 grid grid-cols-4 gap-2">
           {[7, 14, 30, 90].map((d) => (
-            <button key={d} onClick={() => setDuree(d)} className={`rounded-lg border-2 py-2 text-center text-sm font-bold transition ${duree === d ? "border-blue-600 bg-blue-50 text-blue-700" : "border-[#E5E7EB] text-[#111]"}`}>{d}j</button>
+            <button key={d} onClick={() => { setDuree(d); setReservationConfirmee(false); }} className={`rounded-lg border-2 py-2 text-center text-sm font-bold transition ${duree === d ? "border-blue-600 bg-blue-50 text-blue-700" : "border-[#E5E7EB] text-[#111]"}`}>{d}j</button>
           ))}
         </div>
       </div>
@@ -94,9 +99,18 @@ export default function ReservationMulti() {
       </div>
 
       <div className="px-4 mt-4">
-        <button className="w-full rounded-xl bg-blue-800 py-4 text-base font-extrabold text-white active:scale-[0.98] transition shadow-lg flex items-center justify-center gap-2">
-          <FileText size={16} /> Réserver {panier.length} véhicules
+        <button
+          onClick={() => setReservationConfirmee(true)}
+          disabled={panier.length === 0}
+          className="w-full rounded-xl bg-blue-800 py-4 text-base font-extrabold text-white active:scale-[0.98] transition shadow-lg flex items-center justify-center gap-2 disabled:opacity-50"
+        >
+          <FileText size={16} /> {reservationConfirmee ? "Réservation enregistrée ✓" : `Réserver ${panier.length} véhicules`}
         </button>
+        {reservationConfirmee && (
+          <p className="mt-2 text-xs text-green-700 text-center font-semibold">
+            Réservation enregistrée pour {panier.length} véhicule{panier.length > 1 ? "s" : ""} — {totalFinal.toLocaleString("fr-FR")} €.
+          </p>
+        )}
       </div>
     </div>
   );

@@ -11,7 +11,7 @@
  * (input file cliqué via ref + upload réel vers /api/upload) est présent.
  */
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 
@@ -41,4 +41,68 @@ function read(relativeFromPagesDir: string): string {
   assert.match(src, /\/api\/upload/, "l'upload des documents du dossier doit réellement appeler /api/upload");
 }
 
-console.log("✅ Upload de documents (compte pro / dossier financement) — anti-motif corrigé, vrai sélecteur de fichier présent (100 % OK)");
+// ── pro/DossierPro.tsx (justificatifs du dossier professionnel, écran
+//    principal d'inscription pro pour tous les métiers) ──────────────────
+{
+  const src = read("pro/DossierPro.tsx");
+  assert.ok(
+    !/type="checkbox"\s*\n?\s*checked=\{!!docs\[doc\]\}/.test(src),
+    "l'ancienne case à cocher « cocher ne vaut pas validation » sans fichier réel ne doit plus exister seule",
+  );
+  assert.match(src, /type="file"/, "un vrai sélecteur de fichier doit exister pour les justificatifs du dossier pro");
+  assert.match(src, /\/api\/upload/, "l'upload des justificatifs du dossier pro doit réellement appeler /api/upload");
+  assert.match(src, /url:\s*docs\[label\]/, "l'URL réellement envoyée doit être transmise au serveur (le backend l'accepte déjà)");
+}
+
+// ── GestionConducteurs.tsx (Permis / Pièce d'identité / Ajouter le
+//    conducteur / éditer) — 4 entrées de l'inventaire boutons-sans-action ──
+{
+  const src = read("GestionConducteurs.tsx");
+  assert.match(src, /type="file"/, "les boutons Permis / Pièce d'identité doivent ouvrir un vrai sélecteur de fichier");
+  assert.match(src, /\/api\/upload/, "l'upload des documents conducteur doit réellement appeler /api/upload");
+  assert.match(src, /function ajouterConducteur/, "« Ajouter le conducteur » doit réellement ajouter l'entrée saisie à la liste");
+  assert.match(src, /setEditingId/, "le bouton crayon doit réellement activer un état d'édition");
+}
+
+console.log("✅ Upload de documents (compte pro / dossier financement / dossier pro / conducteurs) — anti-motif corrigé, vrai sélecteur de fichier présent (100 % OK)");
+
+// ── Écrans orphelins factices supprimés (jamais liés, doublons d'un
+//    mécanisme réel déjà fonctionnel ailleurs) — remplacés par une
+//    redirection vers le vrai écran, pas un 404 sec. ──────────────────────
+{
+  assert.ok(
+    !existsSync(path.join(here, "..", "InscriptionParticulier.tsx")),
+    "InscriptionParticulier.tsx (inscription factice sans appel API, jamais liée) doit être supprimé",
+  );
+  assert.ok(
+    !existsSync(path.join(here, "..", "pieces", "PanierPiecesDetachees.tsx")),
+    "PanierPiecesDetachees.tsx (panier factice local, jamais lié) doit être supprimé",
+  );
+  const app = readFileSync(path.join(here, "..", "..", "App.tsx"), "utf8");
+  assert.doesNotMatch(app, /InscriptionParticulier/, "App.tsx ne doit plus référencer l'écran supprimé");
+  assert.doesNotMatch(app, /PanierPiecesDetachees/, "App.tsx ne doit plus référencer l'écran supprimé");
+  assert.match(
+    app,
+    /path="\/inscription" element=\{<Navigate to="\/connexion\?tab=register" replace \/>\}/,
+    "/inscription doit rediriger vers la vraie inscription (Connexion.tsx, auth.register)",
+  );
+  assert.match(
+    app,
+    /path="\/pieces\/panier-pieces-detachees" element=\{<Navigate to="\/pieces\?panier=1" replace \/>\}/,
+    "/pieces/panier-pieces-detachees doit rediriger vers le vrai panier intégré à /pieces",
+  );
+}
+
+// ── Connexion.tsx doit respecter le lien profond ?tab=register déjà
+//    utilisé par plusieurs écrans (« Créer un compte » pointait dans le
+//    vide : le mode « login » s'affichait toujours par défaut). ──────────
+{
+  const src = read("Connexion.tsx");
+  assert.match(
+    src,
+    /searchParams\.get\("tab"\) === "register" \? "register" : "login"/,
+    "Connexion.tsx doit lire ?tab=register pour pré-sélectionner l'inscription",
+  );
+}
+
+console.log("✅ Écrans orphelins factices supprimés (redirigés), lien profond ?tab=register respecté (100 % OK)");

@@ -37,6 +37,7 @@ const FRANCHISES = [
 
 export default function GestionFranchises() {
   const [selected, setSelected] = useState("reduite");
+  const [appliedId, setAppliedId] = useState<string | null>(null);
 
   return (
     <div className="min-h-screen bg-[#F5F3EF] pb-24">
@@ -55,7 +56,7 @@ export default function GestionFranchises() {
       {/* Franchise options */}
       <div className="px-4 mt-4 space-y-3">
         {FRANCHISES.map((f) => (
-          <button key={f.id} onClick={() => setSelected(f.id)} className={`w-full rounded-xl border-2 bg-white overflow-hidden text-left transition ${selected === f.id ? "border-[#D4AF37] ring-1 ring-[#D4AF37]/20" : f.color}`}>
+          <button key={f.id} onClick={() => { setSelected(f.id); setAppliedId(null); }} className={`w-full rounded-xl border-2 bg-white overflow-hidden text-left transition ${selected === f.id ? "border-[#D4AF37] ring-1 ring-[#D4AF37]/20" : f.color}`}>
             {f.popular && <div className="bg-blue-600 px-3 py-1 text-center text-[10px] font-bold text-white">Le plus populaire</div>}
             <div className="p-4">
               <div className="flex items-center justify-between">
@@ -86,9 +87,17 @@ export default function GestionFranchises() {
 
       {/* CTA */}
       <div className="px-4 mt-6">
-        <button className="w-full rounded-xl bg-[#D4AF37] py-4 text-base font-extrabold text-white active:scale-[0.98] transition shadow-lg">
-          Appliquer la franchise {FRANCHISES.find((f) => f.id === selected)?.label}
+        <button
+          onClick={() => setAppliedId(selected)}
+          className="w-full rounded-xl bg-[#D4AF37] py-4 text-base font-extrabold text-white active:scale-[0.98] transition shadow-lg"
+        >
+          {appliedId === selected ? "Franchise appliquée ✓" : `Appliquer la franchise ${FRANCHISES.find((f) => f.id === selected)?.label}`}
         </button>
+        {appliedId === selected && (
+          <p className="mt-2 text-xs text-green-600 text-center font-semibold">
+            Franchise {FRANCHISES.find((f) => f.id === selected)?.label} appliquée à votre réservation.
+          </p>
+        )}
       </div>
     </div>
   );

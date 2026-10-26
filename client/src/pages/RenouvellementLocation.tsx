@@ -11,6 +11,13 @@ import {
    Choix retrait/retour : même agence, autre, livraison, récupération domicile.
    ══════════════════════════════════════════════════════════════════════════ */
 
+const parseDateFr = (s: string) => {
+  const [d, m, y] = s.split("/").map(Number);
+  return new Date(y, m - 1, d);
+};
+const formatDateFr = (d: Date) =>
+  `${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}/${d.getFullYear()}`;
+
 const LOCATIONS_ACTIVES = [
   {
     id: 1, vehicule: "Mercedes Classe E Break", ref: "LOC-2025-0042",
@@ -45,13 +52,27 @@ const DUREES_PROLONGATION = [
 
 export default function RenouvellementLocation() {
   const [activeTab, setActiveTab] = useState<"renouveler" | "retrait">("renouveler");
+  const [locations, setLocations] = useState(LOCATIONS_ACTIVES);
   const [selectedLoc, setSelectedLoc] = useState(0);
   const [duree, setDuree] = useState(30);
   const [retraitChoice, setRetraitChoice] = useState("meme");
   const [retourChoice, setRetourChoice] = useState("meme");
+  const [prolongationConfirmee, setProlongationConfirmee] = useState(false);
+  const [retraitConfirme, setRetraitConfirme] = useState(false);
 
-  const loc = LOCATIONS_ACTIVES[selectedLoc];
+  const loc = locations[selectedLoc];
   const prixProlongation = Math.round((loc.prixMois / 30) * duree);
+
+  const confirmerProlongation = () => {
+    setLocations((prev) =>
+      prev.map((l, i) => {
+        if (i !== selectedLoc) return l;
+        const nouvelleDate = new Date(parseDateFr(l.dateFin).getTime() + duree * 24 * 60 * 60 * 1000);
+        return { ...l, dateFin: formatDateFr(nouvelleDate), joursRestants: l.joursRestants + duree };
+      })
+    );
+    setProlongationConfirmee(true);
+  };
 
   return (
     <div className="min-h-screen bg-[#F5F3EF] pb-24">
@@ -69,8 +90,8 @@ export default function RenouvellementLocation() {
 
       {/* Location selector */}
       <div className="px-4 mt-4 flex gap-2 overflow-x-auto scrollbar-hide pb-1">
-        {LOCATIONS_ACTIVES.map((l, i) => (
-          <button key={l.id} onClick={() => setSelectedLoc(i)} className={`shrink-0 flex items-center gap-2 rounded-xl p-2 pr-3 text-left transition ${selectedLoc === i ? "bg-[#111] text-white" : "bg-white text-[#111] border border-[#E5E7EB]"}`}>
+        {locations.map((l, i) => (
+          <button key={l.id} onClick={() => { setSelectedLoc(i); setProlongationConfirmee(false); }} className={`shrink-0 flex items-center gap-2 rounded-xl p-2 pr-3 text-left transition ${selectedLoc === i ? "bg-[#111] text-white" : "bg-white text-[#111] border border-[#E5E7EB]"}`}>
             <img src={l.photo} alt="" className="w-10 h-8 rounded object-cover" />
             <div>
               <p className="text-[11px] font-bold">{l.ref}</p>
@@ -107,7 +128,7 @@ export default function RenouvellementLocation() {
             <h3 className="text-sm font-bold text-[#111]">Durée de prolongation</h3>
             <div className="mt-3 grid grid-cols-3 gap-2">
               {DUREES_PROLONGATION.map((d) => (
-                <button key={d.jours} onClick={() => setDuree(d.jours)} className={`rounded-lg border-2 py-2.5 text-center transition ${duree === d.jours ? "border-[#D4AF37] bg-[#D4AF37]/5" : "border-[#E5E7EB]"}`}>
+                <button key={d.jours} onClick={() => { setDuree(d.jours); setProlongationConfirmee(false); }} className={`rounded-lg border-2 py-2.5 text-center transition ${duree === d.jours ? "border-[#D4AF37] bg-[#D4AF37]/5" : "border-[#E5E7EB]"}`}>
                   <span className="block text-sm font-bold text-[#111]">{d.label}</span>
                 </button>
               ))}
@@ -123,10 +144,13 @@ export default function RenouvellementLocation() {
           </div>
 
           <div className="mx-4 mt-4">
-            <button className="w-full rounded-xl bg-[#D4AF37] py-4 text-base font-extrabold text-white shadow-lg active:scale-[0.98] transition flex items-center justify-center gap-2">
+            <button onClick={confirmerProlongation} className="w-full rounded-xl bg-[#D4AF37] py-4 text-base font-extrabold text-white shadow-lg active:scale-[0.98] transition flex items-center justify-center gap-2">
               <RefreshCw size={16} /> Prolonger ma location
             </button>
             <p className="mt-2 text-[10px] text-[#9CA3AF] text-center">Sans refaire votre dossier. Paiement sécurisé.</p>
+            {prolongationConfirmee && (
+              <p className="mt-2 text-xs text-green-600 text-center font-semibold">Prolongation enregistrée — nouvelle échéance : {loc.dateFin}</p>
+            )}
           </div>
         </>
       )}
@@ -140,7 +164,7 @@ export default function RenouvellementLocation() {
               {RETRAIT_OPTIONS.slice(0, 3).map((o) => {
                 const Icon = o.icon;
                 return (
-                  <button key={o.id} onClick={() => setRetraitChoice(o.id)} className={`w-full flex items-center gap-3 rounded-xl border-2 p-3 text-left transition ${retraitChoice === o.id ? "border-[#D4AF37] bg-[#D4AF37]/5" : "border-[#E5E7EB]"}`}>
+                  <button key={o.id} onClick={() => { setRetraitChoice(o.id); setRetraitConfirme(false); }} className={`w-full flex items-center gap-3 rounded-xl border-2 p-3 text-left transition ${retraitChoice === o.id ? "border-[#D4AF37] bg-[#D4AF37]/5" : "border-[#E5E7EB]"}`}>
                     <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#F5F3EF]"><Icon size={16} className="text-[#D4AF37]" /></div>
                     <div className="flex-1"><span className="text-sm font-bold text-[#111]">{o.label}</span><p className="text-[10px] text-[#6B7280]">{o.desc}</p></div>
                     <span className="text-xs font-semibold text-[#D4AF37]">{o.prix}</span>
@@ -157,7 +181,7 @@ export default function RenouvellementLocation() {
               {RETRAIT_OPTIONS.map((o) => {
                 const Icon = o.icon;
                 return (
-                  <button key={o.id} onClick={() => setRetourChoice(o.id)} className={`w-full flex items-center gap-3 rounded-xl border-2 p-3 text-left transition ${retourChoice === o.id ? "border-[#D4AF37] bg-[#D4AF37]/5" : "border-[#E5E7EB]"}`}>
+                  <button key={o.id} onClick={() => { setRetourChoice(o.id); setRetraitConfirme(false); }} className={`w-full flex items-center gap-3 rounded-xl border-2 p-3 text-left transition ${retourChoice === o.id ? "border-[#D4AF37] bg-[#D4AF37]/5" : "border-[#E5E7EB]"}`}>
                     <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#F5F3EF]"><Icon size={16} className="text-[#D4AF37]" /></div>
                     <div className="flex-1"><span className="text-sm font-bold text-[#111]">{o.label}</span><p className="text-[10px] text-[#6B7280]">{o.desc}</p></div>
                     <span className="text-xs font-semibold text-[#D4AF37]">{o.prix}</span>
@@ -168,9 +192,14 @@ export default function RenouvellementLocation() {
           </div>
 
           <div className="mx-4 mt-4">
-            <button className="w-full rounded-xl bg-[#D4AF37] py-3 text-sm font-bold text-white active:scale-[0.98] transition">
+            <button onClick={() => setRetraitConfirme(true)} className="w-full rounded-xl bg-[#D4AF37] py-3 text-sm font-bold text-white active:scale-[0.98] transition">
               Confirmer le retrait / retour
             </button>
+            {retraitConfirme && (
+              <p className="mt-2 text-xs text-green-600 text-center font-semibold">
+                Retrait et retour enregistrés : {RETRAIT_OPTIONS.find((o) => o.id === retraitChoice)?.label} / {RETRAIT_OPTIONS.find((o) => o.id === retourChoice)?.label}
+              </p>
+            )}
           </div>
         </>
       )}

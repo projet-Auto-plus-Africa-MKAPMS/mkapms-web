@@ -82,7 +82,7 @@ export default function ProgrammeVTC() {
                     <p className="text-sm font-black text-[#D4AF37]">{v.marge.toLocaleString("fr-FR")} €</p>
                   </div>
                 </div>
-                <button className="mt-3 w-full rounded-xl bg-[#D4AF37] py-2.5 text-sm font-bold text-white active:scale-[0.98] transition">Voir le véhicule</button>
+                <button onClick={() => navigate(`/louer/vtc-taxi/vehicule/${v.id}`)} className="mt-3 w-full rounded-xl bg-[#D4AF37] py-2.5 text-sm font-bold text-white active:scale-[0.98] transition">Voir le véhicule</button>
               </div>
             </div>
           ))}

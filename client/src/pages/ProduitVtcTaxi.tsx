@@ -9,6 +9,8 @@ import {
 } from "lucide-react";
 import ShareButton from "../components/ShareButton";
 import ReserverLocationButton from "../components/ReserverLocationButton";
+import { getToken } from "../lib/auth";
+import { normalizeImages } from "../lib/imageUpload";
 
 /* ══════════════════════════════════════════════════════════════════════════
    PAGE PRODUIT — LOCATION VTC & TAXI
@@ -153,6 +155,42 @@ export default function ProduitVtcTaxi() {
   const [dateDebut, setDateDebut] = useState(formatDate(today));
   const [dateFin, setDateFin] = useState(formatDate(nextMonth));
   const [kmChoice, setKmChoice] = useState(0);
+
+  const [docUrls, setDocUrls] = useState<Record<string, string>>({});
+  const [docUploading, setDocUploading] = useState<Record<string, boolean>>({});
+  const [docError, setDocError] = useState<string | null>(null);
+  const docInputs = useRef<Record<string, HTMLInputElement | null>>({});
+
+  const uploadDoc = async (doc: string, files: FileList | File[]) => {
+    setDocUploading((p) => ({ ...p, [doc]: true }));
+    setDocError(null);
+    try {
+      const prepared = await normalizeImages(files);
+      const fd = new FormData();
+      for (const f of prepared) fd.append("files", f);
+      const token = getToken();
+      const resp = await fetch("/api/upload", {
+        method: "POST",
+        headers: token ? { authorization: `Bearer ${token}` } : {},
+        body: fd,
+      });
+      const data = await resp.json().catch(() => ({}));
+      if (!resp.ok) {
+        setDocError(data.error || "Erreur lors de l'envoi du document");
+        return;
+      }
+      const uploadedUrls = ((data.files || []) as { url: string }[]).map((f) => f.url);
+      if (!uploadedUrls.length) {
+        setDocError("Le document n'a pas pu être traité");
+        return;
+      }
+      setDocUrls((p) => ({ ...p, [doc]: uploadedUrls[0] }));
+    } catch (e) {
+      setDocError((e as Error).message || "Erreur réseau lors de l'envoi");
+    } finally {
+      setDocUploading((p) => ({ ...p, [doc]: false }));
+    }
+  };
 
   const nbJours = useMemo(() => {
     const diff = Math.ceil((new Date(dateFin).getTime() - new Date(dateDebut).getTime()) / (1000 * 60 * 60 * 24));
@@ -484,15 +522,38 @@ export default function ProduitVtcTaxi() {
             <h3 className="text-sm font-bold text-[#111]">Dépôt de dossier</h3>
             <p className="text-xs text-[#6B7280]">Téléchargez vos documents pour valider votre éligibilité.</p>
             <div className="space-y-2">
-              {(docType === "vtc" ? DOCS_VTC : DOCS_TAXI).map((doc) => (
+              {(docType === "vtc" ? DOCS_VTC : DOCS_TAXI).map((doc) => {
+                const url = docUrls[doc];
+                const busy = docUploading[doc];
+                return (
                 <div key={doc} className="flex items-center justify-between rounded-lg border border-[#E5E7EB] px-3 py-3">
+                  <input
+                    ref={(el) => { docInputs.current[doc] = el; }}
+                    type="file"
+                    accept="image/*,.heic,.heif,.pdf"
+                    className="hidden"
+                    onChange={(e) => {
+                      const selected = e.target.files ? Array.from(e.target.files) : [];
+                      e.target.value = "";
+                      if (selected.length) void uploadDoc(doc, selected);
+                    }}
+                  />
                   <div className="flex items-center gap-2">
-                    <FileCheck size={14} className="text-[#D4AF37]" />
+                    <FileCheck size={14} className={url ? "text-green-500" : "text-[#D4AF37]"} />
                     <span className="text-sm text-[#111]">{doc}</span>
                   </div>
-                  <button className="rounded-lg bg-[#F5F3EF] px-3 py-1.5 text-[11px] font-semibold text-[#D4AF37]">Télécharger</button>
+                  <button
+                    type="button"
+                    onClick={() => { if (!busy) docInputs.current[doc]?.click(); }}
+                    disabled={busy}
+                    className={`rounded-lg px-3 py-1.5 text-[11px] font-semibold ${url ? "bg-green-50 text-green-600" : "bg-[#F5F3EF] text-[#D4AF37]"}`}
+                  >
+                    {busy ? "Envoi…" : url ? "Ajouté ✓" : "Ajouter"}
+                  </button>
                 </div>
-              ))}
+                );
+              })}
+              {docError && <p className="text-xs text-red-600">{docError}</p>}
             </div>
             <div className="flex gap-2">
               <button onClick={() => setStep(1)} className="flex-1 rounded-xl border-2 border-[#E5E7EB] py-3 text-sm font-bold text-[#6B7280]">← Retour</button>
