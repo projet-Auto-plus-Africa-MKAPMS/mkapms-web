@@ -40,7 +40,7 @@ export interface AnomalieCliquable {
   readonly motif: MotifAnomalie;
 }
 
-export const CLIQUABLES_TOTAL = 2870;
+export const CLIQUABLES_TOTAL = 2879;
 
 export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/components/AccessDenied.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
@@ -613,6 +613,7 @@ export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/pages/recrutement/OffresEmploi.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/recrutement/RechercheTalents.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/RedirectionEngine/ControlCenter.tsx", total: 7, moteur: 0, liens: 1, boutonsLocaux: 6, sansAction: 0, zones: 0 },
+  { fichier: "client/src/pages/Rejoindre.tsx", total: 8, moteur: 0, liens: 8, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/RemplacementVehicule.tsx", total: 6, moteur: 0, liens: 1, boutonsLocaux: 2, sansAction: 3, zones: 0 },
   { fichier: "client/src/pages/RenouvellementFlotte.tsx", total: 2, moteur: 0, liens: 2, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/RenouvellementLocation.tsx", total: 6, moteur: 0, liens: 1, boutonsLocaux: 3, sansAction: 2, zones: 0 },
@@ -667,7 +668,7 @@ export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/pages/TableauBordLoueur.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/TableauBordParticulier.tsx", total: 6, moteur: 0, liens: 6, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/TableauBordProVente.tsx", total: 7, moteur: 2, liens: 5, boutonsLocaux: 0, sansAction: 0, zones: 0 },
-  { fichier: "client/src/pages/Univers.tsx", total: 2, moteur: 0, liens: 2, boutonsLocaux: 0, sansAction: 0, zones: 0 },
+  { fichier: "client/src/pages/Univers.tsx", total: 3, moteur: 0, liens: 3, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/utilisateurs/AbonnementsUtilisateur.tsx", total: 3, moteur: 0, liens: 2, boutonsLocaux: 1, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/utilisateurs/CentreAlertesUtilisateur.tsx", total: 3, moteur: 0, liens: 1, boutonsLocaux: 2, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/utilisateurs/CentreFavorisUtilisateur.tsx", total: 2, moteur: 0, liens: 1, boutonsLocaux: 1, sansAction: 0, zones: 0 },

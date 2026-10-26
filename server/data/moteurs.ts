@@ -116,6 +116,7 @@ export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
 /** Routes client qu'aucun moteur ne revendique. */
 export const ROUTES_SANS_MOTEUR: readonly string[] = [
   "/b2b",
+  "/rejoindre",
   "/superadmin/fournisseurs"
 ];
 
@@ -201,11 +202,11 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/univers"
         ],
-        "cliquables": 2,
+        "cliquables": 3,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 15,
-        "mots": 91
+        "textes": 20,
+        "mots": 127
       }
     ],
     "ecransHotes": [
@@ -229,8 +230,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "connecte",
       "public"
     ],
-    "textes": 35,
-    "mots": 146,
+    "textes": 40,
+    "mots": 182,
     "battement": "sonde",
     "manques": []
   },
@@ -15220,8 +15221,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "cliquables": 2,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 18,
-        "mots": 79
+        "textes": 20,
+        "mots": 130
       },
       {
         "fichier": "client/src/pages/partenaires/NiveauxPartenaires.tsx",
@@ -15331,8 +15332,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "direction",
       "public"
     ],
-    "textes": 62,
-    "mots": 183,
+    "textes": 64,
+    "mots": 234,
     "battement": "sonde",
     "manques": [
       {
