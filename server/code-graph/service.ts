@@ -428,7 +428,14 @@ export async function impact(cle: string): Promise<Impact> {
     Array.from(new Set(arr.filter((v) => v.startsWith(pref)).map((v) => v.slice(pref.length))));
 
   const cibles = liens.map((l) => l.target);
-  const fichiers = brut("fichier:", cibles);
+  const fichiersPortes = new Set(brut("fichier:", cibles));
+  // Un fichier directement visé (recherche sur son propre nœud, pas sur un
+  // moteur qui le porte) n'a pas d'arête sortante "porte" — sans ce cas, il
+  // se signale lui-même comme introuvable (0 fichier) alors qu'il est bien
+  // dans le relevé (point relevé le 26/10 : mission bloquée sur un fichier
+  // existant et correctement résolu, mais jamais cité en résultat).
+  if (noeud.type === "fichier") fichiersPortes.add(recherche.slice("fichier:".length));
+  const fichiers = Array.from(fichiersPortes);
   const api = brut("api:", cibles);
   const tables = brut("table:", cibles);
   const evenements = brut("evenement:", cibles);
