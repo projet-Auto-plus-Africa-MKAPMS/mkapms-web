@@ -217,6 +217,14 @@ export default function Vehicule({ univers }: { univers?: string }) {
 
   const isDemo = annonceId >= 8000;
   const q = trpc.annonces.get.useQuery({ id: annonceId }, { enabled: !!annonceId && !isDemo });
+  // Product Page Engine (demande Direction 26/10) — configuration d'affichage
+  // (vente_normale / sur_commande / constructeur_mkapms). Additif uniquement :
+  // aujourd'hui seul `afficherBlocConstructeur` ajoute un nouveau bloc (jamais
+  // affiché, aucune annonce n'a encore ce drapeau) ; les blocs sur-commande et
+  // normaux déjà en place (ex. ci-dessous `v.ownership === "partenaire"`)
+  // restent inchangés, ils appliquent déjà exactement la même règle.
+  const pageConfigQuery = trpc.productPageEngine.config.useQuery({ annonceId }, { enabled: !!annonceId && !isDemo });
+  const pageConfig = pageConfigQuery.data;
   const legal = trpc.meta.legal.useQuery();
   const estimateQuery = trpc.annonces.estimate.useQuery(
     {
@@ -2316,7 +2324,7 @@ export default function Vehicule({ univers }: { univers?: string }) {
                       {v.vehiculeSurCommandePrepDetails && <p><span className="font-semibold text-slate-700">Préparation : </span>{v.vehiculeSurCommandePrepDetails}</p>}
                       {r?.deliveryDelayDays != null && <p>Délai de livraison estimé : {r.deliveryDelayDays} jour{r.deliveryDelayDays > 1 ? "s" : ""}</p>}
                       {r?.pickupDelayDays != null && <p>Délai de retrait estimé : {r.pickupDelayDays} jour{r.pickupDelayDays > 1 ? "s" : ""}</p>}
-                      {r?.deliveryFee != null && <p>Frais de livraison : {formatPrice(Number(r.deliveryFee))}</p>}
+                      {r?.deliveryFee != null ? <p>Frais de livraison : {formatPrice(Number(r.deliveryFee))}</p> : r?.deliveryDelayDays != null && <p>Frais de livraison : sur devis</p>}
                       {r?.pickupFee != null && <p>Frais de retrait : {formatPrice(Number(r.pickupFee))}</p>}
                       {r?.deliveryZones && <p><span className="font-semibold text-slate-700">Zones desservies : </span>{r.deliveryZones}</p>}
                       {r?.handoverConditions && <p><span className="font-semibold text-slate-700">Conditions de remise : </span>{r.handoverConditions}</p>}
@@ -2355,6 +2363,36 @@ export default function Vehicule({ univers }: { univers?: string }) {
               </div>
             );
           })()}
+
+          {/* Véhicule constructeur MKA.P-MS (demande Direction 26/10, préparation
+              future — Product Page Engine). N'apparaît jamais aujourd'hui :
+              aucune annonce n'a encore `estConstructeurMkapms = true`. */}
+          {pageConfig?.afficherBlocConstructeur && pageConfig.constructeur && (
+            <div id="constructeur-mkapms" className="card border-[#D4AF37]/20 p-5">
+              <h3 className="font-bold text-noir">Véhicule constructeur {pageConfig.constructeur.marque}</h3>
+              <p className="mt-1 text-sm text-slate-500">Fabriqué directement par {pageConfig.constructeur.marque}.</p>
+              {pageConfig.constructeur.ficheConstructeur && (
+                <div className="mt-3 rounded-lg bg-slate-50 p-3 text-xs text-slate-600 whitespace-pre-line">
+                  {pageConfig.constructeur.ficheConstructeur}
+                </div>
+              )}
+              {pageConfig.constructeur.disponibilite && (
+                <p className="mt-3 text-sm"><span className="font-semibold text-slate-700">Disponibilité : </span>{pageConfig.constructeur.disponibilite}</p>
+              )}
+              {pageConfig.constructeur.garanties.length > 0 && (
+                <div className="mt-3 text-xs text-slate-600">
+                  <p className="font-semibold text-slate-700">Garanties</p>
+                  <ul className="list-disc pl-4">{pageConfig.constructeur.garanties.map((g, i) => <li key={i}>{g}</li>)}</ul>
+                </div>
+              )}
+              {pageConfig.constructeur.entretienServices && (
+                <details className="group mt-3 rounded-lg border border-slate-100 bg-slate-50">
+                  <summary className="cursor-pointer px-4 py-3 text-sm font-semibold text-[#111] hover:text-[#D4AF37]">Entretien et services associés</summary>
+                  <div className="px-4 pb-3 text-xs text-slate-600 leading-relaxed whitespace-pre-line">{pageConfig.constructeur.entretienServices}</div>
+                </details>
+              )}
+            </div>
+          )}
 
           {/* Réserver avec acompte (vente) — pour NON-MKA.P-MS, position ici ; pour MKA.P-MS, après Finance+ */}
           {!isLocation && !isMkapmsStock && v.ownership !== "partenaire" && (

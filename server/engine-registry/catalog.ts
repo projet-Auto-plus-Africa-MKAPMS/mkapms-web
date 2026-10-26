@@ -261,6 +261,15 @@ export const ENGINE_CATALOG: EngineSeed[] = [
     state: "staging",
   },
   {
+    name: "product_page_engine",
+    label: "Product Page Engine",
+    category: "transversal",
+    dependencies: ["core", "achat", "order_engine"],
+    description:
+      "Demande Direction (26/10) : configuration adaptative de la fiche produit officielle MKA.P-MS (Vehicule.tsx) — une structure commune qui s'adapte au type de véhicule, au type de vente et au statut (vente_normale / sur_commande / constructeur_mkapms), comme une fiche produit Amazon. Réutilise les projections déjà strictement non confidentielles d'Order Engine (jamais une nouvelle lecture de supplier_profiles ni du prix fournisseur). Type constructeur_mkapms préparé pour les futurs véhicules fabriqués par MKA.P-MS — drapeau toujours faux aujourd'hui, aucune annonce existante concernée. Active dès ce lot : appelé par Vehicule.tsx dès la publication de ce moteur, jamais un moteur en place mais non connecté.",
+    state: "active",
+  },
+  {
     name: "search",
     label: "Search Engine",
     category: "transversal",

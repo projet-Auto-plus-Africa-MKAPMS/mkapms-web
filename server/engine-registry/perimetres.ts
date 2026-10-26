@@ -44,6 +44,7 @@ export const ROUTEURS_PARTAGES: Record<string, string[]> = {
   document: ["kyc", "admin"],
   workflow: ["admin"],
   notification: ["searches"],
+  achat: ["productPageEngine"],
   achat_officiel: ["annonces"],
   achat_pro: ["annonces"],
   achat_particulier: ["annonces"],
@@ -380,6 +381,19 @@ export const PERIMETRES: PerimetreDeclare[] = [
       "/vehicule-sur-commande/mes-commandes",
       "/vehicule-sur-commande/mes-commandes/:orderItemId",
     ],
+  },
+  {
+    // Demande Direction 26/10 — fiche produit adaptative (vente_normale /
+    // sur_commande / constructeur_mkapms). Appelé par Vehicule.tsx
+    // (client/src/pages/Vehicule.tsx : trpc.productPageEngine.config), dont
+    // l'écran "/vehicule/:id" reste déclaré par "achat" (même infrastructure
+    // partagée que achat_officiel/achat_pro ci-dessous) : ce moteur possède
+    // son propre dossier et son propre routeur, jamais la route — une fiche
+    // produit fait bien plus que choisir le type d'affichage.
+    moteur: "product_page_engine",
+    dossiers: ["product-page-engine"],
+    routeurs: ["productPageEngine"],
+    routes: [],
   },
   {
     moteur: "financial_intelligence",
