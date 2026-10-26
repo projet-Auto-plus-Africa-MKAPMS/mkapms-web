@@ -1,12 +1,14 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   Calculator, FileText, CheckCircle, ArrowRight, Shield, Clock, CreditCard,
   Car, Truck, AlertTriangle, Star, ChevronDown, ChevronRight, Users,
   Bell, FolderOpen, Download, Eye, Wallet, Calendar, TrendingUp, Lock,
-  Bike, MapPin, Zap, X,
+  Bike, MapPin, Zap, X, Upload,
 } from "lucide-react";
 import { DocumentView, buildContratData, buildFactureData } from "../components/DocumentPDF";
+import { getToken } from "../lib/auth";
+import { normalizeImages } from "../lib/imageUpload";
 
 /* ═══ TYPES ═══ */
 type VehiculeType = "voiture" | "utilitaire" | "moto" | "scooter" | "vtc" | "taxi";
@@ -80,9 +82,47 @@ export default function Finance() {
   const [isPro, setIsPro] = useState(false);
   const fracMensualite = Math.round(fracPrix / fracParts);
 
-  // Dossier
-  const [docs, setDocs] = useState<Record<string, boolean>>({});
+  // Dossier — documents réellement envoyés (URL renvoyée par le serveur),
+  // plus l'état "envoi en cours" par document. Avant ce correctif, "docs"
+  // n'était qu'une case à cocher locale : cocher affichait aussitôt un ✓
+  // vert sans qu'aucun fichier n'ait jamais été choisi ni envoyé — ni
+  // sélecteur de fichier, ni appel réseau (retour Direction, 26/10).
+  const [docs, setDocs] = useState<Record<string, string>>({});
+  const [uploadingDocs, setUploadingDocs] = useState<Record<string, boolean>>({});
+  const [docsError, setDocsError] = useState<string | null>(null);
+  const docInputs = useRef<Record<string, HTMLInputElement | null>>({});
   const [dossierStatut, setDossierStatut] = useState("recu");
+
+  async function uploadDoc(key: string, files: FileList | File[]) {
+    setUploadingDocs((p) => ({ ...p, [key]: true }));
+    setDocsError(null);
+    try {
+      const prepared = await normalizeImages(files);
+      const fd = new FormData();
+      for (const f of prepared) fd.append("files", f);
+      const token = getToken();
+      const resp = await fetch("/api/upload", {
+        method: "POST",
+        headers: token ? { authorization: `Bearer ${token}` } : {},
+        body: fd,
+      });
+      const data = await resp.json().catch(() => ({}));
+      if (!resp.ok) {
+        setDocsError(data.error || "Erreur lors de l'envoi du document");
+        return;
+      }
+      const urls = ((data.files || []) as { url: string }[]).map((f) => f.url);
+      if (!urls.length) {
+        setDocsError("Le document n'a pas pu être traité");
+        return;
+      }
+      setDocs((d) => ({ ...d, [key]: urls[0] }));
+    } catch (e) {
+      setDocsError((e as Error).message || "Erreur réseau lors de l'envoi");
+    } finally {
+      setUploadingDocs((p) => ({ ...p, [key]: false }));
+    }
+  }
 
   // Accordion
   const [expandedFaq, setExpandedFaq] = useState<number | null>(null);
@@ -319,15 +359,37 @@ export default function Finance() {
                 <button onClick={() => setIsPro(false)} className={`flex-1 rounded-lg py-2 text-xs font-bold ${!isPro ? "bg-[#D4AF37] text-white" : "border border-[#D4AF37]/30 text-[#111]"}`}>Particulier</button>
                 <button onClick={() => setIsPro(true)} className={`flex-1 rounded-lg py-2 text-xs font-bold ${isPro ? "bg-[#D4AF37] text-white" : "border border-[#D4AF37]/30 text-[#111]"}`}>Professionnel</button>
               </div>
+              {docsError && <p className="mt-2 text-xs text-red-600">{docsError}</p>}
               <div className="mt-4 space-y-2">
-                {(isPro ? DOC_PRO : DOC_PARTICULIER).map((d) => (
-                  <label key={d.key} className="flex items-center gap-3 rounded-xl border border-[#D4AF37]/20 bg-white p-3 cursor-pointer hover:border-[#D4AF37] transition">
-                    <input type="checkbox" checked={!!docs[d.key]} onChange={(e) => setDocs({ ...docs, [d.key]: e.target.checked })}
-                      className="h-4 w-4 rounded border-[#D4AF37] text-[#D4AF37] accent-[#D4AF37]" />
-                    <span className="text-xs font-semibold text-[#111]">{d.label}</span>
-                    {docs[d.key] && <CheckCircle size={14} className="ml-auto text-green-500" />}
-                  </label>
-                ))}
+                {(isPro ? DOC_PRO : DOC_PARTICULIER).map((d) => {
+                  const url = docs[d.key];
+                  const busy = uploadingDocs[d.key];
+                  return (
+                    <div key={d.key}>
+                      <input
+                        ref={(el) => { docInputs.current[d.key] = el; }}
+                        type="file"
+                        accept="image/*,.heic,.heif,.pdf"
+                        className="hidden"
+                        onChange={(e) => {
+                          const selected = e.target.files ? Array.from(e.target.files) : [];
+                          e.target.value = "";
+                          if (selected.length) void uploadDoc(d.key, selected);
+                        }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => { if (!busy) docInputs.current[d.key]?.click(); }}
+                        disabled={busy}
+                        className="flex w-full items-center gap-3 rounded-xl border border-[#D4AF37]/20 bg-white p-3 text-left hover:border-[#D4AF37] transition disabled:opacity-60"
+                      >
+                        {url ? <CheckCircle size={14} className="text-green-500" /> : <Upload size={14} className="text-[#D4AF37]/60" />}
+                        <span className="flex-1 text-xs font-semibold text-[#111]">{d.label}</span>
+                        {busy && <span className="text-[9px] text-[#9CA3AF]">Envoi…</span>}
+                      </button>
+                    </div>
+                  );
+                })}
               </div>
               <p className="mt-3 text-[9px] text-slate-400">Tous les documents restent dans MKA.P-MS. Aucun échange par email.</p>
               <button onClick={() => setStep(4)}
