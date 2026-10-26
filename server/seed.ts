@@ -49,7 +49,7 @@ const MODULES_SEED: Array<{ code: string; nom: string; description: string; stat
   { code: "financement", nom: "Financement", description: "Financement conforme (à venir).", status: "masque", ordre: 19, visiblePublic: false },
   // Partie 4/4 — modules prévus dans la structure, masqués au lancement.
   { code: "controle_technique", nom: "Contrôle technique", description: "Réseau de centres CT + prise de RDV (à venir).", status: "masque", ordre: 20, visiblePublic: true },
-  { code: "fournisseurs", nom: "Fournisseurs mondiaux", description: "Base partenaires import/export (interne).", status: "masque", ordre: 21, visiblePublic: false },
+  { code: "fournisseurs", nom: "Fournisseurs mondiaux", description: "Réseau mondial de fournisseurs, véhicules, pièces, catalogues et solutions d’import/export.", status: "active", ordre: 21, visiblePublic: true },
   { code: "carte_mondiale", nom: "Carte mondiale", description: "Tous les services par pays/ville sur une carte (à venir).", status: "masque", ordre: 22, visiblePublic: true },
   { code: "qualite", nom: "Qualité / Amélioration", description: "Espace privé : bugs, idées, signalements (analyse Direction).", status: "masque", ordre: 23, visiblePublic: false },
   // Partie 23 — MKA.P-MS Lab : tester de nouvelles idées sans toucher au coeur.
