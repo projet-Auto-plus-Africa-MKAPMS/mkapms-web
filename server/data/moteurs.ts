@@ -115,6 +115,7 @@ export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
 
 /** Routes client qu'aucun moteur ne revendique. */
 export const ROUTES_SANS_MOTEUR: readonly string[] = [
+  "/acheter/encheres/operations",
   "/b2b",
   "/rejoindre",
   "/superadmin/fournisseurs"
@@ -205,8 +206,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "cliquables": 3,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 20,
-        "mots": 127
+        "textes": 22,
+        "mots": 149
       }
     ],
     "ecransHotes": [
@@ -230,8 +231,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "connecte",
       "public"
     ],
-    "textes": 40,
-    "mots": 182,
+    "textes": 42,
+    "mots": 204,
     "battement": "sonde",
     "manques": []
   },
@@ -630,7 +631,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "genre": "formulaire",
         "ecran": "/vehicule/:id",
         "fichier": "client/src/pages/Vehicule.tsx",
-        "ligne": 3351
+        "ligne": 3319
       }
     ],
     "routes": [
@@ -728,8 +729,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "cliquables": 150,
         "parMoteur": 1,
         "sansAction": 0,
-        "textes": 664,
-        "mots": 2769
+        "textes": 665,
+        "mots": 2776
       },
       {
         "fichier": "client/src/pages/VenteCamions.tsx",
@@ -1349,8 +1350,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "connecte",
       "public"
     ],
-    "textes": 1624,
-    "mots": 5860,
+    "textes": 1625,
+    "mots": 5867,
     "battement": "sonde",
     "manques": [
       {
@@ -1457,7 +1458,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "genre": "formulaire",
         "ecran": "/acheter/mkapms-officiel/vehicule/:id",
         "fichier": "client/src/pages/Vehicule.tsx",
-        "ligne": 3351
+        "ligne": 3319
       }
     ],
     "routes": [
@@ -1473,8 +1474,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "cliquables": 150,
         "parMoteur": 1,
         "sansAction": 0,
-        "textes": 664,
-        "mots": 2769
+        "textes": 665,
+        "mots": 2776
       },
       {
         "fichier": "client/src/pages/VenteMKAPMS.tsx",
@@ -1492,8 +1493,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "procedures": [],
     "tables": [],
     "acces": [],
-    "textes": 716,
-    "mots": 2892,
+    "textes": 717,
+    "mots": 2899,
     "battement": "sonde",
     "manques": [
       {
@@ -1604,7 +1605,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "genre": "formulaire",
         "ecran": "/acheter/particulier/vehicule/:id",
         "fichier": "client/src/pages/Vehicule.tsx",
-        "ligne": 3351
+        "ligne": 3319
       }
     ],
     "routes": [
@@ -1620,8 +1621,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "cliquables": 150,
         "parMoteur": 1,
         "sansAction": 0,
-        "textes": 664,
-        "mots": 2769
+        "textes": 665,
+        "mots": 2776
       },
       {
         "fichier": "client/src/pages/VenteParticulier.tsx",
@@ -1639,8 +1640,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "procedures": [],
     "tables": [],
     "acces": [],
-    "textes": 724,
-    "mots": 2895,
+    "textes": 725,
+    "mots": 2902,
     "battement": "sonde",
     "manques": [
       {
@@ -1751,7 +1752,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "genre": "formulaire",
         "ecran": "/acheter/professionnel/vehicule/:id",
         "fichier": "client/src/pages/Vehicule.tsx",
-        "ligne": 3351
+        "ligne": 3319
       }
     ],
     "routes": [
@@ -1767,8 +1768,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "cliquables": 150,
         "parMoteur": 1,
         "sansAction": 0,
-        "textes": 664,
-        "mots": 2769
+        "textes": 665,
+        "mots": 2776
       },
       {
         "fichier": "client/src/pages/VentePro.tsx",
@@ -1786,8 +1787,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "procedures": [],
     "tables": [],
     "acces": [],
-    "textes": 718,
-    "mots": 2880,
+    "textes": 719,
+    "mots": 2887,
     "battement": "sonde",
     "manques": [
       {
@@ -3290,18 +3291,25 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "mots": 51
       },
       {
-        "fichier": "client/src/pages/VenteEncheres.tsx",
+        "fichier": "client/src/pages/EncheresAccueil.tsx",
         "routes": [
           "/acheter/encheres"
         ],
-        "cliquables": 38,
+        "cliquables": 7,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 205,
-        "mots": 646
+        "textes": 39,
+        "mots": 272
       }
     ],
     "ecransHotes": [
+      {
+        "fichier": "client/src/pages/VenteEncheres.tsx",
+        "route": "/acheter/encheres/operations",
+        "composants": [
+          "trpc.auctionEngine"
+        ]
+      },
       {
         "fichier": "client/src/pages/comptabilite/CentrePilotage.tsx",
         "route": "/comptabilite/centre-pilotage",
@@ -3338,8 +3346,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "direction",
       "public"
     ],
-    "textes": 216,
-    "mots": 697,
+    "textes": 50,
+    "mots": 323,
     "battement": "sonde",
     "manques": [
       {
