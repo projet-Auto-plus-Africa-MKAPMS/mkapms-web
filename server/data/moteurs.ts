@@ -115,6 +115,7 @@ export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
 
 /** Routes client qu'aucun moteur ne revendique. */
 export const ROUTES_SANS_MOTEUR: readonly string[] = [
+  "/acheter/encheres/operations",
   "/b2b",
   "/rejoindre",
   "/superadmin/fournisseurs"
@@ -205,8 +206,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "cliquables": 3,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 20,
-        "mots": 127
+        "textes": 22,
+        "mots": 149
       }
     ],
     "ecransHotes": [
@@ -230,8 +231,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "connecte",
       "public"
     ],
-    "textes": 40,
-    "mots": 182,
+    "textes": 42,
+    "mots": 204,
     "battement": "sonde",
     "manques": []
   },
@@ -3290,18 +3291,25 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "mots": 51
       },
       {
-        "fichier": "client/src/pages/VenteEncheres.tsx",
+        "fichier": "client/src/pages/EncheresAccueil.tsx",
         "routes": [
           "/acheter/encheres"
         ],
-        "cliquables": 38,
+        "cliquables": 7,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 205,
-        "mots": 646
+        "textes": 39,
+        "mots": 272
       }
     ],
     "ecransHotes": [
+      {
+        "fichier": "client/src/pages/VenteEncheres.tsx",
+        "route": "/acheter/encheres/operations",
+        "composants": [
+          "trpc.auctionEngine"
+        ]
+      },
       {
         "fichier": "client/src/pages/comptabilite/CentrePilotage.tsx",
         "route": "/comptabilite/centre-pilotage",
@@ -3338,8 +3346,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "direction",
       "public"
     ],
-    "textes": 216,
-    "mots": 697,
+    "textes": 50,
+    "mots": 323,
     "battement": "sonde",
     "manques": [
       {

@@ -71,10 +71,10 @@ export const STATIC_SEO: Record<string, StaticSeo> = {
     keywords: "engin chantier achat, pelleteuse occasion, grue mobile, tracteur agricole, chariot télescopique, bulldozer, moissonneuse, tombereau, nacelle, compacteur, foreuse, chariot élévateur",
   },
   "/acheter/encheres": {
-    title: "Enchères automobiles en ligne",
+    title: "Enchères automobiles internationales pour professionnels",
     description:
-      "Enchères automobiles MKA.P-MS : véhicules d'occasion aux enchères, professionnels et particuliers. Achetez et vendez aux meilleures conditions.",
-    keywords: "enchères automobiles, vente aux enchères voiture, enchère auto en ligne",
+      "Portail international MKA.P-MS : enchères automobiles, reprises, flottes, lots professionnels et véhicules sur commande. Consultation ouverte, enchères réservées aux professionnels vérifiés.",
+    keywords: "enchères automobiles internationales, enchère voiture professionnel, achat voiture export, véhicules sur commande, reprise flotte automobile",
   },
   "/louer": {
     title: "Louer une voiture : courte et longue durée",

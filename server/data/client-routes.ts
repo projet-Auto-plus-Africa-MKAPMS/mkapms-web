@@ -18,6 +18,7 @@ export const CLIENT_ROUTES: readonly string[] = [
   "/acheter/camions-engins",
   "/acheter/depot-annonce",
   "/acheter/encheres",
+  "/acheter/encheres/operations",
   "/acheter/espace-pro",
   "/acheter/estimation",
   "/acheter/historique-vehicule",

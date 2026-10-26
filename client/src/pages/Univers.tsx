@@ -16,6 +16,7 @@ import {
   Store,
   Truck,
   Wrench,
+  Gavel,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import MetaSEO from "../components/MetaSEO";
@@ -47,6 +48,7 @@ const LINKS: Record<string, string> = {
   carte_mondiale: "/carte",
   qualite: "/operations/controle-qualite-global",
   investisseurs: "/investisseurs/espace-investisseurs",
+  encheres: "/acheter/encheres",
   fournisseurs: "/rejoindre?profil=fournisseur#plateforme",
   lavage: "/garage/centre-lavage",
   karting: "/rejoindre#plateforme",
@@ -79,6 +81,7 @@ const PRESENTATIONS: Record<string, Presentation> = {
   carte_mondiale: { image: "/categories/cover_mkapms.jpg", eyebrow: "Services autour du monde", action: "Explorer la carte", icon: MapPinned },
   qualite: { image: "/categories/cover_pro.jpg", eyebrow: "Contrôle & amélioration", action: "Ouvrir le centre qualité", icon: PackageCheck },
   investisseurs: { image: "/pubs/hero5-pro.jpg", eyebrow: "Vision & développement", action: "Ouvrir l’espace investisseurs", icon: Landmark },
+  encheres: { image: "/pubs/hero5-pro.jpg", eyebrow: "Marché automobile mondial", action: "Ouvrir les enchères", icon: Gavel },
   fournisseurs: { image: "/categories/camion_porte_voitures.jpg", eyebrow: "Partenaires mondiaux", action: "Présenter mon activité", icon: Truck },
 };
 
@@ -92,6 +95,21 @@ const FALLBACK: Presentation = {
 export default function Univers() {
   const modules = trpc.modules.list.useQuery();
   const visibles = modules.data?.filter((module) => module.visiblePublic) ?? [];
+  const displayModules = modules.data
+    ? [
+        ...visibles,
+        ...(visibles.some((module) => module.code === "encheres")
+          ? []
+          : [{
+              id: "encheres-portal",
+              code: "encheres",
+              nom: "Enchères automobiles",
+              description: "Lots professionnels, reprises, flottes et véhicules sur commande, avec un parcours international.",
+              status: "active",
+              visiblePublic: true,
+            }]),
+      ]
+    : [];
 
   return (
     <div className="min-h-screen bg-[#F5F3EE] pb-24 text-[#09152C]">
@@ -138,7 +156,7 @@ export default function Univers() {
           </div>
         ) : (
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {visibles.map((module, index) => {
+            {displayModules.map((module, index) => {
               const to = LINKS[module.code];
               const presentation = PRESENTATIONS[module.code] ?? FALLBACK;
               const Icon = presentation.icon;
@@ -169,7 +187,7 @@ export default function Univers() {
           </div>
         )}
 
-        {!modules.isLoading && visibles.length === 0 && (
+        {!modules.isLoading && displayModules.length === 0 && (
           <div className="rounded-[30px] bg-white p-10 text-center shadow-sm"><PackageCheck className="mx-auto h-10 w-10 text-[#D4AF37]" /><p className="mt-4 font-bold text-black/60">Les univers sont en cours d’initialisation.</p></div>
         )}
 
