@@ -1329,7 +1329,11 @@ export function Conversation({ navigation, active = true, mode = "chat", onActiv
                   envoyer();
                 }
               }}
-              rows={ecoute ? 2 : 4}
+              // Une seule ligne au repos (vide, pas de dictée) : la case reste fermée, seuls les
+              // boutons (vocal, envoi…) restent ouverts — demande Direction 26/10, capture ChatGPT
+              // à l'appui. Elle grandit déjà avec le texte tapé ou dicté via l'effet ci-dessus
+              // (hauteur recalculée sur `scrollHeight`) ; ce réglage ne fixe que le repli au repos.
+              rows={1}
               maxLength={8000}
               placeholder={mode === "travail" ? "Donner un ordre à l’Agent développeur" : "Demander à AL-HUDHUD·M"}
               className="alhud-composer-input flex-1 rounded-xl border-0 p-2 text-sm outline-none"
