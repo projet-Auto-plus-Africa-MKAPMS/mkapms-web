@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { trpc } from "../lib/trpc";
 import { useAuth } from "../lib/auth";
 import { PROFILE_LIST, getProfile } from "@shared/profiles";
@@ -17,7 +17,10 @@ const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID as string | undef
 export default function Connexion() {
   const { login } = useAuth();
   const navigate = useNavigate();
-  const [mode, setMode] = useState<"login" | "register" | "forgot">("login");
+  const [searchParams] = useSearchParams();
+  const [mode, setMode] = useState<"login" | "register" | "forgot">(
+    searchParams.get("tab") === "register" ? "register" : "login",
+  );
   const [form, setForm] = useState({ email: "", password: "", name: "", phone: "", profileType: "particulier" });
   const [forgotSent, setForgotSent] = useState(false);
   const googleDiv = useRef<HTMLDivElement>(null);

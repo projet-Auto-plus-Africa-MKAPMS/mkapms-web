@@ -9,13 +9,15 @@
  * pays/métier). Rien n'est activé ici : l'activation dépend d'une
  * vérification humaine et d'un paiement réellement confirmé.
  */
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import {
-  AlertCircle, Check, ChevronLeft, FileText, Loader2, Lock, ShieldCheck,
+  AlertCircle, Check, ChevronLeft, FileText, Loader2, Lock, ShieldCheck, Upload,
 } from "lucide-react";
 import { trpc } from "../../lib/trpc";
 import { useAuth } from "../../lib/auth";
+import { getToken } from "../../lib/auth";
+import { normalizeImages } from "../../lib/imageUpload";
 
 type FormState = {
   contactFirstName: string;
@@ -85,9 +87,43 @@ export default function DossierPro() {
 
   const [form, setForm] = useState<FormState>(EMPTY);
   const [terms, setTerms] = useState(false);
-  const [docs, setDocs] = useState<Record<string, boolean>>({});
+  const [docs, setDocs] = useState<Record<string, string>>({});
+  const [uploadingDocs, setUploadingDocs] = useState<Record<string, boolean>>({});
+  const [docsError, setDocsError] = useState<string | null>(null);
   const [loaded, setLoaded] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const docInputs = useRef<Record<string, HTMLInputElement | null>>({});
+
+  async function uploadDoc(label: string, files: FileList | File[]) {
+    setUploadingDocs((p) => ({ ...p, [label]: true }));
+    setDocsError(null);
+    try {
+      const prepared = await normalizeImages(files);
+      const fd = new FormData();
+      for (const f of prepared) fd.append("files", f);
+      const token = getToken();
+      const resp = await fetch("/api/upload", {
+        method: "POST",
+        headers: token ? { authorization: `Bearer ${token}` } : {},
+        body: fd,
+      });
+      const data = await resp.json().catch(() => ({}));
+      if (!resp.ok) {
+        setDocsError(data.error || "Erreur lors de l'envoi du document");
+        return;
+      }
+      const uploadedUrls = ((data.files || []) as { url: string }[]).map((f) => f.url);
+      if (!uploadedUrls.length) {
+        setDocsError("Le document n'a pas pu être traité");
+        return;
+      }
+      setDocs((d) => ({ ...d, [label]: uploadedUrls[0] }));
+    } catch (e) {
+      setDocsError((e as Error).message || "Erreur réseau lors de l'envoi");
+    } finally {
+      setUploadingDocs((p) => ({ ...p, [label]: false }));
+    }
+  }
 
   // Reprise du dossier existant.
   useEffect(() => {
@@ -103,8 +139,8 @@ export default function DossierPro() {
       postalCode: d.postalCode ?? "", website: d.website ?? "",
     });
     setTerms(!!d.termsAcceptedAt);
-    const map: Record<string, boolean> = {};
-    for (const doc of d.documents ?? []) map[doc.label] = doc.status === "fourni";
+    const map: Record<string, string> = {};
+    for (const doc of d.documents ?? []) if (doc.url) map[doc.label] = doc.url;
     setDocs(map);
   }, [mine.data, loaded]);
 
@@ -122,6 +158,7 @@ export default function DossierPro() {
         key: label.toLowerCase().replace(/[^a-z0-9]+/g, "_").slice(0, 60),
         label,
         status: (docs[label] ? "fourni" : "manquant") as "fourni" | "manquant",
+        url: docs[label] || null,
       })),
       termsAccepted: terms,
     };
@@ -262,30 +299,50 @@ export default function DossierPro() {
           </div>
         </div>
 
-        {/* Justificatifs exigés — déclarés ici, contrôlés par un humain. */}
+        {/* Justificatifs exigés — envoyés ici, contrôlés par un humain. */}
         {(requirements.data?.requiredDocs ?? []).length > 0 && (
           <div className="rounded-xl border border-[#E5E7EB] bg-white p-3">
             <h2 className="mb-2 flex items-center gap-1.5 text-xs font-black text-[#111]">
               <FileText size={13} className="text-[#D4AF37]" /> Justificatifs exigés
             </h2>
+            {docsError && (
+              <p className="mb-2 rounded-lg bg-red-50 border border-red-200 p-2 text-[11px] text-red-700">{docsError}</p>
+            )}
             <ul className="space-y-1.5">
-              {(requirements.data?.requiredDocs ?? []).map((doc) => (
-                <li key={doc}>
-                  <label className="flex items-start gap-2 text-[11px] text-[#374151]">
+              {(requirements.data?.requiredDocs ?? []).map((doc) => {
+                const url = docs[doc];
+                const busy = uploadingDocs[doc];
+                return (
+                  <li key={doc}>
                     <input
-                      type="checkbox"
-                      checked={!!docs[doc]}
-                      onChange={(e) => setDocs((d) => ({ ...d, [doc]: e.target.checked }))}
-                      className="mt-0.5 accent-[#D4AF37]"
+                      ref={(el) => { docInputs.current[doc] = el; }}
+                      type="file"
+                      accept="image/*,.heic,.heif,.pdf"
+                      className="hidden"
+                      onChange={(e) => {
+                        const selected = e.target.files ? Array.from(e.target.files) : [];
+                        e.target.value = "";
+                        if (selected.length) void uploadDoc(doc, selected);
+                      }}
                     />
-                    <span>{doc}</span>
-                  </label>
-                </li>
-              ))}
+                    <button
+                      type="button"
+                      onClick={() => { if (!busy) docInputs.current[doc]?.click(); }}
+                      disabled={busy}
+                      className={`flex w-full items-center gap-2 rounded-lg border p-2 text-left text-[11px] ${url ? "border-green-300 bg-green-50 text-green-800" : "border-[#E5E7EB] text-[#374151]"}`}
+                    >
+                      {url ? <Check size={13} className="text-green-600 shrink-0" /> : <Upload size={13} className="text-[#9CA3AF] shrink-0" />}
+                      <span className="flex-1">{doc}</span>
+                      {busy && <span className="text-[10px] text-[#9CA3AF]">Envoi…</span>}
+                      {url && !busy && <span className="text-[9px] font-bold text-green-600">ENVOYÉ</span>}
+                    </button>
+                  </li>
+                );
+              })}
             </ul>
             <p className="mt-2 text-[11px] text-[#6B7280]">
-              Cochez ce que vous pouvez fournir. Les pièces vous seront demandées lors de la
-              vérification : cocher ne vaut pas validation.
+              Envoyez une photo ou un PDF de chaque pièce. Les documents vous seront vérifiés lors
+              de la validation du dossier : les envoyer ne vaut pas validation.
             </p>
           </div>
         )}

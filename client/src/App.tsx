@@ -133,7 +133,6 @@ const RepriseVehicule = lazy(() => import("./pages/RepriseVehicule"));
 const MesAnnonces = lazy(() => import("./pages/MesAnnonces"));
 const EspaceProVente = lazy(() => import("./pages/EspaceProVente"));
 // Inscriptions
-const InscriptionParticulier = lazy(() => import("./pages/InscriptionParticulier"));
 const TableauBordParticulier = lazy(() => import("./pages/TableauBordParticulier"));
 const InscriptionProVente = lazy(() => import("./pages/InscriptionProVente"));
 const TableauBordProVente = lazy(() => import("./pages/TableauBordProVente"));
@@ -352,7 +351,6 @@ const FournisseursPieces = lazy(() => import("./pages/pieces/FournisseursPieces"
 const LogistiquePieces = lazy(() => import("./pages/pieces/LogistiquePieces"));
 const MontageGarage = lazy(() => import("./pages/pieces/MontageGarage"));
 const ObjectifPieces = lazy(() => import("./pages/pieces/ObjectifPieces"));
-const PanierPiecesDetachees = lazy(() => import("./pages/pieces/PanierPiecesDetachees"));
 const PiecesAccessoires = lazy(() => import("./pages/pieces/PiecesAccessoires"));
 const PiecesBatteries = lazy(() => import("./pages/pieces/PiecesBatteries"));
 const PiecesCarrosserie = lazy(() => import("./pages/pieces/PiecesCarrosserie"));
@@ -951,7 +949,8 @@ export default function App() {
             <Route path="/acheter/mes-annonces" element={<U name="Mes annonces"><MesAnnonces /></U>} />
             <Route path="/acheter/espace-pro" element={<U name="Espace Pro Vente"><EspaceProVente /></U>} />
             {/* Inscriptions */}
-            <Route path="/inscription" element={<U name="Inscription"><InscriptionParticulier /></U>} />
+            {/* Doublon orphelin supprimé (formulaire local sans appel API) : l'inscription réelle passe par /connexion, déjà reliée à auth.register. */}
+            <Route path="/inscription" element={<Navigate to="/connexion?tab=register" replace />} />
             <Route path="/tableau-de-bord" element={<U name="Mon espace"><TableauBordParticulier /></U>} />
             <Route path="/acheter/inscription-pro" element={<U name="Inscription Pro"><InscriptionProVente /></U>} />
             <Route path="/vente" element={<V name="Tableau de bord Vente"><TableauBordProVente /></V>} />
@@ -1209,7 +1208,8 @@ export default function App() {
             <Route path="/pieces/logistique-pieces" element={<U name="Pièces"><LogistiquePieces /></U>} />
             <Route path="/pieces/montage-garage" element={<U name="Pièces"><MontageGarage /></U>} />
             <Route path="/pieces/objectif-pieces" element={<U name="Pièces"><ObjectifPieces /></U>} />
-            <Route path="/pieces/panier-pieces-detachees" element={<U name="Pièces"><PanierPiecesDetachees /></U>} />
+            {/* Doublon orphelin supprimé (panier local factice, jamais lié) : le vrai panier pièces est intégré dans /pieces (panneau "panier=1"). */}
+            <Route path="/pieces/panier-pieces-detachees" element={<Navigate to="/pieces?panier=1" replace />} />
             <Route path="/pieces/pieces-accessoires" element={<U name="Pièces"><PiecesAccessoires /></U>} />
             <Route path="/pieces/pieces-batteries" element={<U name="Pièces"><PiecesBatteries /></U>} />
             <Route path="/pieces/pieces-carrosserie" element={<U name="Pièces"><PiecesCarrosserie /></U>} />
