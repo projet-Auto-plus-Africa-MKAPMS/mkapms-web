@@ -100,11 +100,11 @@ export interface PerimetreMoteur {
 }
 
 export const MOTEURS_TOTAL = 98;
-export const MANQUES_TOTAL = 542;
+export const MANQUES_TOTAL = 541;
 export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
   "dependance_non_declaree": 83,
   "sans_logique_serveur": 10,
-  "ecran_sans_contenu": 342,
+  "ecran_sans_contenu": 341,
   "sans_ecran": 8,
   "dependance_sans_preuve": 45,
   "bouton_sans_action": 44,
@@ -25175,11 +25175,11 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/investisseurs/espace-investisseurs"
         ],
-        "cliquables": 0,
+        "cliquables": 6,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 2,
-        "mots": 6
+        "textes": 36,
+        "mots": 270
       },
       {
         "fichier": "client/src/pages/investisseurs/ObjectifGlobal.tsx",
@@ -25606,8 +25606,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "direction",
       "public"
     ],
-    "textes": 249,
-    "mots": 806,
+    "textes": 283,
+    "mots": 1070,
     "battement": "sonde",
     "manques": [
       {
@@ -25637,10 +25637,6 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "genre": "ecran_sans_contenu",
         "detail": "client/src/pages/corporate/VisionMKAPMS.tsx (2 texte(s))"
-      },
-      {
-        "genre": "ecran_sans_contenu",
-        "detail": "client/src/pages/investisseurs/EspaceInvestisseurs.tsx (2 texte(s))"
       },
       {
         "genre": "ecran_sans_contenu",
