@@ -25186,8 +25186,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "cliquables": 6,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 36,
-        "mots": 270
+        "textes": 35,
+        "mots": 260
       },
       {
         "fichier": "client/src/pages/investisseurs/ObjectifGlobal.tsx",
@@ -25614,8 +25614,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "direction",
       "public"
     ],
-    "textes": 283,
-    "mots": 1070,
+    "textes": 282,
+    "mots": 1060,
     "battement": "sonde",
     "manques": [
       {

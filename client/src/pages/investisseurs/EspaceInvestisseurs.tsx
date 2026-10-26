@@ -1,6 +1,5 @@
 import {
   ArrowRight,
-  BadgeCheck,
   BriefcaseBusiness,
   Building2,
   ChevronLeft,
@@ -42,17 +41,18 @@ export default function EspaceInvestisseurs() {
   return (
     <div className="min-h-screen bg-[#F5F3EF] pb-24 text-[#09152C]">
       <MetaSEO title="Investir dans les univers MKA.P-MS" description="Découvrez les profils d’investisseurs, les périmètres de développement et le parcours de candidature MKA.P-MS." url="https://mkapms.com/investisseurs/espace-investisseurs" />
-      <header className="bg-[#111] text-white">
-        <div className="mx-auto max-w-7xl px-5 pb-12 pt-5 sm:px-8 sm:pb-16">
-          <Link to="/univers" className="inline-flex items-center gap-1 text-sm font-bold text-white/65 transition hover:text-white"><ChevronLeft className="h-4 w-4" /> Retour aux univers</Link>
-          <div className="mt-10 grid items-end gap-10 lg:grid-cols-[1.1fr_.9fr]">
-            <div>
-              <p className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-[.2em] text-[#D4AF37]"><TrendingUp className="h-4 w-4" /> Portail investisseurs mondial</p>
-              <h1 className="mt-5 max-w-4xl text-4xl font-black leading-[1.02] tracking-tight sm:text-6xl">Investir dans les univers MKA.P-MS.</h1>
-              <p className="mt-5 max-w-2xl text-base leading-relaxed text-white/70 sm:text-lg">Un point d’entrée clair pour les personnes, entreprises et partenaires qui souhaitent étudier une collaboration de développement avec l’écosystème MKA.P-MS.</p>
-              <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap"><Link to="/investissement/devenir-investisseur" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-[#D4AF37] px-5 text-sm font-black text-[#111]">Présenter mon projet <ArrowRight className="h-4 w-4" /></Link><Link to="/investisseurs/objectif-global" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl border border-white/20 px-5 text-sm font-black text-white">Voir l’objectif global <Target className="h-4 w-4 text-[#D4AF37]" /></Link></div>
-            </div>
-            <div className="relative min-h-64 overflow-hidden rounded-[30px] border border-white/10 bg-[#1B2942]"><img src="/pubs/hero5-pro.jpg" alt="Professionnels et développement MKA.P-MS" className="absolute inset-0 h-full w-full object-cover opacity-55" /><div className="absolute inset-0 bg-gradient-to-tr from-[#07111F] via-[#07111F]/55 to-transparent" /><div className="relative flex h-full min-h-64 flex-col justify-end p-6 sm:p-8"><BadgeCheck className="h-9 w-9 text-[#D4AF37]" /><p className="mt-4 max-w-sm text-lg font-black leading-tight">Un cadre lisible, documenté et étudié au cas par cas.</p></div></div>
+      <header className="relative isolate overflow-hidden bg-[#080D18] text-white">
+        <video className="absolute inset-0 -z-20 h-full w-full object-cover" autoPlay muted loop playsInline preload="metadata" poster="/pubs/hero5-pro.jpg" aria-hidden="true">
+          <source src="/videos/home/home_finance.mp4" type="video/mp4" />
+        </video>
+        <div className="absolute inset-0 -z-10 bg-[linear-gradient(180deg,rgba(5,10,22,.72),rgba(5,10,22,.84)_48%,#080D18_100%)]" />
+        <div className="mx-auto flex min-h-[570px] max-w-7xl flex-col items-center px-5 pb-14 pt-5 text-center sm:min-h-[650px] sm:px-8 sm:pb-20">
+          <Link to="/univers" className="inline-flex items-center justify-center gap-1 text-sm font-bold text-white/70 transition hover:text-white"><ChevronLeft className="h-4 w-4" /> Retour aux univers</Link>
+          <div className="mx-auto flex max-w-4xl flex-1 flex-col items-center justify-center py-16 sm:py-20">
+            <p className="inline-flex items-center gap-2 text-center text-xs font-black uppercase tracking-[.2em] text-[#D4AF37]"><TrendingUp className="h-4 w-4" /> Portail investisseurs mondial</p>
+            <h1 className="mt-5 max-w-4xl text-[clamp(2.5rem,9vw,5.5rem)] font-black leading-[.98] tracking-tight [overflow-wrap:anywhere]">Investir dans les univers MKA.P-MS.</h1>
+            <p className="mx-auto mt-6 max-w-2xl text-base leading-relaxed text-white/75 sm:text-lg">Un point d’entrée clair pour les personnes, entreprises et partenaires qui souhaitent étudier une collaboration de développement avec l’écosystème MKA.P-MS.</p>
+            <div className="mt-8 flex w-full flex-col justify-center gap-3 sm:w-auto sm:flex-row sm:flex-wrap"><Link to="/investissement/devenir-investisseur" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-[#D4AF37] px-5 text-sm font-black text-[#111]">Présenter mon projet <ArrowRight className="h-4 w-4" /></Link><Link to="/investisseurs/objectif-global" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl border border-white/25 bg-black/10 px-5 text-sm font-black text-white">Voir l’objectif global <Target className="h-4 w-4 text-[#D4AF37]" /></Link></div>
           </div>
         </div>
       </header>
