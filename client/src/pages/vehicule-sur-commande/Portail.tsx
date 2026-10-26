@@ -3,6 +3,7 @@ import { Car, PlusCircle, ClipboardList, Package } from "lucide-react";
 import { trpc } from "../../lib/trpc";
 import { useAuth } from "../../lib/auth";
 import { isAdmin } from "@shared/roles";
+import MediaAdSlot from "../../components/MediaAdSlot";
 
 /* ══════════════════════════════════════════════════════════════════════════
    PORTAIL « VÉHICULE SUR COMMANDE » (/vehicule-sur-commande)
@@ -24,15 +25,17 @@ export default function PortailVehiculeSurCommande() {
 
   return (
     <div className="min-h-screen bg-[#F5F3EF] pb-24">
-      <div className="bg-gradient-to-b from-[#111] to-[#1a1a1a] px-4 pt-6 pb-6">
-        <h1 className="text-2xl font-black text-white flex items-center gap-2">
+      <section className="relative isolate overflow-hidden bg-gradient-to-b from-[#111] to-[#1a1a1a] px-4 pb-8 pt-8 text-center">
+        <video className="absolute inset-0 -z-20 h-full w-full object-cover opacity-25" autoPlay muted loop playsInline preload="metadata" poster="/pubs/hero5-pro.jpg" aria-hidden="true"><source src="/videos/home/home_finance.mp4" type="video/mp4" /></video>
+        <div className="absolute inset-0 -z-10 bg-gradient-to-b from-black/80 to-black/90" />
+        <h1 className="mx-auto flex max-w-4xl items-center justify-center gap-2 break-words text-3xl font-black text-white sm:text-5xl">
           <Package size={22} className="text-[#D4AF37]" /> Véhicule sur commande
         </h1>
-        <p className="mt-1 text-xs text-white/50">
+        <p className="mx-auto mt-3 max-w-3xl text-sm leading-relaxed text-white/65 sm:text-base">
           Un véhicule sourcé chez un fournisseur, commandable avant d'être physiquement chez MKA.P-MS. Système totalement séparé des véhicules d'occasion déjà en stock.
         </p>
         {employe && (
-          <div className="mt-3 flex gap-2">
+          <div className="mt-5 flex flex-col justify-center gap-2 sm:flex-row">
             <Link to="/vehicule-sur-commande/depot" className="flex items-center gap-1 rounded-lg bg-[#D4AF37] px-3 py-2 text-xs font-bold text-[#111]">
               <PlusCircle size={14} /> Déposer un véhicule
             </Link>
@@ -46,9 +49,10 @@ export default function PortailVehiculeSurCommande() {
             <ClipboardList size={14} /> Mes commandes
           </Link>
         )}
-      </div>
+      </section>
 
       <div className="px-4 mt-4">
+        <MediaAdSlot label="Partenaire mobilité internationale" />
         {isLoading && <p className="text-sm text-[#6B7280] text-center">Chargement…</p>}
         {!isLoading && annonces.length === 0 && (
           <p className="rounded-xl border border-[#E5E7EB] bg-white p-4 text-sm text-[#6B7280] text-center">
@@ -68,7 +72,7 @@ export default function PortailVehiculeSurCommande() {
                   )}
                 </div>
                 <div className="p-3">
-                  <p className="text-sm font-bold text-[#111] truncate">{a.titre}</p>
+                  <p className="break-words text-sm font-bold text-[#111]">{a.titre}</p>
                   <p className="text-xs text-[#6B7280]">{Number(a.prix).toLocaleString("fr-FR")} {a.devise}</p>
                   {statut && <span className={`mt-2 inline-block rounded-full px-2 py-0.5 text-[9px] font-bold ${statut.style}`}>{statut.label}</span>}
                 </div>
