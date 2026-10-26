@@ -99,17 +99,18 @@ export interface PerimetreMoteur {
   readonly manques: readonly ManqueMoteur[];
 }
 
-export const MOTEURS_TOTAL = 98;
-export const MANQUES_TOTAL = 541;
+export const MOTEURS_TOTAL = 99;
+export const MANQUES_TOTAL = 548;
 export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
-  "dependance_non_declaree": 83,
+  "dependance_non_declaree": 85,
   "sans_logique_serveur": 10,
   "ecran_sans_contenu": 341,
   "sans_ecran": 8,
-  "dependance_sans_preuve": 45,
+  "dependance_sans_preuve": 47,
   "bouton_sans_action": 44,
   "bouton_declare_absent_ecran": 6,
   "emission_dynamique": 2,
+  "evenement_hors_catalogue": 3,
   "destination_inconnue": 2
 };
 
@@ -6349,6 +6350,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "notification",
       "order_engine",
       "partner_engine",
+      "partner_outreach_engine",
       "parts_engine",
       "payment",
       "payment_orchestrator",
@@ -6481,8 +6483,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "cliquables": 0,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 26,
-        "mots": 54
+        "textes": 27,
+        "mots": 56
       }
     ],
     "ecransHotes": [
@@ -6882,8 +6884,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "pdg",
       "public"
     ],
-    "textes": 572,
-    "mots": 2939,
+    "textes": 573,
+    "mots": 2941,
     "battement": "contrat",
     "manques": [
       {
@@ -8546,6 +8548,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "media_authenticity",
       "monitoring",
       "order_engine",
+      "partner_outreach_engine",
       "parts_engine",
       "payment",
       "payout_engine",
@@ -10235,6 +10238,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "monitoring",
       "notification",
       "order_engine",
+      "partner_outreach_engine",
       "parts_engine",
       "payout_engine",
       "permission",
@@ -15145,6 +15149,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     },
     "dependants": [
       "investment",
+      "partner_outreach_engine",
       "supplier_engine"
     ],
     "evenementsPublies": [],
@@ -15375,6 +15380,138 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "genre": "ecran_sans_contenu",
         "detail": "client/src/pages/partenaires/SuspensionPartenaires.tsx (3 texte(s))"
+      }
+    ]
+  },
+  {
+    "moteur": "partner_outreach_engine",
+    "label": "Partner Outreach Engine",
+    "categorie": "transversal",
+    "etatDeclare": "active",
+    "dossiers": [
+      "partner-outreach-engine"
+    ],
+    "routeurs": [
+      "partnerOutreachEngine"
+    ],
+    "fichiersServeur": 4,
+    "dependancesDeclarees": [
+      "core",
+      "partner_engine",
+      "supplier_engine"
+    ],
+    "dependancesDetectees": [
+      "core",
+      "event_bus",
+      "identity"
+    ],
+    "dependances": [
+      "core",
+      "event_bus",
+      "identity",
+      "partner_engine",
+      "supplier_engine"
+    ],
+    "integrationsTechniques": [
+      "identity"
+    ],
+    "preuvesDependances": {
+      "core": [
+        "partner-outreach-engine/index.ts importe trpc.ts",
+        "partner-outreach-engine/service.ts importe db.ts"
+      ],
+      "event_bus": [
+        "partner-outreach-engine/service.ts importe event-bus/service.ts",
+        "partner-outreach-engine/service.ts publie des événements"
+      ],
+      "identity": [
+        "partner-outreach-engine/service.ts importe identity-os/contract.ts"
+      ]
+    },
+    "dependants": [],
+    "evenementsPublies": [
+      "outreach.contact_created",
+      "outreach.response_recorded",
+      "outreach.status_changed"
+    ],
+    "evenementsConsommes": [],
+    "abonnements": [],
+    "sourcesEmission": [],
+    "boutons": [],
+    "routes": [
+      "/superadmin/prospection-partenaires"
+    ],
+    "ecrans": [
+      {
+        "fichier": "client/src/pages/superadmin/ProspectionPartenaires.tsx",
+        "routes": [
+          "/superadmin/prospection-partenaires"
+        ],
+        "cliquables": 6,
+        "parMoteur": 0,
+        "sansAction": 0,
+        "textes": 25,
+        "mots": 67
+      }
+    ],
+    "ecransHotes": [],
+    "procedures": [
+      "changerStatut",
+      "controlCenterFeed",
+      "creer",
+      "dashboard",
+      "detail",
+      "enregistrerBrouillon",
+      "enregistrerReponse",
+      "healthStatus",
+      "historique",
+      "importer",
+      "liste",
+      "marquerEnvoye",
+      "marquerNonLivre",
+      "meta",
+      "statistiques"
+    ],
+    "tables": [
+      "outreach_contacts",
+      "outreach_health_log",
+      "outreach_status_log"
+    ],
+    "acces": [
+      "admin",
+      "public"
+    ],
+    "textes": 25,
+    "mots": 67,
+    "battement": "sonde",
+    "manques": [
+      {
+        "genre": "evenement_hors_catalogue",
+        "detail": "outreach.contact_created"
+      },
+      {
+        "genre": "evenement_hors_catalogue",
+        "detail": "outreach.status_changed"
+      },
+      {
+        "genre": "evenement_hors_catalogue",
+        "detail": "outreach.response_recorded"
+      },
+      {
+        "genre": "dependance_non_declaree",
+        "detail": "event_bus — partner-outreach-engine/service.ts importe event-bus/service.ts"
+      },
+      {
+        "genre": "dependance_non_declaree",
+        "detail": "identity — partner-outreach-engine/service.ts importe identity-os/contract.ts"
+      },
+      {
+        "genre": "dependance_sans_preuve",
+        "detail": "partner_engine"
+      },
+      {
+        "genre": "dependance_sans_preuve",
+        "detail": "supplier_engine"
       }
     ]
   },
@@ -22280,6 +22417,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "document_engine",
       "logistics_engine",
       "order_engine",
+      "partner_outreach_engine",
       "parts_engine",
       "payout_engine",
       "vehicle_engine",

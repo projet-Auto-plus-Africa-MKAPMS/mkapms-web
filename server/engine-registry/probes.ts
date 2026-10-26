@@ -63,6 +63,7 @@ export const ENGINE_PROBES: EngineProbe[] = [
   { engine: "proximity_engine", tables: ["garages_publics", "accountant_profiles", "parts_shops"] },
   { engine: "partner_engine", tables: ["partners", "partner_coverage", "partner_applications", "partner_opportunities"] },
   { engine: "supplier_engine", tables: ["supplier_profiles", "supplier_connections", "supplier_mappings", "supplier_onboarding_steps"] },
+  { engine: "partner_outreach_engine", tables: ["outreach_contacts", "outreach_status_log"] },
   { engine: "vehicle_engine", tables: ["vehicle_items", "vehicle_territories", "vehicle_availability", "vehicle_pricing", "vehicle_duplicates"] },
   { engine: "parts_engine", tables: ["parts_supplier_items", "parts_canonical", "parts_pricing", "parts_stock_ledger", "parts_compatibility_checks"] },
   { engine: "logistics_engine", tables: ["logistics_shipments", "logistics_legs", "logistics_carrier_connections", "logistics_quotes", "logistics_tracking_events"] },

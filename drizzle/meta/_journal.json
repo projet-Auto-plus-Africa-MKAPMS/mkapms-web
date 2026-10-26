@@ -1156,6 +1156,20 @@
       "when": 1788404856000,
       "tag": "0166_activate_fournisseurs_mondiaux",
       "breakpoints": true
+    },
+    {
+      "idx": 165,
+      "version": "7",
+      "when": 1788404857000,
+      "tag": "0167_partner_outreach_engine",
+      "breakpoints": true
+    },
+    {
+      "idx": 166,
+      "version": "7",
+      "when": 1788404858000,
+      "tag": "0168_partner_outreach_seed_contacts",
+      "breakpoints": true
     }
   ]
 }
