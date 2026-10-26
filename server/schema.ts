@@ -231,6 +231,16 @@ export const annonces = pgTable("annonces", {
   // une annonce déposée par un particulier ne les fournit pas forcément.
   vin: varchar("vin", { length: 17 }),
   plaque: varchar("plaque", { length: 16 }),
+  // Véhicule fabriqué directement par MKA.P-MS (demande Direction 26/10,
+  // préparation future — aucune annonce existante n'a ce drapeau à true).
+  // Combiné à ownership="plateforme" (déjà le cas pour le stock MKA.P-MS
+  // possédé) pour le type "constructeur_mkapms" du Product Page Engine ;
+  // jamais une nouvelle valeur d'ownership, pour ne rien changer au
+  // comportement déjà en place pour "plateforme".
+  estConstructeurMkapms: boolean("est_constructeur_mkapms").notNull().default(false),
+  constructeurFicheTechnique: text("constructeur_fiche_technique"),
+  constructeurDisponibilite: varchar("constructeur_disponibilite", { length: 120 }),
+  constructeurEntretienServices: text("constructeur_entretien_services"),
 });
 
 export const auditLogs = pgTable("audit_logs", {
