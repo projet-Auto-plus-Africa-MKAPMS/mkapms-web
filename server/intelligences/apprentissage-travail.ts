@@ -17,7 +17,7 @@
  */
 import { appeler } from "./provider.js";
 import { activee } from "./fonctions.js";
-import { ecrire } from "./memoire.js";
+import { APPELANT_SYSTEME, ecrire, type Appelant } from "./memoire.js";
 
 export const CATEGORIES_TRAVAIL = ["decisions", "projets", "technique", "entreprise", "apprentissage"] as const;
 type CategorieTravail = (typeof CATEGORIES_TRAVAIL)[number];
@@ -95,6 +95,8 @@ export interface EchangeTravail {
   /** Lignes « Outil appelé : … » de l'échange : une tâche réellement exécutée est un fait durable. */
   outils?: string[];
   traceId: string;
+  /** Identité réelle de l'appelant (fournie par le serveur) : propriétaire du souvenir écrit. */
+  appelant?: Appelant;
 }
 
 export interface DependancesTravail {
@@ -137,6 +139,7 @@ export async function memoriserTravail(echange: EchangeTravail, dependances: Dep
         contenu: `${fait.contenu}\n(Retenu d'un échange avec le PDG, conversation #${echange.sessionId}.)`,
         liens: { session: String(echange.sessionId), trace: echange.traceId },
         source: "conversation-travail",
+        appelant: echange.appelant ?? APPELANT_SYSTEME,
       });
       if (res.ok) ecrits += 1;
     }

@@ -118,6 +118,7 @@ import {
 import {
   CATEGORIES as CATEGORIES_MEMOIRE,
   CYCLES,
+  PORTEES,
   archiver,
   ecrire as ecrireMemoire,
   etat as etatMemoire,
@@ -794,11 +795,15 @@ export const intelligencesRouter = router({
         limit: z.number().int().min(1).max(200).default(60),
       }),
     )
-    .query(({ input }) => listerMemoire(input.categorie, input.cycle, input.limit)),
+    .query(({ input, ctx }) =>
+      listerMemoire(input.categorie, { id: ctx.user.uid, role: ctx.user.role }, input.cycle, input.limit),
+    ),
 
   memoireRechercher: pdgProcedure
     .input(z.object({ q: z.string().min(2).max(200), limit: z.number().int().min(1).max(100).default(40) }))
-    .query(({ input }) => rechercherMemoire(input.q, input.limit)),
+    .query(({ input, ctx }) =>
+      rechercherMemoire(input.q, { id: ctx.user.uid, role: ctx.user.role }, input.limit),
+    ),
 
   memoireEcrire: pdgProcedure
     .input(
@@ -808,6 +813,8 @@ export const intelligencesRouter = router({
         contenu: z.string().min(1).max(200000),
         cle: z.string().max(200).optional(),
         countryCode: z.string().max(8).nullable().optional(),
+        /** Promotion explicite en mémoire partagée — réservée au PDG, jamais le défaut. */
+        portee: z.enum(PORTEES).optional(),
       }),
     )
     .mutation(({ input, ctx }) =>
@@ -818,7 +825,8 @@ export const intelligencesRouter = router({
         cle: input.cle,
         countryCode: input.countryCode ?? null,
         source: "direction",
-        actorId: ctx.user?.uid,
+        appelant: { id: ctx.user.uid, role: ctx.user.role },
+        portee: input.portee,
       }),
     ),
 

@@ -19,7 +19,7 @@
  */
 import { and, eq } from "drizzle-orm";
 import { db } from "../db.js";
-import { ecrire } from "./memoire.js";
+import { APPELANT_SYSTEME, ecrire } from "./memoire.js";
 import { inMemoire } from "./schema.js";
 import { startPipeline, recordPipelineStep } from "../resilience/service.js";
 import { rsPipelineRuns } from "../resilience/schema.js";
@@ -130,6 +130,7 @@ async function seedFondation(f: Fondation): Promise<boolean> {
     contenu: f.contenu,
     liens: f.liens ?? {},
     source: "fondations",
+    appelant: APPELANT_SYSTEME,
   });
   return true;
 }

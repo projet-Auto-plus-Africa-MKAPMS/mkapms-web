@@ -418,7 +418,7 @@ export async function analyser(
   // Mémoire technique : l'état des cliquables devient un fait daté, réutilisable
   // par les Intelligences au lieu d'être recalculé de zéro à chaque session.
   try {
-    const { ecrire } = await import("../intelligences/memoire.js");
+    const { ecrire, APPELANT_SYSTEME } = await import("../intelligences/memoire.js");
     await ecrire({
       categorie: "technique",
       cle: "auto_branchement:etat",
@@ -431,6 +431,7 @@ export async function analyser(
         `${SECTIONS_ECRANS_VIDES} écran(s) de section sur ${SECTIONS_ECRANS_TOTAL} n'affichent qu'un gabarit. ` +
         `Déclenchement : ${trigger}.`,
       source: "auto_branchement.analyser",
+      appelant: APPELANT_SYSTEME,
     });
   } catch (err) {
     console.error("[auto-branchement] mémoire technique:", (err as Error).message);

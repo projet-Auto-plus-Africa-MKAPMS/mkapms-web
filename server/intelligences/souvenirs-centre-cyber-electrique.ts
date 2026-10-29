@@ -12,7 +12,7 @@
 import { and, eq } from "drizzle-orm";
 import { db } from "../db.js";
 import { inMemoire } from "./schema.js";
-import { ecrire } from "./memoire.js";
+import { APPELANT_SYSTEME, ecrire } from "./memoire.js";
 
 interface SouvenirCentre {
   categorie: "projets" | "decisions" | "apprentissage";
@@ -98,7 +98,7 @@ export async function seedSouvenirsCentreCyberElectrique(): Promise<{ nouveaux: 
       .where(and(eq(inMemoire.categorie, s.categorie), eq(inMemoire.cle, s.cle), eq(inMemoire.cycle, "actif")))
       .limit(1);
     if (existant) continue;
-    await ecrire({ categorie: s.categorie, cle: s.cle, titre: s.titre, contenu: s.contenu, liens: s.liens, source: "souvenirs-centre-cyber-electrique" });
+    await ecrire({ categorie: s.categorie, cle: s.cle, titre: s.titre, contenu: s.contenu, liens: s.liens, source: "souvenirs-centre-cyber-electrique", appelant: APPELANT_SYSTEME });
     nouveaux += 1;
   }
   return { nouveaux, total: SOUVENIRS_CENTRE.length };
