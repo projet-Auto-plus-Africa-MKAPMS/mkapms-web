@@ -105,6 +105,17 @@ export interface AppelInput {
    * refusée.
    */
   reasoningEffortPrefere?: string;
+  /**
+   * Choix manuel explicite de modèle (voir MODELES_SELECTIONNABLES ci-dessous)
+   * — jamais appliqué à l'aveugle : `modeleDisponible` ne le retient que s'il
+   * apparaît réellement dans `/v1/models` pour ce compte, exactement comme
+   * `modeleParDefaut` aujourd'hui. Absent = automatique (comportement actuel,
+   * inchangé). Le modèle réellement utilisé reste toujours lisible dans
+   * `AppelResultat.modele`, que la préférence ait été honorée ou non — c'est
+   * cette valeur, jamais une supposition, qui dit si un choix explicite a été
+   * respecté.
+   */
+  modelePrefere?: string;
   /** Fonctions que le modèle peut demander d'exécuter (capacité "outils"). */
   outils?: OutilFonction[];
   /** Réponse garantie conforme à ce schéma (capacité "sortie_structuree"). */
@@ -227,6 +238,49 @@ interface ChoixModele {
   modele: string;
 }
 
+export interface ModeleSelectionnable {
+  /** Identifiant réel chez le fournisseur — jamais affiché à l'écran (voir identite.ts, LOT IA02A). */
+  id: string;
+  /**
+   * Nom affichable à l'écran, y compris côté direction : jamais "GPT-5.x" ni
+   * le nom d'un fournisseur, quel que soit l'écran — server/intelligences/
+   * identite.ts et le commentaire d'en-tête de Conversation.tsx l'interdisent
+   * explicitement, même pour le PDG, même dans une erreur. Noms choisis par
+   * la direction pour la famille gpt-5.6 (Sol/Luna/Terra) ; variantes vérifiées
+   * de la MÊME famille de modèle (pas des capacités différentes entre elles).
+   */
+  label: string;
+  provider: "openai";
+  /**
+   * `reasoning_effort` imposé pour que ce modèle accepte l'appel de fonctions
+   * (vérifié réellement, voir reasoning-effort-outils.test.ts) — purement
+   * informatif ici : la boucle de rejeu de `appeler()` ci-dessous le
+   * redécouvre déjà seule depuis le texte réel de l'erreur fournisseur,
+   * modèle par modèle, jamais via cette valeur.
+   */
+  reasoningEffortRequisOutils?: string;
+}
+
+/**
+ * Modèles réellement vérifiés sur le compte OpenAI de production (appel
+ * direct, pas une supposition — voir reasoning-effort-outils.test.ts) comme
+ * compatibles avec l'appel de fonctions, donc proposables au choix manuel.
+ *
+ * "gpt-6-astra" est un modèle réel du même compte mais volontairement ABSENT
+ * d'ici : vérifié refuser l'appel de fonctions sous chaque reasoning_effort
+ * testé — la direction et le public proposent toujours des outils dans leur
+ * conversation, donc l'afficher comme choisissable violerait la règle PDG
+ * « jamais un modèle affiché disponible si son usage réel ne fonctionne
+ * pas ». Si une conversation sans aucun outil existe un jour, ce choix est à
+ * revoir — pas avant une nouvelle vérification réelle.
+ */
+export const MODELES_SELECTIONNABLES: ModeleSelectionnable[] = [
+  { id: "gpt-5.5", label: "Standard", provider: "openai" },
+  { id: "gpt-5.6-sol", label: "Sol", provider: "openai", reasoningEffortRequisOutils: "none" },
+  { id: "gpt-5.6-luna", label: "Luna", provider: "openai", reasoningEffortRequisOutils: "none" },
+  { id: "gpt-5.6-terra", label: "Terra", provider: "openai", reasoningEffortRequisOutils: "none" },
+];
+
 /**
  * Résout l'adresse, la clé et le modèle. Le modèle n'est pas figé : on interroge
  * le fournisseur pour prendre un modèle réellement disponible sur ce compte,
@@ -235,6 +289,7 @@ interface ChoixModele {
 async function resoudre(
   providerCode: string,
   fetchImpl: typeof fetch,
+  preference?: string,
 ): Promise<ChoixModele | { erreur: string }> {
   const spec = ENDPOINTS[providerCode];
   if (!spec) {
@@ -251,10 +306,13 @@ async function resoudre(
     return { url: `${cle.replace(/\/$/, "")}/v1/chat/completions`, cle: "", modele: spec.modeleParDefaut };
   }
 
-  const modele = await modeleDisponible(providerCode, spec, cle, fetchImpl);
+  const modele = await modeleDisponible(providerCode, spec, cle, fetchImpl, preference);
   return { url: spec.url, cle, modele };
 }
 
+// Clé = fournisseur + préférence éventuelle : un choix manuel ne doit jamais
+// lire le résultat mis en cache par un appel automatique antérieur (ou
+// l'inverse), chacun garde son propre cache 1h.
 const cacheModele = new Map<string, { modele: string; expire: number }>();
 
 /**
@@ -280,8 +338,10 @@ async function modeleDisponible(
   spec: { url: string; modeleParDefaut: string },
   cle: string,
   fetchImpl: typeof fetch,
+  preference?: string,
 ): Promise<string> {
-  const enCache = cacheModele.get(providerCode);
+  const cleCache = `${providerCode}::${preference ?? ""}`;
+  const enCache = cacheModele.get(cleCache);
   if (enCache && enCache.expire > Date.now()) return enCache.modele;
 
   const base = spec.url.replace(/\/chat\/completions$/, "/models");
@@ -292,12 +352,15 @@ async function modeleDisponible(
       const ids = (corps.data ?? []).map((m) => m.id ?? "").filter(Boolean);
       const eligibles = ids.filter((id) => !MOTIFS_MODELE_NON_CONVERSATIONNEL.test(id));
       const choisi =
+        // Choix manuel explicite — honoré seulement s'il apparaît réellement
+        // dans le compte, jamais à l'aveugle (même garde-fou que modeleParDefaut).
+        (preference && eligibles.find((id) => id === preference)) ??
         eligibles.find((id) => id === spec.modeleParDefaut) ??
         eligibles.find((id) => /gpt|mistral|claude|llama/i.test(id)) ??
         eligibles[0] ??
         ids[0];
       if (choisi) {
-        cacheModele.set(providerCode, { modele: choisi, expire: Date.now() + 3600 * 1000 });
+        cacheModele.set(cleCache, { modele: choisi, expire: Date.now() + 3600 * 1000 });
         return choisi;
       }
     }
@@ -486,7 +549,7 @@ export async function appeler(input: AppelInput, fetchImpl: typeof fetch = fetch
     };
   };
 
-  const resolu = await resoudre(providerCode, fetchImpl);
+  const resolu = await resoudre(providerCode, fetchImpl, input.modelePrefere);
   if ("erreur" in resolu) {
     return replier(
       `${providerLabel} est routable mais l'appel est impossible : ${resolu.erreur}`,

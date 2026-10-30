@@ -64,6 +64,8 @@ export interface EntreeBoucle {
   images?: string[];
   /** Préférence PDG d'intensité de réflexion (voir provider.ts, reasoningEffortPrefere). */
   reasoningEffortPrefere?: string;
+  /** Choix manuel explicite de modèle (voir provider.ts, MODELES_SELECTIONNABLES/modelePrefere). Absent = automatique. */
+  modelePrefere?: string;
   /** tool_id autorisés à être proposés au modèle pour cet appel — filtre en amont de la politique. */
   outilsProposes: string[];
   confidentialite?: Confidentiality;
@@ -143,6 +145,7 @@ export async function executerAvecOutils(
       countryCode: input.countryCode,
       maxTokens: input.maxTokens,
       reasoningEffortPrefere: input.reasoningEffortPrefere,
+      modelePrefere: input.modelePrefere,
     });
     jetonsEntree += res.jetonsEntree;
     jetonsSortie += res.jetonsSortie;
