@@ -246,7 +246,12 @@ async function annonceSeoHead(
   const description = (a.description?.slice(0, 200) || descParts.join(" · "))
     .replace(/\s+/g, " ")
     .trim();
-  const image = photos[0]?.url || `${baseUrl}/favicon.svg`;
+  // Une photo stockée en data: URI (base64, faute de stockage objet pour cette annonce) n'est pas une
+  // image au sens de Google (ni og:image, ni schema.org/image) : elle ne gonfle la page que pour rien,
+  // et peut faire rejeter la validation des données structurées. On l'écarte, jamais on ne l'expose.
+  const photosUrlReelles = photos.filter((p) => /^https?:\/\//i.test(p.url));
+  // Repli vers un fichier qui existe réellement (l'ancien /favicon.svg n'existe pas — bug connu, corrigé ici).
+  const image = photosUrlReelles[0]?.url || `${baseUrl}/logo-open.png`;
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -260,7 +265,7 @@ async function annonceSeoHead(
       ? { mileageFromOdometer: { "@type": "QuantitativeValue", value: a.kilometrage, unitCode: "KMT" } }
       : {}),
     ...(a.carburant ? { fuelType: a.carburant } : {}),
-    image: photos.map((p) => p.url).slice(0, 8),
+    ...(photosUrlReelles.length > 0 ? { image: photosUrlReelles.map((p) => p.url).slice(0, 8) } : {}),
     url,
     sku: a.reference || `MKA-A-${a.id}`,
     offers: {
