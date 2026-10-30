@@ -10,10 +10,12 @@
  */
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { AlertTriangle, ChevronLeft, Mic, MicOff, MessageCircle, Send, Sparkles } from "lucide-react";
+import { AlertTriangle, ChevronLeft, LogIn, Mic, MicOff, MessageCircle, Send, Sparkles } from "lucide-react";
 import { trpc } from "../lib/trpc";
 import { speechRecognitionConstructor, startDictation } from "../lib/speech";
 import { EtatServiceIntelligence } from "../components/EtatServiceIntelligence";
+import MetaSEO from "../components/MetaSEO";
+import { useAuth } from "../lib/auth";
 
 interface Bulle {
   role: "moi" | "assistant";
@@ -30,6 +32,7 @@ const EXEMPLES = [
 ];
 
 export default function AssistantIntelligences() {
+  const { user } = useAuth();
   const [question, setQuestion] = useState("");
   const [sessionId, setSessionId] = useState<number | null>(null);
   const [fil, setFil] = useState<Bulle[]>([]);
@@ -109,12 +112,34 @@ export default function AssistantIntelligences() {
 
   return (
     <div className="mx-auto max-w-3xl px-3 py-4">
-      <Link
-        to="/"
-        className="mb-3 inline-flex items-center gap-1 text-sm font-bold text-black/60 hover:text-black"
-      >
-        <ChevronLeft className="h-4 w-4" /> Accueil
-      </Link>
+      <MetaSEO
+        title="AL-HUDHUD·M — Assistant IA automobile"
+        description="AL-HUDHUD·M, l'assistant IA automobile de MKA.P-MS : conseils d'achat, d'entretien, de financement et dépôt d'annonce assisté par IA. Démonstration gratuite sans connexion ; espace personnel complet après connexion."
+        url="https://www.mkapms.fr/intelligences"
+        schema={{
+          "@context": "https://schema.org",
+          "@type": "SoftwareApplication",
+          name: "AL-HUDHUD·M",
+          applicationCategory: "BusinessApplication",
+          operatingSystem: "Web",
+          offers: { "@type": "Offer", price: "0", priceCurrency: "EUR" },
+          provider: { "@type": "Organization", name: "MKA.P-MS" },
+        }}
+      />
+      <div className="flex items-center justify-between gap-2">
+        <Link
+          to="/"
+          className="mb-3 inline-flex items-center gap-1 text-sm font-bold text-black/60 hover:text-black"
+        >
+          <ChevronLeft className="h-4 w-4" /> Accueil
+        </Link>
+        <Link
+          to={user ? "/intelligence" : "/connexion"}
+          className="mb-3 inline-flex items-center gap-1 text-sm font-bold text-[#8B7500] hover:underline"
+        >
+          <LogIn className="h-4 w-4" /> {user ? "Mon espace personnel" : "Connexion"}
+        </Link>
+      </div>
 
       <EtatServiceIntelligence />
 
@@ -171,6 +196,9 @@ export default function AssistantIntelligences() {
       </header>
 
       <section className="mt-3 rounded-2xl border border-black/5 bg-white p-4">
+        <p className="mb-2 text-[11px] font-bold uppercase tracking-wide text-[#8B7500]">
+          Démonstration gratuite — sans connexion
+        </p>
         {fil.length === 0 ? (
           <p className="flex items-center gap-2 text-sm text-black/50">
             <MessageCircle className="h-4 w-4" /> Pose ta question, ou choisis un exemple.

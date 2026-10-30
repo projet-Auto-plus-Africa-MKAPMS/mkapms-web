@@ -10,7 +10,7 @@ import {
   FolderKanban, Gauge, History, Home, Image as ImageIcon, Menu, MessageCircle,
   Mic, Plug, Search, Settings, ShieldCheck, Sparkles, Wrench, Brain as BrainIcon,
   Workflow, Database, ShoppingCart, Cloud, SlidersHorizontal, Library, Clock3,
-  Laptop, Grid2X2, ClipboardCheck, KeyRound, X
+  Laptop, Grid2X2, ClipboardCheck, KeyRound, X, Lock
 } from "lucide-react";
 import { useAuth } from "../../lib/auth";
 import { trpc } from "../../lib/trpc";
@@ -208,6 +208,19 @@ export default function MKAPMSIntelligence() {
   ] as const : [
     ["Accueil", Home, "accueil"], ["Documents", FileText, "documents"], ["Paramètres", Settings, "parametres"],
   ] as const;
+  // Demande PDG (30/10) : ne pas juste cacher ce qui n'est pas ouvert à ce
+  // niveau — le signaler comme "fonction disponible [dans d'autres comptes]",
+  // pour que le compte sache que ça existe. Seulement les vraies fonctions
+  // client (Coffre secret : coffre chiffré par PIN, déjà partageable à des
+  // employés ; Plugins & API : accès API déjà vendu dans les abonnements Pro
+  // Elite+, shared/plans.ts). Les outils de gouvernance interne (Agent
+  // autonome, Automatisations/missions sur le code, Chantier, Usage & coûts —
+  // sa propre description dit "vue direction, pas une surface publique")
+  // restent strictement invisibles : ce ne sont pas des fonctions à vendre.
+  const fonctionsTeasees = estDirection ? [] : [
+    { label: "Coffre secret", Icon: KeyRound, detail: "Stockage chiffré de vos identifiants et clés, que l’IA peut utiliser sans jamais les voir." },
+    { label: "Plugins & API", Icon: Plug, detail: "Connexion API pour synchroniser votre stock et vos outils — disponible avec certains abonnements Pro." },
+  ];
 
   const renderNav = (withHistory: boolean) => <div className="alhud-approved-menu">
     <div className="alhud-menu-brand"><strong>AL-HUDHUD·M</strong><Search/></div>
@@ -221,6 +234,14 @@ export default function MKAPMSIntelligence() {
       : <div role="status" className="alhud-menu-item-disabled" aria-label="Boutique non reliée"><ShoppingCart/><span>Boutique</span><small>{boutique.chargement ? "…" : "non reliée"}</small></div>}
     <h3>Notre travail</h3>
     <nav>{workItems.map(([label,Icon,key])=><button key={label} type="button" onClick={()=>choose(key)}><Icon/><span>{label}</span><ChevronRight/></button>)}</nav>
+    {fonctionsTeasees.length > 0 ? (<>
+      <h3>Fonctions disponibles dans d’autres comptes</h3>
+      <nav>{fonctionsTeasees.map(({label,Icon,detail})=>
+        <Link key={label} to="/compte?tab=abonnements" onClick={()=>setMenuOpen(false)} className="alhud-menu-teaser" title={detail}>
+          <Icon/><span>{label}</span><Lock className="h-4 w-4"/>
+        </Link>
+      )}</nav>
+    </>) : null}
     <button type="button" className="alhud-chat-cta" onClick={()=>choose("conversation")}><MessageCircle/> Chat</button>
   </div>;
   const nav = renderNav(false);
