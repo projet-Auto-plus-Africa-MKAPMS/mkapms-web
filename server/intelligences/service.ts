@@ -408,6 +408,14 @@ export interface DemandeInput {
    */
   effort?: string;
   /**
+   * Choix manuel explicite de modèle (voir provider.ts, MODELES_SELECTIONNABLES)
+   * — côté direction uniquement, comme `effort`. Absent ou "auto" = la
+   * sélection automatique actuelle, inchangée. Jamais imposé sur le côté
+   * public : `fournisseur`/`modele` y restent nuls dans la réponse, qu'un
+   * choix soit fourni ou non.
+   */
+  modele?: string;
+  /**
    * Environnement (décision du PDG, 2 octobre 2026) : « chat » renseigne et planifie sans agir ; « travail » exécute avec
    * tous les outils actifs. Même mémoire, même conversation, même consigne des deux côtés. Défaut : chat.
    */
@@ -782,6 +790,7 @@ export async function demander(input: DemandeInput): Promise<DemandeResultat> {
       message,
       images: input.images,
       reasoningEffortPrefere: input.effort,
+      modelePrefere: input.modele && input.modele !== "auto" ? input.modele : undefined,
       outilsProposes: listerActifsPourMode(input.mode ?? "chat").map((o) => o.toolId),
       confidentialite: "interne",
       countryCode: input.countryCode ?? null,

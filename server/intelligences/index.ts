@@ -21,7 +21,7 @@ import {
   type CodeCapacite,
 } from "./capacites.js";
 import { router as routerCapacite } from "./routeur.js";
-import { VOIX_TEMPS_REEL, consigneTranscription, creerApercuVoix, creerAppelVocalTempsReel, etatConfiguration, etatServicePublic } from "./provider.js";
+import { VOIX_TEMPS_REEL, consigneTranscription, creerApercuVoix, creerAppelVocalTempsReel, etatConfiguration, etatServicePublic, MODELES_SELECTIONNABLES } from "./provider.js";
 import {
   NIVEAUX_AUTONOMIE,
   PORTEE_NIVEAU,
@@ -503,6 +503,16 @@ export const intelligencesRouter = router({
     .input(z.object({ jours: z.number().int().min(1).max(365).default(30) }).optional())
     .query(({ input }) => activiteAssistant(input?.jours ?? 30)),
 
+  /**
+   * Modèles réellement proposables au choix manuel (voir provider.ts,
+   * MODELES_SELECTIONNABLES) — jamais la liste brute du compte fournisseur :
+   * seulement ceux vérifiés compatibles avec l'appel de fonctions, puisque
+   * la conversation en propose toujours. "auto" (sélection automatique
+   * actuelle) n'est pas dans cette liste : l'écran l'ajoute lui-même comme
+   * option par défaut.
+   */
+  modelesDisponibles: pdgProcedure.query(() => MODELES_SELECTIONNABLES),
+
   regles: pdgProcedure.query(() => ({ nom: NOM_MOTEUR, commandes: COMMANDES, regles: REGLES })),
 
   /** Catalogue complet des domaines d'assistance, avec l'état réel de chaque interrupteur. */
@@ -695,6 +705,8 @@ export const intelligencesRouter = router({
         fichierIds: z.array(z.number().int().positive()).max(4).optional(),
         /** Intensité de réflexion souhaitée (voir provider.ts, reasoningEffortPrefere) — jamais un choix de modèle. */
         effort: z.enum(["minimal", "low", "medium", "high"]).optional(),
+        /** Choix manuel explicite de modèle (voir provider.ts, MODELES_SELECTIONNABLES) — "auto" ou absent = sélection automatique. */
+        modele: z.enum(["auto", ...MODELES_SELECTIONNABLES.map((m) => m.id)] as [string, ...string[]]).optional(),
         /** Identifiant choisi par l'écran pour relire en direct les outils appelés (progressionMission). */
         suiviId: z.string().regex(/^[A-Za-z0-9_-]{8,64}$/).optional(),
       }),
@@ -716,6 +728,7 @@ export const intelligencesRouter = router({
         images: input.images,
         fichierIds: input.fichierIds,
         effort: input.effort,
+        modele: input.modele,
         onOutil: suiviId ? (a) => publierEtape(suiviId, etapeOutil(a)) : undefined,
       });
       } finally {

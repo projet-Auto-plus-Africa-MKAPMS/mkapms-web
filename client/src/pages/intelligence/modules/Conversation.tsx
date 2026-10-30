@@ -75,6 +75,7 @@ import {
 import { trpc } from "../../../lib/trpc";
 import { EtatServiceIntelligence } from "../../../components/EtatServiceIntelligence";
 import { type Intensite, NIVEAUX_INTENSITE, intensiteValide, CLE_INTENSITE_STOCKAGE } from "../../../lib/intensite";
+import { CLE_MODELE_STOCKAGE, MODELE_AUTO, modeleValide, libelleModele, modeleReponseDiffere } from "../../../lib/modeleIa";
 import { REALTIME_VOICES, REALTIME_VOICE_GROUPS, VOICE_LANGUAGES, addDictationHistory, noiseReductionFor, recognitionLanguage, useVoicePreferences, type RealtimeVoiceName, type VoiceLanguage, type VoicePreferences } from "../../../lib/voicePreferences";
 import { modeleTranscriptionMemorise, startRealtimeVoice, type RealtimeVoiceControl, type RealtimeVoiceState } from "../../../lib/realtimeVoice";
 import { prefersRecordedDictation, speechRecognitionConstructor, startDictation } from "../../../lib/speech";
@@ -217,6 +218,20 @@ export function Conversation({ navigation, active = true, mode = "chat", onActiv
     }
   });
   const [intensiteMenuOuvert, setIntensiteMenuOuvert] = useState(false);
+  const modeles = trpc.intelligences.modelesDisponibles.useQuery();
+  const [modeleChoisi, setModeleChoisi] = useState<string>(() => {
+    try {
+      return localStorage.getItem(CLE_MODELE_STOCKAGE) || MODELE_AUTO;
+    } catch {
+      return MODELE_AUTO;
+    }
+  });
+  useEffect(() => {
+    if (!modeles.data) return;
+    setModeleChoisi((v) => modeleValide(v, modeles.data!.map((m) => m.id)));
+  }, [modeles.data]);
+  const [modeleMenuOuvert, setModeleMenuOuvert] = useState(false);
+  const [dernierModeleUtilise, setDernierModeleUtilise] = useState<{ id: string | null; choix: string } | null>(null);
   const sessionChargee = useRef<number | null>(null);
   const finDuFil = useRef<HTMLDivElement>(null);
   const suitLeFil = useRef(true);
@@ -380,6 +395,7 @@ export function Conversation({ navigation, active = true, mode = "chat", onActiv
       setNotice("");
       setSessionId(r.sessionId);
       sessionChargee.current = r.sessionId;
+      setDernierModeleUtilise({ id: r.modele, choix: modeleChoisi });
       setFil((f) => [
         ...f,
         {
@@ -850,7 +866,7 @@ export function Conversation({ navigation, active = true, mode = "chat", onActiv
       sent.current = { key, text: q, consumesDraft, vocal };
       const suiviId = `c${Date.now().toString(36)}${Math.random().toString(36).slice(2, 10)}`;
       setSuiviMission(suiviId);
-      demander.mutate({ suiviId, question: q, sessionId, effort: intensite, images: images.length ? images : undefined, fichierIds: fichierIds.length ? fichierIds : undefined });
+      demander.mutate({ suiviId, question: q, sessionId, effort: intensite, modele: modeleChoisi, images: images.length ? images : undefined, fichierIds: fichierIds.length ? fichierIds : undefined });
     }
   }
 
@@ -960,6 +976,15 @@ export function Conversation({ navigation, active = true, mode = "chat", onActiv
     setIntensite(valeur);
     try {
       localStorage.setItem(CLE_INTENSITE_STOCKAGE, valeur);
+    } catch {
+      // Stockage local indisponible (navigation privée) : le choix reste actif pour cette session.
+    }
+  }
+
+  function choisirModele(valeur: string) {
+    setModeleChoisi(valeur);
+    try {
+      localStorage.setItem(CLE_MODELE_STOCKAGE, valeur);
     } catch {
       // Stockage local indisponible (navigation privée) : le choix reste actif pour cette session.
     }
@@ -1427,6 +1452,59 @@ export function Conversation({ navigation, active = true, mode = "chat", onActiv
                     </>
                   ) : null}
                 </div>
+                <div className="relative">
+                  <button
+                    type="button"
+                    className="alhud-composer-action"
+                    onClick={() => setModeleMenuOuvert((v) => !v)}
+                    aria-label="Choisir le modèle"
+                    title="Modèle"
+                  >
+                    <Bot className="h-5 w-5" />
+                  </button>
+                  {modeleMenuOuvert ? (
+                    <>
+                      <button
+                        type="button"
+                        aria-label="Fermer le choix de modèle"
+                        onClick={() => setModeleMenuOuvert(false)}
+                        className="fixed inset-0 z-10 cursor-default"
+                      />
+                      <div className="absolute bottom-full right-0 z-20 mb-2 w-64 rounded-2xl border border-black/10 bg-white p-3 shadow-xl">
+                        <div className="flex items-center justify-between">
+                          <p className="text-[11px] font-black uppercase tracking-wide text-black/40">Modèle</p>
+                          <button type="button" onClick={() => setModeleMenuOuvert(false)} className="rounded-full p-1 hover:bg-black/5">
+                            <X className="h-3.5 w-3.5 text-black/40" />
+                          </button>
+                        </div>
+                        <div className="mt-2 flex flex-col gap-1">
+                          <button
+                            type="button"
+                            onClick={() => choisirModele(MODELE_AUTO)}
+                            className={`rounded-xl px-3 py-2 text-left text-[12px] font-bold ${modeleChoisi === MODELE_AUTO ? "bg-[#8B7500] text-white" : "text-black/70 hover:bg-black/5"}`}
+                          >
+                            Automatique — recommandé
+                          </button>
+                          {(modeles.data ?? []).map((m) => (
+                            <button
+                              key={m.id}
+                              type="button"
+                              onClick={() => choisirModele(m.id)}
+                              className={`rounded-xl px-3 py-2 text-left text-[12px] font-bold ${modeleChoisi === m.id ? "bg-[#8B7500] text-white" : "text-black/70 hover:bg-black/5"}`}
+                            >
+                              {m.label}
+                            </button>
+                          ))}
+                        </div>
+                        <p className="mt-2 text-[10px] leading-snug text-black/45">
+                          En automatique, le mieux adapté est choisi pour vous. Un choix explicite est
+                          toujours respecté quand il est réellement disponible — sinon, le modèle
+                          réellement utilisé est réaffiché après la réponse.
+                        </p>
+                      </div>
+                    </>
+                  ) : null}
+                </div>
                 {derniereQuestion && !busy && !historyUnavailable && (
                   <button
                     type="button"
@@ -1450,6 +1528,14 @@ export function Conversation({ navigation, active = true, mode = "chat", onActiv
               </>
             )}
           </div>
+          {dernierModeleUtilise ? (
+            <p className="text-[10px] font-bold text-black/45">
+              Modèle utilisé : {libelleModele(dernierModeleUtilise.id, modeles.data ?? [])}
+              {modeleReponseDiffere(dernierModeleUtilise.choix, dernierModeleUtilise.id) ? (
+                <span className="ml-1 text-[#8B7500]">— différent du choix demandé, indisponible à l'instant de la réponse</span>
+              ) : null}
+            </p>
+          ) : null}
           <p role="status" className="text-xs text-black/60">{notice}</p>
         </div>
         </div>
