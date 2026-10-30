@@ -40,7 +40,7 @@ export interface AnomalieCliquable {
   readonly motif: MotifAnomalie;
 }
 
-export const CLIQUABLES_TOTAL = 2919;
+export const CLIQUABLES_TOTAL = 2915;
 
 export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/components/AccessDenied.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
@@ -628,7 +628,7 @@ export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/pages/SectionAccueil.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/SEOAbonnements.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/SeoLandingPage.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
-  { fichier: "client/src/pages/SmartEngine/ControlCenter.tsx", total: 66, moteur: 0, liens: 5, boutonsLocaux: 61, sansAction: 0, zones: 0 },
+  { fichier: "client/src/pages/SmartEngine/ControlCenter.tsx", total: 62, moteur: 0, liens: 3, boutonsLocaux: 59, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/SuiviVehicule.tsx", total: 3, moteur: 0, liens: 2, boutonsLocaux: 1, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/superadmin/AdminAbonnements.tsx", total: 5, moteur: 0, liens: 1, boutonsLocaux: 2, sansAction: 0, zones: 2 },
   { fichier: "client/src/pages/superadmin/AdminBadges.tsx", total: 5, moteur: 0, liens: 1, boutonsLocaux: 2, sansAction: 0, zones: 2 },

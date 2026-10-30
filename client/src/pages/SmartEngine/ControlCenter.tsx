@@ -2780,99 +2780,91 @@ function ComportementTab() {
 /**
  * IA — Visibilité et pilotage intelligent.
  *
- * Demande de la Direction : une section dédiée à la visibilité (référencement Google,
- * mots-clés, Merchant Center, surveillance des moteurs) à l'intérieur du Système
- * Intelligent déjà existant — jamais un nouveau portail, jamais un doublon des écrans
- * qui font déjà ce travail. Cette section AFFICHE et RELIE, elle ne reconstruit rien :
- *   - indexation Google réelle → server/indexation (déjà son propre écran : /admin/indexation)
- *   - Merchant Center / flux produit → server/product-engine (déjà son propre écran : /admin/produits-google)
- *   - mots-clés & intentions → VisibilityEngine/ControlCenter (déjà son propre onglet)
- *   - alertes SEO/moteurs → AlertesTab de cette même page (onglet "alertes")
- *   - visiteurs/utilisateurs en temps réel, tous types de comptes → ComportementTab de cette même page (onglet "comportement")
+ * Correction Direction (30/10) : cette section concerne UNIQUEMENT AL-HOUDOUD·M,
+ * jamais la plateforme entière — le reste (SEO/indexation des annonces, Merchant
+ * Center, visiteurs tous comptes…) a déjà son propre écran et n'a rien à faire ici.
+ * Ce qu'on affiche : comptes réels utilisant l'IA, sessions/messages, répartition
+ * par domaine d'usage (vie quotidienne/automobile/professionnel/santé/technique),
+ * agent développeur (Chantier), et activité commerciale (essais, abonnements) —
+ * chaque chiffre vient de in_sessions / ia_credit_wallets / subscriptions, jamais
+ * estimé. Rien d'autre dans le Système Intelligent n'est touché.
  */
 function IaVisibiliteTab({ onNavigate }: { onNavigate: (t: Tab) => void }) {
-  const indexation = trpc.indexation.monitor.useQuery();
-  const produits = trpc.productEngine.pipelines.useQuery();
+  const activite = trpc.intelligences.activite.useQuery({ jours: 30 });
+  const commerce = trpc.iaCommerce.adminActivite.useQuery();
+  const pages = trpc.smartEngine.pageStats.useQuery({ days: 30 });
+  const etatIa = trpc.intelligences.etat.useQuery();
 
-  if (indexation.isLoading || produits.isLoading) return <Loading />;
+  if (activite.isLoading || commerce.isLoading) return <Loading />;
 
-  const idx = indexation.data;
-  const prod = produits.data;
+  const a = activite.data;
+  const c = commerce.data;
+  const visitesIa = (pages.data ?? [])
+    .filter((p) => /^\/(intelligence|intelligences|ia\/|utilisateurs\/portefeuille-ia|admin\/intelligences)/.test(p.page))
+    .reduce((s, p) => s + p.visits, 0);
+  const echangesPublic = etatIa.data?.echanges.find((e) => e.cote === "public");
 
   return (
     <div className="space-y-4">
       <h2 className="text-base font-bold text-[#111]">IA — Visibilité et pilotage intelligent</h2>
       <p className="text-[11px] text-[#9CA3AF]">
-        Vue d'ensemble de la visibilité réelle (Google, mots-clés, Merchant Center, moteurs) — chaque
-        chiffre vient d'un moteur déjà en place ; les liens ci-dessous ouvrent son écran complet.
+        Uniquement AL-HOUDOUD·M : qui l'utilise et pour quoi — 30 derniers jours. Rien de la plateforme
+        générale (déjà visible dans les autres onglets du Système Intelligent).
       </p>
 
-      {/* Indexation Google réelle */}
-      {idx && (
+      {a && (
         <div className="rounded-2xl border border-[#E5E7EB] bg-white p-3">
-          <div className="flex items-center justify-between">
-            <h3 className="text-sm font-bold text-[#111]">Indexation Google</h3>
-            <Link to="/admin/indexation" className="flex items-center gap-1 text-[11px] font-semibold text-[#D4AF37]">
-              Détail <ExternalLink size={11} />
-            </Link>
-          </div>
+          <h3 className="text-sm font-bold text-[#111]">Comptes & activité</h3>
           <div className="mt-2 grid grid-cols-2 sm:grid-cols-4 gap-2">
-            <StatCard label="Pages publiques" value={idx.pagesPubliques} color="blue" icon={Globe} />
-            <StatCard label="Indexées (confirmé)" value={idx.indexees} color="green" icon={CheckCircle2} />
-            <StatCard label="En attente" value={idx.enAttente} color="orange" icon={Clock} />
-            <StatCard label="Erreurs / exclues" value={idx.erreurs + idx.exclues} color="red" icon={XCircle} />
+            <StatCard label="Comptes connectés" value={a.comptesUniques} color="blue" icon={Users} />
+            <StatCard label="Visiteurs anonymes" value={a.visiteursAnonymes} color="gray" icon={Eye} />
+            <StatCard label="Sessions" value={a.sessionsTotal} color="purple" icon={Activity} />
+            <StatCard label="Messages échangés" value={a.messagesTotal} color="green" icon={Search} />
           </div>
-          <div
-            className={`mt-2 rounded-xl p-2.5 text-[11px] font-medium ${
-              idx.searchConsole.configure ? "bg-green-50 text-green-700" : "bg-amber-50 text-amber-700"
-            }`}
-          >
-            {idx.searchConsole.configure ? "✓ " : "⚠ "}
-            {idx.searchConsole.detail}
-          </div>
+          <p className="mt-2 text-[10px] text-[#9CA3AF]">
+            {pages.isLoading ? "Visites des pages IA : chargement…" : `Visites des pages IA : ${visitesIa}`}
+            {echangesPublic ? ` · ${echangesPublic.total} échange(s) au total côté public (${echangesPublic.echecs} échec(s))` : ""}
+          </p>
         </div>
       )}
 
-      {/* Merchant Center / Google Shopping */}
-      {prod && (
+      {a && a.parDomaine.length > 0 && (
         <div className="rounded-2xl border border-[#E5E7EB] bg-white p-3">
-          <div className="flex items-center justify-between">
-            <h3 className="text-sm font-bold text-[#111]">Google Shopping / Merchant Center</h3>
-            <Link to="/admin/produits-google" className="flex items-center gap-1 text-[11px] font-semibold text-[#D4AF37]">
-              Détail <ExternalLink size={11} />
-            </Link>
-          </div>
-          <div className="mt-2 grid grid-cols-2 gap-2">
-            <StatCard label="Fiches produit/pièces" value={prod.produit.fiches} color="blue" icon={Boxes} />
-            <StatCard label="Exploitables Merchant" value={prod.produit.exploitables} color="green" icon={CheckCircle2} />
-          </div>
-          <div className="mt-2 rounded-xl bg-[#F5F3EF] p-2.5 text-[11px] text-[#6B7280]">
-            <span className="font-bold text-[#111]">{prod.vehicule.fiches} annonce(s) véhicule publiée(s).</span>{" "}
-            {prod.vehicule.exclusion}
+          <h3 className="text-sm font-bold text-[#111]">Ce qu'ils font — répartition par usage</h3>
+          <div className="mt-2 space-y-1.5">
+            {a.parDomaine.map((d) => (
+              <div key={d.domaine} className="flex items-center justify-between rounded-lg bg-[#F5F3EF] px-2.5 py-1.5 text-[11px]">
+                <span className="font-semibold text-[#374151]">{d.libelle}</span>
+                <span className="font-bold text-[#111]">{d.sessions} session(s)</span>
+              </div>
+            ))}
+            <div className="flex items-center justify-between rounded-lg bg-[#111] px-2.5 py-1.5 text-[11px]">
+              <span className="flex items-center gap-1.5 font-semibold text-white"><Cpu size={12} className="text-[#D4AF37]" /> Agent développeur (Chantier)</span>
+              <span className="font-bold text-[#D4AF37]">{a.agentDeveloppeurComptes} compte(s)</span>
+            </div>
           </div>
         </div>
       )}
 
-      {/* Liens vers ce qui existe déjà — jamais reconstruit ici */}
+      {c && (
+        <div className="rounded-2xl border border-[#E5E7EB] bg-white p-3">
+          <h3 className="text-sm font-bold text-[#111]">Activité commerciale</h3>
+          <div className="mt-2 grid grid-cols-2 gap-2">
+            <StatCard label="Portefeuilles IA créés" value={c.comptesAvecPortefeuille} color="blue" icon={Zap} />
+            <StatCard label="Essais gratuits démarrés" value={c.essaisGratuitsDemarres} color="green" icon={CheckCircle2} />
+            <StatCard label="Découvertes achetées" value={c.decouvertesAchetees} color="orange" icon={TrendingUp} />
+            <StatCard label="Abonnements actifs" value={c.abonnementsActifs} color="purple" icon={Star} />
+          </div>
+        </div>
+      )}
+
       <div className="rounded-2xl border border-[#E5E7EB] bg-white p-3 space-y-2">
         <h3 className="text-sm font-bold text-[#111]">Voir aussi</h3>
-        <button
-          onClick={() => onNavigate("alertes")}
-          className="flex w-full items-center justify-between rounded-xl border border-[#E5E7EB] px-3 py-2 text-left text-xs font-semibold text-[#374151] hover:bg-[#F5F3EF]"
-        >
-          Alertes (moteurs, SEO, indexation, Merchant) <AlertTriangle size={14} className="text-[#D4AF37]" />
-        </button>
-        <button
-          onClick={() => onNavigate("comportement")}
-          className="flex w-full items-center justify-between rounded-xl border border-[#E5E7EB] px-3 py-2 text-left text-xs font-semibold text-[#374151] hover:bg-[#F5F3EF]"
-        >
-          Visiteurs et utilisateurs en temps réel, tous types de comptes <Activity size={14} className="text-[#D4AF37]" />
-        </button>
         <Link
-          to="/superadmin/visibilite-croissance"
+          to="/admin/intelligences/direction"
           className="flex w-full items-center justify-between rounded-xl border border-[#E5E7EB] px-3 py-2 text-left text-xs font-semibold text-[#374151] hover:bg-[#F5F3EF]"
         >
-          Mots-clés, intentions de recherche et canaux (Visibilité & Croissance) <ExternalLink size={14} className="text-[#D4AF37]" />
+          Centre AL-HOUDOUD·M complet (conversations, demandes, mémoire, coûts) <ExternalLink size={14} className="text-[#D4AF37]" />
         </Link>
         <Link
           to="/superadmin/tarifs-ia"

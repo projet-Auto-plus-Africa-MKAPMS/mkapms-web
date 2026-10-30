@@ -11,7 +11,7 @@
  *  - direction (PDG seul) : contexte interne complet, commandes, code ;
  *  - public : assistant automobile, sans aucun accès interne.
  */
-import { and, desc, eq, sql } from "drizzle-orm";
+import { and, desc, eq, gte, isNotNull, sql } from "drizzle-orm";
 import { db } from "../db.js";
 import { inActions, inDomaines, inMessages, inSessions, inUsage } from "./schema.js";
 import { DOMAINE_DEFAUT, DOMAINES, domaine as specDomaine, type DomaineSpec } from "./domaines.js";
@@ -267,6 +267,58 @@ export async function domaines(): Promise<DomaineEtat[]> {
       motif: l?.motif ?? "",
     };
   });
+}
+
+/**
+ * Activité réelle de l'assistant AL-HOUDOUD·M côté public — jamais la plateforme
+ * entière : comptes distincts, visiteurs anonymes, sessions/messages, répartition
+ * par domaine d'usage (vie quotidienne/automobile/professionnel/santé/technique),
+ * et comptes ayant utilisé l'agent développeur (Chantier, `projetActifId`).
+ * Chaque chiffre vient de in_sessions, jamais déduit ni estimé.
+ */
+export async function activiteAssistant(jours = 30): Promise<{
+  comptesUniques: number;
+  visiteursAnonymes: number;
+  sessionsTotal: number;
+  messagesTotal: number;
+  parDomaine: { domaine: string; libelle: string; sessions: number }[];
+  agentDeveloppeurComptes: number;
+}> {
+  const since = new Date(Date.now() - jours * 24 * 60 * 60 * 1000);
+  const [base] = await db
+    .select({
+      comptesUniques: sql<number>`count(distinct ${inSessions.userId}) filter (where ${inSessions.userId} is not null)::int`,
+      visiteursAnonymes: sql<number>`count(distinct ${inSessions.visiteur}) filter (where ${inSessions.userId} is null and ${inSessions.visiteur} is not null)::int`,
+      sessionsTotal: sql<number>`count(*)::int`,
+      messagesTotal: sql<number>`coalesce(sum(${inSessions.messages}), 0)::int`,
+    })
+    .from(inSessions)
+    .where(and(eq(inSessions.cote, "public"), gte(inSessions.createdAt, since)));
+
+  const parDomaineRows = await db
+    .select({ domaine: inSessions.domaine, sessions: sql<number>`count(*)::int` })
+    .from(inSessions)
+    .where(and(eq(inSessions.cote, "public"), gte(inSessions.createdAt, since)))
+    .groupBy(inSessions.domaine)
+    .orderBy(sql`count(*) desc`);
+
+  const [agent] = await db
+    .select({ comptes: sql<number>`count(distinct ${inSessions.userId})::int` })
+    .from(inSessions)
+    .where(and(isNotNull(inSessions.projetActifId), gte(inSessions.createdAt, since)));
+
+  return {
+    comptesUniques: base?.comptesUniques ?? 0,
+    visiteursAnonymes: base?.visiteursAnonymes ?? 0,
+    sessionsTotal: base?.sessionsTotal ?? 0,
+    messagesTotal: base?.messagesTotal ?? 0,
+    parDomaine: parDomaineRows.map((r) => ({
+      domaine: r.domaine,
+      libelle: specDomaine(r.domaine)?.libelle ?? r.domaine,
+      sessions: r.sessions,
+    })),
+    agentDeveloppeurComptes: agent?.comptes ?? 0,
+  };
 }
 
 /** Le PDG ouvre ou ferme un domaine ; la décision est datée et motivée. */

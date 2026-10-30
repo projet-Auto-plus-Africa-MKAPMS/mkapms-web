@@ -12,6 +12,7 @@ import {
   setIaProductActive,
   planMargin,
   estimateUnitsCost,
+  activiteCommerciale,
   walletBalance,
   walletLedger,
   creditWallet,
@@ -59,6 +60,9 @@ export const iaCommerceRouter = router({
   }),
 
   estimateCost: pdgProcedure.input(z.object({ unites: z.number().min(0) })).query(({ input }) => estimateUnitsCost(input.unites)),
+
+  /** Comptes/essais/abonnements réels d'AL-HOUDOUD·M — jamais la plateforme entière. */
+  adminActivite: pdgProcedure.query(() => activiteCommerciale()),
 
   // ── Portefeuille de crédits (utilisateur connecté) ──
   walletMine: protectedProcedure.query(async ({ ctx }) => ({

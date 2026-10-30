@@ -140,6 +140,7 @@ import {
 } from "./moteurs.js";
 import {
   actions,
+  activiteAssistant,
   coder,
   demander,
   enregistrerEchangeVocal,
@@ -489,6 +490,11 @@ export const intelligencesRouter = router({
 
   /** Vue complète PDG : accès fournisseur réel, moteurs, coûts, commandes, règles. */
   etat: pdgProcedure.query(() => etat()),
+
+  /** Activité réelle d'AL-HOUDOUD·M côté public uniquement (jamais la plateforme entière). */
+  activite: pdgProcedure
+    .input(z.object({ jours: z.number().int().min(1).max(365).default(30) }).optional())
+    .query(({ input }) => activiteAssistant(input?.jours ?? 30)),
 
   regles: pdgProcedure.query(() => ({ nom: NOM_MOTEUR, commandes: COMMANDES, regles: REGLES })),
 
