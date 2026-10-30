@@ -8,7 +8,7 @@ test('MAIN foundations persist once and preserve existing owner knowledge',async
  const {pool}=await import('../../db.js');
  try{
   await pool.query('DROP TABLE IF EXISTS in_memoire');
-  await pool.query(`CREATE TABLE in_memoire(id bigserial PRIMARY KEY,categorie varchar(32) NOT NULL,cycle varchar(16) NOT NULL DEFAULT 'actif',cle varchar(200) NOT NULL DEFAULT '',titre varchar(240) NOT NULL DEFAULT '',contenu text NOT NULL DEFAULT '',mots_cles jsonb NOT NULL DEFAULT '[]',liens jsonb NOT NULL DEFAULT '{}',source varchar(64) NOT NULL DEFAULT 'intelligences',country_code varchar(8),poids integer NOT NULL DEFAULT 1,rappels integer NOT NULL DEFAULT 0,actor_id integer,updated_at timestamp NOT NULL DEFAULT now(),created_at timestamp NOT NULL DEFAULT now())`);
+  await pool.query(`CREATE TABLE in_memoire(id bigserial PRIMARY KEY,categorie varchar(32) NOT NULL,cycle varchar(16) NOT NULL DEFAULT 'actif',portee varchar(24) NOT NULL DEFAULT 'pdg_prive',cle varchar(200) NOT NULL DEFAULT '',titre varchar(240) NOT NULL DEFAULT '',contenu text NOT NULL DEFAULT '',mots_cles jsonb NOT NULL DEFAULT '[]',liens jsonb NOT NULL DEFAULT '{}',source varchar(64) NOT NULL DEFAULT 'intelligences',country_code varchar(8),poids integer NOT NULL DEFAULT 1,rappels integer NOT NULL DEFAULT 0,actor_id integer,updated_at timestamp NOT NULL DEFAULT now(),created_at timestamp NOT NULL DEFAULT now())`);
   const {FONDATIONS,seedFondations}=await import('../fondations.js');
   assert.equal(new Set(FONDATIONS.map(f=>f.categorie+':'+f.cle)).size,FONDATIONS.length);
   const original=FONDATIONS[0];await pool.query("INSERT INTO in_memoire(categorie,cle,contenu) VALUES($1,$2,'TEST owner existing knowledge')",[original.categorie,original.cle]);
