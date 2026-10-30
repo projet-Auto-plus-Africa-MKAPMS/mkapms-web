@@ -123,8 +123,15 @@ export async function activiteCommerciale(): Promise<{
  * de solde — jamais la plateforme entière.
  */
 export async function walletBalanceIfExists(userId: number): Promise<number | null> {
-  const [w] = await db.select({ balanceUnites: iaCreditWallets.balanceUnites }).from(iaCreditWallets).where(eq(iaCreditWallets.userId, userId));
-  return w ? Number(w.balanceUnites) : null;
+  // Délai borné : ce contrôle est sur le chemin direct d'une réponse à l'utilisateur
+  // (demander()/produire()) — une base lente ou inaccessible ne doit jamais retarder
+  // ni bloquer un échange, elle retombe sur "jamais touché le commerce IA" (inchangé).
+  const lecture = (async () => {
+    const [w] = await db.select({ balanceUnites: iaCreditWallets.balanceUnites }).from(iaCreditWallets).where(eq(iaCreditWallets.userId, userId));
+    return w ? Number(w.balanceUnites) : null;
+  })().catch(() => null);
+  const delai = new Promise<null>((resolve) => setTimeout(() => resolve(null), 1500));
+  return Promise.race([lecture, delai]);
 }
 
 async function getOrCreateWallet(userId: number) {
