@@ -41,6 +41,7 @@ const Devis = lazy(() => import("./pages/Devis"));
 const Garages = lazy(() => import("./pages/Garages"));
 const GaragePlus = lazy(() => import("./pages/GaragePlus"));
 const Abonnements = lazy(() => import("./pages/Abonnements"));
+const OffresIA = lazy(() => import("./pages/OffresIA"));
 const Aide = lazy(() => import("./pages/Aide"));
 const Services = lazy(() => import("./pages/Services"));
 const Confidentialite = lazy(() => import("./pages/Confidentialite"));
@@ -443,6 +444,7 @@ const HistoriqueLocations = lazy(() => import("./pages/utilisateurs/HistoriqueLo
 const MesVehicules = lazy(() => import("./pages/utilisateurs/MesVehicules"));
 const MessagerieGlobale = lazy(() => import("./pages/utilisateurs/MessagerieGlobale"));
 const ObjectifUtilisateur = lazy(() => import("./pages/utilisateurs/ObjectifUtilisateur"));
+const PortefeuilleIA = lazy(() => import("./pages/utilisateurs/PortefeuilleIA"));
 const SecuriteUtilisateur = lazy(() => import("./pages/utilisateurs/SecuriteUtilisateur"));
 const TableauBordPerso = lazy(() => import("./pages/utilisateurs/TableauBordPerso"));
 // Notifications
@@ -1311,6 +1313,7 @@ export default function App() {
             <Route path="/admin/intelligences/direction" element={<U name="AL-HUDHUD·M — direction"><CentreIntelligences /></U>} />
             <Route path="/intelligences" element={<U name="AL-HUDHUD·M — assistant"><AssistantIntelligences /></U>} />
             <Route path="/intelligence" element={<U name="AL-HUDHUD·M"><MKAPMSIntelligence /></U>} />
+            <Route path="/ia/abonnements" element={<U name="AL-HOUDOUD·M — Abonnements"><OffresIA /></U>} />
             <Route path="/investissement" element={<U name="Investissement"><EspaceInvestissement /></U>} />
             <Route path="/investissement/devenir-investisseur" element={<U name="Investissement"><DevenirInvestisseur /></U>} />
             <Route path="/avis/:univers" element={<U name="Avis & notes"><AvisUnivers /></U>} />
@@ -1342,6 +1345,7 @@ export default function App() {
             <Route path="/utilisateurs/mes-vehicules" element={<U name="Utilisateurs"><MesVehicules /></U>} />
             <Route path="/utilisateurs/messagerie-globale" element={<U name="Utilisateurs"><MessagerieGlobale /></U>} />
             <Route path="/utilisateurs/objectif-utilisateur" element={<U name="Utilisateurs"><ObjectifUtilisateur /></U>} />
+            <Route path="/utilisateurs/portefeuille-ia" element={<U name="Utilisateurs"><PortefeuilleIA /></U>} />
             <Route path="/utilisateurs/securite-utilisateur" element={<U name="Utilisateurs"><SecuriteUtilisateur /></U>} />
             <Route path="/utilisateurs/suppression-compte" element={<SuppressionCompte />} />
             <Route path="/utilisateurs/tableau-bord-perso" element={<U name="Utilisateurs"><TableauBordPerso /></U>} />
