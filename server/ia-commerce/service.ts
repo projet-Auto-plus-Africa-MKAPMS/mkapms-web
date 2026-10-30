@@ -1,6 +1,7 @@
-import { desc, eq } from "drizzle-orm";
+import { desc, eq, sql } from "drizzle-orm";
 import { db } from "../db.js";
 import { iaCreditWallets, iaCreditLedger } from "./schema.js";
+import { subscriptions } from "../schema.js";
 import { listProducts, resolveProduct, upsertProduct, type ResolvedProduct } from "../payment-engine/products.js";
 import { seedProducts } from "../payment-engine/products.js";
 import { IA_PRODUCT_CATALOG, UNITE_COUT_REEL_EUR, type IaPlanMeta } from "./catalog.js";
@@ -69,6 +70,38 @@ export function planMargin(p: IaProduct): { prixEur: number; creditsInclus: numb
 /** Estimation préalable du coût réel d'une consommation en unités (avant facturation d'un dépassement). */
 export function estimateUnitsCost(unites: number): { unites: number; coutReelEstimeEur: number } {
   return { unites, coutReelEstimeEur: Math.round(unites * UNITE_COUT_REEL_EUR * 100) / 100 };
+}
+
+/** Activité commerciale réelle d'AL-HOUDOUD·M : comptes, essais, abonnements. */
+export async function activiteCommerciale(): Promise<{
+  comptesAvecPortefeuille: number;
+  essaisGratuitsDemarres: number;
+  decouvertesAchetees: number;
+  abonnementsActifs: number;
+  abonnementsTotal: number;
+}> {
+  const [w] = await db.select({ total: sql<number>`count(*)::int` }).from(iaCreditWallets);
+  const [d] = await db
+    .select({
+      essaisGratuits: sql<number>`count(*) filter (where ${subscriptions.amount} = '0')::int`,
+      decouvertesPayantes: sql<number>`count(*) filter (where ${subscriptions.amount} != '0')::int`,
+    })
+    .from(subscriptions)
+    .where(eq(subscriptions.category, "ia_decouverte"));
+  const [a] = await db
+    .select({
+      actifs: sql<number>`count(*) filter (where ${subscriptions.status} = 'active')::int`,
+      total: sql<number>`count(*)::int`,
+    })
+    .from(subscriptions)
+    .where(eq(subscriptions.category, "ia_abonnement"));
+  return {
+    comptesAvecPortefeuille: w?.total ?? 0,
+    essaisGratuitsDemarres: d?.essaisGratuits ?? 0,
+    decouvertesAchetees: d?.decouvertesPayantes ?? 0,
+    abonnementsActifs: a?.actifs ?? 0,
+    abonnementsTotal: a?.total ?? 0,
+  };
 }
 
 async function getOrCreateWallet(userId: number) {

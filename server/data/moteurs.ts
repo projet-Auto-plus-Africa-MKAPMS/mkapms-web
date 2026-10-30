@@ -100,9 +100,9 @@ export interface PerimetreMoteur {
 }
 
 export const MOTEURS_TOTAL = 99;
-export const MANQUES_TOTAL = 511;
+export const MANQUES_TOTAL = 510;
 export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
-  "dependance_non_declaree": 88,
+  "dependance_non_declaree": 87,
   "sans_logique_serveur": 10,
   "ecran_sans_contenu": 340,
   "sans_ecran": 8,
@@ -10956,8 +10956,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       ]
     },
     "dependants": [
-      "seo",
-      "smart"
+      "seo"
     ],
     "evenementsPublies": [],
     "evenementsConsommes": [],
@@ -10980,15 +10979,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "mots": 172
       }
     ],
-    "ecransHotes": [
-      {
-        "fichier": "client/src/pages/SmartEngine/ControlCenter.tsx",
-        "route": "/superadmin/smart-engine",
-        "composants": [
-          "trpc.indexation"
-        ]
-      }
-    ],
+    "ecransHotes": [],
     "procedures": [
       "definir",
       "etat",
@@ -11200,6 +11191,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "identity",
       "investment",
       "shop_link",
+      "smart",
       "vo_engine"
     ],
     "evenementsPublies": [
@@ -11266,6 +11258,13 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         ]
       },
       {
+        "fichier": "client/src/pages/SmartEngine/ControlCenter.tsx",
+        "route": "/superadmin/smart-engine",
+        "composants": [
+          "trpc.intelligences"
+        ]
+      },
+      {
         "fichier": "client/src/pages/CentreCommandes.tsx",
         "route": "/admin/commandes",
         "composants": [
@@ -11289,6 +11288,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     ],
     "procedures": [
       "actions",
+      "activite",
       "agentAutonome",
       "apercuVoix",
       "appels",
@@ -17892,8 +17892,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "dependants": [
       "event_bus",
       "intelligences",
-      "pieces",
-      "smart"
+      "pieces"
     ],
     "evenementsPublies": [],
     "evenementsConsommes": [
@@ -17923,15 +17922,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "mots": 97
       }
     ],
-    "ecransHotes": [
-      {
-        "fichier": "client/src/pages/SmartEngine/ControlCenter.tsx",
-        "route": "/superadmin/smart-engine",
-        "composants": [
-          "trpc.productEngine"
-        ]
-      }
-    ],
+    "ecransHotes": [],
     "procedures": [
       "chaine",
       "labels",
@@ -21756,12 +21747,11 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "country",
       "event_bus",
       "identity",
-      "indexation",
+      "intelligences",
       "monitoring",
       "notification",
       "permission",
       "politique_pays",
-      "product_engine",
       "redirection",
       "resilience",
       "seo"
@@ -21773,12 +21763,11 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "country",
       "event_bus",
       "identity",
-      "indexation",
+      "intelligences",
       "monitoring",
       "notification",
       "permission",
       "politique_pays",
-      "product_engine",
       "redirection",
       "resilience",
       "seo"
@@ -21811,8 +21800,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "smart-engine/router.ts exige une session Identity (procédure protégée)",
         "smart-engine/services/rate-limiter.ts exige une session Identity (procédure protégée)"
       ],
-      "indexation": [
-        "client/src/pages/SmartEngine/ControlCenter.tsx appelle trpc.indexation"
+      "intelligences": [
+        "client/src/pages/SmartEngine/ControlCenter.tsx appelle trpc.intelligences"
       ],
       "monitoring": [
         "consomme moteur.degrade émis par monitoring",
@@ -21828,9 +21817,6 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       ],
       "politique_pays": [
         "smart-engine/services/action-tasks.ts importe country-policy/service.ts"
-      ],
-      "product_engine": [
-        "client/src/pages/SmartEngine/ControlCenter.tsx appelle trpc.productEngine"
       ],
       "redirection": [
         "smart-engine/services/alert-engine.ts importe redirection-engine/schema.ts",
@@ -22034,11 +22020,11 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/superadmin/smart-engine"
         ],
-        "cliquables": 66,
+        "cliquables": 62,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 291,
-        "mots": 1544
+        "textes": 290,
+        "mots": 1524
       }
     ],
     "ecransHotes": [
@@ -22212,17 +22198,13 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "pdg",
       "public"
     ],
-    "textes": 352,
-    "mots": 1819,
+    "textes": 351,
+    "mots": 1799,
     "battement": "contrat",
     "manques": [
       {
         "genre": "dependance_non_declaree",
-        "detail": "indexation — client/src/pages/SmartEngine/ControlCenter.tsx appelle trpc.indexation"
-      },
-      {
-        "genre": "dependance_non_declaree",
-        "detail": "product_engine — client/src/pages/SmartEngine/ControlCenter.tsx appelle trpc.productEngine"
+        "detail": "intelligences — client/src/pages/SmartEngine/ControlCenter.tsx appelle trpc.intelligences"
       }
     ]
   },
