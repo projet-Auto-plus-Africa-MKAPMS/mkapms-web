@@ -9,10 +9,14 @@
  */
 import { and, eq, gte, ilike, lte, sql } from "drizzle-orm";
 import { db } from "../../../db.js";
-import { annonces } from "../../../schema.js";
+import { annonces, users } from "../../../schema.js";
 import { estimate, type EstimateInput } from "../../../vo-engine/service.js";
 import { voEstimations } from "../../../vo-engine/schema.js";
+import { annoncesRouter } from "../../../routers/annonces.js";
 import type { ImplementationOutil } from "../outils-test.js";
+
+/** Photo jointe à la conversation (data URI) — jamais une URL externe devinée. */
+const PHOTO_DATA_URI = /^data:image\/(?:png|jpe?g|webp);base64,[A-Za-z0-9+/]+={0,2}$/i;
 
 // ── decodeVIN : décodage structurel ISO 3779, sans appel externe ──────────
 
@@ -255,6 +259,73 @@ export const IMPLEMENTATIONS: Record<string, ImplementationOutil> = {
     carburant: args.carburant ? CARBURANTS[String(args.carburant).toLowerCase()] ?? String(args.carburant).toLowerCase() : undefined,
     boite: args.boite ? BOITES[String(args.boite).toLowerCase()] ?? String(args.boite).toLowerCase() : undefined,
   }),
+
+  "vehicules.creerBrouillonAnnonce": async (args, contexte) => {
+    // L'identité de l'écriture vient TOUJOURS du contexte d'exécution (session
+    // authentifiée) — jamais d'un champ que le modèle pourrait transmettre dans
+    // ses arguments. Sans compte réel, aucun brouillon : une annonce doit
+    // toujours appartenir à quelqu'un.
+    const actorId = contexte?.actorId ?? null;
+    if (!actorId) {
+      return { cree: false, motif: "Un compte connecté est nécessaire pour enregistrer un brouillon d'annonce." };
+    }
+    const marque = String(args.marque ?? "").trim();
+    const modele = String(args.modele ?? "").trim();
+    if (!marque || !modele) {
+      return { cree: false, motif: "Marque et modèle sont nécessaires pour créer un brouillon." };
+    }
+
+    const photosBrutes = Array.isArray(args.photos) ? args.photos.slice(0, 6).map((p) => String(p)) : [];
+    const photosValides = photosBrutes.filter((p) => PHOTO_DATA_URI.test(p));
+    if (photosBrutes.length > 0 && photosValides.length === 0) {
+      return { cree: false, motif: "Aucune des photos fournies n'est dans un format exploitable (PNG/JPEG/WebP)." };
+    }
+    if (photosValides.length > 0 && args.droitsConfirmes !== true) {
+      return { cree: false, motif: "Confirmez d'abord avec l'utilisateur qu'il détient les droits sur ces photos (droitsConfirmes)." };
+    }
+
+    const [u] = await db.select({ role: users.role, email: users.email }).from(users).where(eq(users.id, actorId)).limit(1);
+    if (!u) return { cree: false, motif: "Compte introuvable : impossible de rattacher un brouillon." };
+
+    const caller = annoncesRouter.createCaller({
+      req: {} as never,
+      res: {} as never,
+      user: { uid: actorId, role: u.role, email: u.email },
+    });
+
+    try {
+      const version = args.version ? String(args.version) : undefined;
+      const titre = args.titre ? String(args.titre) : `${marque} ${modele}${version ? " " + version : ""}`.trim();
+      const created = await caller.create({
+        type: args.typeAnnonce === "location" ? "location" : "vente",
+        titre,
+        description: args.description ? String(args.description) : undefined,
+        marque,
+        modele,
+        version,
+        categorie: (args.categorie ? String(args.categorie).toLowerCase() : "berline") as any,
+        carburant: args.carburant ? String(args.carburant) : "essence",
+        boite: args.boite ? String(args.boite) : "manuelle",
+        annee: typeof args.annee === "number" ? args.annee : undefined,
+        kilometrage: typeof args.kilometrage === "number" ? args.kilometrage : undefined,
+        prix: typeof args.prix === "number" ? args.prix : 0,
+        ville: args.ville ? String(args.ville) : undefined,
+        codePostal: args.codePostal ? String(args.codePostal) : undefined,
+        pays: args.pays ? String(args.pays) : "FR",
+        photos: photosValides,
+        status: "brouillon",
+      });
+      return {
+        cree: true,
+        annonceId: created.id,
+        reference: created.reference,
+        statut: "brouillon",
+        motif: "Brouillon enregistré, jamais publié : une validation explicite de l'utilisateur depuis « Mes annonces » est nécessaire avant toute mise en ligne.",
+      };
+    } catch (e) {
+      return { cree: false, motif: (e as Error).message || "La création du brouillon a échoué." };
+    }
+  },
 
   "vehicules.detectVehicleDuplicate": async (args) => {
     const marque = args.marque ? String(args.marque) : null;

@@ -102,7 +102,10 @@ async function main() {
   verif("registre : outil inconnu introuvable", trouver("test.nexiste_pas") === null);
   verif("registre : au moins 30 familles couvertes (demande de la direction ; 42 avec la famille boutique)", resume().parCategorie.length >= 30 - 1 && resume().parCategorie.length === 42);
   verif("registre : aucun outil absent faute d'implémentation (statut assumé)", OUTILS.every((o) => o.implementationStatus !== undefined));
-  verif("registre : famille véhicules complète (17 outils demandés)", listerParCategorie("vehicules").length === 17);
+  verif(
+    "registre : famille véhicules complète (17 outils demandés + creerBrouillonAnnonce, dépôt d'annonce assisté par IA, demande PDG 30/10)",
+    listerParCategorie("vehicules").length === 18,
+  );
   verif(
     "registre : REGISTERED_NOT_IMPLEMENTED toujours désactivé (jamais exécutable sans code)",
     OUTILS.filter((o) => o.implementationStatus === "REGISTERED_NOT_IMPLEMENTED").every((o) => !o.enabled),

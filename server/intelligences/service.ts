@@ -34,13 +34,27 @@ import { engineRegistry } from "../engine-registry/schema.js";
 import { smartAlerts } from "../smart-engine/schema.js";
 import { emitSafe } from "../event-bus/service.js";
 import { executerAvecOutils, type AppelOutilEnDirect } from "./outils/boucle.js";
-import { listerActifsPourMode } from "./outils/registre.js";
+import { listerActifsPourMode, listerParCategorie } from "./outils/registre.js";
 import { randomUUID } from "node:crypto";
 import { resumerSiNecessaire, souvenirsRecentsUtilisateur, synchroniserConversationsUtilisateur } from "./conversation-resume.js";
 import { memoriserTravail } from "./apprentissage-travail.js";
 import { nommerSiPremierEchange, titreProvisoire } from "./conversation-titre.js";
 import { rechercherGlobale } from "./recherche-globale.js";
 import { lireFichier } from "./fichiers.js";
+
+/**
+ * Outils proposés côté public : volontairement limités à la famille
+ * "vehicules" (dépôt d'annonce assisté par IA) — jamais le registre complet
+ * utilisé côté direction (chantier, github, railway, coffre...), qui n'a
+ * aucun sens pour un visiteur. `enabled && implementationStatus ===
+ * "IMPLEMENTED"` exclut automatiquement tout outil non connecté : un
+ * visiteur ne voit jamais un outil que le moteur ne peut pas réellement
+ * exécuter. Évolue seul si de nouveaux outils "vehicules" IMPLEMENTED
+ * s'ajoutent — rien à recâbler ici.
+ */
+const OUTILS_PUBLICS = listerParCategorie("vehicules")
+  .filter((o) => o.enabled && o.implementationStatus === "IMPLEMENTED")
+  .map((o) => o.toolId);
 
 function jourCourant(): string {
   return new Date().toISOString().slice(0, 10);
@@ -378,12 +392,12 @@ export interface DemandeInput {
   domaine?: string | null;
   sessionId?: number | null;
   userId?: number | null;
-  /** Rôle réel de l'appelant — gouverne la boucle d'outils côté direction (permissions, autonomie). */
+  /** Rôle réel de l'appelant — gouverne la boucle d'outils des deux côtés (permissions, autonomie). */
   role?: string | null;
   visiteur?: string | null;
   countryCode?: string | null;
   langue?: string | null;
-  /** Photos/documents joints en data URI (côté direction uniquement pour l'instant) — voir provider.ts pour la limite réelle (4). */
+  /** Photos/documents joints en data URI — voir provider.ts pour la limite réelle (4). */
   images?: string[];
   /** Fichiers privés déjà déposés dans le RAG, explicitement joints à ce tour. */
   fichierIds?: number[];
@@ -807,21 +821,47 @@ export async function demander(input: DemandeInput): Promise<DemandeResultat> {
       dureeMs: boucle.dureeMs,
     };
   } else {
-    const appel = await appeler({
-      capacite: "ia_texte",
-      tache: "assistant_public",
+    // Boucle d'outils (même moteur que côté direction, server/intelligences/
+    // outils/boucle.ts) — mais `outilsProposes` reste strictement limité à
+    // OUTILS_PUBLICS (famille "vehicules" uniquement, voir plus haut) : un
+    // visiteur anonyme (role=null) ne débloque jamais rien (politique.ts
+    // refuse toujours un rôle absent), un compte connecté n'obtient que ce
+    // que son rôle a réellement reçu au Permission Engine (WRITE non accordé
+    // par défaut à "user"/"pro"/... — décision PDG explicite, jamais silencieuse).
+    const boucle = await executerAvecOutils({
       moteur: "intelligences",
+      role: input.role ?? null,
       systeme: [CONSIGNE_PUBLIC, consigneDomaine, lecture ? `Registre du visiteur (lu par le moteur) :\n${lecture.consigneTon}` : ""]
         .filter((c) => c.length > 0)
         .join("\n\n"),
       message,
+      images: input.images,
+      outilsProposes: OUTILS_PUBLICS,
       // Côté public la question peut contenir des éléments personnels : le niveau
       // déclaré est plus strict, et la Fabrique Intelligence peut donc refuser un fournisseur.
       confidentialite: "interne",
       countryCode: input.countryCode ?? null,
       maxTokens: 900,
+      actorId: input.userId ?? null,
+      traceId,
     });
-    r = appel;
+    appelsOutilsTrace = boucle.appelsOutils.map((a) => ({
+      toolId: a.toolId,
+      verdictPolitique: a.verdictPolitique,
+      statutExecution: a.statutExecution,
+      motif: a.motif,
+    }));
+    r = {
+      ok: boucle.ok,
+      texte: boucle.texteFinal,
+      fournisseur: boucle.fournisseur,
+      modele: boucle.modele,
+      motif: boucle.motif,
+      motifPublic: boucle.motifPublic,
+      jetonsEntree: boucle.jetonsEntree,
+      jetonsSortie: boucle.jetonsSortie,
+      dureeMs: boucle.dureeMs,
+    };
   }
 
   // Point 13 — traçabilité des outils réellement appelés, visible dans le
