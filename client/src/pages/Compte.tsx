@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { getAnnonceUrl } from "../lib/annonceUrl";
-import { Camera, CheckCircle2, Pencil, Trash2, X, RefreshCw, Clock, ChevronDown, ChevronLeft, LogOut, User as UserIcon, Bell, Grid3x3, Megaphone, FileText, Search as SearchIcon, CalendarCheck, Crown, FolderLock, HelpCircle, Plus, Car, Bike, Truck, Bus, KeyRound, Settings, Wallet, Star, Info, Download, RefreshCcw } from "lucide-react";
+import { Camera, CheckCircle2, Pencil, Trash2, X, RefreshCw, Clock, ChevronDown, ChevronLeft, LogOut, User as UserIcon, Bell, Grid3x3, Megaphone, FileText, Search as SearchIcon, CalendarCheck, Crown, FolderLock, HelpCircle, Plus, Car, Bike, Truck, Bus, KeyRound, Settings, Wallet, Star, Info, Download, RefreshCcw, Bot } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { trpc } from "../lib/trpc";
 import { useAuth } from "../lib/auth";
@@ -11,8 +11,9 @@ import type { UserRole } from "@shared/roles";
 import { canAccessServicePath } from "@shared/permissions";
 import { routeForSession } from "../lib/accountRoute";
 import FileUpload from "../components/FileUpload";
+import ConnexionsSites from "../components/ConnexionsSites";
 
-type Tab = "annonces" | "toutes-annonces" | "publicites" | "favoris" | "recherches" | "reservations" | "devis" | "abonnements" | "litiges" | "fidelite" | "coffre" | "vehicules" | "rapports" | "services" | "profil" | "notifications" | "wallet" | "notes" | "version";
+type Tab = "annonces" | "toutes-annonces" | "publicites" | "favoris" | "recherches" | "reservations" | "devis" | "abonnements" | "litiges" | "fidelite" | "coffre" | "vehicules" | "rapports" | "services" | "profil" | "notifications" | "wallet" | "notes" | "version" | "assistant-ia";
 
 const RAPPORT_STATUT_LABEL: Record<string, string> = { en_attente: "En attente", pret: "Pr\u00eat", echec: "Indisponible" };
 
@@ -111,6 +112,7 @@ const TAB_LABELS: Record<Tab, string> = {
   wallet: "Portefeuille",
   notes: "Noter l'application",
   version: "Version & mise à jour",
+  "assistant-ia": "Assistant IA",
 };
 
 // Sections repliables (accord\u00e9on) — chaque groupe a une fl\u00e8che, s'ouvre en dessous.
@@ -121,6 +123,7 @@ const GROUP_DEFS: { key: string; label: string; icon: LucideIcon; tabs: Tab[] }[
   { key: "transactions", label: "R\u00e9servations & Devis", icon: CalendarCheck, tabs: ["reservations", "devis", "litiges"] },
   { key: "abo", label: "Abonnements & Rewards", icon: Crown, tabs: ["abonnements", "fidelite"] },
   { key: "docs", label: "Documents & V\u00e9hicules", icon: FolderLock, tabs: ["coffre", "vehicules", "rapports"] },
+  { key: "assistant-ia", label: "Assistant IA", icon: Bot, tabs: ["assistant-ia"] },
   { key: "notif", label: "Notifications", icon: Bell, tabs: ["notifications"] },
   { key: "services", label: "Services", icon: Grid3x3, tabs: ["services"] },
   { key: "profil", label: "Profil & Compte", icon: UserIcon, tabs: ["profil"] },
@@ -921,6 +924,7 @@ export default function Compte() {
             {coffre.data?.length === 0 && <p className="text-sm text-slate-500">Coffre-fort vide.</p>}
           </div>
         )}
+        {tab === "assistant-ia" && <ConnexionsSites />}
         {tab === "vehicules" && (
           <div className="space-y-4">
             <form

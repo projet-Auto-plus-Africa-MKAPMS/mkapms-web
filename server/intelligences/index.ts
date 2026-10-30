@@ -1097,6 +1097,68 @@ export const intelligencesRouter = router({
       return supprimerSecretCoffre({ ownerId: await proprietaireCoffre(), id: input.id });
     }),
 
+  /**
+   * Mission "Activation dans tous les comptes" — coffre personnel de connexions aux sites
+   * internet (type « identifiants » : nom du site, adresse, identifiant, mot de passe), un
+   * par compte authentifié (ownerId = ctx.user.uid, jamais le coffre d'entreprise du PDG ci-
+   * dessus). Même moteur de chiffrement (coffre.ts), même cloisonnement par ownerId déjà
+   * testé en Mission 2.2 — aucune nouvelle table, aucun nouveau schéma de chiffrement.
+   */
+  connexionsEtat: protectedProcedure.query(({ ctx }) => etatCoffre(ctx.user.uid)),
+
+  connexionsListe: protectedProcedure.query(({ ctx }) => listerSecretsCoffre(ctx.user.uid)),
+
+  connexionsCodeEtat: protectedProcedure.query(async ({ ctx }) => ({
+    ...(await etatCodeCoffre(ctx.user.uid)),
+    longueurRequise: longueurCodeRequiseCoffre(ctx.user.role),
+  })),
+
+  connexionsCodeDefinir: protectedProcedure
+    .input(z.object({ code: z.string().regex(/^\d{6,7}$/, "6 ou 7 chiffres") }))
+    .mutation(async ({ input, ctx }) => {
+      const resultat = await definirCodeCoffre({ userId: ctx.user.uid, role: ctx.user.role, code: input.code });
+      if (!resultat.ok) throw new TRPCError({ code: "BAD_REQUEST", message: resultat.detail });
+      return resultat;
+    }),
+
+  connexionsAjouter: protectedProcedure
+    .input(
+      z.object({
+        nom: z.string().trim().min(2).max(120),
+        service: z.string().trim().max(120).default(""),
+        contenu: contenuSecretSchema,
+        codeSecret: z.string().min(1).max(10),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      await exigerCodeCoffre(ctx.user.uid, input.codeSecret);
+      const { codeSecret, ...reste } = input;
+      return ajouterSecretCoffre({ ownerId: ctx.user.uid, ...reste });
+    }),
+
+  connexionsRemplacer: protectedProcedure
+    .input(z.object({ id: z.number().int().positive(), contenu: contenuSecretSchema, codeSecret: z.string().min(1).max(10) }))
+    .mutation(async ({ input, ctx }) => {
+      await exigerCodeCoffre(ctx.user.uid, input.codeSecret);
+      const { codeSecret, ...reste } = input;
+      return remplacerSecretCoffre({ ownerId: ctx.user.uid, ...reste });
+    }),
+
+  connexionsModifier: protectedProcedure
+    .input(z.object({ id: z.number().int().positive(), nom: z.string().trim().min(2).max(120), service: z.string().trim().max(120).default(""), codeSecret: z.string().min(1).max(10) }))
+    .mutation(async ({ input, ctx }) => {
+      await exigerCodeCoffre(ctx.user.uid, input.codeSecret);
+      const { codeSecret, ...reste } = input;
+      return modifierSecretCoffre({ ownerId: ctx.user.uid, ...reste });
+    }),
+
+  connexionsSupprimer: protectedProcedure
+    .input(z.object({ id: z.number().int().positive(), codeSecret: z.string().min(1).max(10) }))
+    .mutation(async ({ input, ctx }) => {
+      await exigerCodeCoffre(ctx.user.uid, input.codeSecret);
+      return supprimerSecretCoffre({ ownerId: ctx.user.uid, id: input.id });
+    }),
+
   /** Demandes de déploiement en attente de LA personne connectée (jamais un rôle). */
   deploiementsEnAttente: protectedProcedure.query(({ ctx }) => {
     if (!ctx.user?.uid) return [];

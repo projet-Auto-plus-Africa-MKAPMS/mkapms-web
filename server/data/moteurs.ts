@@ -11189,6 +11189,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "fichier": "client/src/pages/Compte.tsx",
         "route": "/compte/*",
         "composants": [
+          "components/ConnexionsSites.tsx",
           "trpc.intelligences"
         ]
       },
@@ -11245,6 +11246,14 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "connaissanceEcrire",
       "connaissanceListe",
       "connaissanceRechercher",
+      "connexionsAjouter",
+      "connexionsCodeDefinir",
+      "connexionsCodeEtat",
+      "connexionsEtat",
+      "connexionsListe",
+      "connexionsModifier",
+      "connexionsRemplacer",
+      "connexionsSupprimer",
       "contexte",
       "conversations",
       "couvertureIntelligence",

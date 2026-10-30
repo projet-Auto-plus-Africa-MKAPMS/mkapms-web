@@ -40,13 +40,14 @@ export interface AnomalieCliquable {
   readonly motif: MotifAnomalie;
 }
 
-export const CLIQUABLES_TOTAL = 2891;
+export const CLIQUABLES_TOTAL = 2898;
 
 export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/components/AccessDenied.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/components/AssistantFlottant.tsx", total: 5, moteur: 0, liens: 1, boutonsLocaux: 4, sansAction: 0, zones: 0 },
   { fichier: "client/src/components/avis/BlocAvis.tsx", total: 7, moteur: 0, liens: 1, boutonsLocaux: 6, sansAction: 0, zones: 0 },
   { fichier: "client/src/components/BoutonIntelligences.tsx", total: 2, moteur: 1, liens: 0, boutonsLocaux: 0, sansAction: 0, zones: 1 },
+  { fichier: "client/src/components/ConnexionsSites.tsx", total: 7, moteur: 0, liens: 0, boutonsLocaux: 7, sansAction: 0, zones: 0 },
   { fichier: "client/src/components/CountrySelectModal.tsx", total: 4, moteur: 0, liens: 0, boutonsLocaux: 4, sansAction: 0, zones: 0 },
   { fichier: "client/src/components/demarches/DemarcheFormulaire.tsx", total: 3, moteur: 2, liens: 0, boutonsLocaux: 1, sansAction: 0, zones: 0 },
   { fichier: "client/src/components/DocumentPDF.tsx", total: 8, moteur: 0, liens: 0, boutonsLocaux: 6, sansAction: 0, zones: 2 },
