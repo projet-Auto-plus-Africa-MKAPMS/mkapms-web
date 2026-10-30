@@ -2,12 +2,16 @@
  * AL-HOUDOUD·M — Catalogue tarifaire recommandé (grille à valider par le PDG).
  *
  * Chaque ligne devient une ligne du registre central `payment_products`
- * (univers="ia") via seedIaCatalog() — jamais une table parallèle. Toutes les
- * lignes sont seedées `active: false` : rien n'est vendable publiquement tant
- * que le PDG ne les active pas une à une (ou en masse) depuis l'espace de
- * pilotage. Modifier un prix après seed ne passe plus par ce fichier : le PDG
- * édite la ligne en base via l'écran d'administration (upsertProduct), sans
- * toucher au code — ce fichier ne sert qu'à l'amorçage initial, idempotent.
+ * (univers="ia") via seedIaCatalog() — jamais une table parallèle. Modifier un
+ * prix après seed ne passe plus par ce fichier : le PDG édite la ligne en base
+ * via l'écran d'administration (upsertProduct), sans toucher au code — ce
+ * fichier ne sert qu'à l'amorçage initial, idempotent (n'écrase jamais une
+ * ligne déjà présente).
+ *
+ * Activation (instruction PDG du 30/10) : les 62 offres sont activées — voir
+ * `active: true` ci-dessous et la migration 0173 qui active aussi les lignes
+ * déjà amorcées en base. Aucun prix, aucune durée, aucun quota, aucune offre
+ * n'a changé : seule la visibilité commerciale (`active`) a été modifiée.
  *
  * Unité de facturation : « unité AL-HOUDOUD·M ».
  * Coût réel mesuré (voir server/intelligences/provider.ts, TARIFS_TEXTE_CENTS_PAR_1000_JETONS,
@@ -54,7 +58,7 @@ function withMeta(seed: Omit<ProductSeed, "metadata" | "active" | "univers">, me
   return {
     ...seed,
     univers: "ia",
-    active: false,
+    active: true,
     metadata: { ...meta, coutReelEstimeEur: Math.round(meta.creditsInclus * UNITE_COUT_REEL_EUR * 100) / 100 },
   };
 }

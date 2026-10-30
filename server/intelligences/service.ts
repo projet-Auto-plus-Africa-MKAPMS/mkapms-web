@@ -26,7 +26,9 @@ import {
   REGLES,
   type Cote,
 } from "./regles.js";
-import { appeler, verifierAcces } from "./provider.js";
+import { appeler, verifierAcces, TARIFS_TEXTE_CENTS_PAR_1000_JETONS } from "./provider.js";
+import { walletBalanceIfExists, debitWallet, coutCentsVersUnites } from "../ia-commerce/service.js";
+import { UNITE_COUT_REEL_EUR } from "../ia-commerce/catalog.js";
 import { lireRegistre, reponseCourtoisie } from "./registre.js";
 import { engineRegistry } from "../engine-registry/schema.js";
 import { smartAlerts } from "../smart-engine/schema.js";
@@ -663,6 +665,23 @@ export async function demander(input: DemandeInput): Promise<DemandeResultat> {
     );
   }
 
+  /**
+   * Protection de rentabilité (instruction PDG, activation de la grille tarifaire) :
+   * un compte qui a rejoint le commerce IA (portefeuille existant) ne peut pas
+   * consommer au-delà de son solde — jamais une consommation payante non financée.
+   * `walletBalanceIfExists` renvoie `null` pour tout compte n'ayant jamais touché
+   * le commerce IA : son comportement reste strictement inchangé (gratuit, soumis
+   * uniquement au plafond journalier global existant ci-dessus).
+   */
+  if (input.userId) {
+    const solde = await walletBalanceIfExists(input.userId).catch(() => null);
+    if (solde !== null && solde <= 0) {
+      return echec(
+        "Crédits IA insuffisants. Rechargez votre portefeuille AL-HOUDOUD·M pour continuer (vos échanges précédents restent conservés).",
+      );
+    }
+  }
+
   const fichiersJoints: string[] = [];
   if (input.cote === "direction" && input.userId && input.fichierIds?.length) {
     let caracteres = 0;
@@ -839,6 +858,27 @@ export async function demander(input: DemandeInput): Promise<DemandeResultat> {
     .set({ messages: sql`${inSessions.messages} + 2`, dernierAt: new Date() })
     .where(eq(inSessions.id, sessionId));
   await compter(input.cote, r.ok, r.jetonsEntree + r.jetonsSortie);
+
+  // Débit réel du portefeuille — seulement pour un compte déjà engagé dans le
+  // commerce IA (voir le contrôle de solde ci-dessus). Jamais bloquant pour la
+  // réponse déjà produite ; coût réel mesuré quand le tarif du modèle est
+  // sourcé, sinon un plancher prudent (jamais une consommation non financée).
+  if (input.userId && r.ok) {
+    const userId = input.userId;
+    void (async () => {
+      try {
+        const solde = await walletBalanceIfExists(userId);
+        if (solde === null) return;
+        const tarif = r.modele ? TARIFS_TEXTE_CENTS_PAR_1000_JETONS[r.modele] : undefined;
+        const coutCents = tarif
+          ? (r.jetonsEntree / 1000) * tarif.entree + (r.jetonsSortie / 1000) * tarif.sortie
+          : UNITE_COUT_REEL_EUR * 100;
+        await debitWallet(userId, coutCentsVersUnites(coutCents), { note: `Message AL-HOUDOUD·M (${r.modele ?? "modèle non mesuré"})` });
+      } catch {
+        /* jamais bloquant : un échec de débit ne doit jamais invalider une réponse déjà produite. */
+      }
+    })();
+  }
 
   await emitSafe({
     source: "intelligences",
