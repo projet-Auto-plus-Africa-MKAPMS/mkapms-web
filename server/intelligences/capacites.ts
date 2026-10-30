@@ -310,7 +310,9 @@ export async function registre(): Promise<CapaciteConstatee[]> {
     .select({
       capacite: afCostEntries.capability,
       appels: sql<number>`count(*)::int`,
-      cout: sql<number>`coalesce(sum(${afCostEntries.costCents}), 0)::int`,
+      // numeric, pas ::int : le coût réel d'un appel est une fraction de centime (voir TARIFS_TEXTE_CENTS_PAR_1000_JETONS
+      // dans provider.ts) — un arrondi entier écraserait la mesure d'une capacité à faible volume à zéro.
+      cout: sql<string>`coalesce(sum(${afCostEntries.costCents}), 0)::numeric`,
       mesures: sql<number>`sum(case when ${afCostEntries.measured} then 1 else 0 end)::int`,
       dernier: sql<Date | null>`max(${afCostEntries.createdAt})`,
     })
@@ -367,7 +369,7 @@ export async function registre(): Promise<CapaciteConstatee[]> {
       fallback: spec.repliInterne,
       appels30j: u?.appels ?? 0,
       dureeMoyenneMs: null,
-      coutCents: u?.cout ?? 0,
+      coutCents: Number(u?.cout ?? 0),
       coutMesure: (u?.mesures ?? 0) > 0,
       dernierUsage: u?.dernier ?? null,
     };

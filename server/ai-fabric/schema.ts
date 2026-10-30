@@ -11,6 +11,7 @@ import {
   boolean,
   integer,
   jsonb,
+  numeric,
   pgTable,
   text,
   timestamp,
@@ -82,7 +83,13 @@ export const afCostEntries = pgTable("af_cost_entries", {
   capability: varchar("capability", { length: 32 }).notNull(),
   units: integer("units").notNull().default(1),
   unitLabel: varchar("unit_label", { length: 40 }),
-  costCents: integer("cost_cents").notNull().default(0),
+  /**
+   * En centimes de dollar, mais avec décimales : un appel texte coûte typiquement une fraction de centime
+   * (ex. 500 jetons à 0,5¢/1000 = 0,25¢) — un entier aurait arrondi chaque mesure réelle à zéro. `numeric` sans
+   * `mode: "number"` (convention déjà utilisée dans ce dépôt pour les montants, ex. `prix`/`amount` dans
+   * server/schema.ts) : revient en chaîne depuis la base, à convertir avec `Number()` à la lecture.
+   */
+  costCents: numeric("cost_cents", { precision: 14, scale: 6 }).notNull().default("0"),
   /** Coût mesuré chez le fournisseur, ou seulement estimé côté MKA.P-MS. */
   measured: boolean("measured").notNull().default(false),
   manualOpsAvoided: integer("manual_ops_avoided"),
