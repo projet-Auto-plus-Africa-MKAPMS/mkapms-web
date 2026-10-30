@@ -68,7 +68,8 @@ type Onglet =
   | "memoire"
   | "commandes"
   | "couts"
-  | "developpement";
+  | "developpement"
+  | "demandes";
 
 const ONGLETS: { cle: Onglet; label: string }[] = [
   { cle: "medias", label: "Images, voix et transcription" },
@@ -92,7 +93,11 @@ const ONGLETS: { cle: Onglet; label: string }[] = [
   { cle: "commandes", label: "Commandes & règles" },
   { cle: "couts", label: "Consommation" },
   { cle: "developpement", label: "Développement" },
+  { cle: "demandes", label: "Demandes IA" },
 ];
+
+/** Miroir de STATUTS_DEMANDE (server/intelligences/demandes-non-resolues.ts) — code client, pas d'import cross-bundle. */
+const STATUTS_DEMANDE_CLIENT = ["nouveau", "en_etude", "planifie", "resolu", "ignore"] as const;
 
 /**
  * L'onglet « Échange » reste toujours visible en premier (c'est la
@@ -113,7 +118,7 @@ const ONGLETS: { cle: Onglet; label: string }[] = [
 const GROUPES_MENU: { titre: string; onglets: Onglet[] }[] = [
   { titre: "Qualité", onglets: ["evaluation", "shadow"] },
   { titre: "Développement", onglets: ["developpeur", "developpement"] },
-  { titre: "Gouvernance", onglets: ["fonctions", "permissions", "commandes", "capacites"] },
+  { titre: "Gouvernance", onglets: ["fonctions", "permissions", "commandes", "capacites", "demandes"] },
   { titre: "Pilotage", onglets: ["pilotage", "missions", "plan", "autonomie"] },
   { titre: "Moteurs", onglets: ["moteurs", "connexion", "surveillance", "support"] },
   { titre: "Création", onglets: ["medias"] },
@@ -290,6 +295,9 @@ export default function CentreIntelligences() {
   const [recherche, setRecherche] = useState("");
   const [termeCherche, setTermeCherche] = useState("");
   const [ticketOuvert, setTicketOuvert] = useState<number | null>(null);
+  const [graviteFiltre, setGraviteFiltre] = useState<"lacune" | "technique" | "politique" | undefined>(undefined);
+  const [demandeOuverte, setDemandeOuverte] = useState<string | null>(null);
+  const [noteDemande, setNoteDemande] = useState("");
   const [argAction, setArgAction] = useState<Record<string, string>>({});
   const [motifAction, setMotifAction] = useState<Record<string, string>>({});
   const [phraseAction, setPhraseAction] = useState<Record<string, string>>({});
@@ -476,6 +484,18 @@ export default function CentreIntelligences() {
     { ticketId: ticketOuvert ?? 0 },
     { enabled: !!estPdg && ticketOuvert !== null, refetchOnWindowFocus: false },
   );
+
+  const demandes = trpc.intelligences.demandesNonResoluesListe.useQuery(
+    { gravite: graviteFiltre },
+    { enabled: !!estPdg && onglet === "demandes", refetchOnWindowFocus: false },
+  );
+  const annoterDemandeMutation = trpc.intelligences.demandesNonResoluesAnnoter.useMutation({
+    onSuccess: () => {
+      setMessage("Demande annotée.");
+      demandes.refetch();
+    },
+    onError: (e) => setMessage(`Échec : ${e.message}`),
+  });
 
   const archiver = trpc.intelligences.memoireArchiver.useMutation({
     onSuccess: (r) => {
@@ -2521,6 +2541,126 @@ export default function CentreIntelligences() {
               ))}
             </div>
           ) : null}
+        </section>
+      ) : null}
+
+      {onglet === "demandes" ? (
+        <section className="mt-3 space-y-3">
+          <div className="rounded-2xl border border-black/5 bg-white p-4">
+            <h2 className="flex items-center gap-2 text-sm font-black uppercase tracking-wide text-black/50">
+              <AlertTriangle className="h-4 w-4" /> Demandes non résolues — {demandes.data?.length ?? 0}
+            </h2>
+            <p className="mt-1 text-[12px] text-black/55">
+              Chaque fois qu'AL-HOUDOUD·M ne peut pas satisfaire une demande (capacité
+              indisponible ou outil non implémenté/en échec), le besoin est journalisé ici, regroupé
+              par signature — jamais le texte libre de la demande elle-même, seulement sa nature.
+              « Lacune » = capacité réellement manquante. « Technique » = elle existe mais a échoué.
+              « Politique » = bloquée par une règle métier (permission, confidentialité, désactivation).
+            </p>
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              {([undefined, "lacune", "technique", "politique"] as const).map((g) => (
+                <button
+                  key={g ?? "tous"}
+                  type="button"
+                  onClick={() => setGraviteFiltre(g)}
+                  className={`rounded-full border px-3 py-1 text-[11px] font-bold ${
+                    graviteFiltre === g ? "border-[#8B7500] bg-[#8B7500]/10 text-[#6b5900]" : "border-black/10 text-black/55"
+                  }`}
+                >
+                  {g ?? "Tous"}
+                </button>
+              ))}
+            </div>
+            <ul className="mt-3 space-y-1.5">
+              {(demandes.data ?? []).map((d) => (
+                <li key={d.signature}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setDemandeOuverte(d.signature);
+                      setNoteDemande(d.note);
+                    }}
+                    className={`w-full rounded-xl border px-3 py-2 text-left ${
+                      demandeOuverte === d.signature ? "border-[#8B7500]" : "border-black/5"
+                    }`}
+                  >
+                    <p className="truncate text-sm font-bold text-[#111]">
+                      {d.domaine === "capacite" ? "Capacité" : "Outil"} : {d.cle} — {d.occurrences}×
+                    </p>
+                    <p className="text-[11px] text-black/45">
+                      {d.gravite} — statut {d.statut} — dernière fois {new Date(d.derniereFois).toLocaleString("fr-FR")}
+                    </p>
+                  </button>
+                </li>
+              ))}
+              {demandes.data?.length === 0 ? (
+                <p className="text-[12px] text-black/45">Aucune demande non résolue pour ce filtre.</p>
+              ) : null}
+            </ul>
+          </div>
+
+          {demandeOuverte ? (() => {
+            const d = (demandes.data ?? []).find((x) => x.signature === demandeOuverte);
+            if (!d) return null;
+            return (
+              <div className="rounded-2xl border border-black/5 bg-white p-4">
+                <h2 className="text-sm font-black uppercase tracking-wide text-black/50">
+                  {d.domaine === "capacite" ? "Capacité" : "Outil"} — {d.cle}
+                </h2>
+                <p className="mt-1 text-[12px] text-black/55">
+                  {d.occurrences} occurrence(s), du {new Date(d.premiereFois).toLocaleString("fr-FR")} au{" "}
+                  {new Date(d.derniereFois).toLocaleString("fr-FR")}.
+                </p>
+                {d.moteurs.length > 0 ? (
+                  <p className="mt-1 text-[12px] text-black/65">
+                    <span className="font-bold text-[#111]">Moteurs concernés :</span> {d.moteurs.join(", ")}
+                  </p>
+                ) : null}
+                {d.roles.length > 0 ? (
+                  <p className="mt-1 text-[12px] text-black/65">
+                    <span className="font-bold text-[#111]">Rôles concernés :</span> {d.roles.join(", ")}
+                  </p>
+                ) : null}
+                <ul className="mt-2 space-y-1">
+                  {d.exemplesMotifs.map((m, i) => (
+                    <li key={i} className="whitespace-pre-line rounded-xl bg-[#FAFAFA] p-2 text-[12px] text-black/70">
+                      {m}
+                    </li>
+                  ))}
+                </ul>
+                <div className="mt-3 flex flex-wrap gap-1.5">
+                  {STATUTS_DEMANDE_CLIENT.map((s) => (
+                    <button
+                      key={s}
+                      type="button"
+                      onClick={() =>
+                        annoterDemandeMutation.mutate({ signature: d.signature, statut: s, note: noteDemande })
+                      }
+                      className={`rounded-full border px-3 py-1 text-[11px] font-bold ${
+                        d.statut === s ? "border-[#8B7500] bg-[#8B7500]/10 text-[#6b5900]" : "border-black/10 text-black/55"
+                      }`}
+                    >
+                      {s}
+                    </button>
+                  ))}
+                </div>
+                <textarea
+                  value={noteDemande}
+                  onChange={(e) => setNoteDemande(e.target.value)}
+                  placeholder="Note de direction (solution envisagée, décision, lien vers un développement…)"
+                  className="mt-2 w-full rounded-xl border border-black/10 p-2 text-[12px]"
+                  rows={3}
+                />
+                <button
+                  type="button"
+                  onClick={() => annoterDemandeMutation.mutate({ signature: d.signature, statut: d.statut as (typeof STATUTS_DEMANDE_CLIENT)[number], note: noteDemande })}
+                  className="mt-2 rounded-xl bg-[#8B7500] px-3 py-1.5 text-[12px] font-bold text-white"
+                >
+                  Enregistrer la note
+                </button>
+              </div>
+            );
+          })() : null}
         </section>
       ) : null}
 

@@ -6405,11 +6405,11 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/admin/intelligences/direction"
         ],
-        "cliquables": 21,
+        "cliquables": 23,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 198,
-        "mots": 1362
+        "textes": 209,
+        "mots": 1476
       },
       {
         "fichier": "client/src/pages/EngineRegistry/ControlCenter.tsx",
@@ -6864,8 +6864,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "pdg",
       "public"
     ],
-    "textes": 573,
-    "mots": 2941,
+    "textes": 584,
+    "mots": 3055,
     "battement": "contrat",
     "manques": [
       {
@@ -10964,7 +10964,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "routeurs": [
       "intelligences"
     ],
-    "fichiersServeur": 115,
+    "fichiersServeur": 116,
     "dependancesDeclarees": [
       "ai_fabric",
       "code_graph",
@@ -11260,6 +11260,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "creerCleDeveloppeur",
       "creerSessionVocale",
       "demander",
+      "demandesNonResoluesAnnoter",
+      "demandesNonResoluesListe",
       "dependanceDetail",
       "dependancesAlertes",
       "dependancesCouverture",
@@ -11358,6 +11360,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "in_autonomie",
       "in_autonomie_journal",
       "in_capacite_etat",
+      "in_capacite_refus_journal",
       "in_chantier_executions",
       "in_chantier_previews",
       "in_coffre_acces",
@@ -11365,6 +11368,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "in_coffre_secrets",
       "in_connaissance",
       "in_conversation_resume",
+      "in_demandes_annotations",
       "in_deploiements",
       "in_deploy_approvers",
       "in_dev_appels",

@@ -81,6 +81,11 @@ import {
   verifierCode as verifierCodeCoffre,
 } from "./coffre.js";
 import {
+  annoterDemande,
+  listerDemandesNonResolues,
+  STATUTS_DEMANDE,
+} from "./demandes-non-resolues.js";
+import {
   enAttentePour as deploiementsEnAttentePour,
   historique as listerHistoriqueDeploiements,
   approuver as approuverDeploiementSvc,
@@ -1158,6 +1163,18 @@ export const intelligencesRouter = router({
       await exigerCodeCoffre(ctx.user.uid, input.codeSecret);
       return supprimerSecretCoffre({ ownerId: ctx.user.uid, id: input.id });
     }),
+
+  /**
+   * IA centrale PDG — demandes non résolues (regroupées, jamais le journal brut) : voir
+   * demandes-non-resolues.ts. `gravite` filtre optionnellement sur "lacune"/"technique"/"politique".
+   */
+  demandesNonResoluesListe: pdgProcedure
+    .input(z.object({ gravite: z.enum(["lacune", "technique", "politique"]).optional() }).optional())
+    .query(({ input }) => listerDemandesNonResolues(input?.gravite)),
+
+  demandesNonResoluesAnnoter: pdgProcedure
+    .input(z.object({ signature: z.string().min(1).max(160), statut: z.enum(STATUTS_DEMANDE), note: z.string().max(4000).default("") }))
+    .mutation(({ input, ctx }) => annoterDemande({ ...input, actorId: ctx.user.uid ?? null })),
 
   /** Demandes de déploiement en attente de LA personne connectée (jamais un rôle). */
   deploiementsEnAttente: protectedProcedure.query(({ ctx }) => {

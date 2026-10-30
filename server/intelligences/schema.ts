@@ -912,6 +912,48 @@ export const inRetrievalAudit = pgTable(
   }),
 );
 
+/**
+ * IA centrale PDG — point 1 (signalement) : trace chaque refus d'une
+ * **capacité** entière (image, voix, raisonnement, code…), jamais d'un outil
+ * précis (déjà tracé par `in_outils_journal`). Ne contient jamais
+ * `demande.message` (texte libre de l'utilisateur) : seuls des champs
+ * systémiques (capacité, motif écrit par le routeur, moteur appelant, rôle,
+ * confidentialité, pays) sont posés — aucune donnée privée à anonymiser
+ * puisqu'aucune n'est jamais écrite ici.
+ */
+export const inCapaciteRefusJournal = pgTable(
+  "in_capacite_refus_journal",
+  {
+    id: bigserial("id", { mode: "number" }).primaryKey(),
+    capacite: varchar("capacite", { length: 32 }).notNull(),
+    moteur: varchar("moteur", { length: 64 }).notNull().default(""),
+    role: varchar("role", { length: 24 }),
+    confidentialite: varchar("confidentialite", { length: 24 }),
+    countryCode: varchar("country_code", { length: 8 }),
+    motif: text("motif").notNull().default(""),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (t) => ({
+    parCapacite: index("in_capacite_refus_capacite_idx").on(t.capacite, t.createdAt),
+  }),
+);
+
+/**
+ * IA centrale PDG — point 2 (suivi direction) : une ligne par **signature**
+ * de demande non résolue (regroupement, jamais par occurrence individuelle),
+ * posée par le PDG sur ce qu'il décide d'en faire. La liste elle-même est
+ * calculée à la volée depuis `in_outils_journal` + `in_capacite_refus_journal`
+ * (voir `demandes-non-resolues.ts`) : cette table ne porte que l'annotation,
+ * jamais une deuxième copie du signal brut.
+ */
+export const inDemandesAnnotations = pgTable("in_demandes_annotations", {
+  signature: varchar("signature", { length: 160 }).primaryKey(),
+  statut: varchar("statut", { length: 24 }).notNull().default("nouveau"),
+  note: text("note").notNull().default(""),
+  actorId: integer("actor_id"),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
 /** Brouillons médias privés ; jamais inclus dans le RAG ou un flux public. */
 export const inMediaProductions = pgTable("in_media_productions", {
   id: uuid("id").primaryKey(), ownerId: integer("owner_id").notNull(),

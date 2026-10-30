@@ -32,6 +32,7 @@ import { candidatSert, configuration, enregistrer as enregistrerComparaison } fr
 import { inCapaciteEtat } from "./schema.js";
 import type { Confidentiality } from "../ai-fabric/service.js";
 import { MOTIF_PUBLIC_INDISPONIBLE } from "./identite.js";
+import { signalerRefusCapacite } from "./demandes-non-resolues.js";
 
 export { permissionsDuRole };
 
@@ -92,7 +93,7 @@ export interface ResultatCapacite extends AppelResultat {
 }
 
 function refus(
-  capacite: CodeCapacite,
+  demande: DemandeCapacite,
   motif: string,
   repli: string,
   /**
@@ -105,8 +106,23 @@ function refus(
    */
   motifPublic: string = motif,
 ): ResultatCapacite {
+  /**
+   * IA centrale PDG — signalement (point 1) : chaque refus de capacité est un
+   * signal de besoin non satisfait. Jamais `demande.message` (texte libre de
+   * l'utilisateur), seulement des métadonnées systémiques — voir
+   * demandes-non-resolues.ts. Fire-and-forget : un refus reste un refus même
+   * si le signalement échoue.
+   */
+  void signalerRefusCapacite({
+    capacite: demande.capacite,
+    moteur: demande.moteur,
+    role: demande.role,
+    confidentialite: demande.confidentialite,
+    countryCode: demande.countryCode,
+    motif,
+  });
   return {
-    capacite,
+    capacite: demande.capacite,
     ok: false,
     texte: "",
     fournisseur: null,
@@ -130,12 +146,12 @@ function refus(
 export async function router(demande: DemandeCapacite): Promise<ResultatCapacite> {
   const s = spec(demande.capacite);
   if ((demande.capacite === 'image' || demande.capacite === 'voix' || demande.capacite === 'transcription') && !demande.productionMedia) {
-    return refus(demande.capacite, 'Utilisez l’espace Images ou Voix pour créer une production privée.', s.repliInterne);
+    return refus(demande, 'Utilisez l’espace Images ou Voix pour créer une production privée.', s.repliInterne);
   }
 
   if (!demande.moteur.trim()) {
     return refus(
-      demande.capacite,
+      demande,
       "Appel anonyme refusé : le moteur appelant doit se nommer pour être tracé.",
       s.repliInterne,
     );
@@ -152,20 +168,20 @@ export async function router(demande: DemandeCapacite): Promise<ResultatCapacite
     permission: s.permission,
   });
   if (!droit.autorise) {
-    return refus(demande.capacite, `« ${s.libelle} » : ${droit.motif}`, s.repliInterne);
+    return refus(demande, `« ${s.libelle} » : ${droit.motif}`, s.repliInterne);
   }
 
   const domaine =
     demande.domaineAutonomie ?? DOMAINE_AUTONOMIE[demande.capacite] ?? "global";
   const curseur = await autorise(domaine, s.permission);
   if (!curseur.autorise) {
-    return refus(demande.capacite, curseur.motif, s.repliInterne);
+    return refus(demande, curseur.motif, s.repliInterne);
   }
 
   const demandee = demande.confidentialite ?? "publique";
   if (NIVEAUX.indexOf(demandee) > NIVEAUX.indexOf(s.confidentialiteMax)) {
     return refus(
-      demande.capacite,
+      demande,
       `Données ${demandee} refusées pour « ${s.libelle} » : cette capacité ne dépasse pas le niveau ${s.confidentialiteMax}.`,
       s.repliInterne,
     );
@@ -183,7 +199,7 @@ export async function router(demande: DemandeCapacite): Promise<ResultatCapacite
     .limit(1);
   if (etat && !etat.actif) {
     return refus(
-      demande.capacite,
+      demande,
       `« ${s.libelle} » est désactivée par la direction${etat.motif ? ` : ${etat.motif}` : "."}`,
       s.repliInterne,
     );
@@ -192,7 +208,7 @@ export async function router(demande: DemandeCapacite): Promise<ResultatCapacite
   const constate = (await registre()).find((c) => c.code === demande.capacite);
   if (!constate || constate.etat !== "disponible") {
     return refus(
-      demande.capacite,
+      demande,
       constate?.motif ?? "Capacité non constatée disponible.",
       s.repliInterne,
       MOTIF_PUBLIC_INDISPONIBLE,
@@ -201,7 +217,7 @@ export async function router(demande: DemandeCapacite): Promise<ResultatCapacite
 
   if (!s.capaciteFabrique) {
     return refus(
-      demande.capacite,
+      demande,
       `« ${s.libelle} » est propriétaire : elle s'obtient auprès des moteurs ${s.moteurs.join(", ")}, pas d'un fournisseur de modèle.`,
       s.repliInterne,
     );
