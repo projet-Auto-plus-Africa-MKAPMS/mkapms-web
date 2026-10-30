@@ -1177,6 +1177,13 @@
       "when": 1793300000000,
       "tag": "0169_in_memoire_portee",
       "breakpoints": true
+    },
+    {
+      "idx": 168,
+      "version": "7",
+      "when": 1793328316050,
+      "tag": "0170_af_cost_entries_costcents_numeric",
+      "breakpoints": true
     }
   ]
 }

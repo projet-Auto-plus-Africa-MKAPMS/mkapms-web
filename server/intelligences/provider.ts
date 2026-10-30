@@ -503,11 +503,18 @@ export async function appeler(input: AppelInput, fetchImpl: typeof fetch = fetch
         ? await transcrireAudioNatif(resolu, input.audio!, fetchImpl, undefined, input.promptTranscription)
         : await produireMediaNatif(resolu, input.media, input.message, fetchImpl, input.images);
       await markProviderUsed(providerCode);
+      // Synthèse vocale : tarifée au caractère, donnée déjà disponible (input.message) — mesurable sans décoder le média.
+      // Image et transcription : pas de tarif sourcé avec confiance suffisante pour ce point précis (taille/qualité
+      // variables pour l'image, durée audio non disponible ici sans décoder le fichier pour la transcription) —
+      // restent honnêtement `measured: false` plutôt qu'un chiffre deviné présenté comme réel.
+      const coutVoix = input.media === "voix" ? (input.message.length / 1000) * TARIF_TTS_CENTS_PAR_1000_CARACTERES : 0;
       await db.insert(afCostEntries).values({
         engine: input.moteur, taskType: input.media, providerCode,
         capability: input.capacite, units: 1, unitLabel: input.media === "image" ? "image" : input.media === "transcription" ? "transcription" : "synthèse vocale",
-        costCents: 0, measured: false, countryCode: input.countryCode ?? null,
-        note: "Média natif généré. Tarif non renseigné ; zéro n’est pas un coût gratuit.",
+        costCents: String(coutVoix), measured: input.media === "voix", countryCode: input.countryCode ?? null,
+        note: input.media === "voix"
+          ? `${input.message.length} caractères, tts-1 — tarif sourcé (TARIF_TTS_CENTS_PAR_1000_CARACTERES), à revérifier avant un rapport financier définitif.`
+          : "Média natif généré. Tarif non renseigné pour ce type de média ; zéro n’est pas un coût gratuit.",
       });
       const tentative: Tentative = { fournisseur: providerCode, rang, ok: true, motif: "", dureeMs: Date.now() - debut };
       await mesurer(input, tentative, 0, 0);
@@ -703,6 +710,10 @@ export async function appeler(input: AppelInput, fetchImpl: typeof fetch = fetch
     }
 
     await markProviderUsed(providerCode);
+    const tarifTexte = TARIFS_TEXTE_CENTS_PAR_1000_JETONS[resolu.modele];
+    const coutTexte = tarifTexte
+      ? (jetonsEntree / 1000) * tarifTexte.entree + (jetonsSortie / 1000) * tarifTexte.sortie
+      : 0;
     await db.insert(afCostEntries).values({
       engine: input.moteur,
       taskType: input.tache,
@@ -710,10 +721,12 @@ export async function appeler(input: AppelInput, fetchImpl: typeof fetch = fetch
       capability: input.capacite,
       units: Math.max(1, Math.round((jetonsEntree + jetonsSortie) / 1000)),
       unitLabel: "1000 jetons",
-      costCents: 0,
-      measured: false,
+      costCents: String(coutTexte),
+      measured: !!tarifTexte,
       countryCode: input.countryCode ?? null,
-      note: `${jetonsEntree} jetons entrée, ${jetonsSortie} jetons sortie, modèle ${resolu.modele}. Coût unitaire non renseigné : le tarif du fournisseur doit être saisi pour convertir en euros.`,
+      note: tarifTexte
+        ? `${jetonsEntree} jetons entrée, ${jetonsSortie} jetons sortie, modèle ${resolu.modele} — tarif sourcé (voir TARIFS_TEXTE_CENTS_PAR_1000_JETONS), à revérifier avant un rapport financier définitif.`
+        : `${jetonsEntree} jetons entrée, ${jetonsSortie} jetons sortie, modèle ${resolu.modele}. Coût unitaire non renseigné pour ce modèle : le tarif du fournisseur doit être ajouté à TARIFS_TEXTE_CENTS_PAR_1000_JETONS pour convertir en euros.`,
     });
 
     const tentative: Tentative = {
@@ -1106,6 +1119,27 @@ export async function transcrireAudioNatif(resolu:{cle:string}, input:FichierAud
 /** Modèle d'empreintes par défaut et dimensions conservées (réduction native du fournisseur : moins de stockage, qualité très proche). */
 export const MODELE_EMPREINTES_DEFAUT = "text-embedding-3-large";
 export const DIMENSIONS_EMPREINTES = 1024;
+
+/**
+ * Tarifs réels du fournisseur, en centimes de dollar pour 1000 unités (jetons ou caractères selon le modèle) —
+ * remplace le `costCents: 0` codé en dur qui empêchait tout calcul de coût réel (signalé à la Direction en
+ * Mission 2.2 Partie 2). Sourcé par recherche web le 30/10/2026 (agrégateurs tiers convergents, voir note ci-
+ * dessous) : chaque chiffre doit être revérifié sur developers.openai.com/api/docs/pricing avant d'être présenté
+ * comme définitif dans un rapport financier — ce tableau donne un coût RÉEL mesuré, pas encore un tarif validé.
+ * Un modèle absent d'ici reste `measured: false, costCents: 0` : jamais un coût deviné présenté comme mesuré.
+ */
+export const TARIFS_TEXTE_CENTS_PAR_1000_JETONS: Record<string, { entree: number; sortie: number }> = {
+  // $5.00 / $30.00 par million de jetons (entrée/sortie) — developers.openai.com via agrégateurs, vérifié 17/10/2026.
+  "gpt-5.5": { entree: 0.5, sortie: 3 },
+};
+
+export const TARIFS_EMPREINTES_CENTS_PAR_1000_JETONS: Record<string, number> = {
+  "text-embedding-3-large": 0.013, // $0.13 / million de jetons.
+  "text-embedding-3-small": 0.002, // $0.02 / million de jetons.
+};
+
+/** $15.00 / million de caractères (tts-1) — pas de jetons pour la synthèse vocale. */
+export const TARIF_TTS_CENTS_PAR_1000_CARACTERES = 1.5;
 
 export type ResultatEmpreintes =
   | { ok: true; modele: string; dimensions: number; vecteurs: number[][] }

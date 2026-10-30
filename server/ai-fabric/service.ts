@@ -742,7 +742,7 @@ export async function recordCost(input: CostInput): Promise<number> {
       providerCode: input.providerCode ?? null,
       units: input.units ?? 1,
       unitLabel: input.unitLabel ?? null,
-      costCents: input.costCents ?? 0,
+      costCents: String(input.costCents ?? 0),
       measured: input.measured ?? false,
       manualOpsAvoided: input.manualOpsAvoided ?? null,
       countryCode: input.countryCode ?? null,
@@ -772,8 +772,8 @@ export async function costSummary(days = 30): Promise<CostSummary> {
   const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
   const rows = await db.select().from(afCostEntries).where(gte(afCostEntries.createdAt, since));
 
-  const totalCents = rows.reduce((s, r) => s + r.costCents, 0);
-  const totalMesureCents = rows.filter((r) => r.measured).reduce((s, r) => s + r.costCents, 0);
+  const totalCents = rows.reduce((s, r) => s + Number(r.costCents), 0);
+  const totalMesureCents = rows.filter((r) => r.measured).reduce((s, r) => s + Number(r.costCents), 0);
   const avecEconomie = rows.filter((r) => r.manualOpsAvoided !== null);
   const opsEvitees = avecEconomie.reduce((s, r) => s + (r.manualOpsAvoided ?? 0), 0);
 
@@ -783,7 +783,7 @@ export async function costSummary(days = 30): Promise<CostSummary> {
       const k = cle(r);
       if (k === null) continue;
       const cur = map.get(k) ?? { costCents: 0, appels: 0, opsEvitees: 0 };
-      cur.costCents += r.costCents;
+      cur.costCents += Number(r.costCents);
       cur.appels += r.units;
       cur.opsEvitees += r.manualOpsAvoided ?? 0;
       map.set(k, cur);
