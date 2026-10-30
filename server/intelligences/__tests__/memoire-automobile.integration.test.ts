@@ -16,6 +16,7 @@ test("mémoire automobile : pose idempotente sans fausse confirmation, synchroni
     await pool.query("DROP TABLE IF EXISTS ake_discoveries, ake_edges, ake_nodes, ake_provenance, ake_sources CASCADE");
     await pool.query(readFileSync(new URL("../../../drizzle/0078_automotive_knowledge_engine.sql", import.meta.url), "utf8"));
     await pool.query(readFileSync(new URL("../../../drizzle/0094_intelligences_memoire.sql", import.meta.url), "utf8"));
+    await pool.query(readFileSync(new URL("../../../drizzle/0169_in_memoire_portee.sql", import.meta.url), "utf8"));
     await pool.query("DELETE FROM in_memoire WHERE source = 'fondations-travaux'");
 
     const { seedReferentielAutomobile } = await import("../../knowledge-engine/referentiel-seed.js");

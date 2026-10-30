@@ -14,6 +14,7 @@ test("souvenirs du Centre Cyber-Électrique : clés uniques, catégories propres
   const { pool } = await import("../../db.js");
   try {
     await pool.query(readFileSync(new URL("../../../drizzle/0094_intelligences_memoire.sql", import.meta.url), "utf8"));
+    await pool.query(readFileSync(new URL("../../../drizzle/0169_in_memoire_portee.sql", import.meta.url), "utf8"));
     await pool.query("DELETE FROM in_memoire WHERE source = 'souvenirs-centre-cyber-electrique'");
 
     const { seedSouvenirsCentreCyberElectrique, SOUVENIRS_CENTRE } = await import("../souvenirs-centre-cyber-electrique.js");
