@@ -269,6 +269,14 @@ export const inMemoire = pgTable(
     categorie: varchar("categorie", { length: 32 }).notNull(),
     /** `actif`, `historique`, `archive` — le cycle du point 134. */
     cycle: varchar("cycle", { length: 16 }).notNull().default("actif"),
+    /**
+     * Portée du souvenir (Mission 2.2, isolation mémoire — 29/10) :
+     * `pdg_prive` (défaut, jamais promu automatiquement) ou
+     * `entreprise_partagee` (promotion explicite, PDG uniquement). Le
+     * propriétaire d'un souvenir `pdg_prive` reste `actorId` — pas de colonne
+     * séparée, `actorId` capture déjà qui a écrit chaque ligne.
+     */
+    portee: varchar("portee", { length: 24 }).notNull().default("pdg_prive"),
     cle: varchar("cle", { length: 200 }).notNull().default(""),
     titre: varchar("titre", { length: 240 }).notNull().default(""),
     contenu: text("contenu").notNull().default(""),

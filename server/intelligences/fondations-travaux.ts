@@ -9,7 +9,7 @@
 import { and, eq } from "drizzle-orm";
 import { db } from "../db.js";
 import { inMemoire } from "./schema.js";
-import { ecrire } from "./memoire.js";
+import { APPELANT_SYSTEME, ecrire } from "./memoire.js";
 
 interface SouvenirTravaux {
   categorie: "projets" | "recherche" | "decisions" | "apprentissage";
@@ -54,7 +54,7 @@ export async function seedSouvenirsTravaux(): Promise<{ nouveaux: number; total:
       .where(and(eq(inMemoire.categorie, s.categorie), eq(inMemoire.cle, s.cle), eq(inMemoire.cycle, "actif")))
       .limit(1);
     if (existant) continue;
-    await ecrire({ categorie: s.categorie, cle: s.cle, titre: s.titre, contenu: s.contenu, liens: s.liens, source: "fondations-travaux" });
+    await ecrire({ categorie: s.categorie, cle: s.cle, titre: s.titre, contenu: s.contenu, liens: s.liens, source: "fondations-travaux", appelant: APPELANT_SYSTEME });
     nouveaux += 1;
   }
   return { nouveaux, total: SOUVENIRS_TRAVAUX.length };

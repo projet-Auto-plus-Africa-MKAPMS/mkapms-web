@@ -6,6 +6,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 const THEMES = ["voiture", "paiement", "chat"];
+const PDG = { id: 1, role: "super_admin" };
 function vecteur(texte: string): number[] {
   const t = texte.toLowerCase();
   const v = new Array(1024).fill(0);
@@ -41,7 +42,7 @@ test("mémoire par le sens : éteinte par défaut, indexation, recherche, visibi
   const { pool } = await import("../../db.js");
   try {
     await pool.query("DROP TABLE IF EXISTS in_empreintes, in_memoire, in_connaissance, in_fonctions, in_retrieval_audit");
-    await pool.query(`CREATE TABLE in_memoire(id bigserial PRIMARY KEY,categorie varchar(32) NOT NULL,cycle varchar(16) NOT NULL DEFAULT 'actif',cle varchar(200) NOT NULL DEFAULT '',titre varchar(240) NOT NULL DEFAULT '',contenu text NOT NULL DEFAULT '',mots_cles jsonb NOT NULL DEFAULT '[]',liens jsonb NOT NULL DEFAULT '{}',source varchar(64) NOT NULL DEFAULT 'intelligences',country_code varchar(8),poids integer NOT NULL DEFAULT 1,rappels integer NOT NULL DEFAULT 0,actor_id integer,updated_at timestamp NOT NULL DEFAULT now(),created_at timestamp NOT NULL DEFAULT now())`);
+    await pool.query(`CREATE TABLE in_memoire(id bigserial PRIMARY KEY,categorie varchar(32) NOT NULL,cycle varchar(16) NOT NULL DEFAULT 'actif',portee varchar(24) NOT NULL DEFAULT 'pdg_prive',cle varchar(200) NOT NULL DEFAULT '',titre varchar(240) NOT NULL DEFAULT '',contenu text NOT NULL DEFAULT '',mots_cles jsonb NOT NULL DEFAULT '[]',liens jsonb NOT NULL DEFAULT '{}',source varchar(64) NOT NULL DEFAULT 'intelligences',country_code varchar(8),poids integer NOT NULL DEFAULT 1,rappels integer NOT NULL DEFAULT 0,actor_id integer,updated_at timestamp NOT NULL DEFAULT now(),created_at timestamp NOT NULL DEFAULT now())`);
     await pool.query(`CREATE TABLE in_connaissance(id serial PRIMARY KEY,categorie varchar(48) NOT NULL,titre varchar(220) NOT NULL,contenu text NOT NULL DEFAULT '',source text NOT NULL DEFAULT '',version varchar(24) NOT NULL DEFAULT '1',auteur varchar(120) NOT NULL DEFAULT '',statut varchar(24) NOT NULL DEFAULT 'propose',visibilite varchar(24) NOT NULL DEFAULT 'interne',validite varchar(24) NOT NULL DEFAULT 'permanente',actor_id integer,created_at timestamp NOT NULL DEFAULT now(),updated_at timestamp NOT NULL DEFAULT now())`);
     await pool.query(`CREATE TABLE in_fonctions(id serial PRIMARY KEY,fonction varchar(48) NOT NULL UNIQUE,active boolean NOT NULL DEFAULT false,motif text NOT NULL DEFAULT '',actor_id integer,updated_at timestamp NOT NULL DEFAULT now())`);
     await pool.query(`CREATE TABLE in_empreintes(id serial PRIMARY KEY,source_type varchar(24) NOT NULL,source_id bigint NOT NULL,modele varchar(60) NOT NULL,dimensions integer NOT NULL,hash varchar(64) NOT NULL,vecteur real[] NOT NULL,updated_at timestamptz NOT NULL DEFAULT now())`);
@@ -56,7 +57,7 @@ test("mémoire par le sens : éteinte par défaut, indexation, recherche, visibi
     const attendre = () => new Promise((r) => setTimeout(r, 150));
 
     // 1. Éteinte : rien n'est calculé, aucun appel au fournisseur.
-    await memoire.ecrire({ categorie: "entreprise", titre: "Citadine préférée", contenu: "Le PDG préfère une petite voiture économique." });
+    await memoire.ecrire({ categorie: "entreprise", titre: "Citadine préférée", contenu: "Le PDG préfère une petite voiture économique.", appelant: PDG });
     await attendre();
     assert.equal(appels.length, 0, "fonctionnalité éteinte : aucun appel d'empreintes");
     assert.equal((await pool.query("select count(*)::int n from in_empreintes")).rows[0].n, 0);
@@ -68,15 +69,15 @@ test("mémoire par le sens : éteinte par défaut, indexation, recherche, visibi
     assert.equal(lot.indexees, 1);
     assert.equal(lot.restantes, 0);
     assert.equal(lot.echec, null);
-    await memoire.ecrire({ categorie: "entreprise", titre: "Moyens de règlement", contenu: "Les clients peuvent payer par carte ou par virement." });
-    await memoire.ecrire({ categorie: "entreprise", titre: "Mascotte", contenu: "Le chat de l'atelier s'appelle Moka." });
+    await memoire.ecrire({ categorie: "entreprise", titre: "Moyens de règlement", contenu: "Les clients peuvent payer par carte ou par virement.", appelant: PDG });
+    await memoire.ecrire({ categorie: "entreprise", titre: "Mascotte", contenu: "Le chat de l'atelier s'appelle Moka.", appelant: PDG });
     await attendre();
     assert.equal((await pool.query("select count(*)::int n from in_empreintes")).rows[0].n, 3);
 
     // 3. Recherche par le sens : « voiture » trouve la citadine sans que le mot « citadine » figure dans la question.
     const proches = await emp.rechercherParLeSens("memoire", "quelle auto veut-il ?");
     assert.ok(proches && proches.length === 1, "seul le souvenir sur les voitures dépasse le seuil");
-    const r = await memoire.rechercher("quelle auto veut-il");
+    const r = await memoire.rechercher("quelle auto veut-il", PDG);
     const vue = r.trouvailles.find((t) => t.titre === "Citadine préférée");
     assert.ok(vue, "trouvé par le sens alors que la recherche textuelle ne le trouve pas");
     assert.equal(vue.methode, "semantique");
@@ -102,7 +103,7 @@ test("mémoire par le sens : éteinte par défaut, indexation, recherche, visibi
     // 6. Échec du fournisseur : la recherche par le sens se retire, la recherche textuelle reste, aucune fuite de clé.
     panne = 404;
     assert.equal(await emp.rechercherParLeSens("memoire", "quelle auto veut-il ?"), null);
-    const texte = await memoire.rechercher("Citadine");
+    const texte = await memoire.rechercher("Citadine", PDG);
     assert.ok(texte.trouvailles.some((t) => t.titre === "Citadine préférée" && !t.methode), "recherche textuelle intacte");
     const echec = await emp.indexer([{ type: "memoire", id: 999, texte: "nouveau texte" }]);
     assert.match(echec.echec ?? "", /^EMBEDDINGS_PROVIDER_404_text-embedding-3-large_model_not_found$/);
@@ -110,9 +111,9 @@ test("mémoire par le sens : éteinte par défaut, indexation, recherche, visibi
 
     // 6 bis. Un souvenir remplacé : l'ancienne version (historique) ne remonte plus par le sens.
     panne = null;
-    await memoire.ecrire({ categorie: "entreprise", titre: "Citadine préférée", contenu: "Le PDG préfère maintenant une voiture électrique." });
+    await memoire.ecrire({ categorie: "entreprise", titre: "Citadine préférée", contenu: "Le PDG préfère maintenant une voiture électrique.", appelant: PDG });
     await attendre();
-    const vues = (await memoire.rechercher("quelle auto veut-il")).trouvailles.filter((t) => t.titre === "Citadine préférée");
+    const vues = (await memoire.rechercher("quelle auto veut-il", PDG)).trouvailles.filter((t) => t.titre === "Citadine préférée");
     assert.equal(vues.length, 1, "une seule version remonte");
     assert.ok(vues[0].extrait.includes("électrique"), "la version active, pas l'ancienne");
     assert.equal((await pool.query("select count(*)::int n from in_empreintes e join in_memoire m on m.id=e.source_id where e.source_type='memoire' and m.cycle<>'actif'")).rows[0].n, 0, "aucune empreinte de version périmée");
@@ -144,7 +145,7 @@ test("mémoire par le sens : éteinte par défaut, indexation, recherche, visibi
     assert.equal(reprise.restantes, 0);
     assert.equal(appels.at(-1)?.modele, "text-embedding-3-small");
     assert.equal((await pool.query("select count(*)::int n from in_empreintes where modele <> 'text-embedding-3-small'")).rows[0].n, 0, "anciennes empreintes retirées");
-    const apresChangement = await memoire.rechercher("quelle auto veut-il");
+    const apresChangement = await memoire.rechercher("quelle auto veut-il", PDG);
     assert.ok(apresChangement.trouvailles.some((t) => t.titre === "Citadine préférée" && t.methode === "semantique"), "recherche par le sens fonctionnelle avec le nouveau modèle");
 
     // 6 sexies. Le modèle prouvé est refusé, le défaut répond : la reprise ne recalcule pas sans fin.
@@ -169,14 +170,14 @@ test("mémoire par le sens : éteinte par défaut, indexation, recherche, visibi
     refus = [];
 
     // 6 septies. Calcul en retard : un souvenir remplacé pendant l'indexation ne récupère pas d'empreinte périmée.
-    const perime = await memoire.ecrire({ categorie: "entreprise", titre: "Rendez-vous lundi", contenu: "Livraison de la voiture lundi." });
+    const perime = await memoire.ecrire({ categorie: "entreprise", titre: "Rendez-vous lundi", contenu: "Livraison de la voiture lundi.", appelant: PDG });
     await attendre();
-    await memoire.ecrire({ categorie: "entreprise", titre: "Rendez-vous lundi", contenu: "Livraison de la voiture vendredi." });
+    await memoire.ecrire({ categorie: "entreprise", titre: "Rendez-vous lundi", contenu: "Livraison de la voiture vendredi.", appelant: PDG });
     const tardif = await emp.indexer([{ type: "memoire", id: Number(perime.id), texte: "Livraison de la voiture lundi." }], { forcer: true });
     assert.equal(tardif.indexees, 0, "source devenue historique : rien n'est écrit");
     assert.equal((await pool.query("select count(*)::int n from in_empreintes e join in_memoire m on m.id=e.source_id where e.source_type='memoire' and m.cycle<>'actif'")).rows[0].n, 0);
     // Course réelle : le remplacement est en cours (ligne verrouillée) pendant que le calcul en retard tente d'écrire.
-    const course = await memoire.ecrire({ categorie: "entreprise", titre: "Course", contenu: "Voiture course v1." });
+    const course = await memoire.ecrire({ categorie: "entreprise", titre: "Course", contenu: "Voiture course v1.", appelant: PDG });
     await attendre();
     await pool.query("DELETE FROM in_empreintes WHERE source_type='memoire' AND source_id=$1", [course.id]);
     const client = await pool.connect();

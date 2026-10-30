@@ -28,6 +28,9 @@ const AUTORISES = new Set([
   // Mémoire par le sens : pose une clé factice pour exercer l'indexation et la recherche ; fetch toujours
   // simulé (globalThis.fetch remplacé puis restauré), jamais un appel réseau réel.
   join("server", "intelligences", "__tests__", "empreintes.integration.test.ts"),
+  // Mission 2.2 — isolation de in_memoire entre acteurs : même principe que le test ci-dessus (pose une clé
+  // factice pour exercer la recherche par le sens), fetch toujours simulé, jamais un appel réseau réel.
+  join("server", "intelligences", "__tests__", "isolation-memoire.integration.test.ts"),
   // La Fabrique possède le catalogue : elle nomme les fournisseurs et leurs clés
   // pour constater leur état, sans jamais émettre l'appel du modèle.
   join("server", "ai-fabric", "service.ts"),

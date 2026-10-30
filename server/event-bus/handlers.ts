@@ -13,7 +13,7 @@ import { onAnnoncePublished } from "../seo-hooks.js";
 import { onPieceChanged } from "../product-engine/service.js";
 import { raiseAlert } from "../smart-engine/services/alert-engine.js";
 import { record as auditRecord } from "../audit-os/index.js";
-import { ecrire as memoriser, retenir } from "../intelligences/memoire.js";
+import { APPELANT_SYSTEME, ecrire as memoriser, retenir } from "../intelligences/memoire.js";
 import { vehicleItems, vehiclePricing } from "../vehicle-engine/schema.js";
 import { logisticsLegs } from "../logistics-engine/schema.js";
 import { findScheduleBySource, openPayoutSchedule, triggerStage } from "../payout-engine/service.js";
@@ -172,6 +172,7 @@ const handlers: Record<string, Handler> = {
       contenu: resume || "Événement sans champ exploitable.",
       liens: { evenement: ctx.type, source: ctx.source },
       source: "event_bus",
+      appelant: APPELANT_SYSTEME,
     });
 
     if (!domaine) return `Événement ${ctx.type} mémorisé (mémoire technique).`;
@@ -350,6 +351,7 @@ const handlers: Record<string, Handler> = {
         `${total} cliquable(s) sur ${ecrans} écran(s), ${couverture} % pilotés par le Moteur de boutons. ` +
         `${sansAction} bouton(s) sans action, ${mortes} destination(s) inexistante(s).`,
       source: "event-bus.smart_cliquables_audit",
+      appelant: APPELANT_SYSTEME,
     });
 
     if (sansAction === 0 && mortes === 0) {
@@ -413,6 +415,7 @@ const handlers: Record<string, Handler> = {
         `${vides} écran(s) sur ${total} listés au sommaire de leur section n'affichent qu'un gabarit. ` +
         `${sections} section(s) concernée(s) : ${principales}.`,
       source: "event-bus.smart_ecrans_vides",
+      appelant: APPELANT_SYSTEME,
     });
 
     if (vides === 0) return `Aucun écran vide : les ${total} écran(s) de section affichent du contenu.`;
@@ -487,6 +490,7 @@ const handlers: Record<string, Handler> = {
       contenu: `Proposition #${id ?? "?"} : ${quantite} × ${reference}, origine ${origine}, prix d'achat ${prixConnu ? "connu" : "INCONNU"}. En attente d'une décision humaine.`,
       liens: { garageId, reference },
       source: "event-bus.smart_atelier_reappro_proposee",
+      appelant: APPELANT_SYSTEME,
     });
 
     if (prixConnu) return `Proposition #${id} mémorisée (${reference}, prix connu).`;
@@ -534,6 +538,7 @@ const handlers: Record<string, Handler> = {
       contenu: `Proposition #${id} refusée par l'atelier. Motif : ${motif || "non transmis"}. La rupture reste ouverte volontairement.`,
       liens: { garageId, reference },
       source: "event-bus.smart_atelier_reappro_decidee",
+      appelant: APPELANT_SYSTEME,
     });
     return `Refus de la proposition #${id} mémorisé (${reference}).`;
   },
@@ -553,6 +558,7 @@ const handlers: Record<string, Handler> = {
       contenu: `${(total / 100).toFixed(2)} € engagés auprès de ${fournisseur}, statut ${statut}. Engagement du mois : ${texte(payload, "engageApresCents")} / plafond ${texte(payload, "plafondCents")} cents.`,
       liens: { garageId, numero },
       source: "event-bus.smart_atelier_commande_passee",
+      appelant: APPELANT_SYSTEME,
     });
 
     if (statut === "envoyee") return `Commande ${numero} mémorisée : bon transmis au fournisseur.`;
@@ -591,6 +597,7 @@ const handlers: Record<string, Handler> = {
       titre: `Commande ${numero} réceptionnée`,
       contenu: `${pieces} pièce(s) entrées en stock, mouvements tracés au nom de la commande.`,
       source: "event-bus.smart_atelier_commande_receptionnee",
+      appelant: APPELANT_SYSTEME,
     });
     return `Commande ${numero} réceptionnée (${pieces} pièce(s)) : ${closes.length} alerte(s) refermée(s).`;
   },

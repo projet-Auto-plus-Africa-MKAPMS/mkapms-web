@@ -1170,6 +1170,13 @@
       "when": 1788404858000,
       "tag": "0168_partner_outreach_seed_contacts",
       "breakpoints": true
+    },
+    {
+      "idx": 167,
+      "version": "7",
+      "when": 1793300000000,
+      "tag": "0169_in_memoire_portee",
+      "breakpoints": true
     }
   ]
 }

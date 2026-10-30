@@ -23,6 +23,48 @@ import { indexerEnArrierePlan, rechercherParLeSens, retirerEmpreintes, texteSouv
 export const CYCLES = ["actif", "historique", "archive"] as const;
 export type Cycle = (typeof CYCLES)[number];
 
+/**
+ * Mission 2.2 (29/10) — isolation de la mémoire fédérée.
+ *
+ * `pdg_prive` (défaut) : visible seulement par son auteur (`actorId`) et par
+ * le PDG. `entreprise_partagee` : promotion explicite, réservée au PDG —
+ * jamais automatique (un souvenir écrit par le PDG reste `pdg_prive` tant que
+ * personne ne le promeut explicitement).
+ */
+export const PORTEES = ["pdg_prive", "entreprise_partagee"] as const;
+export type Portee = (typeof PORTEES)[number];
+
+/**
+ * Identité fournie par le serveur (toujours `ctx.user` côté tRPC, jamais une
+ * valeur transmise par l'appelant) : c'est elle qui détermine ce qu'un appel
+ * peut écrire ou voir, jamais un paramètre d'entrée libre.
+ */
+export interface Appelant {
+  id: number;
+  role: string;
+}
+
+function estPdg(appelant: Appelant): boolean {
+  return appelant.role === "super_admin";
+}
+
+/**
+ * Écritures système automatisées (fondations au démarrage, event-bus,
+ * historique de livraisons…) : aucun utilisateur humain n'est à l'origine de
+ * ces souvenirs. `id: 0` ne correspond à aucun compte réel, donc ces lignes
+ * ne deviennent jamais visibles par erreur pour un rôle non-PDG — seul le PDG
+ * (qui voit tout) peut aujourd'hui les consulter, exactement comme avant
+ * cette mission. Une promotion explicite en `entreprise_partagee` reste
+ * possible au cas par cas, jamais automatique.
+ */
+export const APPELANT_SYSTEME: Appelant = { id: 0, role: "systeme" };
+
+/** Clause de visibilité appliquée à toute lecture : le PDG voit tout, les autres rôles voient le partagé et ce qu'ils ont eux-mêmes écrit. */
+function clauseVisibilite(appelant: Appelant) {
+  if (estPdg(appelant)) return undefined;
+  return or(eq(inMemoire.portee, "entreprise_partagee"), eq(inMemoire.actorId, appelant.id));
+}
+
 export interface Categorie {
   code: string;
   libelle: string;
@@ -168,7 +210,10 @@ export interface EcrireInput {
   source?: string;
   countryCode?: string | null;
   poids?: number;
-  actorId?: number;
+  /** Identité réelle de l'appelant — détermine `actorId` (propriétaire) et autorise ou non une promotion partagée. */
+  appelant: Appelant;
+  /** `pdg_prive` par défaut. `entreprise_partagee` exige `appelant` PDG — jamais une promotion automatique. */
+  portee?: Portee;
 }
 
 /**
@@ -190,11 +235,29 @@ export async function ecrire(
     };
   }
 
+  const portee: Portee = input.portee ?? "pdg_prive";
+  if (portee === "entreprise_partagee" && !estPdg(input.appelant)) {
+    return {
+      ok: false,
+      detail: "Seul le PDG peut promouvoir un souvenir en mémoire d'entreprise partagée.",
+      id: null,
+    };
+  }
+
   const cle = (input.cle ?? input.titre).slice(0, 200);
+  // Ne déclasse que le souvenir du même sujet appartenant à l'appelant (ou,
+  // pour le PDG, n'importe lequel) — jamais celui d'un autre utilisateur
+  // simplement parce que la même clé a été réutilisée.
   const [existant] = await db
     .select({ id: inMemoire.id, poids: inMemoire.poids })
     .from(inMemoire)
-    .where(and(eq(inMemoire.categorie, categorie.code), eq(inMemoire.cle, cle)))
+    .where(
+      and(
+        eq(inMemoire.categorie, categorie.code),
+        eq(inMemoire.cle, cle),
+        estPdg(input.appelant) ? undefined : eq(inMemoire.actorId, input.appelant.id),
+      ),
+    )
     .limit(1);
 
   if (existant) {
@@ -216,6 +279,7 @@ export async function ecrire(
     .values({
       categorie: categorie.code,
       cycle: "actif",
+      portee,
       cle,
       titre: input.titre.slice(0, 240),
       contenu: input.contenu.slice(0, 200000),
@@ -224,7 +288,7 @@ export async function ecrire(
       source: input.source ?? "intelligences",
       countryCode: input.countryCode ?? null,
       poids: input.poids ?? (existant ? existant.poids + 1 : 1),
-      actorId: input.actorId ?? null,
+      actorId: input.appelant.id,
     })
     .returning({ id: inMemoire.id });
 
@@ -257,6 +321,7 @@ export interface Trouvaille {
  */
 export async function rechercher(
   q: string,
+  appelant: Appelant,
   limit = 40,
 ): Promise<{ trouvailles: Trouvaille[]; nonLues: { detenteur: string; motif: string }[] }> {
   const terme = q.trim();
@@ -264,15 +329,19 @@ export async function rechercher(
   const nonLues: { detenteur: string; motif: string }[] = [];
   if (terme.length < 2) return { trouvailles, nonLues };
 
+  const visibilite = clauseVisibilite(appelant);
   const motif = `%${terme}%`;
   const propres = await db
     .select()
     .from(inMemoire)
     .where(
-      or(
-        ilike(inMemoire.titre, motif),
-        ilike(inMemoire.contenu, motif),
-        ilike(inMemoire.cle, motif),
+      and(
+        or(
+          ilike(inMemoire.titre, motif),
+          ilike(inMemoire.contenu, motif),
+          ilike(inMemoire.cle, motif),
+        ),
+        visibilite,
       ),
     )
     .orderBy(desc(inMemoire.updatedAt))
@@ -296,7 +365,9 @@ export async function rechercher(
     const dejaVus = new Set(propres.map((l) => l.id));
     const nouveaux = (proches ?? []).filter((p) => !dejaVus.has(p.id));
     if (nouveaux.length > 0) {
-      const lignes = await db.select().from(inMemoire).where(and(eq(inMemoire.cycle, "actif"), inArray(inMemoire.id, nouveaux.map((p) => p.id))));
+      // Même clause de visibilité que la recherche textuelle ci-dessus : la
+      // recherche par le sens ne doit jamais contourner le cloisonnement.
+      const lignes = await db.select().from(inMemoire).where(and(eq(inMemoire.cycle, "actif"), inArray(inMemoire.id, nouveaux.map((p) => p.id)), visibilite));
       for (const p of nouveaux) {
         const l = lignes.find((x) => x.id === p.id);
         if (!l) continue;
@@ -473,8 +544,8 @@ async function volumeFedere(
   }
 }
 
-export async function lister(categorie: string, cycle?: Cycle, limit = 60) {
-  const conditions = [eq(inMemoire.categorie, categorie)];
+export async function lister(categorie: string, appelant: Appelant, cycle?: Cycle, limit = 60) {
+  const conditions = [eq(inMemoire.categorie, categorie), clauseVisibilite(appelant)];
   if (cycle) conditions.push(eq(inMemoire.cycle, cycle));
   return db
     .select()

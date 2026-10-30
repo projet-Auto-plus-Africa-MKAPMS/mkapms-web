@@ -13,7 +13,7 @@
  */
 import { and, eq } from "drizzle-orm";
 import { db } from "../db.js";
-import { ecrire, retenir } from "./memoire.js";
+import { APPELANT_SYSTEME, ecrire, retenir } from "./memoire.js";
 import { inMemoire } from "./schema.js";
 import { LIVRAISONS_HISTORIQUE } from "./livraisons-historique.js";
 
@@ -3377,6 +3377,7 @@ export async function seedLivraisons(): Promise<{ nouvelles: number; total: numb
       contenu: contenuLivraison(l),
       liens: { livraison: l.cle, moteurs: l.moteurs.join(",") },
       source: "livraisons",
+      appelant: APPELANT_SYSTEME,
     });
     await retenir({
       domaine: l.domaine,

@@ -811,6 +811,7 @@ export async function demander(input: DemandeInput): Promise<DemandeResultat> {
         reponse: r.texte,
         outils: appelsOutilsTrace.map((a) => `Outil appelé : ${a.toolId} — ${a.verdictPolitique}${a.statutExecution ? `/${a.statutExecution}` : ""} — ${a.motif}`),
         traceId,
+        appelant: input.userId ? { id: input.userId, role: input.role ?? "super_admin" } : undefined,
       });
     }
   }
