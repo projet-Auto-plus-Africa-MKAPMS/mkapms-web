@@ -422,6 +422,11 @@ export const intelligencesRouter = router({
         sessionId: z.number().int().positive().nullable().optional(),
         langue: z.string().max(8).optional(),
         countryCode: z.string().max(8).nullable().optional(),
+        // Photos jointes (ex. un véhicule à vendre) — même limite que côté
+        // direction (provider.ts, 4 images). Un visiteur anonyme (rôle nul)
+        // ne débloque aucun outil derrière (politique.ts), seule la vision
+        // (lecture d'image) fonctionne pour lui.
+        images: z.array(z.string().max(8_000_000)).max(4).optional(),
       }),
     )
     .mutation(({ input, ctx }) =>
@@ -431,9 +436,11 @@ export const intelligencesRouter = router({
         domaine: input.domaine ?? null,
         sessionId: input.sessionId ?? null,
         userId: ctx.user?.uid ?? null,
+        role: ctx.user?.role ?? null,
         visiteur: empreinte(ctx.user?.uid ? `u${ctx.user.uid}` : ctx.req.ip),
         langue: input.langue ?? "fr",
         countryCode: input.countryCode ?? null,
+        images: input.images,
       }),
     ),
 

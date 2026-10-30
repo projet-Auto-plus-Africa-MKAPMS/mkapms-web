@@ -917,6 +917,12 @@ export const annoncesRouter = router({
         securite: z.array(z.string()).default([]),
         videos360: z.array(z.string()).default([]),
         videosNormales: z.array(z.string()).default([]),
+        // Brouillon réel (demande PDG, dépôt assisté par IA) : une fiche jamais publiée,
+        // jamais visible publiquement, mais réellement enregistrée — retrouvable dans
+        // « Mes annonces » même après la fermeture de la conversation qui l'a produite.
+        // Seule une action explicite et séparée de l'utilisateur (update status=publiee)
+        // la met en ligne ; l'IA ne publie jamais elle-même.
+        status: z.enum(["brouillon", "publiee"]).default("publiee"),
         // Admin-only: catégorie d'annonce (officielle/professionnelle/particulier)
         categorieAnnonce: z.enum(["officielle", "professionnelle", "particulier"]).optional(),
         // Employé: publier au nom d'un client
@@ -1033,9 +1039,9 @@ export const annoncesRouter = router({
           categorieAnnonce,
           createdByEmployeeId: createdByEmployeeId ?? null,
           onBehalfOfUserId: onBehalfOfUserId ?? null,
-          status: "publiee",
-          publishedAt: new Date(),
-          expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+          status: rest.status,
+          publishedAt: rest.status === "publiee" ? new Date() : null,
+          expiresAt: rest.status === "publiee" ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) : null,
           sellerie: rest.sellerie,
           cylindree: rest.cylindree,
           consommation: rest.consommation,
@@ -1062,6 +1068,7 @@ export const annoncesRouter = router({
         marque: rest.marque,
         modele: rest.modele,
         onBehalfOf: onBehalfOfUserId ?? null,
+        brouillon: rest.status === "brouillon",
       });
 
       // Référence unique lisible (Partie 6) — générée à partir de l'id.
@@ -1114,6 +1121,15 @@ export const annoncesRouter = router({
             };
           }),
         );
+      }
+
+      // Un brouillon n'est jamais publiquement visible : aucune des suites de
+      // publication (quota/dépassement facturé, recherches sauvegardées,
+      // indexation SEO, notification « annonce publiée ») n'a de sens tant que
+      // l'utilisateur n'a pas lui-même validé et publié depuis « Mes annonces »
+      // (annonces.update, status: "publiee" — seul geste qui déclenche ces effets).
+      if (rest.status === "brouillon") {
+        return { ...created, overageBilled: 0, quota: await quotaInfo(ctx.user.uid) };
       }
 
       // Alerte recherches sauvegardées (Partie 6) — notifie les comptes intéressés.
@@ -1309,9 +1325,51 @@ export const annoncesRouter = router({
         });
       }
 
+      // Première publication réelle d'un brouillon (dépôt assisté par IA ou
+      // brouillon manuel) : c'est CE geste explicite de l'utilisateur — jamais
+      // l'IA — qui déclenche réellement la mise en ligne. On applique alors les
+      // mêmes effets que `create` pour une annonce publiée directement (aucun
+      // effet dupliqué : mêmes fonctions déjà importées dans ce fichier).
+      const publicationBrouillon = filtered.status === "publiee" && a.status === "brouillon";
+      if (publicationBrouillon) {
+        filtered.publishedAt = new Date();
+        filtered.expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+      }
+
       if (Object.keys(filtered).length > 0) {
         await db.update(annonces).set(filtered).where(eq(annonces.id, id));
         if (filtered.status === "publiee" && a.status !== "publiee") await notifyPublishedAnnonce(id).catch(() => undefined);
+      }
+
+      if (publicationBrouillon) {
+        const [publiee] = await db.select().from(annonces).where(eq(annonces.id, id)).limit(1);
+        if (publiee) {
+          checkDuplicates(publiee.id).catch(() => {});
+          void emitSafe({ source: "annonces", type: "annonce.publiee", payload: { annonceId: publiee.id } });
+          ingestVisibility({
+            sourceType: "annonce",
+            sourceId: String(publiee.id),
+            title: publiee.titre || `${publiee.marque} ${publiee.modele}`,
+            body: (publiee.description || `${publiee.marque} ${publiee.modele}${publiee.prix ? ` — ${publiee.prix}` : ""}`).slice(0, 2000),
+            country: (publiee.pays || "FR").slice(0, 2).toUpperCase(),
+            link: `/vehicule/${publiee.id}`,
+            keywords: [publiee.marque, publiee.modele, publiee.ville].filter((x): x is string => typeof x === "string" && x.length > 0),
+          }).catch(() => {});
+          try {
+            await notifyMatchingSearches(publiee);
+          } catch (err) {
+            console.error("[notifyMatchingSearches]", (err as Error).message);
+          }
+          const quota = await quotaInfo(ctx.user.uid);
+          if (quota.over && quota.overageEur > 0) {
+            await logAction(ctx.user.uid, "annonce.overage", "annonce", publiee.id, {
+              planCode: quota.planCode,
+              used: quota.used,
+              limit: quota.limit,
+              overageEur: quota.overageEur,
+            });
+          }
+        }
       }
 
       // Mise à jour des photos si fournies
