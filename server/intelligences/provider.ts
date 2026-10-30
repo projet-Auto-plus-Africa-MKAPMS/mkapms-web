@@ -567,9 +567,12 @@ export async function appeler(input: AppelInput, fetchImpl: typeof fetch = fetch
         : await produireMediaNatif(resolu, input.media, input.message, fetchImpl, input.images);
       await markProviderUsed(providerCode);
       // Synthèse vocale : tarifée au caractère, donnée déjà disponible (input.message) — mesurable sans décoder le média.
-      // Image et transcription : pas de tarif sourcé avec confiance suffisante pour ce point précis (taille/qualité
-      // variables pour l'image, durée audio non disponible ici sans décoder le fichier pour la transcription) —
-      // restent honnêtement `measured: false` plutôt qu'un chiffre deviné présenté comme réel.
+      // Transcription : durée audio non disponible ici sans décoder le fichier.
+      // Image (gpt-image-2.5-sunburst, vérifié le 30/10/2026) : tarifée par le fournisseur au jeton de
+      // sortie ($/1M jetons), jamais au prix fixe par image — contrairement à l'ancien gpt-image-1,
+      // retiré le 23/10/2026. Aucune conversion jetons/image n'est publiée par le fournisseur pour ce
+      // modèle à ce jour : un chiffre par image serait deviné, pas mesuré. Les deux restent honnêtement
+      // `measured: false` plutôt qu'un chiffre deviné présenté comme réel.
       const coutVoix = input.media === "voix" ? (input.message.length / 1000) * TARIF_TTS_CENTS_PAR_1000_CARACTERES : 0;
       await db.insert(afCostEntries).values({
         engine: input.moteur, taskType: input.media, providerCode,
@@ -1104,7 +1107,12 @@ export async function produireMediaNatif(
         { type: "input_text", text: texte },
         ...images.slice(0, 4).map((image_url) => ({ type: "input_image", image_url })),
       ] }] : texte,
-      tools: [{ type: "image_generation", size: "1024x1024", quality: "high", output_format: "png" }],
+      // Modèle de l'outil épinglé explicitement (vérifié réellement le 30/10/2026 contre la
+      // documentation officielle OpenAI) : "gpt-image-1" — jamais fixé ici auparavant, le
+      // champ était absent — a été définitivement retiré le 23/10/2026. Sans ce champ, le
+      // comportement réel (repli automatique ou échec) n'est pas documenté ; "gpt-image-2.5-sunburst"
+      // est le modèle que la documentation recommande aujourd'hui pour ce même outil.
+      tools: [{ type: "image_generation", model: "gpt-image-2.5-sunburst", size: "1024x1024", quality: "high", output_format: "png" }],
       tool_choice: { type: "image_generation" }, max_output_tokens: 1200,
     } : { model: "tts-1", input: texte, voice: "alloy", response_format: "mp3" }),
   });
