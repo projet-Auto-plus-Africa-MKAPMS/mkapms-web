@@ -82,7 +82,7 @@ export const reportStatusEnum = pgEnum("report_status", ["ouvert", "en_cours", "
 export const reviewTargetEnum = pgEnum("review_target", ["vendeur", "garage", "loueur", "livreur", "vtc_taxi", "boutique_pieces", "annonce"]);
 export const saleTypeEnum = pgEnum("sale_type", ["sale", "rental", "leasing", "loa"]);
 export const staffPositionEnum = pgEnum("staff_position", ["pdg", "directeur", "adjoint", "gerant", "chef_equipe", "agent", "sous_directeur", "comptable", "investisseur", "partenaire"]);
-export const subscriptionCategoryEnum = pgEnum("subscription_category", ["pro_subscription", "franchise_subscription", "particulier_boost"]);
+export const subscriptionCategoryEnum = pgEnum("subscription_category", ["pro_subscription", "franchise_subscription", "particulier_boost", "ia_decouverte", "ia_abonnement"]);
 export const subscriptionPlanEnum = pgEnum("subscription_plan", ["particulier_free", "boost_7j", "boost_30j", "premium_30j", "pro_starter", "pro_business", "pro_premium", "franchise", "pro_start", "pro_elite", "pro_max", "garage_start", "garage_premium", "garage_elite", "garage_max", "loc_start", "loc_premium", "loc_elite", "loc_max", "vtc_start", "vtc_premium", "vtc_elite", "vtc_max", "pieces_boutique", "pieces_start", "pieces_premium", "pieces_elite", "pieces_max", "livraison_start", "livraison_premium", "livraison_elite"]);
 export const subscriptionStatusEnum = pgEnum("subscription_status", ["pending", "active", "cancelled", "past_due", "expired"]);
 export const transmissionEnum = pgEnum("transmission", ["manual", "auto"]);
@@ -1033,6 +1033,9 @@ export const subscriptions = pgTable("subscriptions", {
   quotaVehicules: integer("quota_vehicules"),
   quotaEmployes: integer("quota_employes"),
   quotaDevisMois: integer("quota_devis_mois"),
+  // AL-HOUDOUD·M — unités incluses/période pour un abonnement IA (purement informatif :
+  // la consommation réelle est suivie dans ia_credit_wallets/ia_credit_ledger).
+  quotaUnitesIa: integer("quota_unites_ia"),
 });
 
 /**
@@ -1297,6 +1300,7 @@ export * from "./permission-engine/schema"; // Permission Engine — Moteur de P
 export * from "./redirection-engine/schema"; // Redirection Engine — Moteur de Redirection MKA.P-MS (isolé)
 export * from "./engine-registry/schema"; // Engine Registry — Registre central des moteurs (isolé, Phase 1)
 export * from "./payment-engine/schema"; // Payment Engine — Moteur de paiement propriétaire (isolé, Phase 2)
+export * from "./ia-commerce/schema"; // AL-HOUDOUD·M — Commerce IA (grille tarifaire, crédits prépayés)
 export * from "./pro-portal/schema"; // Pro Portal Engine — portail professionnel mondial (.pro, isolé)
 export * from "./vo-engine/schema"; // VO Engine — estimation, reprise et dossier VO (isolé)
 export * from "./payment-orchestrator/schema"; // Payment Orchestrator — prestataires configurables (isolé)

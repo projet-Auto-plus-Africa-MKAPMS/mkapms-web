@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { ChevronLeft, CreditCard } from "lucide-react";
+import { ChevronLeft, CreditCard, Sparkles } from "lucide-react";
 import { trpc } from "../../lib/trpc";
 import { getPlan } from "@shared/plans";
 
@@ -30,6 +30,15 @@ export default function AbonnementsUtilisateur() {
         <h1 className="text-xl font-black text-white flex items-center gap-2"><CreditCard size={20} className="text-[#D4AF37]" /> Abonnements</h1>
         <p className="mt-1 text-sm text-white/60">Vos abonnements et boosts MKA.P-MS</p>
       </div>
+
+      {/* Additif : découverte des abonnements AL-HOUDOUD·M, système séparé (crédits IA, pas les plans ci-dessous). */}
+      <Link
+        to="/ia/abonnements"
+        className="mx-4 mt-4 flex items-center justify-between gap-3 rounded-xl bg-white border border-[#D4AF37]/40 p-3 text-xs font-bold text-[#111]"
+      >
+        <span className="flex items-center gap-2"><Sparkles size={14} className="text-[#D4AF37]" /> Découvrir AL-HOUDOUD·M (IA)</span>
+        <span className="text-[#D4AF37]">Voir les offres →</span>
+      </Link>
 
       {mesAbonnements.isLoading && <p className="px-4 mt-6 text-sm text-[#6B7280] text-center">Chargement…</p>}
 

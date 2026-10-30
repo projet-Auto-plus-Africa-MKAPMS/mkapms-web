@@ -41,6 +41,7 @@ const Devis = lazy(() => import("./pages/Devis"));
 const Garages = lazy(() => import("./pages/Garages"));
 const GaragePlus = lazy(() => import("./pages/GaragePlus"));
 const Abonnements = lazy(() => import("./pages/Abonnements"));
+const OffresIA = lazy(() => import("./pages/OffresIA"));
 const Aide = lazy(() => import("./pages/Aide"));
 const Services = lazy(() => import("./pages/Services"));
 const Confidentialite = lazy(() => import("./pages/Confidentialite"));
@@ -387,6 +388,7 @@ const AdminAbonnements = lazy(() => import("./pages/superadmin/AdminAbonnements"
 const AdminBadges = lazy(() => import("./pages/superadmin/AdminBadges"));
 const AdminCarteMoniale = lazy(() => import("./pages/superadmin/AdminCarteMoniale"));
 const AdminCommissions = lazy(() => import("./pages/superadmin/AdminCommissions"));
+const AdminTarifsIA = lazy(() => import("./pages/superadmin/AdminTarifsIA"));
 const PlanMaitreFournisseurs = lazy(() => import("./pages/superadmin/PlanMaitreFournisseurs"));
 const GestionFournisseurs = lazy(() => import("./pages/superadmin/GestionFournisseurs"));
 const ProspectionPartenaires = lazy(() => import("./pages/superadmin/ProspectionPartenaires"));
@@ -442,6 +444,7 @@ const HistoriqueLocations = lazy(() => import("./pages/utilisateurs/HistoriqueLo
 const MesVehicules = lazy(() => import("./pages/utilisateurs/MesVehicules"));
 const MessagerieGlobale = lazy(() => import("./pages/utilisateurs/MessagerieGlobale"));
 const ObjectifUtilisateur = lazy(() => import("./pages/utilisateurs/ObjectifUtilisateur"));
+const PortefeuilleIA = lazy(() => import("./pages/utilisateurs/PortefeuilleIA"));
 const SecuriteUtilisateur = lazy(() => import("./pages/utilisateurs/SecuriteUtilisateur"));
 const TableauBordPerso = lazy(() => import("./pages/utilisateurs/TableauBordPerso"));
 // Notifications
@@ -1246,6 +1249,7 @@ export default function App() {
             <Route path="/superadmin/admin-badges" element={<P module="back_office" name="Super Admin"><AdminBadges /></P>} />
             <Route path="/superadmin/admin-carte-moniale" element={<P module="back_office" name="Super Admin"><AdminCarteMoniale /></P>} />
             <Route path="/superadmin/admin-commissions" element={<P module="back_office" name="Super Admin"><AdminCommissions /></P>} />
+            <Route path="/superadmin/tarifs-ia" element={<P module="back_office" name="Super Admin"><AdminTarifsIA /></P>} />
             <Route path="/superadmin/plan-maitre-fournisseurs" element={<P module="back_office" name="Super Admin"><PlanMaitreFournisseurs /></P>} />
             <Route path="/superadmin/fournisseurs" element={<P module="back_office" name="Super Admin"><GestionFournisseurs /></P>} />
             <Route path="/superadmin/prospection-partenaires" element={<P module="back_office" name="Super Admin"><ProspectionPartenaires /></P>} />
@@ -1309,6 +1313,7 @@ export default function App() {
             <Route path="/admin/intelligences/direction" element={<U name="AL-HUDHUD·M — direction"><CentreIntelligences /></U>} />
             <Route path="/intelligences" element={<U name="AL-HUDHUD·M — assistant"><AssistantIntelligences /></U>} />
             <Route path="/intelligence" element={<U name="AL-HUDHUD·M"><MKAPMSIntelligence /></U>} />
+            <Route path="/ia/abonnements" element={<U name="AL-HOUDOUD·M — Abonnements"><OffresIA /></U>} />
             <Route path="/investissement" element={<U name="Investissement"><EspaceInvestissement /></U>} />
             <Route path="/investissement/devenir-investisseur" element={<U name="Investissement"><DevenirInvestisseur /></U>} />
             <Route path="/avis/:univers" element={<U name="Avis & notes"><AvisUnivers /></U>} />
@@ -1340,6 +1345,7 @@ export default function App() {
             <Route path="/utilisateurs/mes-vehicules" element={<U name="Utilisateurs"><MesVehicules /></U>} />
             <Route path="/utilisateurs/messagerie-globale" element={<U name="Utilisateurs"><MessagerieGlobale /></U>} />
             <Route path="/utilisateurs/objectif-utilisateur" element={<U name="Utilisateurs"><ObjectifUtilisateur /></U>} />
+            <Route path="/utilisateurs/portefeuille-ia" element={<U name="Utilisateurs"><PortefeuilleIA /></U>} />
             <Route path="/utilisateurs/securite-utilisateur" element={<U name="Utilisateurs"><SecuriteUtilisateur /></U>} />
             <Route path="/utilisateurs/suppression-compte" element={<SuppressionCompte />} />
             <Route path="/utilisateurs/tableau-bord-perso" element={<U name="Utilisateurs"><TableauBordPerso /></U>} />

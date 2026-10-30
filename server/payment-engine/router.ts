@@ -224,6 +224,7 @@ export const paymentEngineRouter = router({
         validityDays: z.number().int().min(0).optional(),
         refundPolicy: z.string().max(500).nullable().optional(),
         active: z.boolean().optional(),
+        metadata: z.record(z.string(), z.unknown()).nullable().optional(),
       }),
     )
     .mutation(async ({ input }) => {

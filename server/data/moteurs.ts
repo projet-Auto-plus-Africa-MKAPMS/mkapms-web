@@ -100,9 +100,9 @@ export interface PerimetreMoteur {
 }
 
 export const MOTEURS_TOTAL = 99;
-export const MANQUES_TOTAL = 510;
+export const MANQUES_TOTAL = 511;
 export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
-  "dependance_non_declaree": 87,
+  "dependance_non_declaree": 88,
   "sans_logique_serveur": 10,
   "ecran_sans_contenu": 340,
   "sans_ecran": 8,
@@ -119,15 +119,22 @@ export const ROUTES_SANS_MOTEUR: readonly string[] = [
   "/acheter/encheres/operations",
   "/b2b",
   "/rejoindre",
-  "/superadmin/fournisseurs"
+  "/superadmin/fournisseurs",
+  "/superadmin/tarifs-ia"
 ];
 
 /** Routeurs tRPC montés qu'aucun moteur ne revendique. */
-export const ROUTEURS_SANS_MOTEUR: readonly string[] = [];
+export const ROUTEURS_SANS_MOTEUR: readonly string[] = [
+  "iaCommerce"
+];
 
 /** Fichiers serveur qu'aucun moteur ne possède (hors racine technique). */
 export const FICHIERS_SANS_MOTEUR: readonly string[] = [
-  "auth-google.ts"
+  "auth-google.ts",
+  "ia-commerce/catalog.ts",
+  "ia-commerce/router.ts",
+  "ia-commerce/schema.ts",
+  "ia-commerce/service.ts"
 ];
 
 export const MOTEURS: readonly PerimetreMoteur[] = [
@@ -1925,6 +1932,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "backup",
       "connaissance_auto",
       "core",
+      "country",
       "intelligences",
       "monitoring",
       "resilience",
@@ -1934,6 +1942,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "backup",
       "connaissance_auto",
       "core",
+      "country",
       "intelligences",
       "monitoring",
       "resilience",
@@ -1951,6 +1960,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "ai-fabric/index.ts importe trpc.ts",
         "ai-fabric/service.ts importe db.ts",
         "ai-fabric/service.ts importe engine-registry/dependencies.ts"
+      ],
+      "country": [
+        "client/src/pages/OffresIA.tsx embarque lib/currency.tsx (trpc.currency)"
       ],
       "intelligences": [
         "client/src/pages/CentreIA.tsx embarque components/IaConfigWarning.tsx (trpc.intelligences)"
@@ -1979,6 +1991,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "routes": [
       "/admin/ia-couts",
       "/ia",
+      "/ia/abonnements",
       "/ia/i-a-aide-devis",
       "/ia/i-a-analyse-marche",
       "/ia/i-a-assistant-client",
@@ -1996,6 +2009,17 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "sansAction": 0,
         "textes": 39,
         "mots": 305
+      },
+      {
+        "fichier": "client/src/pages/OffresIA.tsx",
+        "routes": [
+          "/ia/abonnements"
+        ],
+        "cliquables": 4,
+        "parMoteur": 0,
+        "sansAction": 0,
+        "textes": 27,
+        "mots": 207
       },
       {
         "fichier": "client/src/pages/SectionAccueil.tsx",
@@ -2092,8 +2116,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "direction",
       "pdg"
     ],
-    "textes": 53,
-    "mots": 353,
+    "textes": 80,
+    "mots": 560,
     "battement": "sonde",
     "manques": [
       {
@@ -2119,6 +2143,10 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "genre": "ecran_sans_contenu",
         "detail": "client/src/pages/ia/IAEstimation.tsx (2 texte(s))"
+      },
+      {
+        "genre": "dependance_non_declaree",
+        "detail": "country — client/src/pages/OffresIA.tsx embarque lib/currency.tsx (trpc.currency)"
       }
     ]
   },
@@ -6953,6 +6981,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "achat_officiel",
       "achat_particulier",
       "achat_pro",
+      "ai_fabric",
       "auction_engine",
       "command_center",
       "connaissance_auto",
@@ -7506,6 +7535,20 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "route": "/superadmin/fournisseurs",
         "composants": [
           "trpc.country"
+        ]
+      },
+      {
+        "fichier": "client/src/pages/OffresIA.tsx",
+        "route": "/ia/abonnements",
+        "composants": [
+          "lib/currency.tsx"
+        ]
+      },
+      {
+        "fichier": "client/src/pages/utilisateurs/PortefeuilleIA.tsx",
+        "route": "/utilisateurs/portefeuille-ia",
+        "composants": [
+          "lib/currency.tsx"
         ]
       }
     ],
@@ -10114,7 +10157,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "account-deletion/index.ts importe schema.ts"
       ],
       "country": [
-        "client/src/pages/Confidentialite.tsx embarque lib/currency.tsx (trpc.currency)"
+        "client/src/pages/Confidentialite.tsx embarque lib/currency.tsx (trpc.currency)",
+        "client/src/pages/utilisateurs/PortefeuilleIA.tsx embarque lib/currency.tsx (trpc.currency)"
       ],
       "depannage": [
         "client/src/pages/utilisateurs/HistoriqueDepannages.tsx appelle trpc.depannage"
@@ -10251,6 +10295,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "/utilisateurs/mes-vehicules",
       "/utilisateurs/messagerie-globale",
       "/utilisateurs/objectif-utilisateur",
+      "/utilisateurs/portefeuille-ia",
       "/utilisateurs/securite-utilisateur",
       "/utilisateurs/suppression-compte",
       "/utilisateurs/tableau-bord-perso",
@@ -10384,11 +10429,11 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/utilisateurs/abonnements-utilisateur"
         ],
-        "cliquables": 3,
+        "cliquables": 4,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 7,
-        "mots": 23
+        "textes": 9,
+        "mots": 30
       },
       {
         "fichier": "client/src/pages/utilisateurs/CentreAlertesUtilisateur.tsx",
@@ -10567,6 +10612,17 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "mots": 28
       },
       {
+        "fichier": "client/src/pages/utilisateurs/PortefeuilleIA.tsx",
+        "routes": [
+          "/utilisateurs/portefeuille-ia"
+        ],
+        "cliquables": 4,
+        "parMoteur": 0,
+        "sansAction": 0,
+        "textes": 19,
+        "mots": 86
+      },
+      {
         "fichier": "client/src/pages/utilisateurs/SecuriteUtilisateur.tsx",
         "routes": [
           "/utilisateurs/securite-utilisateur"
@@ -10711,8 +10767,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "direction",
       "public"
     ],
-    "textes": 417,
-    "mots": 2082,
+    "textes": 438,
+    "mots": 2175,
     "battement": "pont_os",
     "manques": [
       {
@@ -21978,11 +22034,11 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/superadmin/smart-engine"
         ],
-        "cliquables": 65,
+        "cliquables": 66,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 290,
-        "mots": 1537
+        "textes": 291,
+        "mots": 1544
       }
     ],
     "ecransHotes": [
@@ -22156,8 +22212,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "pdg",
       "public"
     ],
-    "textes": 351,
-    "mots": 1812,
+    "textes": 352,
+    "mots": 1819,
     "battement": "contrat",
     "manques": [
       {

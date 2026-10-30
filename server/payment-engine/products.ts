@@ -24,6 +24,10 @@ export interface ProductSeed {
   commissionRate?: number;
   validityDays?: number;
   refundPolicy?: string;
+  /** Données structurées propres à un domaine (ex: grille IA) — jamais lues pour le prix. */
+  metadata?: Record<string, unknown>;
+  /** Visible/achetable publiquement. false = brouillon en attente de validation PDG. */
+  active?: boolean;
 }
 
 /**
@@ -85,6 +89,7 @@ export interface ResolvedProduct {
   validityDays: number;
   refundPolicy: string | null;
   active: boolean;
+  metadata: Record<string, unknown> | null;
 }
 
 function toResolved(row: typeof paymentProducts.$inferSelect): ResolvedProduct {
@@ -105,6 +110,7 @@ function toResolved(row: typeof paymentProducts.$inferSelect): ResolvedProduct {
     validityDays: row.validityDays,
     refundPolicy: row.refundPolicy,
     active: row.active,
+    metadata: (row.metadata as Record<string, unknown> | null) ?? null,
   };
 }
 
@@ -153,13 +159,14 @@ export function computePrice(product: ResolvedProduct, quantity = 1): {
 }
 
 /**
- * Alimente / complète le registre depuis le catalogue curé.
+ * Alimente / complète le registre depuis un catalogue curé (celui de ce fichier
+ * par défaut ; un domaine peut passer le sien, ex: server/ia-commerce/catalog.ts).
  * Idempotent : n'écrase pas un produit déjà présent (le PDG reste maître des
  * prix modifiés à la main). Retourne le nombre de produits insérés.
  */
-export async function seedProducts(): Promise<{ inserted: number; total: number }> {
+export async function seedProducts(catalog: ProductSeed[] = PRODUCT_CATALOG): Promise<{ inserted: number; total: number }> {
   let inserted = 0;
-  for (const p of PRODUCT_CATALOG) {
+  for (const p of catalog) {
     const [existing] = await db.select({ id: paymentProducts.id }).from(paymentProducts).where(eq(paymentProducts.code, p.code));
     if (existing) continue;
     await db.insert(paymentProducts).values({
@@ -177,6 +184,8 @@ export async function seedProducts(): Promise<{ inserted: number; total: number 
       commissionRate: String(p.commissionRate ?? 0),
       validityDays: p.validityDays ?? 0,
       refundPolicy: p.refundPolicy ?? null,
+      metadata: p.metadata ?? null,
+      active: p.active ?? true,
     });
     inserted += 1;
   }
@@ -200,10 +209,12 @@ export interface UpsertProductInput {
   validityDays?: number;
   refundPolicy?: string | null;
   active?: boolean;
+  metadata?: Record<string, unknown> | null;
 }
 
 /** Crée ou met à jour un produit (réservé PDG). */
 export async function upsertProduct(input: UpsertProductInput): Promise<ResolvedProduct> {
+  const [existingRow] = await db.select().from(paymentProducts).where(eq(paymentProducts.code, input.code));
   const values = {
     name: input.name,
     univers: input.univers,
@@ -219,10 +230,11 @@ export async function upsertProduct(input: UpsertProductInput): Promise<Resolved
     validityDays: input.validityDays ?? 0,
     refundPolicy: input.refundPolicy ?? null,
     active: input.active ?? true,
+    // Un metadata omis conserve l'existant (jamais effacé par un simple changement de prix).
+    metadata: input.metadata !== undefined ? input.metadata : existingRow?.metadata ?? null,
     updatedAt: new Date(),
   };
-  const [existing] = await db.select().from(paymentProducts).where(eq(paymentProducts.code, input.code));
-  if (existing) {
+  if (existingRow) {
     const [row] = await db.update(paymentProducts).set(values).where(eq(paymentProducts.code, input.code)).returning();
     return toResolved(row);
   }

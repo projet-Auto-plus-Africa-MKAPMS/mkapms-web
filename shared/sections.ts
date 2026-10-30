@@ -145,6 +145,7 @@ export const SECTIONS_SOMMAIRE: readonly SectionSommaire[] = [
     prefixe: "/ia",
     titre: "MKA.P-MS AI",
     entrees: [
+      { chemin: "/ia/abonnements", titre: "AL-HOUDOUD·M", vide: false },
       { chemin: "/ia/i-a-aide-devis", titre: "Intelligence Aide au devis", vide: true },
       { chemin: "/ia/i-a-analyse-marche", titre: "Intelligence Analyse marché", vide: true },
       { chemin: "/ia/i-a-assistant-client", titre: "Intelligence Assistant client", vide: true },
@@ -369,7 +370,7 @@ export const SECTIONS_SOMMAIRE: readonly SectionSommaire[] = [
   },
 ];
 
-export const SECTIONS_ECRANS_TOTAL = 253;
+export const SECTIONS_ECRANS_TOTAL = 254;
 export const SECTIONS_ECRANS_VIDES = 247;
 
 /** Section correspondant à un préfixe (`/labs`), ou null. */
