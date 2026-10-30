@@ -45,7 +45,10 @@ export type PaymentKind =
   | "reservation_acompte"    // acompte d'une réservation déjà ouverte
   | "rental_deposit"         // acompte d'une candidature de location flotte — encaissement immédiat (mode "payment"), jamais une simple autorisation bloquée
   | "vehicule_sur_commande_acompte" // Order Engine — acompte d'une commande « véhicule sur commande »
-  | "vehicule_sur_commande_solde";  // Order Engine — solde d'une commande « véhicule sur commande »
+  | "vehicule_sur_commande_solde"  // Order Engine — solde d'une commande « véhicule sur commande »
+  | "ia_decouverte"          // AL-HOUDOUD·M — offre découverte 3 jours
+  | "ia_abonnement"          // AL-HOUDOUD·M — période d'abonnement (hebdo/mensuel/annuel)
+  | "ia_credits";            // AL-HOUDOUD·M — recharge de crédits prépayés
 
 export interface CheckoutInput {
   userId: number;
@@ -132,6 +135,9 @@ export async function createPaymentCheckout(input: CheckoutInput): Promise<Check
     rental_deposit: "society_acompte",
     vehicule_sur_commande_acompte: "society_acompte",
     vehicule_sur_commande_solde: "vehicle_purchase",
+    ia_decouverte: "vehicle_boost",
+    ia_abonnement: "vehicle_boost",
+    ia_credits: "vehicle_boost",
   };
   const paymentTypeSql = input.paymentTypeSql ?? sqlTypeMap[input.kind] ?? "vehicle_boost";
 

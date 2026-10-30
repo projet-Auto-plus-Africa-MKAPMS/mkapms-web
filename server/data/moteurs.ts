@@ -119,15 +119,22 @@ export const ROUTES_SANS_MOTEUR: readonly string[] = [
   "/acheter/encheres/operations",
   "/b2b",
   "/rejoindre",
-  "/superadmin/fournisseurs"
+  "/superadmin/fournisseurs",
+  "/superadmin/tarifs-ia"
 ];
 
 /** Routeurs tRPC montés qu'aucun moteur ne revendique. */
-export const ROUTEURS_SANS_MOTEUR: readonly string[] = [];
+export const ROUTEURS_SANS_MOTEUR: readonly string[] = [
+  "iaCommerce"
+];
 
 /** Fichiers serveur qu'aucun moteur ne possède (hors racine technique). */
 export const FICHIERS_SANS_MOTEUR: readonly string[] = [
-  "auth-google.ts"
+  "auth-google.ts",
+  "ia-commerce/catalog.ts",
+  "ia-commerce/router.ts",
+  "ia-commerce/schema.ts",
+  "ia-commerce/service.ts"
 ];
 
 export const MOTEURS: readonly PerimetreMoteur[] = [
@@ -21978,11 +21985,11 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/superadmin/smart-engine"
         ],
-        "cliquables": 65,
+        "cliquables": 66,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 290,
-        "mots": 1537
+        "textes": 291,
+        "mots": 1544
       }
     ],
     "ecransHotes": [
@@ -22156,8 +22163,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "pdg",
       "public"
     ],
-    "textes": 351,
-    "mots": 1812,
+    "textes": 352,
+    "mots": 1819,
     "battement": "contrat",
     "manques": [
       {

@@ -2874,6 +2874,12 @@ function IaVisibiliteTab({ onNavigate }: { onNavigate: (t: Tab) => void }) {
         >
           Mots-clés, intentions de recherche et canaux (Visibilité & Croissance) <ExternalLink size={14} className="text-[#D4AF37]" />
         </Link>
+        <Link
+          to="/superadmin/tarifs-ia"
+          className="flex w-full items-center justify-between rounded-xl border border-[#E5E7EB] px-3 py-2 text-left text-xs font-semibold text-[#374151] hover:bg-[#F5F3EF]"
+        >
+          Tarifs AL-HOUDOUD·M — grille, activation, marges réelles <ExternalLink size={14} className="text-[#D4AF37]" />
+        </Link>
       </div>
     </div>
   );

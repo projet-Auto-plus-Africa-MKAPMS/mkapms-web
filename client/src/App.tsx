@@ -387,6 +387,7 @@ const AdminAbonnements = lazy(() => import("./pages/superadmin/AdminAbonnements"
 const AdminBadges = lazy(() => import("./pages/superadmin/AdminBadges"));
 const AdminCarteMoniale = lazy(() => import("./pages/superadmin/AdminCarteMoniale"));
 const AdminCommissions = lazy(() => import("./pages/superadmin/AdminCommissions"));
+const AdminTarifsIA = lazy(() => import("./pages/superadmin/AdminTarifsIA"));
 const PlanMaitreFournisseurs = lazy(() => import("./pages/superadmin/PlanMaitreFournisseurs"));
 const GestionFournisseurs = lazy(() => import("./pages/superadmin/GestionFournisseurs"));
 const ProspectionPartenaires = lazy(() => import("./pages/superadmin/ProspectionPartenaires"));
@@ -1246,6 +1247,7 @@ export default function App() {
             <Route path="/superadmin/admin-badges" element={<P module="back_office" name="Super Admin"><AdminBadges /></P>} />
             <Route path="/superadmin/admin-carte-moniale" element={<P module="back_office" name="Super Admin"><AdminCarteMoniale /></P>} />
             <Route path="/superadmin/admin-commissions" element={<P module="back_office" name="Super Admin"><AdminCommissions /></P>} />
+            <Route path="/superadmin/tarifs-ia" element={<P module="back_office" name="Super Admin"><AdminTarifsIA /></P>} />
             <Route path="/superadmin/plan-maitre-fournisseurs" element={<P module="back_office" name="Super Admin"><PlanMaitreFournisseurs /></P>} />
             <Route path="/superadmin/fournisseurs" element={<P module="back_office" name="Super Admin"><GestionFournisseurs /></P>} />
             <Route path="/superadmin/prospection-partenaires" element={<P module="back_office" name="Super Admin"><ProspectionPartenaires /></P>} />

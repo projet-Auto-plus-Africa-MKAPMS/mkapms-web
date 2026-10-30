@@ -646,6 +646,7 @@ export const CLIENT_ROUTES: readonly string[] = [
   "/superadmin/prospection-partenaires",
   "/superadmin/redirection-engine",
   "/superadmin/smart-engine",
+  "/superadmin/tarifs-ia",
   "/superadmin/validation-documents-complete",
   "/superadmin/visibilite-croissance",
   "/suppression-compte",

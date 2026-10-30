@@ -153,6 +153,7 @@ import { mediaAuthenticityRouter } from "./media-authenticity/index.js";
 import { userPreferencesRouter } from "./user-preferences/index.js";
 import { atelierEngineRouter } from "./atelier-engine/index.js";
 import { autoBranchementRouter } from "./auto-branchement/index.js";
+import { iaCommerceRouter } from "./ia-commerce/router.js";
 
 export const appRouter = router({
   auth: authRouter,
@@ -248,6 +249,7 @@ export const appRouter = router({
   autoBranchement: autoBranchementRouter,
   engineRegistry: engineRegistryRouter,
   paymentEngine: paymentEngineRouter,
+  iaCommerce: iaCommerceRouter,
   // Coordination des deux moteurs centraux (Phase 55)
   centralEngines: centralEnginesRouter,
   // Notation de l'application / d'un service / d'un client

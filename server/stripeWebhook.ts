@@ -23,6 +23,8 @@ import { logActivity } from "./smart-engine/services/activity-log.js";
 import { env } from "./env.js";
 import { emitSafe } from "./event-bus/service.js";
 import { confirmerAcompteRecu, confirmerSoldeRecu } from "./order-engine/service.js";
+import { resolveProduct } from "./payment-engine/products.js";
+import { creditWallet } from "./ia-commerce/service.js";
 
 /**
  * Supervision d'un paiement (§2) — fire-and-forget, jamais bloquant pour le
@@ -236,6 +238,45 @@ export async function handleStripeWebhook(req: Request, res: Response) {
             targetType: "subscription",
             data: { planCode },
           });
+        }
+        // AL-HOUDOUD·M — offre découverte 3 jours : accès limité, jamais reconduit tacitement.
+        if (m.payment_kind === "ia_decouverte" && userId && paymentId) {
+          const credits = m.credits_inclus ? Number(m.credits_inclus) : 0;
+          await db.insert(subscriptions).values({
+            userId,
+            planCode: planCode ?? "ia_decouverte_3j",
+            category: "ia_decouverte",
+            status: "active",
+            currentPeriodEnd: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
+            amount: session.amount_total != null ? String(session.amount_total / 100) : null,
+            currency: "EUR",
+            quotaUnitesIa: credits,
+          });
+          if (credits > 0) await creditWallet(userId, credits, { type: "achat", paymentId, note: "Offre découverte 3 jours" });
+        }
+        // AL-HOUDOUD·M — recharge de crédits prépayés : jamais une seule table « wallets »
+        // (sens inverse, argent dû à un pro) — crédite le portefeuille IA dédié.
+        if (m.payment_kind === "ia_credits" && userId && paymentId) {
+          const credits = m.credits_inclus ? Number(m.credits_inclus) : 0;
+          if (credits > 0) await creditWallet(userId, credits, { type: "achat", paymentId, note: `Recharge ${planCode ?? ""}` });
+        }
+        // AL-HOUDOUD·M — période d'abonnement (hebdo/mensuel/annuel). Chaque période se
+        // (re)souscrit explicitement via ce même checkout : aucun prélèvement automatique.
+        if (m.payment_kind === "ia_abonnement" && userId && paymentId && planCode) {
+          const credits = m.credits_inclus ? Number(m.credits_inclus) : 0;
+          const produit = await resolveProduct(planCode).catch(() => null);
+          const validityDays = produit?.validityDays || 30;
+          await db.insert(subscriptions).values({
+            userId,
+            planCode,
+            category: "ia_abonnement",
+            status: "active",
+            currentPeriodEnd: new Date(Date.now() + validityDays * 24 * 60 * 60 * 1000),
+            amount: session.amount_total != null ? String(session.amount_total / 100) : null,
+            currency: "EUR",
+            quotaUnitesIa: credits,
+          });
+          if (credits > 0) await creditWallet(userId, credits, { type: "abonnement", paymentId, note: `Période ${planCode}` });
         }
         // Acompte réservation
         if (m.payment_kind === "reservation_acompte" && m.booking_id) {
