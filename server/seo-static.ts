@@ -11,6 +11,8 @@ export interface StaticSeo {
   title: string;
   description: string;
   keywords?: string;
+  /** JSON-LD additionnel pour cette page (ajouté en plus du BreadcrumbList). */
+  schema?: object;
 }
 
 /** Clé = chemin exact (sans query). */
@@ -142,6 +144,29 @@ export const STATIC_SEO: Record<string, StaticSeo> = {
     description:
       "Découvrez les abonnements MKA.P-MS pour particuliers et professionnels : visibilité, outils de gestion, avantages exclusifs.",
     keywords: "abonnement mkapms, offre professionnel auto, abonnement garage",
+  },
+  "/intelligences": {
+    title: "AL-HUDHUD·M — l'assistant IA automobile de MKA.P-MS",
+    description:
+      "AL-HUDHUD·M, l'assistant IA automobile de MKA.P-MS : conseils d'achat, d'entretien, de financement et dépôt d'annonce assisté par intelligence artificielle. Démonstration gratuite sans connexion ; espace personnel complet après connexion.",
+    keywords: "AL-HUDHUD·M, AL-HUDHUD M, IA MKAPMS, assistant IA automobile, intelligence artificielle voiture, chatbot auto MKA.P-MS",
+    schema: {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      name: "AL-HUDHUD·M",
+      applicationCategory: "BusinessApplication",
+      operatingSystem: "Web",
+      description:
+        "Assistant IA automobile de MKA.P-MS : conseils d'achat, d'entretien et de financement de véhicule, et dépôt d'annonce assisté par intelligence artificielle.",
+      offers: { "@type": "Offer", price: "0", priceCurrency: "EUR" },
+      provider: { "@type": "Organization", name: "MKA.P-MS" },
+    },
+  },
+  "/ia/abonnements": {
+    title: "AL-HOUDOUD·M — Abonnements & crédits IA",
+    description:
+      "Découvrez AL-HOUDOUD·M gratuitement, puis choisissez l'abonnement adapté à votre profil : particulier, professionnel, développeur, automobile, marchand, équipe ou spécialisé.",
+    keywords: "AL-HOUDOUD·M, AL-HUDHUD·M, abonnement IA MKAPMS, crédits IA, tarifs assistant IA automobile",
   },
   "/investissement/devenir-investisseur": {
     title: "Devenir investisseur MKA.P-MS",

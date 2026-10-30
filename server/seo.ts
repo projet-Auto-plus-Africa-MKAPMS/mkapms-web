@@ -101,6 +101,8 @@ const DOMAIN_SEO: Record<DomainKey, DomainSeoMeta> = {
       "/livraison",
       "/depannage",
       "/univers",
+      "/intelligences",
+      "/ia/abonnements",
       "/abonnements",
       "/confiance",
       "/aide",
@@ -360,6 +362,7 @@ function staticSeoHead(path: string, baseUrl: string, domainKey: DomainKey): str
 
   if (!s) return null;
   jsonLd.push(breadcrumbSchema(baseUrl, path, s.title));
+  if (s.schema) jsonLd.push(s.schema);
   return buildHead({
     title: `${s.title} | ${meta.siteName}`,
     description: s.description,

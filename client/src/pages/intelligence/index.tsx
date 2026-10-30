@@ -10,7 +10,7 @@ import {
   FolderKanban, Gauge, History, Home, Image as ImageIcon, Menu, MessageCircle,
   Mic, Plug, Search, Settings, ShieldCheck, Sparkles, Wrench, Brain as BrainIcon,
   Workflow, Database, ShoppingCart, Cloud, SlidersHorizontal, Library, Clock3,
-  Laptop, Grid2X2, ClipboardCheck, KeyRound, X
+  Laptop, Grid2X2, ClipboardCheck, KeyRound, X, Lock
 } from "lucide-react";
 import { useAuth } from "../../lib/auth";
 import { trpc } from "../../lib/trpc";
@@ -72,8 +72,30 @@ function Etat({ ind, chargement }: { ind: Indicateur | undefined; chargement: bo
   return <span className={`alhud-etat-${ind.niveau}`} title={ind.detail}>{PUCE[ind.niveau]} {ind.libelle}</span>;
 }
 
-function Dashboard({ onOpen, boutique }: { onOpen: (key: CleModule) => void; boutique: BoutiqueAcces }) {
-  const etats = trpc.intelligences.indicateursAccueil.useQuery(undefined, { refetchInterval: 60_000, refetchOnWindowFocus: false });
+function Dashboard({ onOpen, boutique, niveauComplet }: { onOpen: (key: CleModule) => void; boutique: BoutiqueAcces; niveauComplet: boolean }) {
+  const etats = trpc.intelligences.indicateursAccueil.useQuery(undefined, { enabled: niveauComplet, refetchInterval: niveauComplet ? 60_000 : false, refetchOnWindowFocus: false });
+  if (!niveauComplet) {
+    return <section className="alhud-home" aria-label="Accueil AL-HUDHUD·M">
+      <div className="alhud-home-title">
+        <h1>AL-HUDHUD·M</h1>
+        <p>Votre assistant privé sur la plateforme principale</p>
+      </div>
+      <button type="button" className="alhud-project-card" onClick={() => onOpen("conversation")}>
+        <span className="alhud-project-icon"><MessageCircle /></span>
+        <span><strong>Commencer une conversation</strong><small>Questions, dépôt d'annonce assisté, et plus</small></span>
+        <ChevronRight />
+      </button>
+      <div className="alhud-work-heading"><h2>Votre espace</h2></div>
+      <div className="alhud-work-grid">
+        {([
+          ["Documents", FileText, "Vos fichiers et recherches", "documents"],
+          ["Paramètres", Settings, "Votre compte, vos préférences", "parametres"],
+        ] as const).map(([label, Icon, desc, key]) =>
+          <button type="button" key={label} onClick={() => onOpen(key)}><span className="alhud-work-icon"><Icon/></span><span><strong>{label}</strong><small>{desc}</small></span><ChevronRight/></button>
+        )}
+      </div>
+    </section>;
+  }
   const d = etats.data;
   const ia = d?.ia;
   const work = [
@@ -142,15 +164,22 @@ export default function MKAPMSIntelligence() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [historySlot, setHistorySlot] = useState<HTMLDivElement | null>(null);
   const niveau = useMemo(() => niveauDepuis({ role: user?.role ?? null }), [user?.role]);
-  const acces = trpc.intelligences.indicateursAccueil.useQuery(undefined, { enabled: niveau === "pdg", refetchOnWindowFocus: false, staleTime: 60_000 });
+  // Correction de portail (demande PDG, 30/10) : même portail pour tout compte
+  // authentifié — seul le PDG (niveau "pdg", rôle réel super_admin, le même
+  // que pdgProcedure exige déjà pour chaque module ci-dessous) garde le menu
+  // complet ; les autres niveaux voient un menu réduit à ce qui leur est
+  // réellement ouvert (server/intelligences/index.ts, service.ts). Jamais un
+  // module affiché que son compte ne peut pas réellement atteindre.
+  const estDirection = niveau === "pdg";
+  const acces = trpc.intelligences.indicateursAccueil.useQuery(undefined, { enabled: estDirection, refetchOnWindowFocus: false, staleTime: 60_000 });
   const boutique: BoutiqueAcces = { url: acces.data?.boutique ?? null, chargement: acces.isLoading };
 
-  if (niveau !== "pdg") {
+  if (!user) {
     return <div className="mx-auto max-w-xl p-6 text-center">
       <ShieldCheck className="mx-auto h-8 w-8 text-black/30" />
-      <h1 className="mt-3 text-lg font-black text-[#111]">Espace réservé pour l'instant</h1>
-      <p className="mt-2 text-sm text-black/60">Le moteur réel derrière AL-HUDHUD·M est aujourd'hui réservé au compte PDG. L'assistant public reste accessible ailleurs sur la plateforme.</p>
-      <Link to="/intelligences" className="mt-4 inline-block text-sm font-bold text-[#8B7500]">Ouvrir l'assistant public</Link>
+      <h1 className="mt-3 text-lg font-black text-[#111]">Connexion requise</h1>
+      <p className="mt-2 text-sm text-black/60">AL-HUDHUD·M garde vos conversations, vos documents et votre mémoire privés à votre compte. Connectez-vous pour y accéder.</p>
+      <Link to="/intelligences" className="mt-4 inline-block text-sm font-bold text-[#8B7500]">Ouvrir l'assistant public, sans connexion</Link>
     </div>;
   }
 
@@ -162,16 +191,36 @@ export default function MKAPMSIntelligence() {
     else { if (key === "conversation") setWorkMode(false); setModule(key); }
     setMenuOpen(false);
   };
-  const topItems = [
+  // Un module listé ici doit être réellement atteignable par ce niveau côté
+  // serveur (pdgProcedure = rôle réel super_admin, jamais "affiché mais
+  // cassé au clic") — voir le commentaire sur estDirection ci-dessus.
+  const topItems = estDirection ? [
     ["Bibliothèque", Library, "documents"], ["Projets", FolderKanban, "projets"],
     ["Plugins", Plug, "integrations"], ["Planifié", Clock3, "automatisations"],
     ["À distance", Laptop, "developpeur"], ["Explorer", Grid2X2, "recherche"],
+  ] as const : [
+    ["Bibliothèque", Library, "documents"], ["Explorer", Grid2X2, "recherche"],
   ] as const;
-  const workItems = [
+  const workItems = estDirection ? [
     ["Accueil", Home, "accueil"], ["Suivi du chantier", BarChart3, "developpeur"],
     ["Documents", FileText, "documents"], ["Vérification IA", FileCheck2, "outils"],
     ["Audit", ClipboardCheck, "historique"], ["Coffre secret", KeyRound, "coffre"], ["Paramètres", Settings, "parametres"],
+  ] as const : [
+    ["Accueil", Home, "accueil"], ["Documents", FileText, "documents"], ["Paramètres", Settings, "parametres"],
   ] as const;
+  // Demande PDG (30/10) : ne pas juste cacher ce qui n'est pas ouvert à ce
+  // niveau — le signaler comme "fonction disponible [dans d'autres comptes]",
+  // pour que le compte sache que ça existe. Seulement les vraies fonctions
+  // client (Coffre secret : coffre chiffré par PIN, déjà partageable à des
+  // employés ; Plugins & API : accès API déjà vendu dans les abonnements Pro
+  // Elite+, shared/plans.ts). Les outils de gouvernance interne (Agent
+  // autonome, Automatisations/missions sur le code, Chantier, Usage & coûts —
+  // sa propre description dit "vue direction, pas une surface publique")
+  // restent strictement invisibles : ce ne sont pas des fonctions à vendre.
+  const fonctionsTeasees = estDirection ? [] : [
+    { label: "Coffre secret", Icon: KeyRound, detail: "Stockage chiffré de vos identifiants et clés, que l’IA peut utiliser sans jamais les voir." },
+    { label: "Plugins & API", Icon: Plug, detail: "Connexion API pour synchroniser votre stock et vos outils — disponible avec certains abonnements Pro." },
+  ];
 
   const renderNav = (withHistory: boolean) => <div className="alhud-approved-menu">
     <div className="alhud-menu-brand"><strong>AL-HUDHUD·M</strong><Search/></div>
@@ -185,6 +234,14 @@ export default function MKAPMSIntelligence() {
       : <div role="status" className="alhud-menu-item-disabled" aria-label="Boutique non reliée"><ShoppingCart/><span>Boutique</span><small>{boutique.chargement ? "…" : "non reliée"}</small></div>}
     <h3>Notre travail</h3>
     <nav>{workItems.map(([label,Icon,key])=><button key={label} type="button" onClick={()=>choose(key)}><Icon/><span>{label}</span><ChevronRight/></button>)}</nav>
+    {fonctionsTeasees.length > 0 ? (<>
+      <h3>Fonctions disponibles dans d’autres comptes</h3>
+      <nav>{fonctionsTeasees.map(({label,Icon,detail})=>
+        <Link key={label} to="/compte?tab=abonnements" onClick={()=>setMenuOpen(false)} className="alhud-menu-teaser" title={detail}>
+          <Icon/><span>{label}</span><Lock className="h-4 w-4"/>
+        </Link>
+      )}</nav>
+    </>) : null}
     <button type="button" className="alhud-chat-cta" onClick={()=>choose("conversation")}><MessageCircle/> Chat</button>
   </div>;
   const nav = renderNav(false);
@@ -192,10 +249,12 @@ export default function MKAPMSIntelligence() {
   return <div className="alhud-approved-shell">
     <header className="alhud-approved-header">
       <button type="button" className="alhud-round-button" onClick={()=>setMenuOpen(true)} aria-label="Ouvrir le menu"><Menu/></button>
+      {estDirection ? (
       <div className="alhud-platform-switch" aria-label="Mode de travail">
         <button type="button" className={!workMode ? "active" : ""} onClick={()=>choose("conversation")}>Chat</button>
         <button type="button" className={workMode ? "active" : ""} onClick={()=>choose("developpeur")}>Travail</button>
       </div>
+      ) : null}
       <div className="alhud-header-actions">
         <button type="button" className="alhud-round-button" onClick={()=>choose("recherche")} aria-label="Recherche"><Search/></button>
         <button type="button" className="alhud-round-button" onClick={()=>choose("conversation")} aria-label="Conversation"><MessageCircle/></button>
@@ -203,7 +262,7 @@ export default function MKAPMSIntelligence() {
     </header>
     {menuOpen ? <div className="alhud-menu-backdrop" onClick={()=>setMenuOpen(false)}><aside onClick={e=>e.stopPropagation()}><button type="button" className="alhud-menu-close" onClick={()=>setMenuOpen(false)}><X/> Fermer</button>{renderNav(true)}</aside></div> : null}
     <main className="alhud-approved-main">
-      {module === "accueil" ? <Dashboard onOpen={choose} boutique={boutique}/> : null}
+      {module === "accueil" ? <Dashboard onOpen={choose} boutique={boutique} niveauComplet={estDirection}/> : null}
       <div hidden={module === "accueil"} className="alhud-conversation-slot">
         <Conversation
           key={`${String(user?.id ?? "anonymous")}-${workMode ? "travail" : "chat"}`}
@@ -216,7 +275,7 @@ export default function MKAPMSIntelligence() {
           historySlot={menuOpen ? historySlot : null}
           onHistoryAction={()=>setMenuOpen(false)}
         >{module === "parametres"
-          ? <Parametres onChooseModule={(key) => choose(key as CleModule)} />
+          ? <Parametres onChooseModule={(key) => choose(key as CleModule)} niveauComplet={estDirection} />
           : module !== "conversation" && module !== "accueil" && module !== "developpeur"
             ? <Actif />
             : null}</Conversation>
