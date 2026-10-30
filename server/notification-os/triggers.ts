@@ -67,6 +67,9 @@ export const NOTIFICATION_TRIGGERS: Record<string, TriggerDef> = {
   enchere_gagnee: { category: "encheres", channels: ["email", "push", "inapp"], inappType: "enchere", title: "Enchère gagnée", body: "Vous avez remporté {{lot}}." },
   // ── Messagerie / documents ──────────────────────────────────────────────
   message_nouveau: { category: "messagerie", channels: ["push", "inapp"], inappType: "message", title: "Nouveau message", body: "Vous avez reçu un message." },
+  offre_recue: { category: "messagerie", channels: ["push", "inapp"], inappType: "message", title: "Nouvelle offre", body: "Offre reçue : {{montant}} {{devise}}." },
+  offre_acceptee: { category: "messagerie", channels: ["push", "inapp"], inappType: "message", title: "Offre acceptée", body: "Votre offre de {{montant}} {{devise}} a été acceptée." },
+  offre_refusee: { category: "messagerie", channels: ["push", "inapp"], inappType: "message", title: "Offre refusée", body: "Votre offre a été refusée." },
   devis: { category: "documents", channels: ["email", "inapp"], inappType: "devis", title: "Nouveau devis", body: "Un devis {{reference}} vous a été transmis." },
   facture: { category: "documents", channels: ["email", "inapp"], inappType: "facture", title: "Nouvelle facture", body: "Votre facture {{reference}} est disponible." },
   devis_demande_envoyee: {

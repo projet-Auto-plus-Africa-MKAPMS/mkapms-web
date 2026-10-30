@@ -1,19 +1,31 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { ChevronLeft, MessageSquare, Send } from "lucide-react";
+import { ChevronLeft, HandCoins, MessageSquare, Repeat, Send, ThumbsDown, ThumbsUp } from "lucide-react";
 import { trpc } from "../../lib/trpc";
 import { useAuth } from "../../lib/auth";
 
 /* ══════════════════════════════════════════════════════════════════════════
    NÉGOCIATION (/vente/negociation/:id)
-   Données réelles : trpc.messages.openThread / getThread / send (server/
-   routers/messages.ts, moteur de messagerie déjà utilisé par « Contacter le
-   vendeur » sur la fiche véhicule). Une négociation EST une conversation
-   liée à l'annonce : jamais un second registre pour les offres, qui sont de
-   simples messages formatés. Réservé aux acheteurs connectés (porte d'accès
-   générale U, pas la porte VO professionnelle — cet écran ne concerne pas
-   un vendeur), mais la fiche annonce reste visible avant connexion.
+   Données réelles : trpc.messages.openThread / getThread / send / proposerOffre /
+   repondreOffre (server/routers/messages.ts, moteur de messagerie déjà
+   utilisé par « Contacter le vendeur » sur la fiche véhicule). Une
+   négociation EST une conversation liée à l'annonce : jamais un second
+   registre pour la discussion elle-même — mais une offre a un vrai état
+   (en attente / acceptée / refusée / contre-offre) géré par messageOffers,
+   pas un texte libre à interpréter, pour qu'Accepter/Refuser soient de
+   vraies actions. Réservé aux acheteurs connectés (porte d'accès générale
+   U, pas la porte VO professionnelle — cet écran ne concerne pas un
+   vendeur ; le vendeur répond depuis /messagerie), mais la fiche annonce
+   reste visible avant connexion.
    ══════════════════════════════════════════════════════════════════════════ */
+
+const LIBELLE_STATUT_OFFRE: Record<string, string> = {
+  en_attente: "En attente de réponse",
+  acceptee: "Offre acceptée",
+  refusee: "Offre refusée",
+  contre_offre: "Remplacée par une contre-offre",
+  annulee: "Annulée",
+};
 
 export default function CentreNegociation() {
   const { id } = useParams();
@@ -41,13 +53,27 @@ export default function CentreNegociation() {
   const send = trpc.messages.send.useMutation({
     onSuccess: () => {
       setContent("");
+      if (threadId !== null) utils.messages.getThread.invalidate({ id: threadId });
+    },
+  });
+  const proposerOffre = trpc.messages.proposerOffre.useMutation({
+    onSuccess: () => {
       setOffre("");
+      if (threadId !== null) utils.messages.getThread.invalidate({ id: threadId });
+    },
+  });
+  const repondreOffre = trpc.messages.repondreOffre.useMutation({
+    onSuccess: () => {
+      setCounterFor(null);
+      setCounterAmount("");
       if (threadId !== null) utils.messages.getThread.invalidate({ id: threadId });
     },
   });
 
   const [content, setContent] = useState("");
   const [offre, setOffre] = useState("");
+  const [counterFor, setCounterFor] = useState<number | null>(null);
+  const [counterAmount, setCounterAmount] = useState("");
 
   if (!Number.isFinite(annonceId) || (!annonceLoading && !annonce)) {
     return (
@@ -60,8 +86,7 @@ export default function CentreNegociation() {
   const envoyerOffre = () => {
     const montant = Number(offre);
     if (!montant || threadId === null) return;
-    const devise = annonce?.devise || "EUR";
-    send.mutate({ threadId, content: `💰 Nouvelle offre : ${montant.toLocaleString("fr-FR")} ${devise}` });
+    proposerOffre.mutate({ threadId, montant });
   };
 
   const envoyerMessage = () => {
@@ -109,18 +134,82 @@ export default function CentreNegociation() {
                 Aucun message pour l'instant — envoyez votre première offre ou question.
               </p>
             )}
-            {thread.data?.messages.map((m) => (
-              <div key={m.id} className={`rounded-xl p-3 ${!m.mine ? "bg-white border border-[#E5E7EB] mr-8" : "bg-[#D4AF37]/10 border border-[#D4AF37]/30 ml-8"}`}>
-                <div className="flex justify-between text-[9px]">
-                  <span className="font-bold text-[#111]">{m.mine ? "Vous" : (thread.data.other.nom ?? "Vendeur")}</span>
-                  <span className="text-[#9CA3AF]">{new Date(m.createdAt).toLocaleString("fr-FR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}</span>
+            {thread.data?.messages.map((m) => {
+              const peutRepondre = m.offer?.status === "en_attente" && !m.mine;
+              return (
+                <div key={m.id} className={`rounded-xl p-3 ${m.offer ? "bg-[#FFFBEA] border border-[#D4AF37]/40" : !m.mine ? "bg-white border border-[#E5E7EB] mr-8" : "bg-[#D4AF37]/10 border border-[#D4AF37]/30 ml-8"}`}>
+                  <div className="flex justify-between text-[9px]">
+                    <span className="font-bold text-[#111]">{m.mine ? "Vous" : (thread.data!.other.nom ?? "Vendeur")}</span>
+                    <span className="text-[#9CA3AF]">{new Date(m.createdAt).toLocaleString("fr-FR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}</span>
+                  </div>
+                  {m.offer ? (
+                    <>
+                      <div className="mt-1.5 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wide text-[#8B7500]">
+                        <HandCoins size={12} /> {m.mine ? "Votre offre" : "Offre reçue"}
+                      </div>
+                      <p className="mt-0.5 text-lg font-black text-[#111]">{Number(m.offer.montant).toLocaleString("fr-FR")} {m.offer.devise}</p>
+                      <p className="text-[11px] font-semibold text-[#6B7280]">{LIBELLE_STATUT_OFFRE[m.offer.status] ?? m.offer.status}</p>
+                      {peutRepondre && (
+                        <div className="mt-2 flex flex-wrap gap-1.5">
+                          <button
+                            type="button"
+                            disabled={repondreOffre.isPending}
+                            onClick={() => repondreOffre.mutate({ offerId: m.offer!.id, decision: "acceptee" })}
+                            className="flex items-center gap-1 rounded-lg bg-[#1a7f37] px-2.5 py-1.5 text-[11px] font-bold text-white disabled:opacity-50"
+                          >
+                            <ThumbsUp size={12} /> Accepter
+                          </button>
+                          <button
+                            type="button"
+                            disabled={repondreOffre.isPending}
+                            onClick={() => repondreOffre.mutate({ offerId: m.offer!.id, decision: "refusee" })}
+                            className="flex items-center gap-1 rounded-lg border border-red-200 bg-white px-2.5 py-1.5 text-[11px] font-bold text-red-600 disabled:opacity-50"
+                          >
+                            <ThumbsDown size={12} /> Refuser
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setCounterFor(counterFor === m.offer!.id ? null : m.offer!.id)}
+                            className="flex items-center gap-1 rounded-lg border border-[#D4AF37]/40 bg-white px-2.5 py-1.5 text-[11px] font-bold text-[#8B7500]"
+                          >
+                            <Repeat size={12} /> Contre-offrir
+                          </button>
+                        </div>
+                      )}
+                      {peutRepondre && counterFor === m.offer.id && (
+                        <div className="mt-2 flex gap-1.5">
+                          <input
+                            type="number"
+                            min={1}
+                            placeholder="Votre montant"
+                            value={counterAmount}
+                            onChange={(e) => setCounterAmount(e.target.value)}
+                            className="flex-1 rounded-lg border border-[#E5E7EB] px-2.5 py-1.5 text-xs"
+                          />
+                          <button
+                            type="button"
+                            disabled={!counterAmount || Number(counterAmount) <= 0 || repondreOffre.isPending}
+                            onClick={() => repondreOffre.mutate({ offerId: m.offer!.id, decision: "contre_offre", contreMontant: Number(counterAmount) })}
+                            className="rounded-lg bg-[#111] px-3 py-1.5 text-[11px] font-bold text-white disabled:opacity-40"
+                          >
+                            Envoyer
+                          </button>
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <p className="text-sm text-[#111] mt-1">{m.content}</p>
+                  )}
                 </div>
-                <p className="text-sm text-[#111] mt-1">{m.content}</p>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
-          {send.error && <p className="mx-4 mt-3 text-xs text-red-600">{send.error.message}</p>}
+          {(send.error || proposerOffre.error || repondreOffre.error) && (
+            <p className="mx-4 mt-3 text-xs text-red-600">
+              {send.error?.message ?? proposerOffre.error?.message ?? repondreOffre.error?.message}
+            </p>
+          )}
 
           {annonce?.negociable && (
             <div className="px-4 mt-4">
@@ -135,10 +224,10 @@ export default function CentreNegociation() {
                 />
                 <button
                   onClick={envoyerOffre}
-                  disabled={!offre || threadId === null || send.isPending}
+                  disabled={!offre || Number(offre) <= 0 || threadId === null || proposerOffre.isPending}
                   className="rounded-lg bg-[#D4AF37] px-4 py-2.5 text-xs font-bold text-white disabled:opacity-50"
                 >
-                  Envoyer l'offre
+                  {proposerOffre.isPending ? "…" : "Envoyer l'offre"}
                 </button>
               </div>
             </div>

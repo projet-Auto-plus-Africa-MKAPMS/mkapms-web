@@ -595,7 +595,35 @@ export const messages = pgTable("messages", {
   senderId: integer("sender_id").notNull(),
   content: text("content").notNull(),
   status: messageStatusEnum("status").notNull().default("envoye"),
+  // Négociation structurée (voir messageOffers) : non-null uniquement pour
+  // le message qui porte une offre/contre-offre/réponse. `content` reste
+  // toujours rempli (texte lisible de repli) pour tout code qui lit les
+  // messages sans connaître messageOffers (aperçu de fil, etc.).
+  offerId: integer("offer_id"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const offerStatusEnum = pgEnum("offer_status", ["en_attente", "acceptee", "refusee", "contre_offre", "annulee"]);
+
+/**
+ * Offre de prix structurée dans une négociation (server/routers/messages.ts
+ * :: proposerOffre/repondreOffre). Vient en complément du message texte
+ * libre — une négociation reste une conversation (messageThreads/messages),
+ * cette table ajoute seulement l'état nécessaire pour qu'Accepter/Refuser/
+ * Contre-offrir soient de vraies actions, pas du texte à interpréter.
+ */
+export const messageOffers = pgTable("message_offers", {
+  id: serial("id").primaryKey(),
+  threadId: integer("thread_id").notNull(),
+  annonceId: integer("annonce_id").notNull(),
+  fromUserId: integer("from_user_id").notNull(),
+  montant: numeric("montant", { precision: 12, scale: 2 }).notNull(),
+  devise: varchar("devise", { length: 4 }).notNull().default("EUR"),
+  status: offerStatusEnum("status").notNull().default("en_attente"),
+  /** Offre précédente que celle-ci contre-propose (chaîne de négociation). */
+  precedenteOffreId: integer("precedente_offre_id"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  repondueA: timestamp("repondue_a"),
 });
 
 export const payments = pgTable("payments", {
