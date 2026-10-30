@@ -11090,7 +11090,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "integrationsTechniques": [],
     "preuvesDependances": {
       "achat": [
-        "estimate-gateway/gateway.ts importe routers/devis.ts"
+        "estimate-gateway/gateway.ts importe routers/devis.ts",
+        "intelligences/outils/familles/outils-vehicules.ts importe routers/annonces.ts"
       ],
       "ai_fabric": [
         "governance/dependencies.ts importe ai-fabric/service.ts",
