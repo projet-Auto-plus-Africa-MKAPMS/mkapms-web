@@ -72,6 +72,16 @@ export function estimateUnitsCost(unites: number): { unites: number; coutReelEst
   return { unites, coutReelEstimeEur: Math.round(unites * UNITE_COUT_REEL_EUR * 100) / 100 };
 }
 
+/**
+ * Convertit un coût réel mesuré (en cents $, voir af_cost_entries/TARIFS_*) en unités à
+ * débiter du portefeuille. Jamais 0 : un plancher minimal protège contre une consommation
+ * non financée par arrondi — utilisé par le routage réel (intelligences/service.ts,
+ * media-productions.ts) pour que « coût non mesuré » ne devienne jamais « coût gratuit ».
+ */
+export function coutCentsVersUnites(coutCents: number): number {
+  return Math.max(coutCents / 100 / UNITE_COUT_REEL_EUR, 0.01);
+}
+
 /** Activité commerciale réelle d'AL-HOUDOUD·M : comptes, essais, abonnements. */
 export async function activiteCommerciale(): Promise<{
   comptesAvecPortefeuille: number;
@@ -102,6 +112,19 @@ export async function activiteCommerciale(): Promise<{
     abonnementsActifs: a?.actifs ?? 0,
     abonnementsTotal: a?.total ?? 0,
   };
+}
+
+/**
+ * Lecture pure, ne crée jamais de portefeuille. `null` = ce compte n'a jamais
+ * touché le commerce IA — c'est le signal utilisé par le routage réel (service.ts
+ * /media-productions.ts) pour ne RIEN changer au comportement historique (gratuit,
+ * plafond journalier global existant) d'un utilisateur qui n'a jamais acheté quoi
+ * que ce soit. Seul un compte avec un portefeuille existant est soumis au contrôle
+ * de solde — jamais la plateforme entière.
+ */
+export async function walletBalanceIfExists(userId: number): Promise<number | null> {
+  const [w] = await db.select({ balanceUnites: iaCreditWallets.balanceUnites }).from(iaCreditWallets).where(eq(iaCreditWallets.userId, userId));
+  return w ? Number(w.balanceUnites) : null;
 }
 
 async function getOrCreateWallet(userId: number) {

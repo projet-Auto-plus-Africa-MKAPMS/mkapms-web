@@ -5,6 +5,11 @@ import { pool } from "../db.js";
 import { router as routerCapacite } from "./routeur.js";
 
 import { fichierAudio, lireAudio } from "./audio-input.js";
+import { TARIF_TTS_CENTS_PAR_1000_CARACTERES } from "./provider.js";
+import { walletBalanceIfExists, debitWallet, coutCentsVersUnites } from "../ia-commerce/service.js";
+
+/** Coût réel non mesuré (image, transcription) : plancher prudent — jamais une consommation non financée. */
+const UNITES_MEDIA_NON_MESURE = 5;
 
 export const demandeMedia = z.object({
   requestId: z.string().uuid(), operation: z.enum(["image", "voix", "transcription"]),
@@ -24,6 +29,15 @@ export async function produire(ownerId: number, role: string, brut: DemandeMedia
   const input = demandeMedia.parse(brut);
   if (!texteMediaAutorise(input.texte)) throw new Error("Utilisez le Coffre secret d'AL-HUDHUD·M pour les secrets : ils ne se collent jamais dans un texte.");
   if(input.audio) lireAudio(input.audio);
+  // Protection de rentabilité (instruction PDG) : un compte qui a rejoint le commerce IA
+  // (portefeuille existant) ne peut pas lancer une production média sans solde — le coût
+  // réel n'est pas mesuré pour l'image/la transcription, donc jamais autorisé non financé.
+  // `null` = ce compte n'a jamais touché le commerce IA : comportement historique inchangé
+  // (gratuit, soumis uniquement à la limite de 20 productions/24h déjà en place ci-dessous).
+  const soldeAvant = await walletBalanceIfExists(ownerId).catch(() => null);
+  if (soldeAvant !== null && soldeAvant <= 0) {
+    throw new Error("Crédits IA insuffisants. Rechargez votre portefeuille AL-HOUDOUD·M pour continuer.");
+  }
   const hash = createHash("sha256").update(JSON.stringify({operation: input.operation, texte: input.texte, audio:input.audio,references:input.references})).digest("hex");
   const c = await base.connect();
   try {
@@ -51,6 +65,22 @@ export async function produire(ownerId: number, role: string, brut: DemandeMedia
       return {id:input.requestId,statut:'FAILED'};
     }
     await base.query("UPDATE in_media_productions SET statut='READY',mime=$2,donnees=$3,motif='' WHERE id=$1",[input.requestId,r.media.mime,r.media.base64]);
+    if (soldeAvant !== null) {
+      void (async () => {
+        try {
+          let unites: number;
+          if (input.operation === "voix") {
+            const coutCents = (input.texte.length / 1000) * TARIF_TTS_CENTS_PAR_1000_CARACTERES;
+            unites = coutCentsVersUnites(coutCents);
+          } else {
+            unites = UNITES_MEDIA_NON_MESURE;
+          }
+          await debitWallet(ownerId, unites, { note: `Production ${input.operation} (${input.requestId})` });
+        } catch {
+          /* jamais bloquant : un échec de débit ne doit jamais invalider une production déjà prête. */
+        }
+      })();
+    }
     return {id:input.requestId,statut:'READY'};
   } catch {
     await base.query("UPDATE in_media_productions SET statut='FAILED',motif='La production a échoué. Votre demande reste disponible.' WHERE id=$1",[input.requestId]);

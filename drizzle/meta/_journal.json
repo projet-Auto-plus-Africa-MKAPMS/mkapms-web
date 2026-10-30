@@ -1198,6 +1198,13 @@
       "when": 1793340000000,
       "tag": "0172_ia_commerce_grille_tarifaire",
       "breakpoints": true
+    },
+    {
+      "idx": 171,
+      "version": "7",
+      "when": 1793350000000,
+      "tag": "0173_activation_offres_ia",
+      "breakpoints": true
     }
   ]
 }
