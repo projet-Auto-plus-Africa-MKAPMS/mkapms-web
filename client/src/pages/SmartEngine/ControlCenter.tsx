@@ -53,7 +53,7 @@ import {
   CalendarDays,
 } from "lucide-react";
 
-type Tab = "dashboard" | "rapport" | "etat" | "qualite" | "evolution" | "alertes" | "apprentissage" | "connaissances" | "savoir" | "optimisation" | "moteurs" | "developpements" | "recherches" | "doublons" | "suspects" | "annonces" | "badges" | "sante" | "journal" | "validations" | "avis" | "comportement";
+type Tab = "dashboard" | "rapport" | "etat" | "qualite" | "evolution" | "alertes" | "apprentissage" | "connaissances" | "savoir" | "optimisation" | "moteurs" | "developpements" | "recherches" | "doublons" | "suspects" | "annonces" | "badges" | "sante" | "journal" | "validations" | "avis" | "comportement" | "iaVisibilite";
 
 const TABS: { key: Tab; label: string; icon: typeof Brain }[] = [
   { key: "dashboard", label: "Vue d'ensemble", icon: BarChart3 },
@@ -78,6 +78,7 @@ const TABS: { key: Tab; label: string; icon: typeof Brain }[] = [
   { key: "validations", label: "Validations", icon: CheckCircle2 },
   { key: "avis", label: "Avis", icon: Eye },
   { key: "comportement", label: "Comportement", icon: Activity },
+  { key: "iaVisibilite", label: "IA — Visibilité et pilotage intelligent", icon: Globe },
 ];
 
 export default function ControlCenter() {
@@ -160,6 +161,7 @@ export default function ControlCenter() {
         {tab === "validations" && <ValidationsTab />}
         {tab === "avis" && <AvisTab />}
         {tab === "comportement" && <ComportementTab />}
+        {tab === "iaVisibilite" && <IaVisibiliteTab onNavigate={setTab} />}
       </div>
     </div>
   );
@@ -2770,6 +2772,108 @@ function ComportementTab() {
         ) : (
           <Empty msg="Aucune donnée de visite encore — le système commence à collecter" />
         )}
+      </div>
+    </div>
+  );
+}
+
+/**
+ * IA — Visibilité et pilotage intelligent.
+ *
+ * Demande de la Direction : une section dédiée à la visibilité (référencement Google,
+ * mots-clés, Merchant Center, surveillance des moteurs) à l'intérieur du Système
+ * Intelligent déjà existant — jamais un nouveau portail, jamais un doublon des écrans
+ * qui font déjà ce travail. Cette section AFFICHE et RELIE, elle ne reconstruit rien :
+ *   - indexation Google réelle → server/indexation (déjà son propre écran : /admin/indexation)
+ *   - Merchant Center / flux produit → server/product-engine (déjà son propre écran : /admin/produits-google)
+ *   - mots-clés & intentions → VisibilityEngine/ControlCenter (déjà son propre onglet)
+ *   - alertes SEO/moteurs → AlertesTab de cette même page (onglet "alertes")
+ *   - visiteurs/utilisateurs en temps réel, tous types de comptes → ComportementTab de cette même page (onglet "comportement")
+ */
+function IaVisibiliteTab({ onNavigate }: { onNavigate: (t: Tab) => void }) {
+  const indexation = trpc.indexation.monitor.useQuery();
+  const produits = trpc.productEngine.pipelines.useQuery();
+
+  if (indexation.isLoading || produits.isLoading) return <Loading />;
+
+  const idx = indexation.data;
+  const prod = produits.data;
+
+  return (
+    <div className="space-y-4">
+      <h2 className="text-base font-bold text-[#111]">IA — Visibilité et pilotage intelligent</h2>
+      <p className="text-[11px] text-[#9CA3AF]">
+        Vue d'ensemble de la visibilité réelle (Google, mots-clés, Merchant Center, moteurs) — chaque
+        chiffre vient d'un moteur déjà en place ; les liens ci-dessous ouvrent son écran complet.
+      </p>
+
+      {/* Indexation Google réelle */}
+      {idx && (
+        <div className="rounded-2xl border border-[#E5E7EB] bg-white p-3">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-bold text-[#111]">Indexation Google</h3>
+            <Link to="/admin/indexation" className="flex items-center gap-1 text-[11px] font-semibold text-[#D4AF37]">
+              Détail <ExternalLink size={11} />
+            </Link>
+          </div>
+          <div className="mt-2 grid grid-cols-2 sm:grid-cols-4 gap-2">
+            <StatCard label="Pages publiques" value={idx.pagesPubliques} color="blue" icon={Globe} />
+            <StatCard label="Indexées (confirmé)" value={idx.indexees} color="green" icon={CheckCircle2} />
+            <StatCard label="En attente" value={idx.enAttente} color="orange" icon={Clock} />
+            <StatCard label="Erreurs / exclues" value={idx.erreurs + idx.exclues} color="red" icon={XCircle} />
+          </div>
+          <div
+            className={`mt-2 rounded-xl p-2.5 text-[11px] font-medium ${
+              idx.searchConsole.configure ? "bg-green-50 text-green-700" : "bg-amber-50 text-amber-700"
+            }`}
+          >
+            {idx.searchConsole.configure ? "✓ " : "⚠ "}
+            {idx.searchConsole.detail}
+          </div>
+        </div>
+      )}
+
+      {/* Merchant Center / Google Shopping */}
+      {prod && (
+        <div className="rounded-2xl border border-[#E5E7EB] bg-white p-3">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-bold text-[#111]">Google Shopping / Merchant Center</h3>
+            <Link to="/admin/produits-google" className="flex items-center gap-1 text-[11px] font-semibold text-[#D4AF37]">
+              Détail <ExternalLink size={11} />
+            </Link>
+          </div>
+          <div className="mt-2 grid grid-cols-2 gap-2">
+            <StatCard label="Fiches produit/pièces" value={prod.produit.fiches} color="blue" icon={Boxes} />
+            <StatCard label="Exploitables Merchant" value={prod.produit.exploitables} color="green" icon={CheckCircle2} />
+          </div>
+          <div className="mt-2 rounded-xl bg-[#F5F3EF] p-2.5 text-[11px] text-[#6B7280]">
+            <span className="font-bold text-[#111]">{prod.vehicule.fiches} annonce(s) véhicule publiée(s).</span>{" "}
+            {prod.vehicule.exclusion}
+          </div>
+        </div>
+      )}
+
+      {/* Liens vers ce qui existe déjà — jamais reconstruit ici */}
+      <div className="rounded-2xl border border-[#E5E7EB] bg-white p-3 space-y-2">
+        <h3 className="text-sm font-bold text-[#111]">Voir aussi</h3>
+        <button
+          onClick={() => onNavigate("alertes")}
+          className="flex w-full items-center justify-between rounded-xl border border-[#E5E7EB] px-3 py-2 text-left text-xs font-semibold text-[#374151] hover:bg-[#F5F3EF]"
+        >
+          Alertes (moteurs, SEO, indexation, Merchant) <AlertTriangle size={14} className="text-[#D4AF37]" />
+        </button>
+        <button
+          onClick={() => onNavigate("comportement")}
+          className="flex w-full items-center justify-between rounded-xl border border-[#E5E7EB] px-3 py-2 text-left text-xs font-semibold text-[#374151] hover:bg-[#F5F3EF]"
+        >
+          Visiteurs et utilisateurs en temps réel, tous types de comptes <Activity size={14} className="text-[#D4AF37]" />
+        </button>
+        <Link
+          to="/superadmin/visibilite-croissance"
+          className="flex w-full items-center justify-between rounded-xl border border-[#E5E7EB] px-3 py-2 text-left text-xs font-semibold text-[#374151] hover:bg-[#F5F3EF]"
+        >
+          Mots-clés, intentions de recherche et canaux (Visibilité & Croissance) <ExternalLink size={14} className="text-[#D4AF37]" />
+        </Link>
       </div>
     </div>
   );
