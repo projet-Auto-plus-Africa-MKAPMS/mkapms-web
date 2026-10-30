@@ -162,6 +162,12 @@ export const STATIC_SEO: Record<string, StaticSeo> = {
       provider: { "@type": "Organization", name: "MKA.P-MS" },
     },
   },
+  "/ia/abonnements": {
+    title: "AL-HOUDOUD·M — Abonnements & crédits IA",
+    description:
+      "Découvrez AL-HOUDOUD·M gratuitement, puis choisissez l'abonnement adapté à votre profil : particulier, professionnel, développeur, automobile, marchand, équipe ou spécialisé.",
+    keywords: "AL-HOUDOUD·M, AL-HUDHUD·M, abonnement IA MKAPMS, crédits IA, tarifs assistant IA automobile",
+  },
   "/investissement/devenir-investisseur": {
     title: "Devenir investisseur MKA.P-MS",
     description:

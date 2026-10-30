@@ -133,12 +133,17 @@ export default function AssistantIntelligences() {
         >
           <ChevronLeft className="h-4 w-4" /> Accueil
         </Link>
-        <Link
-          to={user ? "/intelligence" : "/connexion"}
-          className="mb-3 inline-flex items-center gap-1 text-sm font-bold text-[#8B7500] hover:underline"
-        >
-          <LogIn className="h-4 w-4" /> {user ? "Mon espace personnel" : "Connexion"}
-        </Link>
+        <div className="mb-3 flex items-center gap-3">
+          <Link to="/ia/abonnements" className="text-sm font-bold text-black/60 hover:text-black">
+            Tarifs
+          </Link>
+          <Link
+            to={user ? "/intelligence" : "/connexion"}
+            className="inline-flex items-center gap-1 text-sm font-bold text-[#8B7500] hover:underline"
+          >
+            <LogIn className="h-4 w-4" /> {user ? "Mon espace personnel" : "Connexion"}
+          </Link>
+        </div>
       </div>
 
       <EtatServiceIntelligence />

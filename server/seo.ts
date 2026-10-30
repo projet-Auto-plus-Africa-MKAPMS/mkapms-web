@@ -102,6 +102,7 @@ const DOMAIN_SEO: Record<DomainKey, DomainSeoMeta> = {
       "/depannage",
       "/univers",
       "/intelligences",
+      "/ia/abonnements",
       "/abonnements",
       "/confiance",
       "/aide",
