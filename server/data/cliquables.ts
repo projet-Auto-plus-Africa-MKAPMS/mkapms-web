@@ -40,7 +40,7 @@ export interface AnomalieCliquable {
   readonly motif: MotifAnomalie;
 }
 
-export const CLIQUABLES_TOTAL = 2923;
+export const CLIQUABLES_TOTAL = 2925;
 
 export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/components/AccessDenied.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
@@ -348,7 +348,7 @@ export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/pages/InscriptionProVente.tsx", total: 8, moteur: 0, liens: 4, boutonsLocaux: 4, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/InscriptionProVO.tsx", total: 7, moteur: 0, liens: 3, boutonsLocaux: 4, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/InspectionNumerique.tsx", total: 2, moteur: 0, liens: 2, boutonsLocaux: 0, sansAction: 0, zones: 0 },
-  { fichier: "client/src/pages/intelligence/index.tsx", total: 20, moteur: 0, liens: 1, boutonsLocaux: 18, sansAction: 0, zones: 1 },
+  { fichier: "client/src/pages/intelligence/index.tsx", total: 22, moteur: 0, liens: 1, boutonsLocaux: 20, sansAction: 0, zones: 1 },
   { fichier: "client/src/pages/intelligence/modules/AgentDeveloppeur.tsx", total: 2, moteur: 0, liens: 0, boutonsLocaux: 2, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/intelligence/modules/Agents.tsx", total: 2, moteur: 0, liens: 0, boutonsLocaux: 2, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/intelligence/modules/Automatisations.tsx", total: 3, moteur: 0, liens: 0, boutonsLocaux: 3, sansAction: 0, zones: 0 },

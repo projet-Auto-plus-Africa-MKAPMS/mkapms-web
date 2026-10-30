@@ -17,6 +17,7 @@ import { inActions, inDomaines, inMessages, inSessions, inUsage } from "./schema
 import { DOMAINE_DEFAUT, DOMAINES, domaine as specDomaine, type DomaineSpec } from "./domaines.js";
 import {
   COMMANDES,
+  CONSIGNE_COMPTE,
   CONSIGNE_DIRECTION,
   CONSIGNE_MODE_CHAT,
   CONSIGNE_MODE_TRAVAIL,
@@ -783,15 +784,30 @@ export async function demander(input: DemandeInput): Promise<DemandeResultat> {
   };
 
   if (input.cote === "direction") {
+    // Correction de portail (demande PDG, 30/10) : /intelligence accueille
+    // désormais tout compte authentifié, pas seulement le PDG — mais
+    // CONSIGNE_DIRECTION (nomme le PDG, droits d'analyse interne/code) et le
+    // registre complet des outils (chantier/github/railway/coffre...)
+    // restent strictement réservés à "super_admin", jamais élargis par ce
+    // changement : c'est exactement le même rôle que pdgProcedure exige déjà
+    // pour chaque module (Projets, Agents, Historique...) resté inchangé —
+    // un rôle "admin" qui ne peut déjà pas les atteindre ne doit pas non
+    // plus obtenir leurs outils par la conversation. Tout autre rôle reçoit
+    // CONSIGNE_COMPTE et la même famille d'outils déjà sûre côté public
+    // (OUTILS_PUBLICS, catégorie "vehicules").
+    const estDirection = input.role === "super_admin";
+    const outilsProposes = estDirection
+      ? listerActifsPourMode(input.mode ?? "chat").map((o) => o.toolId)
+      : OUTILS_PUBLICS;
     const boucle = await executerAvecOutils({
       moteur: "intelligences",
       role: input.role ?? null,
-      systeme: `${CONSIGNE_DIRECTION}\n${input.mode === "travail" ? CONSIGNE_MODE_TRAVAIL : CONSIGNE_MODE_CHAT}`,
+      systeme: `${estDirection ? CONSIGNE_DIRECTION : CONSIGNE_COMPTE}\n${input.mode === "travail" ? CONSIGNE_MODE_TRAVAIL : CONSIGNE_MODE_CHAT}`,
       message,
       images: input.images,
       reasoningEffortPrefere: input.effort,
       modelePrefere: input.modele && input.modele !== "auto" ? input.modele : undefined,
-      outilsProposes: listerActifsPourMode(input.mode ?? "chat").map((o) => o.toolId),
+      outilsProposes,
       confidentialite: "interne",
       countryCode: input.countryCode ?? null,
       // 2000 jetons se sont révélés trop justes en usage réel : sur un

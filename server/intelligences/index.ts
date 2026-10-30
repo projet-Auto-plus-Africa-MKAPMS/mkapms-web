@@ -691,8 +691,14 @@ export const intelligencesRouter = router({
     .input(z.object({ id: z.number().int().positive() }))
     .query(({ input }) => detailMission(input.id)),
 
-  /** Côté direction — question libre avec contexte interne réel. */
-  demander: pdgProcedure
+  /**
+   * Correction de portail (demande PDG, 30/10) : tout compte authentifié,
+   * pas seulement admin/super_admin — service.ts choisit la consigne et les
+   * outils réellement proposés selon le rôle réel (jamais un champ transmis
+   * par l'appelant). Question libre, contexte interne réel seulement pour
+   * le rôle direction.
+   */
+  demander: protectedProcedure
     .input(
       z.object({
         question: z.string().min(2).max(8000),
@@ -1447,17 +1453,19 @@ export const intelligencesRouter = router({
   dependancesAlertes: pdgProcedure.query(() => alertesMigration()),
 
   // ── LOT IA02F — Mémoire, fichiers, recherche et RAG ──────────────────────
-  // Toutes les procédures ci-dessous sont pdgProcedure : /intelligence est
-  // aujourd'hui strictement réservé au PDG (client/src/pages/intelligence/
-  // index.tsx). Le paramètre `userId` n'est donc jamais lu depuis l'entrée :
-  // toujours `ctx.user.uid`, jamais une valeur transmise par l'appelant —
-  // même logique que verifierProprieteConversation ci-dessus.
+  // Demande PDG (30/10, correction de portail) : /intelligence n'est plus
+  // réservé au PDG (client/src/pages/intelligence/index.tsx) — ces procédures
+  // passent donc à protectedProcedure. Déjà sûr avant même ce changement :
+  // le paramètre `userId` n'est jamais lu depuis l'entrée, toujours
+  // `ctx.user.uid` (l'appelant réel) — même logique que
+  // verifierProprieteConversation ci-dessus. Chaque compte n'a donc jamais
+  // vu, et ne voit toujours, que sa propre mémoire/ses propres fichiers.
 
-  memoireUtilisateurListe: pdgProcedure
+  memoireUtilisateurListe: protectedProcedure
     .input(z.object({ categorie: z.string().max(48).optional() }).optional())
     .query(({ input, ctx }) => memoireUtilisateur.lister(ctx.user.uid, input?.categorie)),
 
-  memoireUtilisateurEcrire: pdgProcedure
+  memoireUtilisateurEcrire: protectedProcedure
     .input(
       z.object({
         categorie: z.string().max(48),
@@ -1471,19 +1479,19 @@ export const intelligencesRouter = router({
     )
     .mutation(({ input, ctx }) => memoireUtilisateur.ecrire({ ...input, userId: ctx.user.uid, actorId: ctx.user.uid })),
 
-  memoireUtilisateurModifier: pdgProcedure
+  memoireUtilisateurModifier: protectedProcedure
     .input(z.object({ id: z.number().int(), contenu: z.string().max(8000).optional(), visibilite: z.string().max(24).optional(), confiance: z.string().max(16).optional() }))
     .mutation(({ input, ctx }) => memoireUtilisateur.modifier({ ...input, userId: ctx.user.uid })),
 
-  memoireUtilisateurSupprimer: pdgProcedure
+  memoireUtilisateurSupprimer: protectedProcedure
     .input(z.object({ id: z.number().int() }))
     .mutation(({ input, ctx }) => memoireUtilisateur.supprimer(input.id, ctx.user.uid).then(() => ({ ok: true }))),
 
-  memoireProjetLire: pdgProcedure
+  memoireProjetLire: protectedProcedure
     .input(z.object({ projetId: z.number().int(), type: z.string().max(24).optional() }))
     .query(({ input, ctx }) => memoireProjet.lire(input.projetId, ctx.user.uid, input.type as never)),
 
-  memoireProjetEcrire: pdgProcedure
+  memoireProjetEcrire: protectedProcedure
     .input(
       z.object({
         projetId: z.number().int(),
@@ -1495,11 +1503,11 @@ export const intelligencesRouter = router({
     )
     .mutation(({ input, ctx }) => memoireProjet.ecrire({ ...input, ownerId: ctx.user.uid })),
 
-  fichiersListe: pdgProcedure
+  fichiersListe: protectedProcedure
     .input(z.object({ projetId: z.number().int().nullable().optional() }).optional())
     .query(({ input, ctx }) => fichiers.mesFichiers(ctx.user.uid, input?.projetId)),
 
-  fichierDeposer: pdgProcedure
+  fichierDeposer: protectedProcedure
     .input(
       z.object({
         nom: z.string().min(1).max(260),
@@ -1510,13 +1518,13 @@ export const intelligencesRouter = router({
     )
     .mutation(({ input, ctx }) => fichiers.deposer({ ownerId: ctx.user.uid, projetId: input.projetId, nom: input.nom, typeMime: input.typeMime, donneesBase64: input.donneesBase64 })),
 
-  fichierLire: pdgProcedure.input(z.object({ id: z.number().int() })).query(({ input, ctx }) => fichiers.lireFichier(input.id, ctx.user.uid)),
+  fichierLire: protectedProcedure.input(z.object({ id: z.number().int() })).query(({ input, ctx }) => fichiers.lireFichier(input.id, ctx.user.uid)),
 
-  fichierSupprimer: pdgProcedure
+  fichierSupprimer: protectedProcedure
     .input(z.object({ id: z.number().int() }))
     .mutation(({ input, ctx }) => fichiers.supprimerFichier(input.id, ctx.user.uid).then(() => ({ ok: true }))),
 
-  fichierRechercher: pdgProcedure
+  fichierRechercher: protectedProcedure
     .input(z.object({ q: z.string().min(1).max(300) }))
     .query(({ input, ctx }) => fichiers.rechercherDansFichiers(input.q, ctx.user.uid)),
 
@@ -1542,7 +1550,13 @@ export const intelligencesRouter = router({
     .input(z.object({ q: z.string().min(1).max(300) }))
     .query(({ input }) => connaissance.rechercher(input.q, ["interne", "pdg_uniquement"])),
 
-  rechercheGlobale: pdgProcedure
+  // protectedProcedure (demande PDG 30/10, correction de portail) : chaque
+  // source (conversations/mémoire/fichiers) est déjà filtrée à ctx.user.uid
+  // dans rechercherGlobale — jamais un résultat d'un autre compte. Seule la
+  // visibilité "pdg_uniquement" de la base de connaissances reste réservée
+  // au rôle réel super_admin (même rôle que pdgProcedure exige déjà
+  // ailleurs), jamais élargie par ce changement.
+  rechercheGlobale: protectedProcedure
     .input(
       z.object({
         q: z.string().min(1).max(300),
@@ -1554,7 +1568,7 @@ export const intelligencesRouter = router({
     .query(({ input, ctx }) =>
       rechercherGlobale(input.q, ctx.user.uid, {
         sources: input.sources as SourceRecherche[] | undefined,
-        visibiliteConnaissance: ["interne", "pdg_uniquement"],
+        visibiliteConnaissance: ctx.user.role === "super_admin" ? ["interne", "pdg_uniquement"] : ["interne"],
         sessionId: input.sessionId,
         projetId: input.projetId,
       }),

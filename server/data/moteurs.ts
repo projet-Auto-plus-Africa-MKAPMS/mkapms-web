@@ -11236,11 +11236,11 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
           "/admin/intelligences",
           "/intelligence"
         ],
-        "cliquables": 20,
+        "cliquables": 22,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 55,
-        "mots": 162
+        "textes": 60,
+        "mots": 181
       }
     ],
     "ecransHotes": [
@@ -11471,8 +11471,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "pdg",
       "public"
     ],
-    "textes": 64,
-    "mots": 251,
+    "textes": 69,
+    "mots": 270,
     "battement": "sonde",
     "manques": [
       {

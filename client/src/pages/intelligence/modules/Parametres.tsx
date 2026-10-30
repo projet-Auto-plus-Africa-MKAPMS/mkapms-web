@@ -19,14 +19,34 @@ type ActionReglage =
   | { type: "route"; value: string }
   | { type: "anchor"; value: string };
 
-export function Parametres({ onChooseModule }: { onChooseModule?: (key: string) => void } = {}) {
-  const regles = trpc.intelligences.regles.useQuery();
+/**
+ * Au-delà de "Compte" (toujours universel), les sections Voix temps réel,
+ * Plugins, Intensité & fonctions, Règles maîtres et Déploiement reposent sur
+ * des procédures encore réservées à la direction (server/intelligences/
+ * index.ts : apercuVoix, creerCleDeveloppeur, reglerFonction,
+ * approbateursDeploiement, historiqueDeploiements, regles — jamais élargies
+ * par la correction de portail du 30/10, faute d'une vérification de coût ou
+ * de confidentialité suffisante pour les ouvrir sans risque). Visibles
+ * seulement pour les niveaux direction/pdg ; invisibles, jamais un module
+ * cassé, pour les autres.
+ */
+export function Parametres({ onChooseModule, niveauComplet = true }: { onChooseModule?: (key: string) => void; niveauComplet?: boolean } = {}) {
+  const regles = trpc.intelligences.regles.useQuery(undefined, { enabled: niveauComplet });
   const navigate = useNavigate();
 
+  type Ligne = [string, typeof Bell, ActionReglage];
+  const lignesVoixLangue: Ligne[] = niveauComplet ? [
+    ["Voix", AudioLines, { type: "anchor", value: "alhud-voice-settings" }],
+    ["Langue", Globe2, { type: "anchor", value: "alhud-voice-settings" }],
+  ] : [];
+  const lignesDirection: Ligne[] = niveauComplet ? [
+    ["Plugins", Plug, { type: "module", value: "integrations" }],
+    ["Intensité & fonctions", Gauge, { type: "anchor", value: "alhud-live-settings" }],
+    ["Règles maîtres", Brain, { type: "anchor", value: "alhud-master-rules" }],
+  ] : [];
   const groups = [
     { title: "Général", rows: [
-      ["Voix", AudioLines, { type: "anchor", value: "alhud-voice-settings" }],
-      ["Langue", Globe2, { type: "anchor", value: "alhud-voice-settings" }],
+      ...lignesVoixLangue,
       ["Notifications", Bell, { type: "route", value: "/notifications/parametres-notifications" }],
       ["Apparence & compte", Palette, { type: "route", value: "/parametres" }],
       ["Confidentialité", ShieldCheck, { type: "route", value: "/confidentialite" }],
@@ -35,9 +55,7 @@ export function Parametres({ onChooseModule }: { onChooseModule?: (key: string) 
       ["Plateforme principale", Sparkles, { type: "module", value: "conversation" }],
       ["Mémoire IA", Database, { type: "module", value: "memoire" }],
       ["Documents & contrôle", FileCheck2, { type: "module", value: "documents" }],
-      ["Plugins", Plug, { type: "module", value: "integrations" }],
-      ["Intensité & fonctions", Gauge, { type: "anchor", value: "alhud-live-settings" }],
-      ["Règles maîtres", Brain, { type: "anchor", value: "alhud-master-rules" }],
+      ...lignesDirection,
     ]},
     { title: "Compte", rows: [
       ["Profil", UserRound, { type: "route", value: "/compte?tab=profil" }],
@@ -77,6 +95,7 @@ export function Parametres({ onChooseModule }: { onChooseModule?: (key: string) 
           )}</div>
         </div>)}
       </section>
+      {niveauComplet ? (<>
       <div id="alhud-voice-settings" className="scroll-mt-4"><VoiceSettingsPanel title="Voix AL-HUDHUD·M" /></div>
       <details id="alhud-live-settings" className="scroll-mt-4 rounded-xl border border-black/10 bg-white">
         <summary className="flex cursor-pointer list-none items-center gap-2 p-4 [&::-webkit-details-marker]:hidden">
@@ -136,6 +155,7 @@ export function Parametres({ onChooseModule }: { onChooseModule?: (key: string) 
           ))}
         </ul>
       </div>
+      </>) : null}
     </div>
   );
 }
