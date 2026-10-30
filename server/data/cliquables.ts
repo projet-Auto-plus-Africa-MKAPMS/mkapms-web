@@ -40,7 +40,7 @@ export interface AnomalieCliquable {
   readonly motif: MotifAnomalie;
 }
 
-export const CLIQUABLES_TOTAL = 2915;
+export const CLIQUABLES_TOTAL = 2923;
 
 export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/components/AccessDenied.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
@@ -119,7 +119,7 @@ export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/pages/CentreDocuments.tsx", total: 5, moteur: 0, liens: 4, boutonsLocaux: 1, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/CentreIA.tsx", total: 7, moteur: 0, liens: 1, boutonsLocaux: 6, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/CentreIndexation.tsx", total: 6, moteur: 0, liens: 1, boutonsLocaux: 5, sansAction: 0, zones: 0 },
-  { fichier: "client/src/pages/CentreIntelligences.tsx", total: 23, moteur: 0, liens: 4, boutonsLocaux: 19, sansAction: 0, zones: 0 },
+  { fichier: "client/src/pages/CentreIntelligences.tsx", total: 27, moteur: 0, liens: 4, boutonsLocaux: 23, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/CentrePenalites.tsx", total: 2, moteur: 0, liens: 1, boutonsLocaux: 1, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/CentreProduitsGoogle.tsx", total: 3, moteur: 0, liens: 1, boutonsLocaux: 2, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/CentreReglesPays.tsx", total: 5, moteur: 0, liens: 1, boutonsLocaux: 4, sansAction: 0, zones: 0 },
@@ -354,7 +354,7 @@ export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/pages/intelligence/modules/Automatisations.tsx", total: 3, moteur: 0, liens: 0, boutonsLocaux: 3, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/intelligence/modules/CableBoutique.tsx", total: 11, moteur: 0, liens: 0, boutonsLocaux: 11, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/intelligence/modules/Coffre.tsx", total: 19, moteur: 0, liens: 0, boutonsLocaux: 19, sansAction: 0, zones: 0 },
-  { fichier: "client/src/pages/intelligence/modules/Conversation.tsx", total: 40, moteur: 0, liens: 0, boutonsLocaux: 39, sansAction: 0, zones: 1 },
+  { fichier: "client/src/pages/intelligence/modules/Conversation.tsx", total: 44, moteur: 0, liens: 0, boutonsLocaux: 43, sansAction: 0, zones: 1 },
   { fichier: "client/src/pages/intelligence/modules/DeploiementApprobateurs.tsx", total: 2, moteur: 0, liens: 0, boutonsLocaux: 2, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/intelligence/modules/DeploiementsEnAttente.tsx", total: 2, moteur: 0, liens: 0, boutonsLocaux: 2, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/intelligence/modules/DeploiementSuivi.tsx", total: 1, moteur: 0, liens: 0, boutonsLocaux: 1, sansAction: 0, zones: 0 },

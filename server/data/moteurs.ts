@@ -6275,7 +6275,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routers/admin.ts importe auth.ts"
       ],
       "intelligences": [
-        "client/src/pages/CentreIntelligences.tsx appelle trpc.intelligences"
+        "client/src/pages/CentreIntelligences.tsx appelle trpc.intelligences",
+        "client/src/pages/CentreIntelligences.tsx embarque lib/modeleIa.ts (trpc.intelligences)"
       ],
       "monitoring": [
         "client/src/pages/CentreIntelligences.tsx appelle trpc.monitoringOs"
@@ -6433,11 +6434,11 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/admin/intelligences/direction"
         ],
-        "cliquables": 23,
+        "cliquables": 27,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 209,
-        "mots": 1476
+        "textes": 214,
+        "mots": 1528
       },
       {
         "fichier": "client/src/pages/EngineRegistry/ControlCenter.tsx",
@@ -6892,8 +6893,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "pdg",
       "public"
     ],
-    "textes": 584,
-    "mots": 3055,
+    "textes": 589,
+    "mots": 3107,
     "battement": "contrat",
     "manques": [
       {
@@ -11283,6 +11284,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "fichier": "client/src/pages/CentreIntelligences.tsx",
         "route": "/admin/intelligences/direction",
         "composants": [
+          "lib/modeleIa.ts",
           "trpc.intelligences"
         ]
       }
@@ -11383,6 +11385,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "memoireUtilisateurSupprimer",
       "mission",
       "missions",
+      "modelesDisponibles",
       "moteur",
       "noterAppel",
       "permissions",

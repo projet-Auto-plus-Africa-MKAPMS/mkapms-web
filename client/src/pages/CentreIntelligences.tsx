@@ -19,6 +19,7 @@ import {
   Brain,
   Check,
   ChevronLeft,
+  Bot,
   Code2,
   Copy,
   Cpu,
@@ -44,6 +45,7 @@ import {
 import { trpc } from "../lib/trpc";
 import { useAuth } from "../lib/auth";
 import { type Intensite, NIVEAUX_INTENSITE, intensiteValide, CLE_INTENSITE_STOCKAGE } from "../lib/intensite";
+import { CLE_MODELE_STOCKAGE, MODELE_AUTO, modeleValide, libelleModele, modeleReponseDiffere } from "../lib/modeleIa";
 import { readVoicePreferences, writeVoicePreferences, recognitionLanguage } from "../lib/voicePreferences";
 import { speechRecognitionConstructor, startDictation } from "../lib/speech";
 
@@ -210,6 +212,28 @@ export default function CentreIntelligences() {
     }
   });
   const [intensiteMenuOuvert, setIntensiteMenuOuvert] = useState(false);
+  const modeles = trpc.intelligences.modelesDisponibles.useQuery();
+  const [modeleChoisi, setModeleChoisi] = useState<string>(() => {
+    try {
+      return localStorage.getItem(CLE_MODELE_STOCKAGE) || MODELE_AUTO;
+    } catch {
+      return MODELE_AUTO;
+    }
+  });
+  useEffect(() => {
+    if (!modeles.data) return;
+    setModeleChoisi((v) => modeleValide(v, modeles.data!.map((m) => m.id)));
+  }, [modeles.data]);
+  const [modeleMenuOuvert, setModeleMenuOuvert] = useState(false);
+  const [dernierModeleUtilise, setDernierModeleUtilise] = useState<{ id: string | null; choix: string } | null>(null);
+  function choisirModele(valeur: string) {
+    setModeleChoisi(valeur);
+    try {
+      localStorage.setItem(CLE_MODELE_STOCKAGE, valeur);
+    } catch {
+      // Stockage local indisponible (navigation privée) : le choix reste actif pour cette session.
+    }
+  }
   function choisirIntensite(valeur: Intensite) {
     setIntensite(valeur);
     try {
@@ -330,6 +354,7 @@ export default function CentreIntelligences() {
     onSuccess: (r, _variables, sent) => {
       if (!sent || !isCurrentWorkspace(sent.epoch, sent.owner)) return;
       setSessionId(r.sessionId);
+      setDernierModeleUtilise({ id: r.modele, choix: modeleChoisi });
       conversationDrafts.current.delete(sent.key);
       void workspaceUtils.intelligences.conversations.invalidate();
       // Le titre de sujet est généré juste après la réponse : on relit la liste un peu plus tard.
@@ -677,7 +702,7 @@ export default function CentreIntelligences() {
     setQuestion("");
     const images = pieces;
     setPieces([]);
-    demander.mutate({ question: texteEnvoye, sessionId, images: images.length ? images : undefined, effort: intensite });
+    demander.mutate({ question: texteEnvoye, sessionId, images: images.length ? images : undefined, effort: intensite, modele: modeleChoisi });
   }
 
   /** Copie honnête : le texte réellement reçu, rien de plus. */
@@ -1144,8 +1169,60 @@ export default function CentreIntelligences() {
                               ))}
                             </div>
                             <p className="mt-2 text-[10px] leading-snug text-black/45">
-                              Un seul modèle est configuré ({"gpt-5.5"}) : ce réglage ne le change pas, il le fait
-                              réfléchir plus ou moins longtemps avant de répondre.
+                              Ce réglage ne change jamais le modèle (voir le bouton Modèle à côté) : il fait
+                              réfléchir plus ou moins longtemps celui qui répond, automatique ou choisi.
+                            </p>
+                          </div>
+                        </>
+                      ) : null}
+                    </div>
+                    <div className="relative">
+                      <button
+                        type="button"
+                        onClick={() => setModeleMenuOuvert((v) => !v)}
+                        title="Choisir le modèle"
+                        className="inline-flex h-9 w-9 items-center justify-center rounded-full text-black/50 hover:bg-black/5"
+                      >
+                        <Bot className="h-4 w-4" />
+                      </button>
+                      {modeleMenuOuvert ? (
+                        <>
+                          <button
+                            type="button"
+                            aria-label="Fermer le choix de modèle"
+                            onClick={() => setModeleMenuOuvert(false)}
+                            className="fixed inset-0 z-10 cursor-default"
+                          />
+                          <div className="absolute bottom-full right-0 z-20 mb-2 w-64 rounded-2xl border border-black/10 bg-white p-3 shadow-xl">
+                            <div className="flex items-center justify-between">
+                              <p className="text-[11px] font-black uppercase tracking-wide text-black/40">Modèle</p>
+                              <button type="button" onClick={() => setModeleMenuOuvert(false)} className="rounded-full p-1 hover:bg-black/5">
+                                <X className="h-3.5 w-3.5 text-black/40" />
+                              </button>
+                            </div>
+                            <div className="mt-2 flex flex-col gap-1">
+                              <button
+                                type="button"
+                                onClick={() => choisirModele(MODELE_AUTO)}
+                                className={`rounded-xl px-3 py-2 text-left text-[12px] font-bold ${modeleChoisi === MODELE_AUTO ? "bg-[#8B7500] text-white" : "text-black/70 hover:bg-black/5"}`}
+                              >
+                                Automatique — recommandé
+                              </button>
+                              {(modeles.data ?? []).map((m) => (
+                                <button
+                                  key={m.id}
+                                  type="button"
+                                  onClick={() => choisirModele(m.id)}
+                                  className={`rounded-xl px-3 py-2 text-left text-[12px] font-bold ${modeleChoisi === m.id ? "bg-[#8B7500] text-white" : "text-black/70 hover:bg-black/5"}`}
+                                >
+                                  {m.label}
+                                </button>
+                              ))}
+                            </div>
+                            <p className="mt-2 text-[10px] leading-snug text-black/45">
+                              En automatique, le mieux adapté est choisi pour vous. Un choix explicite est
+                              toujours respecté quand il est réellement disponible — sinon, le modèle
+                              réellement utilisé est réaffiché après la réponse.
                             </p>
                           </div>
                         </>
@@ -1174,6 +1251,14 @@ export default function CentreIntelligences() {
                 </>
               )}
             </div>
+            {dernierModeleUtilise ? (
+              <p className="mt-1 text-[10px] font-bold text-black/45">
+                Modèle utilisé : {libelleModele(dernierModeleUtilise.id, modeles.data ?? [])}
+                {modeleReponseDiffere(dernierModeleUtilise.choix, dernierModeleUtilise.id) ? (
+                  <span className="ml-1 text-[#8B7500]">— différent du choix demandé, indisponible à l'instant de la réponse</span>
+                ) : null}
+              </p>
+            ) : null}
           </div>
         </section>
       ) : null}
