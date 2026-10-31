@@ -118,7 +118,9 @@ export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
 export const ROUTES_SANS_MOTEUR: readonly string[] = [
   "/acheter/encheres/operations",
   "/b2b",
+  "/carburant/:valeur",
   "/desabonnement",
+  "/marque/:valeur",
   "/rejoindre",
   "/superadmin/campagnes-email",
   "/superadmin/fournisseurs",
@@ -1004,6 +1006,20 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "route": "/louer/certifies",
         "composants": [
           "components/ReserverLocationButton.tsx",
+          "trpc.annonces"
+        ]
+      },
+      {
+        "fichier": "client/src/pages/CollectionVehicules.tsx",
+        "route": "/carburant/:valeur",
+        "composants": [
+          "trpc.annonces"
+        ]
+      },
+      {
+        "fichier": "client/src/pages/CollectionVehicules.tsx",
+        "route": "/marque/:valeur",
+        "composants": [
           "trpc.annonces"
         ]
       },
@@ -22054,8 +22070,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "cliquables": 62,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 290,
-        "mots": 1524
+        "textes": 297,
+        "mots": 1556
       }
     ],
     "ecransHotes": [
@@ -22184,6 +22200,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "searchStats",
       "seedKnowledge",
       "sendDailyReport",
+      "sourceBreakdown",
       "teach",
       "teachingConversation",
       "teachingStats",
@@ -22229,8 +22246,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "pdg",
       "public"
     ],
-    "textes": 351,
-    "mots": 1799,
+    "textes": 358,
+    "mots": 1831,
     "battement": "contrat",
     "manques": [
       {

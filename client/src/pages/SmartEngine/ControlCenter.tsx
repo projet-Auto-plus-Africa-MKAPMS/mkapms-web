@@ -39,6 +39,8 @@ import {
   GraduationCap,
   Send,
   Globe,
+  Share2,
+  Link2,
   Lightbulb,
   Plus,
   Cpu,
@@ -2659,6 +2661,7 @@ function ComportementTab() {
   const activeUsers = trpc.smartEngine.activeUsers.useQuery();
   const pulse = trpc.smartEngine.platformPulse.useQuery({ days: 7 });
   const daily = trpc.smartEngine.dailyVisits.useQuery({ days: 30 });
+  const sources = trpc.smartEngine.sourceBreakdown.useQuery({ days: 30 });
 
   if (pageStats.isLoading) return <Loading />;
 
@@ -2751,6 +2754,33 @@ function ComportementTab() {
           </div>
         ) : (
           <Empty msg="Aucune visite enregistrée sur la période — le système collecte en continu" />
+        )}
+      </div>
+
+      {/* D'où viennent les visiteurs */}
+      <div>
+        <h3 className="text-sm font-bold text-[#111] mb-2">D'où viennent vos visiteurs — 30 jours</h3>
+        {sources.data && sources.data.length > 0 ? (
+          <>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              {sources.data.map((s: any) => {
+                const meta: Record<string, { label: string; color: string; icon: typeof Globe }> = {
+                  google: { label: "Recherche Google", color: "green", icon: Globe },
+                  social: { label: "Réseaux sociaux", color: "blue", icon: Share2 },
+                  direct: { label: "Accès direct", color: "purple", icon: Link2 },
+                  other: { label: "Autre", color: "yellow", icon: ExternalLink },
+                  unknown: { label: "Non mesuré (avant cette fonction)", color: "gray", icon: Clock },
+                };
+                const m = meta[s.source] ?? meta.other;
+                return <StatCard key={s.source} label={m.label} value={s.visits} color={m.color} icon={m.icon} />;
+              })}
+            </div>
+            <p className="mt-1.5 text-[10px] text-[#6B7280]">
+              Catégorie calculée depuis le référent du navigateur à l'arrivée, jamais l'adresse complète conservée.
+            </p>
+          </>
+        ) : (
+          <Empty msg="Aucune visite mesurée sur 30 jours" />
         )}
       </div>
 
