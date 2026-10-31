@@ -2,10 +2,19 @@ import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   MessageSquare, Search, Send, ChevronLeft, CheckCheck, Check, Loader2, ChevronRight,
+  HandCoins, ThumbsUp, ThumbsDown, Repeat,
 } from "lucide-react";
 import { trpc } from "../lib/trpc";
 import { getAnnonceUrl } from "../lib/annonceUrl";
 import { useCurrency } from "../lib/currency";
+
+const LIBELLE_STATUT_OFFRE: Record<string, string> = {
+  en_attente: "En attente de réponse",
+  acceptee: "Offre acceptée",
+  refusee: "Offre refusée",
+  contre_offre: "Remplacée par une contre-offre",
+  annulee: "Annulée",
+};
 
 /* ══════════════════════════════════════════════════════════════════════════
    MESSAGERIE INTERNE UNIQUE
@@ -31,6 +40,10 @@ export default function Messagerie() {
 
   const [search, setSearch] = useState("");
   const [message, setMessage] = useState("");
+  const [offerForm, setOfferForm] = useState(false);
+  const [offerAmount, setOfferAmount] = useState("");
+  const [counterFor, setCounterFor] = useState<number | null>(null);
+  const [counterAmount, setCounterAmount] = useState("");
   const utils = trpc.useUtils();
   const { format: formatPrice } = useCurrency();
 
@@ -51,6 +64,16 @@ export default function Messagerie() {
       if (selectedId != null) utils.messages.getThread.invalidate({ id: selectedId });
       utils.messages.listThreads.invalidate();
     },
+  });
+  const invalidateApresOffre = () => {
+    if (selectedId != null) utils.messages.getThread.invalidate({ id: selectedId });
+    utils.messages.listThreads.invalidate();
+  };
+  const proposerOffre = trpc.messages.proposerOffre.useMutation({
+    onSuccess: () => { setOfferForm(false); setOfferAmount(""); invalidateApresOffre(); },
+  });
+  const repondreOffre = trpc.messages.repondreOffre.useMutation({
+    onSuccess: () => { setCounterFor(null); setCounterAmount(""); invalidateApresOffre(); },
   });
 
   // Marque comme lus les messages reçus dès l'ouverture d'une conversation.
@@ -109,21 +132,123 @@ export default function Messagerie() {
               Envoyez votre premier message au vendeur au sujet de cette annonce.
             </p>
           ) : (
-            t?.messages.map((m) => (
-              <div key={m.id} className={`flex ${m.mine ? "justify-end" : "justify-start"}`}>
-                <div className={`max-w-[80%] rounded-2xl px-4 py-2.5 ${m.mine ? "bg-[#D4AF37] text-white rounded-br-sm" : "bg-white text-[#111] border border-[#E5E7EB] rounded-bl-sm"}`}>
-                  <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">{m.content}</p>
-                  <div className={`flex items-center justify-end gap-1 mt-1 ${m.mine ? "text-white/60" : "text-[#9CA3AF]"}`}>
-                    <span className="text-[9px]">{fmtDate(m.createdAt)}</span>
-                    {m.mine && (m.status === "lu" ? <CheckCheck size={10} /> : <Check size={10} />)}
+            t?.messages.map((m) => {
+              if (m.offer) {
+                const peutRepondre = m.offer.status === "en_attente" && !m.mine;
+                return (
+                  <div key={m.id} className={`flex ${m.mine ? "justify-end" : "justify-start"}`}>
+                    <div className="max-w-[85%] rounded-2xl border border-[#D4AF37]/40 bg-[#FFFBEA] px-4 py-3">
+                      <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wide text-[#8B7500]">
+                        <HandCoins size={12} /> {m.mine ? "Votre offre" : "Offre reçue"}
+                      </div>
+                      <p className="mt-1 text-lg font-black text-[#111]">{formatPrice(Number(m.offer.montant))}</p>
+                      <p className="text-[11px] font-semibold text-[#6B7280]">{LIBELLE_STATUT_OFFRE[m.offer.status] ?? m.offer.status}</p>
+                      {peutRepondre && (
+                        <div className="mt-2 flex flex-wrap gap-1.5">
+                          <button
+                            type="button"
+                            disabled={repondreOffre.isPending}
+                            onClick={() => repondreOffre.mutate({ offerId: m.offer!.id, decision: "acceptee" })}
+                            className="flex items-center gap-1 rounded-lg bg-[#1a7f37] px-2.5 py-1.5 text-[11px] font-bold text-white disabled:opacity-50"
+                          >
+                            <ThumbsUp size={12} /> Accepter
+                          </button>
+                          <button
+                            type="button"
+                            disabled={repondreOffre.isPending}
+                            onClick={() => repondreOffre.mutate({ offerId: m.offer!.id, decision: "refusee" })}
+                            className="flex items-center gap-1 rounded-lg border border-red-200 bg-white px-2.5 py-1.5 text-[11px] font-bold text-red-600 disabled:opacity-50"
+                          >
+                            <ThumbsDown size={12} /> Refuser
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setCounterFor(counterFor === m.offer!.id ? null : m.offer!.id)}
+                            className="flex items-center gap-1 rounded-lg border border-[#D4AF37]/40 bg-white px-2.5 py-1.5 text-[11px] font-bold text-[#8B7500]"
+                          >
+                            <Repeat size={12} /> Contre-offrir
+                          </button>
+                        </div>
+                      )}
+                      {peutRepondre && counterFor === m.offer.id && (
+                        <div className="mt-2 flex gap-1.5">
+                          <input
+                            type="number"
+                            min={1}
+                            placeholder="Votre montant"
+                            value={counterAmount}
+                            onChange={(e) => setCounterAmount(e.target.value)}
+                            className="flex-1 rounded-lg border border-[#E5E7EB] px-2.5 py-1.5 text-xs"
+                          />
+                          <button
+                            type="button"
+                            disabled={!counterAmount || Number(counterAmount) <= 0 || repondreOffre.isPending}
+                            onClick={() => repondreOffre.mutate({ offerId: m.offer!.id, decision: "contre_offre", contreMontant: Number(counterAmount) })}
+                            className="rounded-lg bg-[#111] px-3 py-1.5 text-[11px] font-bold text-white disabled:opacity-40"
+                          >
+                            Envoyer
+                          </button>
+                        </div>
+                      )}
+                      <p className={`mt-1.5 text-[9px] ${m.mine ? "text-black/40" : "text-[#9CA3AF]"}`}>{fmtDate(m.createdAt)}</p>
+                    </div>
+                  </div>
+                );
+              }
+              return (
+                <div key={m.id} className={`flex ${m.mine ? "justify-end" : "justify-start"}`}>
+                  <div className={`max-w-[80%] rounded-2xl px-4 py-2.5 ${m.mine ? "bg-[#D4AF37] text-white rounded-br-sm" : "bg-white text-[#111] border border-[#E5E7EB] rounded-bl-sm"}`}>
+                    <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">{m.content}</p>
+                    <div className={`flex items-center justify-end gap-1 mt-1 ${m.mine ? "text-white/60" : "text-[#9CA3AF]"}`}>
+                      <span className="text-[9px]">{fmtDate(m.createdAt)}</span>
+                      {m.mine && (m.status === "lu" ? <CheckCheck size={10} /> : <Check size={10} />)}
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))
+              );
+            })
           )}
         </div>
 
+        {(proposerOffre.error || repondreOffre.error) && (
+          <p className="px-4 pb-1 text-[11px] font-semibold text-red-600 bg-white">
+            {proposerOffre.error?.message ?? repondreOffre.error?.message}
+          </p>
+        )}
+
+        {a?.negociable && offerForm && (
+          <div className="bg-white border-t border-[#E5E7EB] px-4 py-2.5 flex items-center gap-2">
+            <input
+              type="number"
+              min={1}
+              placeholder={`Votre offre en ${a.devise ?? "EUR"}`}
+              value={offerAmount}
+              onChange={(e) => setOfferAmount(e.target.value)}
+              className="flex-1 rounded-full border border-[#D4AF37]/40 bg-[#FFFBEA] px-3.5 py-2 text-sm outline-none"
+            />
+            <button
+              type="button"
+              disabled={!offerAmount || Number(offerAmount) <= 0 || selectedId == null || proposerOffre.isPending}
+              onClick={() => selectedId != null && proposerOffre.mutate({ threadId: selectedId, montant: Number(offerAmount) })}
+              className="rounded-full bg-[#D4AF37] px-4 py-2 text-xs font-bold text-white disabled:opacity-50"
+            >
+              {proposerOffre.isPending ? "…" : "Envoyer"}
+            </button>
+          </div>
+        )}
+
         <div className="bg-white border-t border-[#E5E7EB] px-4 py-3 flex items-center gap-2" style={{ paddingBottom: "max(12px, env(safe-area-inset-bottom))" }}>
+          {a?.negociable && (
+            <button
+              type="button"
+              onClick={() => setOfferForm((v) => !v)}
+              aria-label="Faire une offre"
+              aria-pressed={offerForm}
+              className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full border transition ${offerForm ? "border-[#D4AF37] bg-[#FFFBEA] text-[#8B7500]" : "border-[#E5E7EB] text-[#6B7280]"}`}
+            >
+              <HandCoins size={15} />
+            </button>
+          )}
           <div className="flex-1 flex items-center rounded-full bg-[#F5F3EF] px-3 py-2">
             <input
               type="text"

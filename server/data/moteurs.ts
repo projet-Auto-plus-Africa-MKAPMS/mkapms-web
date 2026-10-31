@@ -6838,6 +6838,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "languages",
       "location_calendar",
       "locations",
+      "message_offers",
       "message_threads",
       "messages",
       "modules",
@@ -14043,11 +14044,11 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/messagerie"
         ],
-        "cliquables": 2,
+        "cliquables": 8,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 6,
-        "mots": 37
+        "textes": 10,
+        "mots": 41
       }
     ],
     "ecransHotes": [
@@ -14119,7 +14120,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "meta",
       "openReports",
       "openThread",
+      "proposerOffre",
       "reasons",
+      "repondreOffre",
       "report",
       "resolveReport",
       "send",
@@ -14135,8 +14138,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "connecte",
       "public"
     ],
-    "textes": 6,
-    "mots": 37,
+    "textes": 10,
+    "mots": 41,
     "battement": "pont_os",
     "manques": [
       {
@@ -23828,11 +23831,11 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/vente/negociation/:id"
         ],
-        "cliquables": 3,
+        "cliquables": 7,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 6,
-        "mots": 15
+        "textes": 9,
+        "mots": 17
       },
       {
         "fichier": "client/src/pages/vente/CentreObjectifs.tsx",
@@ -24071,8 +24074,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "procedures": [],
     "tables": [],
     "acces": [],
-    "textes": 1058,
-    "mots": 4139,
+    "textes": 1061,
+    "mots": 4141,
     "battement": "sonde",
     "manques": [
       {

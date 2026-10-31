@@ -1205,6 +1205,13 @@
       "when": 1793350000000,
       "tag": "0173_activation_offres_ia",
       "breakpoints": true
+    },
+    {
+      "idx": 172,
+      "version": "7",
+      "when": 1793360000000,
+      "tag": "0174_message_offers",
+      "breakpoints": true
     }
   ]
 }

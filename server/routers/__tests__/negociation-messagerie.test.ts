@@ -1,25 +1,31 @@
 /**
- * Négociation (client/src/pages/vente/CentreNegociation.tsx). Base de
- * données réelle.
+ * Négociation (client/src/pages/vente/CentreNegociation.tsx + Messagerie.tsx).
+ * Base de données réelle.
  *
  * Corrige un écran orphelin : /vente/negociation n'acceptait aucun
  * identifiant de véhicule, n'était référencé nulle part (le bouton "Faire
  * une offre au vendeur" de la fiche véhicule redirigeait vers /finance, une
  * page sans rapport), et était verrouillé derrière la porte d'accès
  * professionnelle alors qu'il s'adresse à un acheteur. Aucun nouveau moteur
- * n'a été écrit : une négociation EST une conversation liée à l'annonce, et
- * le moteur de messagerie (server/routers/messages.ts) couvrait déjà
- * exactement ce besoin (utilisé par "Contacter le vendeur"). Ce test
- * confirme que ce moteur, réutilisé tel quel, se comporte comme l'écran
- * l'exige : ouverture idempotente du fil, isolement des tiers, envoi
- * d'une offre comme simple message.
+ * de conversation n'a été écrit : une négociation EST une conversation liée
+ * à l'annonce, et le moteur de messagerie (server/routers/messages.ts)
+ * couvrait déjà exactement ce besoin (utilisé par "Contacter le vendeur").
+ *
+ * Évolution (30/10) : l'offre elle-même est passée d'un texte libre
+ * ("💰 Nouvelle offre : X EUR" à interpréter) à un état structuré
+ * (messageOffers via proposerOffre/repondreOffre), pour qu'Accepter/
+ * Refuser/Contre-offrir soient de vraies actions avec un vrai statut — pas
+ * une réponse texte qu'il faut relire pour deviner ce qui a été décidé. La
+ * conversation reste une conversation : chaque offre est toujours portée
+ * par un message normal (offerId), et le chat libre marche toujours
+ * exactement comme avant (sections 3-5 ci-dessous, inchangées).
  *
  * Lancement : `npx tsx server/routers/__tests__/negociation-messagerie.test.ts`
  */
 import assert from "node:assert/strict";
 import { eq, inArray } from "drizzle-orm";
 import { db } from "../../db.js";
-import { annonces, messageThreads, messages, users } from "../../schema.js";
+import { annonces, messageOffers, messageThreads, messages, users } from "../../schema.js";
 import { messagesRouter } from "../messages.js";
 
 let ok = 0;
@@ -46,7 +52,10 @@ async function nettoyer() {
   if (ids.length) {
     const threads = await db.select({ id: messageThreads.id }).from(messageThreads).where(inArray(messageThreads.annonceId, ids));
     const threadIds = threads.map((t) => t.id);
-    if (threadIds.length) await db.delete(messages).where(inArray(messages.threadId, threadIds));
+    if (threadIds.length) {
+      await db.delete(messages).where(inArray(messages.threadId, threadIds));
+      await db.delete(messageOffers).where(inArray(messageOffers.threadId, threadIds));
+    }
     await db.delete(messageThreads).where(inArray(messageThreads.annonceId, ids));
     await db.delete(annonces).where(inArray(annonces.id, ids));
   }
@@ -90,6 +99,61 @@ async function main() {
     refuse = (err as { code?: string }).code === "FORBIDDEN";
   }
   verif("5. un tiers ne peut pas lire un fil qui ne le concerne pas", refuse);
+
+  // ── 6. Offre structurée : proposer, voir le statut, refuser l'offre ──
+  const o1 = await callerAcheteur.proposerOffre({ threadId: t1.threadId, montant: 22000 });
+  verif("6. une offre structurée est créée", !!o1.offerId);
+  const filOffre = await callerVendeur.getThread({ id: t1.threadId });
+  const msgOffre = filOffre.messages.find((m) => m.offer?.id === o1.offerId);
+  verif("6. le vendeur voit l'offre avec son statut en_attente", msgOffre?.offer?.status === "en_attente");
+  verif("6. le montant de l'offre est correct", Number(msgOffre?.offer?.montant) === 22000);
+
+  let doublon = false;
+  try {
+    await callerAcheteur.proposerOffre({ threadId: t1.threadId, montant: 23000 });
+  } catch (err) {
+    doublon = (err as { code?: string }).code === "BAD_REQUEST";
+  }
+  verif("6. impossible de proposer une 2e offre tant que la 1re est en attente", doublon);
+
+  let proprePas = false;
+  try {
+    await callerAcheteur.repondreOffre({ offerId: o1.offerId, decision: "acceptee" });
+  } catch (err) {
+    proprePas = (err as { code?: string }).code === "BAD_REQUEST";
+  }
+  verif("6. l'auteur de l'offre ne peut pas répondre à sa propre offre", proprePas);
+
+  await callerVendeur.repondreOffre({ offerId: o1.offerId, decision: "refusee" });
+  const filRefus = await callerAcheteur.getThread({ id: t1.threadId });
+  const offreRefusee = filRefus.messages.find((m) => m.offer?.id === o1.offerId);
+  verif("6. l'offre refusée passe au statut refusee", offreRefusee?.offer?.status === "refusee");
+
+  // ── 7. Contre-offre : chaîne offre → contre-offre → acceptation ──
+  const o2 = await callerAcheteur.proposerOffre({ threadId: t1.threadId, montant: 21000 });
+  const contre = await callerVendeur.repondreOffre({ offerId: o2.offerId, decision: "contre_offre", contreMontant: 23500 });
+  verif("7. la contre-offre crée une nouvelle offre", contre.status === "contre_offre" && !!contre.offerId);
+  const filContre = await callerAcheteur.getThread({ id: t1.threadId });
+  const offreInitiale = filContre.messages.find((m) => m.offer?.id === o2.offerId);
+  const nouvelleOffre = filContre.messages.find((m) => m.offer?.id === contre.offerId);
+  verif("7. l'offre initiale passe au statut contre_offre (remplacée)", offreInitiale?.offer?.status === "contre_offre");
+  verif("7. la nouvelle offre (du vendeur) est en_attente, montant correct", nouvelleOffre?.offer?.status === "en_attente" && Number(nouvelleOffre?.offer?.montant) === 23500);
+
+  await callerAcheteur.repondreOffre({ offerId: contre.offerId!, decision: "acceptee" });
+  const filAcceptee = await callerVendeur.getThread({ id: t1.threadId });
+  const offreFinale = filAcceptee.messages.find((m) => m.offer?.id === contre.offerId);
+  verif("7. l'offre finale est acceptée", offreFinale?.offer?.status === "acceptee");
+
+  // ── 8. Une annonce non négociable refuse toute offre structurée ──
+  const [annonceFixe] = await db.insert(annonces).values({ ownerId: VENDEUR, titre: `${PREFIX}BMW Série 1`, marque: "BMW", modele: "Série 1", negociable: false }).returning();
+  const tFixe = await callerAcheteur.openThread({ annonceId: annonceFixe.id });
+  let refusNegociable = false;
+  try {
+    await callerAcheteur.proposerOffre({ threadId: tFixe.threadId, montant: 15000 });
+  } catch (err) {
+    refusNegociable = (err as { code?: string }).code === "BAD_REQUEST";
+  }
+  verif("8. une annonce non négociable refuse une offre structurée", refusNegociable);
 
   await nettoyer();
 

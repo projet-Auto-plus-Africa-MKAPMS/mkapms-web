@@ -1,9 +1,9 @@
 import { z } from "zod";
-import { and, desc, eq, ne, or, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, ne, or, sql } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 import { router, protectedProcedure } from "../trpc.js";
 import { db } from "../db.js";
-import { messageThreads, messages, annonces, users } from "../schema.js";
+import { messageThreads, messages, messageOffers, annonces, users } from "../schema.js";
 import { assertCanSend } from "../messaging-os/index.js";
 import { notifyEvent } from "../notification-os/triggers.js";
 import { nomPublic } from "../identity-os/identite-officielle.js";
@@ -31,6 +31,10 @@ async function loadAnnonce(annonceId: number) {
       prix: annonces.prix,
       categorieAnnonce: annonces.categorieAnnonce,
       vendeurType: annonces.vendeurType,
+      // Négociation structurée (proposerOffre) : le client a besoin de
+      // savoir si l'offre est proposable, et dans quelle devise l'afficher.
+      negociable: annonces.negociable,
+      devise: annonces.devise,
     })
     .from(annonces)
     .where(eq(annonces.id, annonceId))
@@ -151,18 +155,32 @@ export const messagesRouter = router({
         .from(messages)
         .where(eq(messages.threadId, t.id))
         .orderBy(messages.createdAt);
+
+      const offerIds = msgs.map((m) => m.offerId).filter((id): id is number => id != null);
+      const offerRows = offerIds.length
+        ? await db.select().from(messageOffers).where(inArray(messageOffers.id, offerIds))
+        : [];
+      const offerById = new Map(offerRows.map((o) => [o.id, o]));
+
       return {
         id: t.id,
         annonceId: t.annonceId,
-        annonce: a ? { id: a.id, titre: a.titre, reference: a.reference, type: a.type, prix: a.prix, categorieAnnonce: a.categorieAnnonce, vendeurType: a.vendeurType } : null,
+        annonce: a ? { id: a.id, titre: a.titre, reference: a.reference, type: a.type, prix: a.prix, categorieAnnonce: a.categorieAnnonce, vendeurType: a.vendeurType, negociable: a.negociable, devise: a.devise } : null,
         other,
-        messages: msgs.map((m) => ({
-          id: m.id,
-          content: m.content,
-          mine: m.senderId === uid,
-          createdAt: m.createdAt,
-          status: m.status,
-        })),
+        messages: msgs.map((m) => {
+          const o = m.offerId != null ? offerById.get(m.offerId) : null;
+          return {
+            id: m.id,
+            content: m.content,
+            mine: m.senderId === uid,
+            createdAt: m.createdAt,
+            status: m.status,
+            // Négociation structurée : présent uniquement sur le message qui
+            // porte une offre/contre-offre/réponse. Le statut dit si c'est
+            // encore à l'autre partie de répondre (voir Messagerie.tsx).
+            offer: o ? { id: o.id, montant: o.montant, devise: o.devise, status: o.status } : null,
+          };
+        }),
       };
     }),
 
@@ -192,6 +210,135 @@ export const messagesRouter = router({
         url: `/messagerie?thread=${input.threadId}`,
       }).catch(() => undefined);
       return { id: msg.id };
+    }),
+
+  /**
+   * Propose un prix sur l'annonce du fil — une offre structurée, pas un
+   * message texte à interpréter : l'autre partie peut l'accepter, la
+   * refuser ou contre-offrir via repondreOffre. Une seule offre en attente
+   * à la fois par fil (répondre à celle en cours plutôt qu'en ouvrir une
+   * seconde en parallèle).
+   */
+  proposerOffre: protectedProcedure
+    .input(z.object({ threadId: z.number(), montant: z.number().positive().max(100_000_000) }))
+    .mutation(async ({ ctx, input }) => {
+      const uid = ctx.user.uid;
+      const [t] = await db.select().from(messageThreads).where(eq(messageThreads.id, input.threadId)).limit(1);
+      if (!t) throw new TRPCError({ code: "NOT_FOUND" });
+      if (t.user1Id !== uid && t.user2Id !== uid) throw new TRPCError({ code: "FORBIDDEN" });
+      if (!t.annonceId) throw new TRPCError({ code: "BAD_REQUEST", message: "Cette conversation n'est liée à aucune annonce." });
+
+      const [a] = await db
+        .select({ id: annonces.id, negociable: annonces.negociable, status: annonces.status, devise: annonces.devise })
+        .from(annonces)
+        .where(eq(annonces.id, t.annonceId))
+        .limit(1);
+      if (!a) throw new TRPCError({ code: "NOT_FOUND", message: "Annonce introuvable." });
+      if (!a.negociable) throw new TRPCError({ code: "BAD_REQUEST", message: "Cette annonce n'est pas négociable." });
+      if (a.status !== "publiee") throw new TRPCError({ code: "BAD_REQUEST", message: "Cette annonce n'est plus disponible à la négociation." });
+
+      const [enCours] = await db
+        .select({ id: messageOffers.id })
+        .from(messageOffers)
+        .where(and(eq(messageOffers.threadId, input.threadId), eq(messageOffers.status, "en_attente")))
+        .limit(1);
+      if (enCours) throw new TRPCError({ code: "BAD_REQUEST", message: "Une offre est déjà en attente de réponse sur ce fil." });
+
+      const recipientId = t.user1Id === uid ? t.user2Id : t.user1Id;
+      const content = `💰 Offre proposée : ${input.montant.toLocaleString("fr-FR")} ${a.devise}`;
+      await assertCanSend(uid, recipientId, content);
+
+      const [offre] = await db
+        .insert(messageOffers)
+        .values({ threadId: input.threadId, annonceId: a.id, fromUserId: uid, montant: String(input.montant), devise: a.devise })
+        .returning();
+      const [msg] = await db
+        .insert(messages)
+        .values({ threadId: input.threadId, senderId: uid, content, offerId: offre.id })
+        .returning();
+      await db.update(messageThreads).set({ lastMessageAt: new Date() }).where(eq(messageThreads.id, input.threadId));
+      await notifyEvent({
+        userId: recipientId,
+        event: "offre_recue",
+        url: `/messagerie?thread=${input.threadId}`,
+        vars: { montant: input.montant.toLocaleString("fr-FR"), devise: a.devise },
+      }).catch(() => undefined);
+      return { id: msg.id, offerId: offre.id };
+    }),
+
+  /** Répond à une offre en attente : acceptée, refusée, ou contre-offre. */
+  repondreOffre: protectedProcedure
+    .input(
+      z.object({
+        offerId: z.number(),
+        decision: z.enum(["acceptee", "refusee", "contre_offre"]),
+        contreMontant: z.number().positive().max(100_000_000).optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const uid = ctx.user.uid;
+      const [offre] = await db.select().from(messageOffers).where(eq(messageOffers.id, input.offerId)).limit(1);
+      if (!offre) throw new TRPCError({ code: "NOT_FOUND" });
+      const [t] = await db.select().from(messageThreads).where(eq(messageThreads.id, offre.threadId)).limit(1);
+      if (!t) throw new TRPCError({ code: "NOT_FOUND" });
+      if (t.user1Id !== uid && t.user2Id !== uid) throw new TRPCError({ code: "FORBIDDEN" });
+      if (offre.fromUserId === uid) throw new TRPCError({ code: "BAD_REQUEST", message: "Vous ne pouvez pas répondre à votre propre offre." });
+      if (offre.status !== "en_attente") throw new TRPCError({ code: "BAD_REQUEST", message: "Cette offre n'est plus en attente de réponse." });
+      if (input.decision === "contre_offre" && input.contreMontant == null) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Montant de la contre-offre manquant." });
+      }
+
+      const recipientId = offre.fromUserId;
+
+      if (input.decision === "acceptee") {
+        await db.update(messageOffers).set({ status: "acceptee", repondueA: new Date() }).where(eq(messageOffers.id, offre.id));
+        const content = `✅ Offre acceptée : ${Number(offre.montant).toLocaleString("fr-FR")} ${offre.devise}`;
+        await assertCanSend(uid, recipientId, content);
+        const [msg] = await db.insert(messages).values({ threadId: offre.threadId, senderId: uid, content, offerId: offre.id }).returning();
+        await db.update(messageThreads).set({ lastMessageAt: new Date() }).where(eq(messageThreads.id, offre.threadId));
+        await notifyEvent({
+          userId: recipientId,
+          event: "offre_acceptee",
+          url: `/messagerie?thread=${offre.threadId}`,
+          vars: { montant: Number(offre.montant).toLocaleString("fr-FR"), devise: offre.devise },
+        }).catch(() => undefined);
+        return { id: msg.id, status: "acceptee" as const };
+      }
+
+      if (input.decision === "refusee") {
+        await db.update(messageOffers).set({ status: "refusee", repondueA: new Date() }).where(eq(messageOffers.id, offre.id));
+        const content = `❌ Offre refusée`;
+        await assertCanSend(uid, recipientId, content);
+        const [msg] = await db.insert(messages).values({ threadId: offre.threadId, senderId: uid, content, offerId: offre.id }).returning();
+        await db.update(messageThreads).set({ lastMessageAt: new Date() }).where(eq(messageThreads.id, offre.threadId));
+        await notifyEvent({ userId: recipientId, event: "offre_refusee", url: `/messagerie?thread=${offre.threadId}` }).catch(() => undefined);
+        return { id: msg.id, status: "refusee" as const };
+      }
+
+      const montant = input.contreMontant!;
+      await db.update(messageOffers).set({ status: "contre_offre", repondueA: new Date() }).where(eq(messageOffers.id, offre.id));
+      const content = `💰 Contre-offre : ${montant.toLocaleString("fr-FR")} ${offre.devise}`;
+      await assertCanSend(uid, recipientId, content);
+      const [nouvelle] = await db
+        .insert(messageOffers)
+        .values({
+          threadId: offre.threadId,
+          annonceId: offre.annonceId,
+          fromUserId: uid,
+          montant: String(montant),
+          devise: offre.devise,
+          precedenteOffreId: offre.id,
+        })
+        .returning();
+      const [msg] = await db.insert(messages).values({ threadId: offre.threadId, senderId: uid, content, offerId: nouvelle.id }).returning();
+      await db.update(messageThreads).set({ lastMessageAt: new Date() }).where(eq(messageThreads.id, offre.threadId));
+      await notifyEvent({
+        userId: recipientId,
+        event: "offre_recue",
+        url: `/messagerie?thread=${offre.threadId}`,
+        vars: { montant: montant.toLocaleString("fr-FR"), devise: offre.devise },
+      }).catch(() => undefined);
+      return { id: msg.id, offerId: nouvelle.id, status: "contre_offre" as const };
     }),
 
   /** Marque comme lus les messages reçus dans une conversation. */
