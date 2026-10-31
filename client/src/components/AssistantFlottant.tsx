@@ -13,9 +13,10 @@
  * côté « direction ».
  */
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { AlertTriangle, Mic, MicOff, Send, Sparkles, X } from "lucide-react";
 import { trpc } from "../lib/trpc";
+import { useAuth } from "../lib/auth";
 import { speechRecognitionConstructor, startDictation } from "../lib/speech";
 import { useOrdreIntelligences } from "../lib/assistantIntelligences";
 
@@ -26,10 +27,12 @@ interface Bulle {
   motif: string;
 }
 
-const ECRANS_DIRECTION = ["/admin", "/superadmin", "/intelligences", "/comptabilite"];
+const ECRANS_DIRECTION = ["/admin", "/superadmin", "/intelligences", "/intelligence", "/comptabilite"];
 
 export default function AssistantFlottant() {
   const { pathname } = useLocation();
+  const navigate = useNavigate();
+  const { user } = useAuth();
   const [ouvert, setOuvert] = useState(false);
   const [question, setQuestion] = useState("");
   const [sessionId, setSessionId] = useState<number | null>(null);
@@ -53,8 +56,22 @@ export default function AssistantFlottant() {
 
   useEffect(() => () => dicteeRef.current?.stop(), []);
 
+  // Correction PDG (31/10) : un compte connecté qui ouvre AL-HUDHUD·M depuis
+  // n'importe où sur le site doit arriver dans son vrai portail (/intelligence,
+  // menu complet, mémoire, historique) — jamais retomber sur la démo publique
+  // anonyme. Celle-ci (ce panneau + /intelligences) reste inchangée pour les
+  // visiteurs non connectés : aide rapide à la recherche, rien à modifier.
   useOrdreIntelligences(
-    useCallback((ordre) => setOuvert(ordre === "ouvrir"), []),
+    useCallback(
+      (ordre) => {
+        if (ordre === "ouvrir" && user) {
+          navigate("/intelligence");
+          return;
+        }
+        setOuvert(ordre === "ouvrir");
+      },
+      [user, navigate],
+    ),
   );
 
   const assistant = trpc.intelligences.assistant.useMutation({
