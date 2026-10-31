@@ -28,6 +28,7 @@ function ScrollToTop() {
 
 // Lazy-loaded pages (code-splitting)
 const Acheter = lazy(() => import("./pages/Acheter"));
+const CollectionVehicules = lazy(() => import("./pages/CollectionVehicules"));
 const Louer = lazy(() => import("./pages/Louer"));
 const Vehicule = lazy(() => import("./pages/Vehicule"));
 const Vendre = lazy(() => import("./pages/Vendre"));
@@ -928,6 +929,10 @@ export default function App() {
             <Route path="/louer/score-loueur" element={<U name="Score loueur"><ScoreQualiteLoueur /></U>} />
             {/* Univers Vente */}
             <Route path="/acheter" element={<U name="Vente"><VenteGenerale /></U>} />
+            {/* Pages de collection réelles (SEO) : une recherche générique ("véhicule électrique",
+                "Peugeot occasion") trouve une vraie page de résultats, pas seulement une fiche isolée. */}
+            <Route path="/carburant/:valeur" element={<U name="Collection carburant"><CollectionVehicules /></U>} />
+            <Route path="/marque/:valeur" element={<U name="Collection marque"><CollectionVehicules /></U>} />
             <Route path="/acheter/particulier" element={<U name="Vente Particulier"><VenteParticulier /></U>} />
             <Route path="/acheter/professionnel" element={<U name="Vente Pro"><VentePro /></U>} />
             <Route path="/acheter/mkapms-officiel" element={<U name="Vente MKA.P-MS"><VenteMKAPMS /></U>} />
