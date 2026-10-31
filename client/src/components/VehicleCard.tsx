@@ -32,6 +32,7 @@ export interface VehicleCardData {
   segmentLocation?: string | null;
   categorieAnnonce?: string | null;
   ownership?: string | null;
+  vehiculeSurCommandeLabel?: "disponible_sur_commande" | "disponible_sur_visite" | null;
 }
 
 function getCardTier(v: VehicleCardData): "officiel" | "elite" | "premium" | "professionnel" | "particulier" {
@@ -96,6 +97,7 @@ export default function VehicleCard({ v, compact = false }: { v: VehicleCardData
     coupDeCoeur: v.coupDeCoeur,
     prixEnBaisse: v.prixEnBaisse,
     createdAt: v.createdAt,
+    vehiculeSurCommandeLabel: v.vehiculeSurCommandeLabel,
   }).filter((b) => !(isMkapmsStock && (b.code === "vendeur_pro" || b.code === "garage_verifie")));
 
   return (
