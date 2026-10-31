@@ -22046,8 +22046,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "cliquables": 62,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 290,
-        "mots": 1524
+        "textes": 297,
+        "mots": 1556
       }
     ],
     "ecransHotes": [
@@ -22176,6 +22176,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "searchStats",
       "seedKnowledge",
       "sendDailyReport",
+      "sourceBreakdown",
       "teach",
       "teachingConversation",
       "teachingStats",
@@ -22221,8 +22222,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "pdg",
       "public"
     ],
-    "textes": 351,
-    "mots": 1799,
+    "textes": 358,
+    "mots": 1831,
     "battement": "contrat",
     "manques": [
       {
