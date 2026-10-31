@@ -36,6 +36,15 @@ function emailFooter(): string {
         <p style="font-size:12px;color:#999;text-align:center;">MKA.P-MS — La marketplace automobile</p>`;
 }
 
+function escapeHtml(s: string): string {
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 function isEmailConfigured(): boolean {
   return !!(process.env.SMTP_USER && process.env.SMTP_PASS);
 }
@@ -158,10 +167,11 @@ export function emailMessageRecu(annonceTitle: string, senderName: string): { su
 }
 
 /** Campagne (newsletter) — le message est composé par le Fondateur en texte simple ;
- * un saut de ligne devient un paragraphe. Lien de désabonnement propre à chaque
- * destinataire, jamais un lien générique. */
+ * un saut de ligne devient un paragraphe. Échappé avant mise en forme : un simple "&"
+ * ou "<" dans un texte rédigé à la main ne doit jamais casser le HTML envoyé. Lien de
+ * désabonnement propre à chaque destinataire, jamais un lien générique. */
 export function emailCampagne(message: string, unsubscribeUrl: string): string {
-  const paragraphs = message
+  const paragraphs = escapeHtml(message)
     .split(/\n{2,}/)
     .map((p) => `<p>${p.replace(/\n/g, "<br/>")}</p>`)
     .join("");
