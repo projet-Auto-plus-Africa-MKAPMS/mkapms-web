@@ -12,7 +12,7 @@
  */
 
 import type { Request, Response } from "express";
-import { and, desc, eq, sql } from "drizzle-orm";
+import { and, desc, eq, isNotNull, sql } from "drizzle-orm";
 import { db } from "./db.js";
 import { annonces, annoncePhotos, seoPages, garagesPublics, seoBlogArticles } from "./schema.js";
 import { resolveDomain, type DomainKey } from "./domain.js";
@@ -579,6 +579,90 @@ async function reputationSeoHead(
   });
 }
 
+/**
+ * Collections réelles par carburant / marque (/carburant/:valeur, /marque/:valeur).
+ * Demande PDG : une recherche générique ("véhicule électrique", "Peugeot occasion")
+ * doit trouver une vraie page de résultats, pas seulement une fiche isolée. Même
+ * discipline que reputationSeoHead : seules les annonces réellement publiées sont
+ * listées ; une valeur sans aucune annonce ne reçoit aucune page spécifique (le
+ * dispatcheur retombe sur les meta par défaut du domaine) plutôt qu'une page vide
+ * prétendant lister des véhicules qui n'existent pas.
+ */
+const CARBURANT_LABELS: Record<string, string> = {
+  essence: "Essence",
+  diesel: "Diesel",
+  electrique: "Électrique",
+  hybride: "Hybride",
+  hybride_rechargeable: "Hybride rechargeable",
+  gpl: "GPL",
+  hydrogene: "Hydrogène",
+  ethanol: "Éthanol",
+  autre: "Autre",
+};
+
+async function collectionSeoHead(
+  path: string,
+  baseUrl: string,
+  domainKey: DomainKey,
+): Promise<string | null> {
+  const m = path.match(/^\/(carburant|marque)\/([^/?]+)\/?$/);
+  if (!m) return null;
+  const [, type, encoded] = m;
+  const valeur = decodeURIComponent(encoded);
+  const meta = DOMAIN_SEO[domainKey];
+
+  let rows: { id: number; marque: string; modele: string; updatedAt: Date | null }[] = [];
+  try {
+    const where =
+      type === "carburant"
+        ? and(eq(annonces.status, "publiee"), sql`${annonces.carburant}::text = ${valeur}`)
+        : and(eq(annonces.status, "publiee"), sql`lower(${annonces.marque}) = lower(${valeur})`);
+    rows = await db
+      .select({ id: annonces.id, marque: annonces.marque, modele: annonces.modele, updatedAt: annonces.updatedAt })
+      .from(annonces)
+      .where(where)
+      .orderBy(desc(annonces.updatedAt))
+      .limit(200);
+  } catch {
+    return null;
+  }
+  if (!rows.length) return null;
+
+  const label = type === "carburant" ? CARBURANT_LABELS[valeur] || valeur : valeur;
+  const url = `${baseUrl}/${type}/${encodeURIComponent(valeur)}`;
+  const title = `Véhicules ${label} d'occasion — ${rows.length} annonce${rows.length > 1 ? "s" : ""} | ${meta.siteName}`;
+  const description = `${rows.length} véhicule${rows.length > 1 ? "s" : ""} ${type === "carburant" ? label.toLowerCase() : label} publié${rows.length > 1 ? "s" : ""} sur ${meta.siteName}. Achat direct entre particuliers et professionnels, prix réels, annonces vérifiées.`;
+
+  const items = rows.slice(0, 50).map((r, i) => ({
+    "@type": "ListItem",
+    position: i + 1,
+    url: `${baseUrl}/vehicule/${r.id}`,
+    name: `${r.marque} ${r.modele}`,
+  }));
+
+  const jsonLd: Record<string, unknown>[] = [
+    {
+      "@context": "https://schema.org",
+      "@type": "CollectionPage",
+      name: title,
+      description,
+      url,
+      mainEntity: { "@type": "ItemList", numberOfItems: items.length, itemListElement: items },
+    },
+    breadcrumbSchema(baseUrl, `/${type}/${encodeURIComponent(valeur)}`, title),
+  ];
+
+  return buildHead({
+    title,
+    description,
+    keywords: [`véhicule ${label}`, `voiture ${label} occasion`, `achat ${label}`, meta.keywords].join(", "),
+    canonical: url,
+    type: "website",
+    lang: meta.lang,
+    jsonLd,
+  });
+}
+
 // ─── Exports publics ──────────────────────────────────────────────────────────
 
 /**
@@ -675,6 +759,7 @@ export async function injectAnnonceSeo(req: Request, html: string): Promise<stri
     }
     if (!pageHead) pageHead = await garageSeoHead(path, baseUrl, domainKey);
     if (!pageHead) pageHead = await reputationSeoHead(path, baseUrl, domainKey);
+    if (!pageHead) pageHead = await collectionSeoHead(path, baseUrl, domainKey);
     if (!pageHead) pageHead = await seoPageHead(path, baseUrl, domainKey);
     if (!pageHead) pageHead = staticSeoHead(path, baseUrl, domainKey);
   } catch {
@@ -775,6 +860,7 @@ export async function sitemapXml(req: Request, res: Response) {
   for (let i = 1; i <= nAnnoncePages; i++) children.push(`${baseUrl}/sitemap-annonces-${i}.xml`);
   children.push(`${baseUrl}/sitemap-garages.xml`);
   children.push(`${baseUrl}/sitemap-avis.xml`);
+  children.push(`${baseUrl}/sitemap-collections.xml`);
   const nSeoPages = Math.max(1, Math.ceil(nbPages / SITEMAP_PAGE_SIZE));
   for (let i = 1; i <= nSeoPages; i++) children.push(`${baseUrl}/sitemap-pages-${i}.xml`);
   children.push(`${baseUrl}/sitemap-blog.xml`);
@@ -818,6 +904,42 @@ export async function sitemapAvis(req: Request, res: Response) {
   const urls = rows.map((u) =>
     xmlUrl(`${baseUrl}/avis/${u.univers}`, { changefreq: "daily", priority: "0.6" }),
   );
+  sendUrlset(res, urls);
+}
+
+/**
+ * Sitemap des collections réelles (carburant, marque) — seules les valeurs
+ * ayant au moins une annonce publiée y figurent (même règle que sitemapAvis :
+ * soumettre une page vide à Google ne sert à rien).
+ */
+export async function sitemapCollections(req: Request, res: Response) {
+  const baseUrl = baseUrlFrom(req);
+  let carburants: { valeur: string }[] = [];
+  let marques: { valeur: string }[] = [];
+  try {
+    carburants = await db
+      .selectDistinct({ valeur: sql<string>`${annonces.carburant}::text` })
+      .from(annonces)
+      .where(eq(annonces.status, "publiee"));
+  } catch {
+    carburants = [];
+  }
+  try {
+    marques = await db
+      .selectDistinct({ valeur: annonces.marque })
+      .from(annonces)
+      .where(and(eq(annonces.status, "publiee"), isNotNull(annonces.marque)));
+  } catch {
+    marques = [];
+  }
+  const urls = [
+    ...carburants
+      .filter((c) => c.valeur)
+      .map((c) => xmlUrl(`${baseUrl}/carburant/${encodeURIComponent(c.valeur)}`, { changefreq: "daily", priority: "0.6" })),
+    ...marques
+      .filter((m) => m.valeur)
+      .map((m) => xmlUrl(`${baseUrl}/marque/${encodeURIComponent(m.valeur)}`, { changefreq: "daily", priority: "0.6" })),
+  ];
   sendUrlset(res, urls);
 }
 

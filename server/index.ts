@@ -33,6 +33,7 @@ import {
   sitemapAnnonces,
   sitemapGarages,
   sitemapAvis,
+  sitemapCollections,
   sitemapPages,
   sitemapBlog,
 } from "./seo.js";
@@ -308,6 +309,7 @@ app.get("/sitemap-static.xml", sitemapStatic);
 app.get("/sitemap-annonces-:page.xml", sitemapAnnonces);
 app.get("/sitemap-garages.xml", sitemapGarages);
 app.get("/sitemap-avis.xml", sitemapAvis);
+app.get("/sitemap-collections.xml", sitemapCollections);
 app.get("/sitemap-pages-:page.xml", sitemapPages);
 app.get("/sitemap-blog.xml", sitemapBlog);
 // Visibilité assistants / GEO — feed texte question/réponse découvrable par les assistants conversationnels
