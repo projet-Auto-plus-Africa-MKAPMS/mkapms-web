@@ -853,8 +853,32 @@ export const newsletterSubscribers = pgTable("newsletter_subscribers", {
   langue: varchar("langue", { length: 8 }),
   source: varchar("source", { length: 64 }).notNull().default("footer"),
   active: boolean("active").notNull().default(true),
+  // Lien de désabonnement sans connexion requise. Généré à l'inscription ; pour les
+  // abonnés déjà présents avant cette colonne, généré au premier envoi de campagne
+  // (campaign-engine.ts) plutôt que par une migration de données séparée.
+  unsubscribeToken: varchar("unsubscribe_token", { length: 64 }),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Campagnes e-mail — demande Fondateur (31/10) : la base d'abonnés consentants
+// (newsletterSubscribers) et l'envoi transactionnel (server/services/email.ts)
+// existaient déjà séparément ; rien ne les reliait. Jamais d'envoi en un seul
+// geste : prepareCampaign() compte l'audience réelle, confirmSend() déclenche
+// l'envoi effectif — même principe de validation humaine explicite que
+// partner-engine/service.ts (emailing "prepare" avant envoi).
+export const emailCampaigns = pgTable("email_campaigns", {
+  id: serial("id").primaryKey(),
+  subject: varchar("subject", { length: 200 }).notNull(),
+  message: text("message").notNull(),
+  pays: varchar("pays", { length: 2 }), // null = tous pays consentants
+  status: varchar("status", { length: 16 }).notNull().default("draft"), // draft | sending | sent
+  createdBy: integer("created_by"),
+  totalRecipients: integer("total_recipients").notNull().default(0),
+  totalSent: integer("total_sent").notNull().default(0),
+  totalFailed: integer("total_failed").notNull().default(0),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  sentAt: timestamp("sent_at"),
 });
 
 // ===== TARIFS LIVRAISON =====

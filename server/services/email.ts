@@ -157,6 +157,24 @@ export function emailMessageRecu(annonceTitle: string, senderName: string): { su
   };
 }
 
+/** Campagne (newsletter) — le message est composé par le Fondateur en texte simple ;
+ * un saut de ligne devient un paragraphe. Lien de désabonnement propre à chaque
+ * destinataire, jamais un lien générique. */
+export function emailCampagne(message: string, unsubscribeUrl: string): string {
+  const paragraphs = message
+    .split(/\n{2,}/)
+    .map((p) => `<p>${p.replace(/\n/g, "<br/>")}</p>`)
+    .join("");
+  return `
+      <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:20px;">
+        ${emailHeader()}
+        ${paragraphs}
+        <hr style="border:none;border-top:1px solid #eee;margin:20px 0;" />
+        <p style="font-size:11px;color:#999;text-align:center;">Vous recevez cet e-mail car vous êtes inscrit à la lettre d'information MKA.P-MS. <a href="${unsubscribeUrl}" style="color:#999;">Se désabonner</a></p>
+      </div>
+    `;
+}
+
 export function emailErreur(action: string, details: string): { subject: string; html: string } {
   return {
     subject: `Erreur lors de "${action}" — MKA.P-MS`,

@@ -118,7 +118,9 @@ export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
 export const ROUTES_SANS_MOTEUR: readonly string[] = [
   "/acheter/encheres/operations",
   "/b2b",
+  "/desabonnement",
   "/rejoindre",
+  "/superadmin/campagnes-email",
   "/superadmin/fournisseurs",
   "/superadmin/tarifs-ia"
 ];
@@ -134,7 +136,8 @@ export const FICHIERS_SANS_MOTEUR: readonly string[] = [
   "ia-commerce/catalog.ts",
   "ia-commerce/router.ts",
   "ia-commerce/schema.ts",
-  "ia-commerce/service.ts"
+  "ia-commerce/service.ts",
+  "services/campaign-engine.ts"
 ];
 
 export const MOTEURS: readonly PerimetreMoteur[] = [
@@ -6492,8 +6495,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "cliquables": 0,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 27,
-        "mots": 56
+        "textes": 28,
+        "mots": 58
       }
     ],
     "ecransHotes": [
@@ -6826,6 +6829,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "devis_items",
       "document_types",
       "document_verifications",
+      "email_campaigns",
       "factures",
       "favoris",
       "finance_documents",
@@ -6894,8 +6898,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "pdg",
       "public"
     ],
-    "textes": 589,
-    "mots": 3107,
+    "textes": 590,
+    "mots": 3109,
     "battement": "contrat",
     "manques": [
       {
@@ -13712,22 +13716,41 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     ],
     "ecransHotes": [
       {
+        "fichier": "client/src/pages/Desabonnement.tsx",
+        "route": "/desabonnement",
+        "composants": [
+          "trpc.marketing"
+        ]
+      },
+      {
         "fichier": "client/src/pages/Compte.tsx",
         "route": "/compte/*",
         "composants": [
           "trpc.loyalty"
         ]
+      },
+      {
+        "fichier": "client/src/pages/superadmin/AdminCampagnesEmail.tsx",
+        "route": "/superadmin/campagnes-email",
+        "composants": [
+          "trpc.marketing"
+        ]
       }
     ],
     "procedures": [
       "banners",
+      "campaignAudience",
+      "campaignConfirmSend",
+      "campaignCreate",
+      "campaignList",
       "createBanner",
       "createPubRequest",
       "createQr",
       "createReferral",
       "qrList",
       "scan",
-      "subscribeNewsletter"
+      "subscribeNewsletter",
+      "unsubscribe"
     ],
     "tables": [
       "ads",
@@ -13740,6 +13763,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     ],
     "acces": [
       "admin",
+      "pdg",
       "public"
     ],
     "textes": 187,

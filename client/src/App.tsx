@@ -45,6 +45,7 @@ const OffresIA = lazy(() => import("./pages/OffresIA"));
 const Aide = lazy(() => import("./pages/Aide"));
 const Services = lazy(() => import("./pages/Services"));
 const Confidentialite = lazy(() => import("./pages/Confidentialite"));
+const Desabonnement = lazy(() => import("./pages/Desabonnement"));
 const SuppressionCompte = lazy(() => import("./pages/SuppressionCompte"));
 const Confiance = lazy(() => import("./pages/Confiance"));
 const Connexion = lazy(() => import("./pages/Connexion"));
@@ -393,6 +394,7 @@ const PlanMaitreFournisseurs = lazy(() => import("./pages/superadmin/PlanMaitreF
 const GestionFournisseurs = lazy(() => import("./pages/superadmin/GestionFournisseurs"));
 const ProspectionPartenaires = lazy(() => import("./pages/superadmin/ProspectionPartenaires"));
 const AdminGoogleBusiness = lazy(() => import("./pages/superadmin/AdminGoogleBusiness"));
+const AdminCampagnesEmail = lazy(() => import("./pages/superadmin/AdminCampagnesEmail"));
 const MoteurBoutons = lazy(() => import("./pages/superadmin/MoteurBoutons"));
 const AdminComptesPro = lazy(() => import("./pages/superadmin/AdminComptesPro"));
 const AdminDemarches = lazy(() => import("./pages/superadmin/AdminDemarches"));
@@ -1057,6 +1059,7 @@ export default function App() {
             <Route path="/aide" element={<Aide />} />
             <Route path="/services" element={<U name="Services"><Services /></U>} />
             <Route path="/confidentialite" element={<Confidentialite />} />
+            <Route path="/desabonnement" element={<Desabonnement />} />
             <Route path="/suppression-compte" element={<SuppressionCompte />} />
             <Route path="/confiance" element={<Confiance />} />
             <Route path="/mission" element={<Mission />} />
@@ -1254,6 +1257,7 @@ export default function App() {
             <Route path="/superadmin/fournisseurs" element={<P module="back_office" name="Super Admin"><GestionFournisseurs /></P>} />
             <Route path="/superadmin/prospection-partenaires" element={<P module="back_office" name="Super Admin"><ProspectionPartenaires /></P>} />
             <Route path="/superadmin/admin-google-business" element={<P module="back_office" name="Super Admin"><AdminGoogleBusiness /></P>} />
+            <Route path="/superadmin/campagnes-email" element={<P module="back_office" name="Super Admin"><AdminCampagnesEmail /></P>} />
             <Route path="/superadmin/moteur-boutons" element={<P module="back_office" name="Super Admin"><MoteurBoutons /></P>} />
             <Route path="/superadmin/admin-comptes-pro" element={<P module="back_office" name="Super Admin"><AdminComptesPro /></P>} />
             <Route path="/superadmin/admin-demarches" element={<P module="back_office" name="Super Admin"><AdminDemarches /></P>} />
