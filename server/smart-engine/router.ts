@@ -31,7 +31,7 @@ import { analyzeReviews, getReviewAlerts } from "./services/review-analysis.js";
 import { validateAnnonceUnivers, getMisplacedAnnonces } from "./services/annonce-validator.js";
 import { validateBadges, getBadgeAlerts } from "./services/badge-validator.js";
 import { reportHealthCheck, getHealthStatus, getBrokenElements, registerCriticalElements } from "./services/health-monitor.js";
-import { trackPageVisit, trackUserAction, getPageStats, getUserBehaviorProfile, getActiveUsers, getPlatformPulse, getDailyVisits } from "./services/behavior-tracking.js";
+import { trackPageVisit, trackUserAction, getPageStats, getUserBehaviorProfile, getActiveUsers, getPlatformPulse, getDailyVisits, getSourceBreakdown } from "./services/behavior-tracking.js";
 import { teach, getConversation, getTeachingStats } from "./services/teaching.js";
 import { seedKnowledge, addKnowledge, listKnowledge, markApplied, getKnowledgeStats, KNOWLEDGE_CATEGORIES } from "./services/knowledge.js";
 import { getEnginesOverview } from "./services/connectors.js";
@@ -378,6 +378,10 @@ export const smartEngineRouter = router({
       duration: z.number().optional(),
       device: z.string().optional(),
       country: z.string().optional(),
+      // Catégorie calculée côté client (classifyTrafficSource, client/src/lib/trafficSource.ts —
+      // seul endroit qui a accès à document.referrer) ; une valeur hors liste est rejetée par le
+      // schéma lui-même plutôt qu'écrite telle quelle.
+      source: z.enum(["google", "social", "direct", "other"]).optional(),
     }))
     .mutation(async ({ ctx, input }) => {
       return trackPageVisit({ ...input, userId: ctx.user?.uid });
@@ -419,6 +423,12 @@ export const smartEngineRouter = router({
     .input(z.object({ days: z.number().min(1).max(365).default(30) }).optional())
     .query(async ({ input }) => {
       return getDailyVisits(input?.days ?? 30);
+    }),
+
+  sourceBreakdown: directionProcedure
+    .input(z.object({ days: z.number().min(1).max(365).default(30) }).optional())
+    .query(async ({ input }) => {
+      return getSourceBreakdown(input?.days ?? 30);
     }),
 
   // ── Rapport quotidien consolidé (anomalies + propositions) ─────────

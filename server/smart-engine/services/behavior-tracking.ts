@@ -8,6 +8,9 @@ import { db } from "../../db.js";
 import { smartActivityLog, smartUserMemory } from "../schema.js";
 import { desc, eq, sql, gte, and } from "drizzle-orm";
 
+const TRAFFIC_SOURCES = ["google", "social", "direct", "other"] as const;
+type TrafficSource = (typeof TRAFFIC_SOURCES)[number];
+
 interface PageVisit {
   userId?: number;
   page: string;
@@ -15,6 +18,7 @@ interface PageVisit {
   duration?: number;
   device?: string;
   country?: string;
+  source?: TrafficSource;
 }
 
 interface UserAction {
@@ -25,6 +29,9 @@ interface UserAction {
 }
 
 export async function trackPageVisit(visit: PageVisit) {
+  // Revalidée ici (même si le routeur tRPC valide déjà l'enum) : une valeur hors liste
+  // (altérée ou appel direct hors tRPC) ne doit jamais être écrite telle quelle.
+  const source = TRAFFIC_SOURCES.includes(visit.source as TrafficSource) ? visit.source : null;
   return db.insert(smartActivityLog).values({
     action: "page.visit",
     userId: visit.userId ?? null,
@@ -35,6 +42,7 @@ export async function trackPageVisit(visit: PageVisit) {
       duration: visit.duration ?? null,
       device: visit.device ?? null,
       country: visit.country ?? null,
+      source,
       at: new Date().toISOString(),
     },
     result: "tracked",
@@ -125,6 +133,30 @@ export async function getDailyVisits(days = 30) {
     series: rows,
     summary: { totalVisits, activeDays, avgPerDay, best, last7, prev7, trendPct },
   };
+}
+
+/**
+ * D'où viennent les visiteurs (Google / réseaux sociaux / direct / autre), sur les mêmes
+ * `days` jours que getDailyVisits. 'unknown' regroupe les visites enregistrées avant que
+ * cette catégorie existe — jamais mêlées à 'other', qui désigne un référent réel mais non
+ * catégorisé, pas une mesure absente.
+ */
+export async function getSourceBreakdown(days = 30) {
+  const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+  const rows = await db
+    .select({
+      source: sql<string>`coalesce(${smartActivityLog.data}->>'source', 'unknown')`,
+      visits: sql<number>`count(*)::int`,
+      uniqueVisitors: sql<number>`count(distinct ${smartActivityLog.userId})::int`,
+    })
+    .from(smartActivityLog)
+    .where(and(
+      eq(smartActivityLog.action, "page.visit"),
+      gte(smartActivityLog.createdAt, since),
+    ))
+    .groupBy(sql`coalesce(${smartActivityLog.data}->>'source', 'unknown')`)
+    .orderBy(sql`count(*) desc`);
+  return rows;
 }
 
 export async function getUserBehaviorProfile(userId: number) {
