@@ -1,8 +1,9 @@
 import { z } from "zod";
 import { desc, eq, sql } from "drizzle-orm";
-import { router, publicProcedure, adminProcedure } from "../trpc.js";
+import { router, publicProcedure, adminProcedure, pdgProcedure } from "../trpc.js";
 import { db } from "../db.js";
 import { qrCodes, referralCodes, banners, newsletterSubscribers, pubRequests } from "../schema.js";
+import { prepareCampaign, createCampaign, listCampaigns, confirmSend, unsubscribeByToken } from "../services/campaign-engine.js";
 
 // Marketing / QR codes / parrainage / bannières (Plan Partie 2 §18).
 export const marketingRouter = router({
@@ -30,6 +31,39 @@ export const marketingRouter = router({
         });
       return { ok: true as const, email };
     }),
+
+  // ── CAMPAGNES E-MAIL (lettre d'information) — réservé PDG ─────────────────
+  // La base d'abonnés consentants et l'envoi transactionnel existaient déjà
+  // séparément (voir server/services/campaign-engine.ts) ; rien ne les reliait.
+  // Jamais d'envoi en un seul geste : prepareAudience() compte sans envoyer,
+  // confirmSend() déclenche l'envoi réel après validation explicite.
+  campaignAudience: pdgProcedure
+    .input(z.object({ pays: z.string().length(2).optional() }).default({}))
+    .query(async ({ input }) => prepareCampaign(input.pays)),
+
+  campaignList: pdgProcedure.query(async () => listCampaigns()),
+
+  campaignCreate: pdgProcedure
+    .input(
+      z.object({
+        subject: z.string().min(1).max(200),
+        message: z.string().min(1).max(20000),
+        pays: z.string().length(2).optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => createCampaign({ ...input, createdBy: ctx.user.uid })),
+
+  // Deuxième étape explicite, distincte de campaignCreate : rien n'est envoyé
+  // avant cet appel-ci, qui ne peut démarrer un envoi qu'une seule fois par
+  // campagne (transition draft→sending atomique, server/services/campaign-engine.ts).
+  campaignConfirmSend: pdgProcedure
+    .input(z.object({ campaignId: z.number().int().positive() }))
+    .mutation(async ({ input }) => confirmSend(input.campaignId)),
+
+  // Désabonnement — public, sans connexion requise, un jeton propre à chaque abonné.
+  unsubscribe: publicProcedure
+    .input(z.object({ token: z.string().min(1) }))
+    .mutation(async ({ input }) => ({ ok: await unsubscribeByToken(input.token) })),
 
   banners: publicProcedure
     .input(z.object({ emplacement: z.string().optional() }).default({}))

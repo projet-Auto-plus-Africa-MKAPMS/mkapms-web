@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Shield, Users, FileText, BarChart3, Bell, Settings, Globe, Lock, ChevronRight, Car, Home, Wrench, Truck, Package, Euro, Megaphone, Calculator, UserCheck, Cpu, Brain, MapPin, MousePointerClick } from "lucide-react";
+import { Shield, Users, FileText, BarChart3, Bell, Settings, Globe, Lock, ChevronRight, Car, Home, Wrench, Truck, Package, Euro, Megaphone, Calculator, UserCheck, Cpu, Brain, MapPin, MousePointerClick, Mail } from "lucide-react";
 const STATS = [
   { l: "Utilisateurs", v: "12 450", color: "#D4AF37", to: "/superadmin/admin-utilisateurs" },
   { l: "Annonces", v: "8 320", color: "#10B981", to: "/superadmin/admin-moderation-annonces" },
@@ -30,6 +30,7 @@ const SECTIONS = [
     { label: "Finance", icon: Euro, to: "/superadmin/admin-paiements", desc: "Paiements, commissions, CA" },
     { label: "Publicité", icon: Megaphone, to: "/superadmin/admin-moderation-annonces", desc: "Espaces, campagnes, tarifs" },
     { label: "Connecteur Google Business", icon: MapPin, to: "/superadmin/admin-google-business", desc: "Établissements, vérification, relevés d'avis" },
+    { label: "Campagnes e-mail", icon: Mail, to: "/superadmin/campagnes-email", desc: "Lettre d'information : audience consentante, composition, envoi confirmé" },
     { label: "Moteur de boutons", icon: MousePointerClick, to: "/superadmin/moteur-boutons", desc: "Ghost buttons, actions non branchées, destinations cassées" },
     { label: "Comptabilité", icon: Calculator, to: "/superadmin/comptabilite-complete", desc: "Revenus, dépenses, résultat" },
     { label: "Employés", icon: Users, to: "/superadmin/admin-employes", desc: "Rôles, droits, planning" },

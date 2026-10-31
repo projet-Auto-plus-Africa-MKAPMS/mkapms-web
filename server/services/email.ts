@@ -36,6 +36,15 @@ function emailFooter(): string {
         <p style="font-size:12px;color:#999;text-align:center;">MKA.P-MS — La marketplace automobile</p>`;
 }
 
+function escapeHtml(s: string): string {
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 function isEmailConfigured(): boolean {
   return !!(process.env.SMTP_USER && process.env.SMTP_PASS);
 }
@@ -155,6 +164,25 @@ export function emailMessageRecu(annonceTitle: string, senderName: string): { su
       </div>
     `,
   };
+}
+
+/** Campagne (newsletter) — le message est composé par le Fondateur en texte simple ;
+ * un saut de ligne devient un paragraphe. Échappé avant mise en forme : un simple "&"
+ * ou "<" dans un texte rédigé à la main ne doit jamais casser le HTML envoyé. Lien de
+ * désabonnement propre à chaque destinataire, jamais un lien générique. */
+export function emailCampagne(message: string, unsubscribeUrl: string): string {
+  const paragraphs = escapeHtml(message)
+    .split(/\n{2,}/)
+    .map((p) => `<p>${p.replace(/\n/g, "<br/>")}</p>`)
+    .join("");
+  return `
+      <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:20px;">
+        ${emailHeader()}
+        ${paragraphs}
+        <hr style="border:none;border-top:1px solid #eee;margin:20px 0;" />
+        <p style="font-size:11px;color:#999;text-align:center;">Vous recevez cet e-mail car vous êtes inscrit à la lettre d'information MKA.P-MS. <a href="${unsubscribeUrl}" style="color:#999;">Se désabonner</a></p>
+      </div>
+    `;
 }
 
 export function emailErreur(action: string, details: string): { subject: string; html: string } {
