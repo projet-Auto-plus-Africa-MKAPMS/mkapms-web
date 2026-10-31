@@ -11237,7 +11237,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
           "/admin/intelligences",
           "/intelligence"
         ],
-        "cliquables": 23,
+        "cliquables": 24,
         "parMoteur": 0,
         "sansAction": 0,
         "textes": 63,

@@ -10,7 +10,7 @@ import {
   FolderKanban, Gauge, History, Home, Image as ImageIcon, Menu, MessageCircle,
   Mic, Plug, Search, Settings, ShieldCheck, Sparkles, Wrench, Brain as BrainIcon,
   Workflow, Database, ShoppingCart, Cloud, SlidersHorizontal, Library, Clock3,
-  Laptop, Grid2X2, ClipboardCheck, KeyRound, X, Lock
+  Laptop, Grid2X2, ClipboardCheck, KeyRound, X, Lock, UserRound
 } from "lucide-react";
 import { useAuth } from "../../lib/auth";
 import { trpc } from "../../lib/trpc";
@@ -224,14 +224,19 @@ export default function MKAPMSIntelligence() {
 
   const renderNav = (withHistory: boolean) => <div className="alhud-approved-menu">
     <div className="alhud-menu-brand"><strong>AL-HUDHUD·M</strong><Search/></div>
+    <button type="button" className="alhud-menu-account" onClick={()=>{choose("parametres");}}>
+      <UserRound/><span><strong>{user.name || "Mon compte"}</strong><small>{LABEL_NIVEAU[niveau]}</small></span><ChevronRight/>
+    </button>
     <label className="alhud-search"><input type="search" value={moduleSearch} onChange={e=>setModuleSearch(e.target.value)} placeholder="Rechercher…" aria-label="Rechercher"/></label>
     <nav>{topItems.filter(([label])=>normalise(label).includes(normalise(moduleSearch))).map(([label,Icon,key])=><button key={label} type="button" onClick={()=>choose(key)}><Icon/><span>{label}</span><ChevronRight/></button>)}</nav>
     {withHistory ? <div ref={setHistorySlot} className="alhud-menu-history" aria-label="Conversations"/> : null}
+    {estDirection ? (<>
     <h3>Espaces IA</h3>
     <button type="button" className="selected" onClick={()=>choose("accueil")}><Database/><span>Plateforme principale</span><ChevronRight/></button>
     {boutique.url
       ? <a href={boutique.url} target="_blank" rel="noopener noreferrer" onClick={()=>setMenuOpen(false)} aria-label="Ouvrir la Boutique (nouvel onglet)"><ShoppingCart/><span>Boutique</span><ChevronRight/></a>
       : <div role="status" className="alhud-menu-item-disabled" aria-label="Boutique non reliée"><ShoppingCart/><span>Boutique</span><small>{boutique.chargement ? "…" : "non reliée"}</small></div>}
+    </>) : null}
     <h3>Notre travail</h3>
     <nav>{workItems.map(([label,Icon,key])=><button key={label} type="button" onClick={()=>choose(key)}><Icon/><span>{label}</span><ChevronRight/></button>)}</nav>
     {fonctionsTeasees.length > 0 ? (<>
