@@ -118,6 +118,8 @@ export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
 export const ROUTES_SANS_MOTEUR: readonly string[] = [
   "/acheter/encheres/operations",
   "/b2b",
+  "/carburant/:valeur",
+  "/marque/:valeur",
   "/rejoindre",
   "/superadmin/fournisseurs",
   "/superadmin/tarifs-ia"
@@ -1001,6 +1003,20 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "route": "/louer/certifies",
         "composants": [
           "components/ReserverLocationButton.tsx",
+          "trpc.annonces"
+        ]
+      },
+      {
+        "fichier": "client/src/pages/CollectionVehicules.tsx",
+        "route": "/carburant/:valeur",
+        "composants": [
+          "trpc.annonces"
+        ]
+      },
+      {
+        "fichier": "client/src/pages/CollectionVehicules.tsx",
+        "route": "/marque/:valeur",
+        "composants": [
           "trpc.annonces"
         ]
       },
