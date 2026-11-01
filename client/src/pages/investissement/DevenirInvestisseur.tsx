@@ -28,8 +28,37 @@ const PRINCIPES = [
   { icon: Clock, texte: "Dossier vérifié (KYC) avant toute signature — aucun versement n'est demandé avant l'examen de votre candidature." },
 ];
 
+/** Libellés FR des univers investissables (server/investment/schema.ts::INVESTABLE_UNIVERSES) — un univers sans libellé connu affiche son code brut plutôt que de disparaître. */
+const UNIVERS_LABELS: Record<string, string> = {
+  vente_particulier: "Vente — particuliers",
+  vente_pro: "Vente — professionnels",
+  vente_officiel: "Vente — concessionnaires officiels",
+  location_particulier: "Location — particuliers",
+  location_pro: "Location — professionnels",
+  garage: "Garage / entretien",
+  atelier: "Atelier mécanique",
+  depannage: "Dépannage",
+  auction_engine: "Enchères",
+  controle_technique: "Contrôle technique",
+  livraison: "Livraison",
+  livraison_vehicule: "Livraison de véhicules",
+  pieces: "Pièces détachées",
+  transport: "Transport",
+  assurance: "Assurance",
+  comptabilite: "Comptabilité",
+};
+
+const PROFILS_INVESTISSEUR = [
+  { valeur: "PASSIVE_INVESTOR", libelle: "Investisseur passif — financement uniquement" },
+  { valeur: "OPERATOR_INVESTOR", libelle: "Investisseur opérateur — implication dans l'activité" },
+  { valeur: "STRATEGIC_PARTNER", libelle: "Partenaire stratégique" },
+];
+
+const HORIZONS_MOIS = [12, 24, 36, 60];
+
 export default function DevenirInvestisseur() {
   const countries = trpc.proPortal.countries.useQuery();
+  const universes = trpc.partnerEngine.investorUniverses.useQuery();
   const apply = trpc.partnerEngine.candidater.useMutation();
 
   const [companyName, setCompanyName] = useState("");
@@ -38,6 +67,13 @@ export default function DevenirInvestisseur() {
   const [contactEmail, setContactEmail] = useState("");
   const [contactPhone, setContactPhone] = useState("");
   const [message, setMessage] = useState("");
+  const [investorType, setInvestorType] = useState("PASSIVE_INVESTOR");
+  const [universesInteret, setUniversesInteret] = useState<string[]>([]);
+  const [montantEnvisage, setMontantEnvisage] = useState("");
+  const [horizonMois, setHorizonMois] = useState<number | "">("");
+
+  const toggleUnivers = (u: string) =>
+    setUniversesInteret((cur) => (cur.includes(u) ? cur.filter((x) => x !== u) : [...cur, u]));
 
   const canSubmit = companyName.trim().length >= 2 && countryCode !== "" && !apply.isPending;
 
@@ -136,8 +172,72 @@ export default function DevenirInvestisseur() {
             onChange={(e) => setMessage(e.target.value)}
             className="mt-3 w-full rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm"
             rows={3}
-            placeholder="Univers d'activité qui vous intéresse, montant envisagé, questions… (optionnel)"
+            placeholder="Questions, contexte, précisions utiles… (optionnel)"
           />
+        </section>
+
+        <section className="rounded-xl bg-white border border-[#E5E7EB] p-4">
+          <h2 className="text-sm font-black text-[#111] mb-1">Votre projet d'investissement</h2>
+          <p className="text-[11px] text-[#6B7280] mb-3">
+            Plus ces éléments sont précis, plus vite votre dossier peut être examiné — ils ne vous engagent à rien à ce stade.
+          </p>
+
+          <label className="block text-[11px] font-semibold text-[#6B7280] mb-1">Profil d'investisseur</label>
+          <select
+            value={investorType}
+            onChange={(e) => setInvestorType(e.target.value)}
+            className="w-full rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm bg-white"
+          >
+            {PROFILS_INVESTISSEUR.map((p) => (
+              <option key={p.valeur} value={p.valeur}>{p.libelle}</option>
+            ))}
+          </select>
+
+          <label className="block text-[11px] font-semibold text-[#6B7280] mt-3 mb-1">
+            Univers d'activité qui vous intéressent (plusieurs choix possibles)
+          </label>
+          <div className="grid grid-cols-2 gap-1.5">
+            {(universes.data ?? []).map((u) => (
+              <label key={u} className="flex items-center gap-1.5 text-[12px] text-[#374151]">
+                <input
+                  type="checkbox"
+                  checked={universesInteret.includes(u)}
+                  onChange={() => toggleUnivers(u)}
+                  className="accent-[#D4AF37]"
+                />
+                {UNIVERS_LABELS[u] ?? u}
+              </label>
+            ))}
+          </div>
+
+          <div className="grid grid-cols-2 gap-3 mt-3">
+            <div>
+              <label className="block text-[11px] font-semibold text-[#6B7280] mb-1">Montant envisagé (€)</label>
+              <input
+                value={montantEnvisage}
+                onChange={(e) => setMontantEnvisage(e.target.value.replace(/[^0-9]/g, ""))}
+                inputMode="numeric"
+                className="w-full rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm"
+                placeholder="Ex. 20000"
+              />
+            </div>
+            <div>
+              <label className="block text-[11px] font-semibold text-[#6B7280] mb-1">Durée envisagée</label>
+              <select
+                value={horizonMois}
+                onChange={(e) => setHorizonMois(e.target.value ? Number(e.target.value) : "")}
+                className="w-full rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm bg-white"
+              >
+                <option value="">Non précisé</option>
+                {HORIZONS_MOIS.map((m) => (
+                  <option key={m} value={m}>{m} mois</option>
+                ))}
+              </select>
+            </div>
+          </div>
+          <p className="mt-2 text-[10px] text-[#9CA3AF]">
+            Ces chiffres sont des ordres de grandeur pour orienter l'examen de votre dossier — ils seront fixés précisément au contrat, pas ici.
+          </p>
         </section>
 
         {apply.error && (
@@ -158,6 +258,12 @@ export default function DevenirInvestisseur() {
               contactEmail: contactEmail.trim() || undefined,
               contactPhone: contactPhone.trim() || undefined,
               message: message.trim() || undefined,
+              details: {
+                investorType,
+                universesInteret,
+                ...(montantEnvisage ? { montantEnvisageEur: Number(montantEnvisage) } : {}),
+                ...(horizonMois ? { horizonMois } : {}),
+              },
             })
           }
           className="w-full rounded-xl bg-[#111] px-4 py-3 text-sm font-black text-[#D4AF37] disabled:opacity-40"

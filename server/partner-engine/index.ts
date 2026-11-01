@@ -8,6 +8,7 @@
  */
 import { z } from "zod";
 import { adminProcedure, directionProcedure, publicProcedure, router } from "../trpc.js";
+import { INVESTABLE_UNIVERSES } from "../investment/schema.js";
 import {
   applyAsPartner,
   createContract,
@@ -34,6 +35,15 @@ export const PARTNER_ENGINE_META = {
 export const partnerEngineRouter = router({
   services: publicProcedure.query(() => partnerServiceCatalog()),
 
+  /**
+   * Univers investissables (server/investment/schema.ts) exposés publiquement
+   * pour la candidature « Devenir investisseur » — même liste que celle déjà
+   * utilisée par le contrat réel, jamais une liste dupliquée ou inventée.
+   * L'admin dispose déjà de investmentEngine.universUnivestissables (réservé) ;
+   * celle-ci est la même donnée, non sensible, ouverte au formulaire public.
+   */
+  investorUniverses: publicProcedure.query(() => INVESTABLE_UNIVERSES),
+
   /** Point 36 — entrée commerciale « Devenir partenaire MKA.P-MS ». */
   candidater: publicProcedure
     .input(
@@ -48,6 +58,13 @@ export const partnerEngineRouter = router({
         contactEmail: z.string().email().max(255).optional(),
         contactPhone: z.string().max(32).optional(),
         message: z.string().max(2000).optional(),
+        /** Détails propres au métier candidat (ex. montant envisagé/univers d'intérêt pour un investisseur) — voir schema.ts. */
+        details: z
+          .record(
+            z.string().max(40),
+            z.union([z.string().max(500), z.number(), z.array(z.string().max(120)).max(20)]),
+          )
+          .optional(),
         opportunityId: z.number().int().positive().optional(),
       }),
     )

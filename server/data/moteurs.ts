@@ -100,9 +100,9 @@ export interface PerimetreMoteur {
 }
 
 export const MOTEURS_TOTAL = 99;
-export const MANQUES_TOTAL = 510;
+export const MANQUES_TOTAL = 511;
 export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
-  "dependance_non_declaree": 87,
+  "dependance_non_declaree": 88,
   "sans_logique_serveur": 10,
   "ecran_sans_contenu": 340,
   "sans_ecran": 8,
@@ -11622,7 +11622,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       ]
     },
     "dependants": [
-      "comptabilite"
+      "comptabilite",
+      "partner_engine"
     ],
     "evenementsPublies": [],
     "evenementsConsommes": [],
@@ -11642,8 +11643,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "cliquables": 2,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 13,
-        "mots": 97
+        "textes": 26,
+        "mots": 186
       },
       {
         "fichier": "client/src/pages/investissement/index.tsx",
@@ -11703,8 +11704,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "admin",
       "connecte"
     ],
-    "textes": 24,
-    "mots": 132,
+    "textes": 37,
+    "mots": 221,
     "battement": "pont_os",
     "manques": []
   },
@@ -15116,6 +15117,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "dependancesDetectees": [
       "core",
       "country",
+      "investment",
       "notification",
       "pro_portal",
       "smart",
@@ -15124,6 +15126,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "dependances": [
       "core",
       "country",
+      "investment",
       "notification",
       "pro_portal",
       "smart",
@@ -15138,6 +15141,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       ],
       "country": [
         "partner-engine/service.ts importe country-os/index.ts"
+      ],
+      "investment": [
+        "partner-engine/index.ts importe investment/schema.ts"
       ],
       "notification": [
         "partner-engine/service.ts importe notification-os/triggers.ts",
@@ -15329,6 +15335,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "createContract",
       "detect",
       "health",
+      "investorUniverses",
       "network",
       "opportunities",
       "prepareActions",
@@ -15386,6 +15393,10 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "genre": "ecran_sans_contenu",
         "detail": "client/src/pages/partenaires/SuspensionPartenaires.tsx (3 texte(s))"
+      },
+      {
+        "genre": "dependance_non_declaree",
+        "detail": "investment — partner-engine/index.ts importe investment/schema.ts"
       }
     ]
   },

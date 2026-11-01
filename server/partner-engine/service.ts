@@ -64,6 +64,7 @@ export interface ApplyInput {
   contactEmail?: string | null;
   contactPhone?: string | null;
   message?: string | null;
+  details?: Record<string, unknown> | null;
   opportunityId?: number | null;
 }
 
@@ -94,6 +95,7 @@ export async function applyAsPartner(input: ApplyInput): Promise<ApplyResult> {
       contactEmail: input.contactEmail ?? null,
       contactPhone: input.contactPhone ?? null,
       message: input.message ?? null,
+      details: input.details ?? null,
       opportunityId: input.opportunityId ?? null,
       status: "recue",
     })
