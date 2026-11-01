@@ -2,6 +2,7 @@ import type { LucideIcon } from "lucide-react";
 import {
   ArrowRight,
   BadgeEuro,
+  Bot,
   Boxes,
   Car,
   Clock3,
@@ -46,6 +47,7 @@ const LINKS: Record<string, string> = {
   marketing: "/marketing",
   controle_technique: "/garage/controle-technique",
   carte_mondiale: "/carte",
+  ia: "/intelligences",
   qualite: "/operations/controle-qualite-global",
   investisseurs: "/investisseurs/espace-investisseurs",
   encheres: "/acheter/encheres",
@@ -79,6 +81,7 @@ const PRESENTATIONS: Record<string, Presentation> = {
   marketing: { image: "/pubs/hero2-vendez.jpg", eyebrow: "Visibilité & croissance", action: "Ouvrir le marketing", icon: Sparkles },
   controle_technique: { image: "/categories/cover_pro.jpg", eyebrow: "Sécurité & conformité", action: "Prendre rendez-vous", icon: ShieldCheck },
   carte_mondiale: { image: "/categories/cover_mkapms.jpg", eyebrow: "Services autour du monde", action: "Explorer la carte", icon: MapPinned },
+  ia: { image: "/categories/cover_mkapms.jpg", eyebrow: "Assistant intelligent", action: "Parler à AL-HUDHUD·M", icon: Bot },
   qualite: { image: "/categories/cover_pro.jpg", eyebrow: "Contrôle & amélioration", action: "Ouvrir le centre qualité", icon: PackageCheck },
   investisseurs: { image: "/pubs/hero5-pro.jpg", eyebrow: "Vision & développement", action: "Ouvrir l’espace investisseurs", icon: Landmark },
   encheres: { image: "/pubs/hero5-pro.jpg", eyebrow: "Marché automobile mondial", action: "Ouvrir les enchères", icon: Gavel },
@@ -105,6 +108,16 @@ export default function Univers() {
               code: "encheres",
               nom: "Enchères automobiles",
               description: "Lots professionnels, reprises, flottes et véhicules sur commande, avec un parcours international.",
+              status: "active",
+              visiblePublic: true,
+            }]),
+        ...(visibles.some((module) => module.code === "ia")
+          ? []
+          : [{
+              id: "ia-portal",
+              code: "ia",
+              nom: "AL-HUDHUD·M",
+              description: "L'assistant intelligent MKA.P-MS : recherche un véhicule, répond à vos questions et vous guide dans la plateforme.",
               status: "active",
               visiblePublic: true,
             }]),
