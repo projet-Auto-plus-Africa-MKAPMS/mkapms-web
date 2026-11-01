@@ -283,7 +283,6 @@ async function annonceSeoHead(
   const hreflang = hreflangLinks(`/vehicule/${a.id}`);
 
   return [
-    `<html lang="${meta.lang}">`,
     `<title>${escapeHtml(title)}</title>`,
     `<meta name="description" content="${escapeHtml(description)}" />`,
     `<meta name="keywords" content="${escapeHtml(meta.keywords)}" />`,
@@ -319,7 +318,6 @@ interface HeadInput {
 
 function buildHead(h: HeadInput): string {
   const parts = [
-    `<html lang="${h.lang}">`,
     `<title>${escapeHtml(h.title)}</title>`,
     `<meta name="description" content="${escapeHtml(h.description)}" />`,
     h.keywords ? `<meta name="keywords" content="${escapeHtml(h.keywords)}" />` : "",
