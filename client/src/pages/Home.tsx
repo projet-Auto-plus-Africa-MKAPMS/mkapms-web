@@ -1657,11 +1657,25 @@ export default function Home() {
                 <div>
                   <img src="/logo-closed.png" alt="MKA.P-MS" className="h-10 w-auto mb-1" draggable={false} />
                   <p className="text-[9px] text-white/50 uppercase tracking-wider mt-0.5">LA MARKETPLACE AUTOMOBILE</p>
-                  <div className="flex gap-2 mt-3">
-                    {["f", "📷", "▶", "in", "♪"].map((s, i) => (
-                      <div key={i} className="w-7 h-7 rounded-full bg-white/10 flex items-center justify-center text-[10px] text-white/60 hover:bg-[#D4AF37]/20 transition cursor-pointer">{s}</div>
-                    ))}
-                  </div>
+                  {reseaux.length > 0 && (
+                    <div className="flex gap-2 mt-3">
+                      {reseaux.map((r) => {
+                        const Ic = ICONE_RESEAU[r.connector] ?? Facebook;
+                        return (
+                          <a
+                            key={r.channelKey}
+                            href={r.url}
+                            target="_blank"
+                            rel="noreferrer noopener"
+                            aria-label={r.label}
+                            className="w-7 h-7 rounded-full bg-white/10 flex items-center justify-center text-white/60 hover:bg-[#D4AF37]/20 hover:text-white transition"
+                          >
+                            <Ic size={14} />
+                          </a>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
                 {/* Explorer */}
                 <div>
