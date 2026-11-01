@@ -19,8 +19,20 @@
  */
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { ChevronLeft, TrendingUp, Check, ShieldCheck, Clock, Globe2 } from "lucide-react";
+import {
+  ChevronLeft,
+  TrendingUp,
+  Check,
+  ShieldCheck,
+  Clock,
+  Globe2,
+  Building2,
+  UserRound,
+  Calculator,
+  ArrowRight,
+} from "lucide-react";
 import { trpc } from "../../lib/trpc";
+import SelecteurPays from "../../components/SelecteurPays";
 
 const PRINCIPES = [
   { icon: Globe2, texte: "Droit économique temporaire sur un univers d'activité, dans un pays et pour une durée définis au contrat." },
@@ -57,12 +69,16 @@ const PROFILS_INVESTISSEUR = [
 const HORIZONS_MOIS = [12, 24, 36, 60];
 
 export default function DevenirInvestisseur() {
-  const countries = trpc.proPortal.countries.useQuery();
+  // Liste mondiale (≈190 pays) : un investisseur peut candidater depuis
+  // n'importe quel pays, pas seulement ceux où MKA.P-MS opère déjà
+  // (server/partner-engine/world-countries.ts, distinct du Country OS).
+  const countries = trpc.partnerEngine.worldCountries.useQuery();
   const universes = trpc.partnerEngine.investorUniverses.useQuery();
   const apply = trpc.partnerEngine.candidater.useMutation();
 
   const [companyName, setCompanyName] = useState("");
   const [countryCode, setCountryCode] = useState("FR");
+  const [ville, setVille] = useState("");
   const [contactName, setContactName] = useState("");
   const [contactEmail, setContactEmail] = useState("");
   const [contactPhone, setContactPhone] = useState("");
@@ -72,10 +88,31 @@ export default function DevenirInvestisseur() {
   const [montantEnvisage, setMontantEnvisage] = useState("");
   const [horizonMois, setHorizonMois] = useState<number | "">("");
 
+  // Branche « possède une société / pas encore » — demandée pour que les
+  // deux parcours (KYB léger vs. orientation comptabilité) soient réellement
+  // distincts, au lieu de forcer tout le monde dans un seul champ générique.
+  const [hasCompany, setHasCompany] = useState<boolean | null>(null);
+  const [legalForm, setLegalForm] = useState("");
+  const [registrationNumber, setRegistrationNumber] = useState("");
+  const [vatNumber, setVatNumber] = useState("");
+  const [addressLine, setAddressLine] = useState("");
+  const [postalCode, setPostalCode] = useState("");
+  const [website, setWebsite] = useState("");
+  const [wantsAccountingHelp, setWantsAccountingHelp] = useState(false);
+  const [accountingNote, setAccountingNote] = useState("");
+
   const toggleUnivers = (u: string) =>
     setUniversesInteret((cur) => (cur.includes(u) ? cur.filter((x) => x !== u) : [...cur, u]));
 
-  const canSubmit = companyName.trim().length >= 2 && countryCode !== "" && !apply.isPending;
+  const canSubmit =
+    companyName.trim().length >= 2 &&
+    countryCode !== "" &&
+    hasCompany !== null &&
+    !apply.isPending;
+
+  const comptablesHref = `/comptables?specialty=creation_entreprise${
+    countryCode ? `&country=${countryCode}` : ""
+  }${ville.trim() ? `&city=${encodeURIComponent(ville.trim())}` : ""}`;
 
   if (apply.data) {
     return (
@@ -136,15 +173,23 @@ export default function DevenirInvestisseur() {
           />
 
           <label className="block text-[11px] font-semibold text-[#6B7280] mt-3 mb-1">Pays</label>
-          <select
+          <SelecteurPays
+            options={countries.data ?? []}
             value={countryCode}
-            onChange={(e) => setCountryCode(e.target.value)}
-            className="w-full rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm bg-white"
-          >
-            {(countries.data ?? []).map((c) => (
-              <option key={c.code} value={c.code}>{c.name}</option>
-            ))}
-          </select>
+            onChange={setCountryCode}
+            placeholder="Ex. Côte d'Ivoire, Nigeria, FR…"
+          />
+          <p className="mt-1 text-[10px] text-[#9CA3AF]">
+            Tous les pays sont ouverts à la candidature — y compris là où MKA.P-MS n'opère pas encore.
+          </p>
+
+          <label className="block text-[11px] font-semibold text-[#6B7280] mt-3 mb-1">Ville (optionnel)</label>
+          <input
+            value={ville}
+            onChange={(e) => setVille(e.target.value)}
+            className="w-full rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm"
+            placeholder="Ex. Abidjan"
+          />
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
             <input
@@ -174,6 +219,132 @@ export default function DevenirInvestisseur() {
             rows={3}
             placeholder="Questions, contexte, précisions utiles… (optionnel)"
           />
+        </section>
+
+        <section className="rounded-xl bg-white border border-[#E5E7EB] p-4">
+          <h2 className="text-sm font-black text-[#111] mb-3">Votre société</h2>
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={() => setHasCompany(true)}
+              className={`flex items-center justify-center gap-2 rounded-lg border px-3 py-2.5 text-sm font-bold ${
+                hasCompany === true
+                  ? "border-[#111] bg-[#111] text-[#D4AF37]"
+                  : "border-[#E5E7EB] text-[#374151]"
+              }`}
+            >
+              <Building2 size={15} /> J'ai déjà une société
+            </button>
+            <button
+              type="button"
+              onClick={() => setHasCompany(false)}
+              className={`flex items-center justify-center gap-2 rounded-lg border px-3 py-2.5 text-sm font-bold ${
+                hasCompany === false
+                  ? "border-[#111] bg-[#111] text-[#D4AF37]"
+                  : "border-[#E5E7EB] text-[#374151]"
+              }`}
+            >
+              <UserRound size={15} /> Pas encore
+            </button>
+          </div>
+
+          {hasCompany === true && (
+            <div className="mt-3 space-y-3">
+              <p className="text-[11px] text-[#6B7280]">
+                Informations sur la société que vous représentez — elles aident l'examen de votre dossier, votre vérification KYC/KYB complète n'intervient qu'après décision.
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[11px] font-semibold text-[#6B7280] mb-1">Forme juridique</label>
+                  <input
+                    value={legalForm}
+                    onChange={(e) => setLegalForm(e.target.value)}
+                    className="w-full rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm"
+                    placeholder="Ex. SARL, SAS, Ltd…"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[11px] font-semibold text-[#6B7280] mb-1">N° d'immatriculation</label>
+                  <input
+                    value={registrationNumber}
+                    onChange={(e) => setRegistrationNumber(e.target.value)}
+                    className="w-full rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm"
+                    placeholder="Ex. SIREN, RCCM, NIF…"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[11px] font-semibold text-[#6B7280] mb-1">N° de TVA (optionnel)</label>
+                  <input
+                    value={vatNumber}
+                    onChange={(e) => setVatNumber(e.target.value)}
+                    className="w-full rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[11px] font-semibold text-[#6B7280] mb-1">Site web (optionnel)</label>
+                  <input
+                    value={website}
+                    onChange={(e) => setWebsite(e.target.value)}
+                    className="w-full rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm"
+                    placeholder="https://…"
+                  />
+                </div>
+                <div className="sm:col-span-2">
+                  <label className="block text-[11px] font-semibold text-[#6B7280] mb-1">Adresse du siège</label>
+                  <input
+                    value={addressLine}
+                    onChange={(e) => setAddressLine(e.target.value)}
+                    className="w-full rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[11px] font-semibold text-[#6B7280] mb-1">Code postal</label>
+                  <input
+                    value={postalCode}
+                    onChange={(e) => setPostalCode(e.target.value)}
+                    className="w-full rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {hasCompany === false && (
+            <div className="mt-3 space-y-3">
+              <p className="text-[11px] text-[#6B7280]">
+                Aucun problème : une société n'est pas requise pour candidater. Si vous souhaitez en créer une pour investir, l'équipe comptabilité de MKA.P-MS peut vous orienter.
+              </p>
+              <label className="flex items-start gap-2 text-[12px] text-[#374151]">
+                <input
+                  type="checkbox"
+                  checked={wantsAccountingHelp}
+                  onChange={(e) => setWantsAccountingHelp(e.target.checked)}
+                  className="mt-0.5 accent-[#D4AF37]"
+                />
+                Je souhaite être mis en relation avec la comptabilité pour créer ma société
+              </label>
+              {wantsAccountingHelp && (
+                <div className="rounded-lg bg-[#F5F3EF] border border-[#E5E7EB] p-3 space-y-2">
+                  <textarea
+                    value={accountingNote}
+                    onChange={(e) => setAccountingNote(e.target.value)}
+                    rows={2}
+                    className="w-full rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm bg-white"
+                    placeholder="Précisez votre besoin (pays d'immatriculation visé, type d'activité…) — optionnel"
+                  />
+                  <p className="text-[10px] text-[#9CA3AF]">
+                    Un comptable vous recontactera avec un devis personnalisé — aucun tarif n'est fixé automatiquement ici.
+                  </p>
+                  <Link
+                    to={comptablesHref}
+                    className="inline-flex items-center gap-1.5 rounded-lg bg-[#111] px-3 py-2 text-[12px] font-bold text-[#D4AF37]"
+                  >
+                    <Calculator size={14} /> Voir les comptables « création d'entreprise » <ArrowRight size={12} />
+                  </Link>
+                </div>
+              )}
+            </div>
+          )}
         </section>
 
         <section className="rounded-xl bg-white border border-[#E5E7EB] p-4">
@@ -254,6 +425,7 @@ export default function DevenirInvestisseur() {
               companyName: companyName.trim(),
               profession: "investisseur",
               countryCode,
+              city: ville.trim() || undefined,
               contactName: contactName.trim() || undefined,
               contactEmail: contactEmail.trim() || undefined,
               contactPhone: contactPhone.trim() || undefined,
@@ -263,6 +435,24 @@ export default function DevenirInvestisseur() {
                 universesInteret,
                 ...(montantEnvisage ? { montantEnvisageEur: Number(montantEnvisage) } : {}),
                 ...(horizonMois ? { horizonMois } : {}),
+                hasCompany: hasCompany ?? false,
+                ...(hasCompany
+                  ? {
+                      ...(legalForm.trim() ? { legalForm: legalForm.trim() } : {}),
+                      ...(registrationNumber.trim()
+                        ? { registrationNumber: registrationNumber.trim() }
+                        : {}),
+                      ...(vatNumber.trim() ? { vatNumber: vatNumber.trim() } : {}),
+                      ...(addressLine.trim() ? { addressLine: addressLine.trim() } : {}),
+                      ...(postalCode.trim() ? { postalCode: postalCode.trim() } : {}),
+                      ...(website.trim() ? { website: website.trim() } : {}),
+                    }
+                  : {
+                      wantsCompanyCreationHelp: wantsAccountingHelp,
+                      ...(wantsAccountingHelp && accountingNote.trim()
+                        ? { accountingNote: accountingNote.trim() }
+                        : {}),
+                    }),
               },
             })
           }

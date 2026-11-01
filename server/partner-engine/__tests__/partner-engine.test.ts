@@ -110,19 +110,85 @@ async function main() {
     listeAdmin === null,
   );
 
-  // ── 3. Pays fermé au Country OS : refusé, jamais une candidature ouverte par défaut ──
-  let refusePaysFerme = false;
+  // ── 3. Pays fermé au Country OS : refusé pour un métier opérationnel (garage),
+  // jamais pour un investisseur — un investisseur candidate depuis n'importe
+  // quel pays du monde, y compris là où MKA.P-MS n'opère pas encore. ──
+  let refuseGaragePaysFerme = false;
   try {
     await publicCaller.candidater({
-      companyName: `${NOM_PREFIX}Pays Fermé`,
+      companyName: `${NOM_PREFIX}Garage Pays Fermé`,
+      profession: "garage",
+      countryCode: "ZZ",
+      services: [],
+    });
+  } catch (e) {
+    refuseGaragePaysFerme = e instanceof Error && /non ouvert/i.test(e.message);
+  }
+  verif(
+    "candidater() refuse toujours un pays non ouvert pour un métier opérationnel (garage)",
+    refuseGaragePaysFerme,
+  );
+
+  // Guinée (GN) : pays réel, mais absent des ~20 pays configurés dans le
+  // Country OS (il n'y est donc pas « ouvert ») — un investisseur doit
+  // pouvoir candidater malgré tout, exactement le cas que le PDG a signalé.
+  const candidatureGuinee = await publicCaller.candidater({
+    companyName: `${NOM_PREFIX}Investisseur Guinée`,
+    profession: "investisseur",
+    countryCode: "GN",
+    services: [],
+  });
+  verif(
+    "candidater() accepte un investisseur dans un pays réel non ouvert au Country OS (GN)",
+    !!candidatureGuinee.reference,
+  );
+
+  let refuseCodeInconnu = false;
+  try {
+    await publicCaller.candidater({
+      companyName: `${NOM_PREFIX}Pays Inconnu`,
       profession: "investisseur",
       countryCode: "ZZ",
       services: [],
     });
   } catch (e) {
-    refusePaysFerme = e instanceof Error && /non ouvert/i.test(e.message);
+    refuseCodeInconnu = e instanceof Error && /inconnu/i.test(e.message);
   }
-  verif("candidater() refuse un pays non ouvert dans le Country OS", refusePaysFerme);
+  verif(
+    "candidater() refuse malgré tout un code pays qui n'existe pas (ZZ, investisseur)",
+    refuseCodeInconnu,
+  );
+
+  // ── 4. Branche société / pas de société : round-trip des nouveaux champs ──
+  const candidatureSansSociete = await publicCaller.candidater({
+    companyName: `${NOM_PREFIX}Sans Société`,
+    profession: "investisseur",
+    countryCode: "NG",
+    city: "Lagos",
+    services: [],
+    details: {
+      investorType: "PASSIVE_INVESTOR",
+      universesInteret: [],
+      hasCompany: false,
+      wantsCompanyCreationHelp: true,
+      accountingNote: "Besoin de créer une structure au Nigeria.",
+    },
+  });
+  verif(
+    "candidater() accepte profession=investisseur pour un pays hors des 20 pays Country OS (NG)",
+    !!candidatureSansSociete.reference,
+  );
+  const [ligneSansSociete] = await db
+    .select()
+    .from(partnerApplications)
+    .where(eq(partnerApplications.reference, candidatureSansSociete.reference));
+  const detailsSansSociete = ligneSansSociete?.details as Record<string, unknown> | null;
+  verif("details.hasCompany=false round-trip exact (booléen, pas une chaîne)", detailsSansSociete?.hasCompany === false);
+  verif(
+    "details.wantsCompanyCreationHelp round-trip exact",
+    detailsSansSociete?.wantsCompanyCreationHelp === true,
+  );
+  verif("le champ ville (top-level) est bien persisté", ligneSansSociete?.city === "Lagos");
 
   await nettoyer();
 
