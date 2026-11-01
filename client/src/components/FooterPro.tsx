@@ -5,11 +5,32 @@
  * pages réellement construites (voir audit avant construction).
  */
 import { Link } from "react-router-dom";
+import { Facebook, Instagram, Youtube, Linkedin } from "lucide-react";
 import { trpc } from "../lib/trpc";
 import { Logo } from "./Logo";
 
+/* Icône TikTok (absente de lucide-react) — même style que les autres réseaux. */
+function TikTokIcon({ size = 16 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="M16.5 3c.3 2 1.5 3.6 3.5 3.9v2.6c-1.2.1-2.4-.2-3.5-.8v5.9c0 3.2-2.6 5.4-5.5 5.4S5.5 17.8 5.5 14.9 8 9.6 10.9 9.9v2.7c-.4-.1-.8-.2-1.2-.1-1.2.1-2.1 1.1-2 2.3.1 1.2 1.1 2.1 2.3 2 1.2-.1 2-1 2-2.2V3h2.5z" />
+    </svg>
+  );
+}
+
+/** Icône par famille de canal social configurée côté PDG (aucune marque codée en dur ailleurs). */
+const ICONE_RESEAU: Record<string, React.ElementType> = {
+  video_court: TikTokIcon,
+  video_long: Youtube,
+  photo: Instagram,
+  general: Facebook,
+  pro: Linkedin,
+};
+
 export default function FooterPro() {
   const { data: legal } = trpc.meta.legal.useQuery();
+  const { data: reseauxData } = trpc.visibilityOs.reseauxPublics.useQuery(undefined, { staleTime: 300_000 });
+  const reseaux = reseauxData ?? [];
 
   return (
     <footer className="border-t border-white/10 bg-[#0A0A0A] text-white">
@@ -67,6 +88,26 @@ export default function FooterPro() {
             </ul>
           </div>
         </div>
+
+        {reseaux.length > 0 && (
+          <div className="mt-8 flex items-center gap-2.5 border-t border-white/5 pt-6">
+            {reseaux.map((r) => {
+              const Ic = ICONE_RESEAU[r.connector] ?? Facebook;
+              return (
+                <a
+                  key={r.channelKey}
+                  href={r.url}
+                  target="_blank"
+                  rel="noreferrer noopener"
+                  aria-label={r.label}
+                  className="grid h-9 w-9 place-items-center rounded-full bg-white/10 text-white/70 hover:bg-[#D4AF37] hover:text-white transition"
+                >
+                  <Ic size={16} />
+                </a>
+              );
+            })}
+          </div>
+        )}
       </div>
       <div className="border-t border-white/5 py-4 text-center text-xs text-white/30">
         © {new Date().getFullYear()} {legal?.raisonSociale} — {legal?.forme}, capital {legal?.capital}. SIREN {legal?.siren} · TVA {legal?.tva}.
