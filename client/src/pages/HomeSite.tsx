@@ -10,10 +10,30 @@ import {
   Globe, MapPin, Languages, CreditCard, ChevronRight,
   Search, Shield, Award, Headphones, CheckCircle,
   Car, Wrench, KeyRound, Tag, ArrowRight, Star,
-  Building2, Truck, Zap, Package
+  Building2, Truck, Zap, Package,
+  Facebook, Instagram, Youtube, Linkedin,
 } from "lucide-react";
 import { trpc } from "../lib/trpc";
 import { useCurrency } from "../lib/currency";
+import { Logo } from "../components/Logo";
+
+/* Icône TikTok (absente de lucide-react) — même style que les autres réseaux. */
+function TikTokIcon({ size = 16 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="M16.5 3c.3 2 1.5 3.6 3.5 3.9v2.6c-1.2.1-2.4-.2-3.5-.8v5.9c0 3.2-2.6 5.4-5.5 5.4S5.5 17.8 5.5 14.9 8 9.6 10.9 9.9v2.7c-.4-.1-.8-.2-1.2-.1-1.2.1-2.1 1.1-2 2.3.1 1.2 1.1 2.1 2.3 2 1.2-.1 2-1 2-2.2V3h2.5z" />
+    </svg>
+  );
+}
+
+/** Icône par famille de canal social configurée côté PDG (aucune marque codée en dur ailleurs). */
+const ICONE_RESEAU_SITE: Record<string, React.ElementType> = {
+  video_court: TikTokIcon,
+  video_long: Youtube,
+  photo: Instagram,
+  general: Facebook,
+  pro: Linkedin,
+};
 
 /* ── PAYS PHARES ── */
 const FEATURED_COUNTRIES = [
@@ -83,6 +103,9 @@ export default function HomeSite() {
   const [searchCountry, setSearchCountry] = useState("");
 
   const { data: recentes } = trpc.annonces.list.useQuery({ pays: country ?? undefined, limit: 8 });
+  const { data: legal } = trpc.meta.legal.useQuery();
+  const { data: reseauxData } = trpc.visibilityOs.reseauxPublics.useQuery(undefined, { staleTime: 300_000 });
+  const reseaux = reseauxData ?? [];
 
   const filteredCountries = searchCountry
     ? catalogue.filter((c) =>
@@ -331,6 +354,40 @@ export default function HomeSite() {
           </p>
         </div>
       </section>
+
+      {/* ═══════════════════════════════════════════════════════════════
+          PIED DE PAGE
+          ═══════════════════════════════════════════════════════════════ */}
+      <footer className="border-t border-white/10 bg-[#0A0A0A] text-white">
+        <div className="mx-auto max-w-6xl px-4 py-10 flex flex-col items-center text-center">
+          <Logo variant="closed" size={36} withWordmark />
+          <p className="mt-3 max-w-md text-sm text-white/50">
+            mkapms.site — le portail international de MKA.P-MS, partout dans le monde.
+          </p>
+          {reseaux.length > 0 && (
+            <div className="mt-4 flex gap-2.5">
+              {reseaux.map((r) => {
+                const Ic = ICONE_RESEAU_SITE[r.connector] ?? Facebook;
+                return (
+                  <a
+                    key={r.channelKey}
+                    href={r.url}
+                    target="_blank"
+                    rel="noreferrer noopener"
+                    aria-label={r.label}
+                    className="grid h-9 w-9 place-items-center rounded-full bg-white/10 text-white/70 hover:bg-[#D4AF37] hover:text-white transition"
+                  >
+                    <Ic size={16} />
+                  </a>
+                );
+              })}
+            </div>
+          )}
+        </div>
+        <div className="border-t border-white/5 py-4 text-center text-xs text-white/30">
+          © {new Date().getFullYear()} {legal?.raisonSociale} — {legal?.forme}, capital {legal?.capital}. SIREN {legal?.siren} · TVA {legal?.tva}.
+        </div>
+      </footer>
     </div>
   );
 }
