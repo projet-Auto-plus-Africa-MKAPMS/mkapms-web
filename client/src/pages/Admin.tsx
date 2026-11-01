@@ -4,7 +4,47 @@ import { getAnnonceUrl } from "../lib/annonceUrl";
 import { trpc } from "../lib/trpc";
 import { useAuth } from "../lib/auth";
 import { isAdmin, isDirection, isPositionExterne, POSITIONS_ATTRIBUABLES, STAFF_LABELS, type PositionAttribuable, type StaffPosition } from "@shared/roles";
-import { Eye, Pencil, Trash2, Pause, Play, ChevronDown, ChevronUp, X } from "lucide-react";
+import { Eye, Pencil, Trash2, Pause, Play, ChevronDown, ChevronUp, X, Facebook, Instagram, Youtube, Linkedin } from "lucide-react";
+
+/* Icône TikTok (absente de lucide-react) — même tracé que client/src/pages/Home.tsx::TikTokIcon. */
+function TikTokIcon({ size = 16 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="M16.5 3c.3 2 1.5 3.6 3.5 3.9v2.6c-1.2.1-2.4-.2-3.5-.8v5.9c0 3.2-2.6 5.4-5.5 5.4S5.5 17.8 5.5 14.9 8 9.6 10.9 9.9v2.7c-.4-.1-.8-.2-1.2-.1-1.2.1-2.1 1.1-2 2.3.1 1.2 1.1 2.1 2.3 2 1.2-.1 2-1 2-2.2V3h2.5z" />
+    </svg>
+  );
+}
+
+/** Icône par famille de canal social configurée côté PDG (même mapping que Home.tsx — aucune marque codée en dur ailleurs). */
+const ICONE_RESEAU_ADMIN: Record<string, React.ElementType> = {
+  video_court: TikTokIcon,
+  video_long: Youtube,
+  photo: Instagram,
+  general: Facebook,
+  pro: Linkedin,
+};
+
+/** Adresse publique du compte (pied de page du site). Vide = icône masquée côté public, jamais un lien mort. */
+function ChampCompteReseau({ valeur, desactive, onEnregistrer }: { valeur: string; desactive: boolean; onEnregistrer: (url: string) => void }) {
+  const [saisie, setSaisie] = useState(valeur);
+  return (
+    <div className="mt-2 flex gap-1.5">
+      <input
+        value={saisie}
+        onChange={(e) => setSaisie(e.target.value)}
+        placeholder="https://…"
+        className="input flex-1 !text-xs"
+      />
+      <button
+        disabled={desactive || saisie === valeur}
+        onClick={() => onEnregistrer(saisie.trim())}
+        className="btn-primary !text-xs !px-3"
+      >
+        Enregistrer
+      </button>
+    </div>
+  );
+}
 
 export default function Admin() {
   const { user } = useAuth();
@@ -116,6 +156,13 @@ export default function Admin() {
   const rateQuality = trpc.quality.rate.useMutation({ onSuccess: () => { utils.quality.list.invalidate(); setQuality({ targetType: "garage", targetId: "", grade: "B", note: "" }); } });
   const addMedia = trpc.media.add.useMutation({ onSuccess: () => { utils.media.list.invalidate(); setMedia({ type: "photo", title: "", url: "", channel: "" }); } });
   const removeMedia = trpc.media.remove.useMutation({ onSuccess: () => utils.media.list.invalidate() });
+  // Réseaux sociaux du pied de page public — distinct de "Tous les médias" ci-dessus,
+  // qui n'alimente aucune page publique. Ce sont ces 5 canaux (visibilityOs, kind="social")
+  // qui pilotent réellement les icônes du footer (desktop et mobile).
+  const isPdg = !!user && user.role === "super_admin";
+  const socialChannels = trpc.visibilityOs.channels.useQuery(undefined, { enabled: direction });
+  const setSocialChannel = trpc.visibilityOs.setChannel.useMutation({ onSuccess: () => { utils.visibilityOs.channels.invalidate(); utils.visibilityOs.reseauxPublics.invalidate(); } });
+  const setSocialProfile = trpc.visibilityOs.setChannelProfile.useMutation({ onSuccess: () => { utils.visibilityOs.channels.invalidate(); utils.visibilityOs.reseauxPublics.invalidate(); } });
   const createApiKey = trpc.partnerApi.create.useMutation({ onSuccess: (d) => { utils.partnerApi.list.invalidate(); setNewApiKey(d.apiKey); setApiForm({ name: "", scopes: "" }); } });
   const setApiKeyActive = trpc.partnerApi.setActive.useMutation({ onSuccess: () => utils.partnerApi.list.invalidate() });
   // Lavage / Karting / Formation
@@ -1668,6 +1715,50 @@ export default function Admin() {
                 <input className="input max-w-[260px]" placeholder="URL vidéo (/videos/home/xxx.mp4)" value={media.url} onChange={(e) => setMedia({ ...media, url: e.target.value })} />
                 <button className="btn-primary !text-sm">Ajouter vidéo homepage</button>
               </form>
+            </div>
+
+            {/* ── Sous-section : Réseaux sociaux (pied de page public) ── */}
+            <div className="mt-4 rounded-xl border border-blue-200 bg-blue-50 p-4">
+              <h3 className="text-sm font-bold text-blue-800 mb-1">Réseaux sociaux <span className="ml-2 rounded bg-blue-200 px-2 py-0.5 text-[10px] font-bold text-blue-900">PIED DE PAGE PUBLIC</span></h3>
+              <p className="text-xs text-blue-700 mb-3">
+                Ce sont ces 5 emplacements — et uniquement ceux-ci — qui alimentent les icônes cliquables du pied de page du site (desktop et mobile).
+                La liste « Tous les médias » ci-dessous n'est pas connectée au site public, elle sert d'autres usages (photos, vidéos, campagnes).
+                Un canal sans adresse enregistrée n'affiche aucune icône plutôt qu'un lien mort.
+              </p>
+              <div className="space-y-2">
+                {(socialChannels.data ?? []).filter((c) => c.kind === "social").map((c) => {
+                  const cfg = (c.config ?? {}) as Record<string, unknown>;
+                  const connector = typeof cfg.connector === "string" ? cfg.connector : "";
+                  const profileUrl = typeof cfg.profileUrl === "string" ? cfg.profileUrl : "";
+                  const Ic = ICONE_RESEAU_ADMIN[connector];
+                  return (
+                    <div key={c.channelKey} className="rounded-lg bg-white border border-blue-200 p-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          {Ic && <Ic size={16} />}
+                          <span className="text-xs font-semibold text-slate-800">{c.label}</span>
+                        </div>
+                        <button
+                          disabled={!isPdg || setSocialChannel.isPending}
+                          onClick={() => setSocialChannel.mutate({ channelKey: c.channelKey, enabled: !c.enabled })}
+                          className={`rounded-full px-2.5 py-1 text-[10px] font-bold ${c.enabled ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"} disabled:opacity-50`}
+                        >
+                          {c.enabled ? "Actif" : "Inactif"}
+                        </button>
+                      </div>
+                      <ChampCompteReseau
+                        valeur={profileUrl}
+                        desactive={!isPdg || setSocialProfile.isPending}
+                        onEnregistrer={(url) => setSocialProfile.mutate({ channelKey: c.channelKey, profileUrl: url })}
+                      />
+                    </div>
+                  );
+                })}
+                {socialChannels.data?.filter((c) => c.kind === "social").length === 0 && (
+                  <p className="text-xs text-blue-600">Aucun canal social.</p>
+                )}
+              </div>
+              {!isPdg && <p className="mt-2 text-[10px] text-blue-600">Réservé au Fondateur (super_admin).</p>}
             </div>
 
             {/* ── Tous les médias ── */}
