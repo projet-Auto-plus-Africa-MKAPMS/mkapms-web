@@ -24588,7 +24588,15 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "mots": 145
       }
     ],
-    "ecransHotes": [],
+    "ecransHotes": [
+      {
+        "fichier": "client/src/pages/Admin.tsx",
+        "route": "/admin/*",
+        "composants": [
+          "trpc.visibilityOs"
+        ]
+      }
+    ],
     "procedures": [
       "aiAnswers",
       "audiences",
