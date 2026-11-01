@@ -156,6 +156,10 @@ export function nettoyerJeton(provider: VerificationProvider, saisie: string): s
       .replace(/\.html$/i, "")
       .replace(/^google/i, "");
   }
+  // Un vrai jeton de vérification n'est jamais une phrase : un texte libre collé
+  // par erreur (plusieurs mots, ponctuation de phrase) a déjà fini publié tel
+  // quel dans le <head> de tout le site — jamais accepté silencieusement.
+  if (/\s/.test(valeur) || /[?!]/.test(valeur)) return "";
   return valeur.slice(0, 200);
 }
 
