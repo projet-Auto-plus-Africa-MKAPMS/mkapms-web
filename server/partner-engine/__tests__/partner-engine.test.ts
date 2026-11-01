@@ -49,7 +49,16 @@ async function main() {
   verif("candidater() sans compte fonctionne (entrée commerciale publique)", !!candidatureGarage.reference);
   verif("le statut initial est « recue », jamais accordé automatiquement", candidatureGarage.status === "recue");
 
+  const [ligneGarage] = await db
+    .select()
+    .from(partnerApplications)
+    .where(eq(partnerApplications.reference, candidatureGarage.reference));
+  verif("sans `details` fourni, la colonne reste null — jamais un objet vide fabriqué", ligneGarage?.details === null);
+
   // ── 2. Candidature investisseur (DevenirInvestisseur.tsx) : même moteur, jamais un second système ──
+  // Les champs `details` reproduisent exactement ce que le formulaire public envoie
+  // (montant envisagé, univers d'intérêt, profil, durée) — la direction doit les
+  // retrouver tels quels dans la fiche de candidature.
   const candidatureInvestisseur = await publicCaller.candidater({
     companyName: `${NOM_PREFIX}Investisseur Test`,
     profession: "investisseur",
@@ -58,6 +67,12 @@ async function main() {
     contactName: "Test Investisseur",
     contactEmail: "investisseur-test@mkapms.local",
     message: "Intéressé par l'univers vente_pro.",
+    details: {
+      investorType: "OPERATOR_INVESTOR",
+      universesInteret: ["vente_pro", "garage"],
+      montantEnvisageEur: 25000,
+      horizonMois: 24,
+    },
   });
   verif("candidater() accepte profession=investisseur sans champ zone/services obligatoire", !!candidatureInvestisseur.reference);
   verif(
@@ -71,6 +86,29 @@ async function main() {
     .where(eq(partnerApplications.reference, candidatureInvestisseur.reference));
   verif("la candidature investisseur est réellement persistée avec profession=investisseur", ligneInvestisseur?.profession === "investisseur");
   verif("aucun compte requis : userId reste null pour un visiteur anonyme", ligneInvestisseur?.userId === null);
+  verif(
+    "le message libre du candidat est bien persisté (visible dans la fiche admin)",
+    ligneInvestisseur?.message === "Intéressé par l'univers vente_pro.",
+  );
+  const details = ligneInvestisseur?.details as Record<string, unknown> | null;
+  verif("les détails investisseur (montant, univers, profil, durée) sont persistés tels quels", !!details);
+  verif("details.investorType round-trip exact", details?.investorType === "OPERATOR_INVESTOR");
+  verif(
+    "details.universesInteret round-trip exact (tableau)",
+    Array.isArray(details?.universesInteret) &&
+      (details!.universesInteret as unknown[]).length === 2 &&
+      (details!.universesInteret as unknown[])[0] === "vente_pro",
+  );
+  verif("details.montantEnvisageEur round-trip exact (nombre, pas une chaîne)", details?.montantEnvisageEur === 25000);
+  verif("details.horizonMois round-trip exact", details?.horizonMois === 24);
+
+  // listApplications() est ce que lit la fiche admin (PartenairesPilotage.tsx) : le
+  // `select()` générique doit renvoyer message et details sans colonne oubliée.
+  const listeAdmin = await publicCaller.applications({}).catch(() => null);
+  verif(
+    "listApplications() est réservé à l'administration, jamais ouvert au public",
+    listeAdmin === null,
+  );
 
   // ── 3. Pays fermé au Country OS : refusé, jamais une candidature ouverte par défaut ──
   let refusePaysFerme = false;

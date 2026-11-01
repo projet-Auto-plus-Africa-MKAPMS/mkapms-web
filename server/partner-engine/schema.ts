@@ -50,6 +50,16 @@ export const partnerApplications = pgTable(
     contactEmail: varchar("contact_email", { length: 255 }),
     contactPhone: varchar("contact_phone", { length: 32 }),
     message: text("message"),
+    /**
+     * Détails propres au métier candidat, jamais de colonnes dédiées par métier
+     * (un garage n'a pas de montant envisagé, un investisseur n'a pas de rayon
+     * de zone). Pour profession="investisseur" : investorType, universesInteret
+     * (sous-ensemble de INVESTABLE_UNIVERSES, server/investment/schema.ts),
+     * montantEnvisageEur, horizonMois — mêmes dimensions que le contrat réel
+     * (investments), pour que la décision humaine dispose du nécessaire dès la
+     * candidature au lieu de tout redemander après coup.
+     */
+    details: jsonb("details").$type<Record<string, unknown> | null>().default(null),
     /** "recue" | "en_examen" | "acceptee" | "refusee" */
     status: varchar("status", { length: 16 }).notNull().default("recue"),
     /** Opportunité (point 37) qui a motivé la candidature, si elle vient de là. */

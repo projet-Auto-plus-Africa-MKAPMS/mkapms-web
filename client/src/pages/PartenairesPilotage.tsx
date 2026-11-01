@@ -198,7 +198,25 @@ export default function PartenairesPilotage() {
               <p className="text-sm text-gray-600">
                 Services : {a.services.length > 0 ? a.services.join(", ") : "non précisés"}
               </p>
-              <p className="text-xs text-gray-500 mt-1">
+              {a.message && (
+                <p className="text-sm text-gray-800 mt-1.5 whitespace-pre-wrap rounded-lg bg-gray-50 border border-gray-200 px-2.5 py-2">
+                  « {a.message} »
+                </p>
+              )}
+              {a.details && Object.keys(a.details as Record<string, unknown>).length > 0 && (
+                <div className="mt-1.5 flex flex-wrap gap-1.5">
+                  {Object.entries(a.details as Record<string, unknown>).map(([k, v]) => {
+                    const valeur = Array.isArray(v) ? v.join(", ") : String(v);
+                    if (!valeur) return null;
+                    return (
+                      <span key={k} className="text-[11px] rounded-full bg-[#D4AF37]/10 text-[#92730F] px-2 py-0.5">
+                        {k.replace(/([A-Z])/g, " $1").replace(/^./, (c) => c.toUpperCase())} : {valeur}
+                      </span>
+                    );
+                  })}
+                </div>
+              )}
+              <p className="text-xs text-gray-500 mt-1.5">
                 {a.reference} — {a.contactEmail ?? "email non fourni"} — {a.contactPhone ?? "téléphone non fourni"}
               </p>
               {a.status !== "acceptee" && a.status !== "refusee" && (
