@@ -219,8 +219,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "cliquables": 3,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 22,
-        "mots": 149
+        "textes": 24,
+        "mots": 167
       }
     ],
     "ecransHotes": [
@@ -244,8 +244,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "connecte",
       "public"
     ],
-    "textes": 42,
-    "mots": 204,
+    "textes": 44,
+    "mots": 222,
     "battement": "sonde",
     "manques": []
   },
