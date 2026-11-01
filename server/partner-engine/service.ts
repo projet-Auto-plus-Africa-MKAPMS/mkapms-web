@@ -15,6 +15,7 @@
 import { and, count, desc, eq, gte, ilike, inArray, isNull, or, sql } from "drizzle-orm";
 import { db } from "../db.js";
 import { requireOpenCountry } from "../country-os/index.js";
+import { isKnownCountryCode } from "./world-countries.js";
 import { newsletterSubscribers, partners, seoPages } from "../schema.js";
 import { smartSearchLogs } from "../smart-engine/schema.js";
 import { notifyDirection, notifyEvent } from "../notification-os/triggers.js";
@@ -79,7 +80,18 @@ export interface ApplyResult {
 /** « Devenir partenaire MKA.P-MS » — entrée commerciale publique du portail Pro. */
 export async function applyAsPartner(input: ApplyInput): Promise<ApplyResult> {
   const services = input.services.filter((s) => findPartnerService(s) !== undefined);
-  await requireOpenCountry(input.countryCode);
+  // Un investisseur candidate pour n'importe quel pays du monde, y compris un
+  // pays où MKA.P-MS n'opère pas encore : c'est le signal recherché, pas un
+  // cas à rejeter. Les autres métiers (garage, dépannage…) exigent une
+  // présence opérationnelle réelle (moyens de paiement, TVA, documents) : le
+  // Country OS reste la référence pour eux, inchangé.
+  if (input.profession === "investisseur") {
+    if (!isKnownCountryCode(input.countryCode)) {
+      throw new Error(`Pays ${input.countryCode.toUpperCase()} inconnu.`);
+    }
+  } else {
+    await requireOpenCountry(input.countryCode);
+  }
   const [app] = await db
     .insert(partnerApplications)
     .values({

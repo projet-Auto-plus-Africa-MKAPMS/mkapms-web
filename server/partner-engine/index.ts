@@ -9,6 +9,7 @@
 import { z } from "zod";
 import { adminProcedure, directionProcedure, publicProcedure, router } from "../trpc.js";
 import { INVESTABLE_UNIVERSES } from "../investment/schema.js";
+import { WORLD_COUNTRIES } from "./world-countries.js";
 import {
   applyAsPartner,
   createContract,
@@ -44,6 +45,14 @@ export const partnerEngineRouter = router({
    */
   investorUniverses: publicProcedure.query(() => INVESTABLE_UNIVERSES),
 
+  /**
+   * Liste mondiale des pays (world-countries.ts), pour la sélection dans la
+   * candidature « Devenir investisseur ». Distincte de countryOs.list : un
+   * investisseur doit pouvoir choisir n'importe quel pays du monde, pas
+   * seulement les ~20 pays où MKA.P-MS opère déjà commercialement.
+   */
+  worldCountries: publicProcedure.query(() => WORLD_COUNTRIES),
+
   /** Point 36 — entrée commerciale « Devenir partenaire MKA.P-MS ». */
   candidater: publicProcedure
     .input(
@@ -58,11 +67,23 @@ export const partnerEngineRouter = router({
         contactEmail: z.string().email().max(255).optional(),
         contactPhone: z.string().max(32).optional(),
         message: z.string().max(2000).optional(),
-        /** Détails propres au métier candidat (ex. montant envisagé/univers d'intérêt pour un investisseur) — voir schema.ts. */
+        /**
+         * Détails propres au métier candidat — voir schema.ts. Pour
+         * profession="investisseur" : investorType, universesInteret,
+         * montantEnvisageEur, horizonMois (projet) ; hasCompany, legalForm,
+         * registrationNumber, vatNumber, addressLine, postalCode, website
+         * (société représentée) ; wantsCompanyCreationHelp, accountingNote
+         * (candidat sans société, orienté vers la comptabilité).
+         */
         details: z
           .record(
             z.string().max(40),
-            z.union([z.string().max(500), z.number(), z.array(z.string().max(120)).max(20)]),
+            z.union([
+              z.string().max(500),
+              z.number(),
+              z.boolean(),
+              z.array(z.string().max(120)).max(20),
+            ]),
           )
           .optional(),
         opportunityId: z.number().int().positive().optional(),

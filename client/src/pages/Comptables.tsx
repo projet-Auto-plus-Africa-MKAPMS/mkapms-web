@@ -4,7 +4,7 @@
  * externes publiés après vérification humaine sont recherchés ici.
  */
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { ArrowRight, Building2, Calculator, CalendarClock, CheckCircle2, FileCheck2, Info, Languages, Loader2, MapPin, Search, Send, ShieldCheck, Star } from "lucide-react";
 import { trpc } from "../lib/trpc";
 import { useAuth } from "../lib/auth";
@@ -26,9 +26,19 @@ const PAYS = [
 
 export default function Comptables() {
   const { user } = useAuth();
-  const [countryCode, setCountryCode] = useState("FR");
-  const [city, setCity] = useState("");
-  const [specialty, setSpecialty] = useState("");
+  const [params] = useSearchParams();
+  // Un lien direct (ex. depuis « Devenir investisseur » : besoin de créer une
+  // société) peut présélectionner spécialité/pays/ville — jamais une valeur
+  // hors des options réelles du moteur de recherche.
+  const [countryCode, setCountryCode] = useState(() => {
+    const fromQuery = params.get("country")?.toUpperCase() ?? "";
+    return PAYS.some((p) => p.code === fromQuery) ? fromQuery : "FR";
+  });
+  const [city, setCity] = useState(() => params.get("city")?.slice(0, 120) ?? "");
+  const [specialty, setSpecialty] = useState(() => {
+    const fromQuery = params.get("specialty") ?? "";
+    return SPECIALITES.some((s) => s.code === fromQuery) ? fromQuery : "";
+  });
   const [language, setLanguage] = useState("");
   const [availableOnly, setAvailableOnly] = useState(false);
   const [sent, setSent] = useState<number | null>(null);
