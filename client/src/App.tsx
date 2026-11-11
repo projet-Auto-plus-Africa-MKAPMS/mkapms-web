@@ -235,6 +235,7 @@ const MosEngineControlCenter = lazy(() => import("./pages/MosControlCenter/Engin
 const Comptabilite = lazy(() => import("./pages/Comptabilite"));
 const CarteGrise = lazy(() => import("./pages/CarteGrise"));
 const Mission = lazy(() => import("./pages/Mission"));
+const ProfessionalMarketplace = lazy(() => import("./pages/ProfessionalMarketplace"));
 const EspacePro = lazy(() => import("./pages/EspacePro"));
 const EspaceFournisseur = lazy(() => import("./pages/EspaceFournisseur"));
 const EspaceTransporteur = lazy(() => import("./pages/EspaceTransporteur"));
@@ -1068,6 +1069,7 @@ export default function App() {
             <Route path="/suppression-compte" element={<SuppressionCompte />} />
             <Route path="/confiance" element={<Confiance />} />
             <Route path="/mission" element={<Mission />} />
+            <Route path="/missions-professionnelles" element={<ProfessionalMarketplace />} />
             <Route path="/espace-pro" element={<U name="Espace Pro"><EspacePro /></U>} />
             <Route path="/espace-fournisseur" element={<U name="Espace Fournisseur"><EspaceFournisseur /></U>} />
             <Route path="/espace-transporteur" element={<U name="Espace Transporteur"><EspaceTransporteur /></U>} />

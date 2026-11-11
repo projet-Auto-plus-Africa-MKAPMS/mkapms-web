@@ -1226,6 +1226,13 @@
       "when": 1793380000000,
       "tag": "0176_partner_applications_details",
       "breakpoints": true
+    },
+    {
+      "idx": 177,
+      "version": "7",
+      "when": 1794390000000,
+      "tag": "0177_professional_missions_marketplace",
+      "breakpoints": true
     }
   ]
 }
