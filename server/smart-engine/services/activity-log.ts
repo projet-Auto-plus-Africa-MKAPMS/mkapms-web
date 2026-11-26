@@ -18,16 +18,22 @@ interface ActivityInput {
   proposedDecision?: string;
 }
 
+// Les colonnes action/target_type/result sont bornées en base (varchar 64/32/32) ; une chaîne plus
+// longue venue d'un appelant (22 à ce jour) faisait échouer l'insertion entière — l'action réelle
+// n'était alors jamais journalisée. On tronque ici, à la frontière, plutôt que d'auditer chaque appelant.
+// Exporté pour que behavior-tracking.ts (autre appelant direct de smartActivityLog) réutilise la même règle.
+export const clip = (value: string | undefined | null, max: number) => (value == null ? null : value.slice(0, max));
+
 export async function logActivity(input: ActivityInput) {
   const [row] = await db
     .insert(smartActivityLog)
     .values({
-      action: input.action,
+      action: clip(input.action, 64)!,
       userId: input.userId ?? null,
-      targetType: input.targetType ?? null,
+      targetType: clip(input.targetType, 32),
       targetId: input.targetId ?? null,
       data: input.data ?? null,
-      result: input.result ?? null,
+      result: clip(input.result, 32),
       proposedDecision: input.proposedDecision ?? null,
     })
     .returning();

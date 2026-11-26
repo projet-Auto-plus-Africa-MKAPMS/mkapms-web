@@ -121,7 +121,8 @@ export const ROUTEURS_SANS_MOTEUR: readonly string[] = [];
 
 /** Fichiers serveur qu'aucun moteur ne possède (hors racine technique). */
 export const FICHIERS_SANS_MOTEUR: readonly string[] = [
-  "auth-google.ts"
+  "auth-google.ts",
+  "probe-paths-guard.ts"
 ];
 
 export const MOTEURS: readonly PerimetreMoteur[] = [

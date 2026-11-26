@@ -164,10 +164,19 @@ const DOMAIN_SEO: Record<DomainKey, DomainSeoMeta> = {
 // Chaque langue publique pointe vers son domaine. Une seule URL par langue
 // (pas de doublon fr↔pro qui déclencherait un conflit hreflang côté Google).
 // `x-default` renvoie vers le portail international.
+//
+// `www.` explicite, jamais le nu : constaté le 26/11/2026 (signalement Search
+// Console « Introuvable (404) ») que mkapms.fr et mkapms.pro nus n'ont aucun
+// enregistrement DNS (seul leur www. pointe vers Railway) — Google ne peut
+// même pas se connecter à l'alternate hreflang annoncé sur CHAQUE page. Pour
+// mkapms.site, le nu existe mais redirige (301) vers son www. : un hreflang ne
+// doit jamais cibler une URL qui redirige. Tant que mkapms.fr/.pro nus ne sont
+// pas câblés côté DNS (hors de portée depuis le code), on annonce les hôtes
+// qui répondent réellement en 200.
 const HREFLANG_DOMAINS: ReadonlyArray<{ hreflang: string; origin: string }> = [
-  { hreflang: "fr", origin: "https://mkapms.fr" },
-  { hreflang: "en", origin: "https://mkapms.site" },
-  { hreflang: "x-default", origin: "https://mkapms.site" },
+  { hreflang: "fr", origin: "https://www.mkapms.fr" },
+  { hreflang: "en", origin: "https://www.mkapms.site" },
+  { hreflang: "x-default", origin: "https://www.mkapms.site" },
 ];
 
 /**

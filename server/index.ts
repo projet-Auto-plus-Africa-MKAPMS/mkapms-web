@@ -38,6 +38,7 @@ import {
 } from "./seo.js";
 import { aiAnswersFeed } from "./visibility-os/geo-engine.js";
 import { domainMiddleware, domainHandler, domainsListHandler } from "./domain.js";
+import { looksLikeProbePath } from "./probe-paths-guard.js";
 import { publicWriteGate } from "./resilience/gate.js";
 import { apiV1 } from "./intelligences/api-v1.js";
 import { logisticsApi } from "./logistics-engine/api.js";
@@ -381,6 +382,9 @@ if (isProd) {
   // jamais masquer un asset de build.
   app.use(express.static(path.resolve(process.cwd(), "public"), { index: false }));
   app.get("*", async (req, res) => {
+    if (looksLikeProbePath(req.path)) {
+      return res.status(404).type("text/plain").send("Not found");
+    }
     try {
       const baseHtml = await readFile(indexPath, "utf8");
       const html = await injectAnnonceSeo(req, baseHtml);
