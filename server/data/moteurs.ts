@@ -121,6 +121,7 @@ export const ROUTES_SANS_MOTEUR: readonly string[] = [
   "/carburant/:valeur",
   "/desabonnement",
   "/marque/:valeur",
+  "/missions-professionnelles",
   "/rejoindre",
   "/superadmin/campagnes-email",
   "/superadmin/fournisseurs",
@@ -129,7 +130,8 @@ export const ROUTES_SANS_MOTEUR: readonly string[] = [
 
 /** Routeurs tRPC montés qu'aucun moteur ne revendique. */
 export const ROUTEURS_SANS_MOTEUR: readonly string[] = [
-  "iaCommerce"
+  "iaCommerce",
+  "professionalMarketplace"
 ];
 
 /** Fichiers serveur qu'aucun moteur ne possède (hors racine technique). */
@@ -139,6 +141,9 @@ export const FICHIERS_SANS_MOTEUR: readonly string[] = [
   "ia-commerce/router.ts",
   "ia-commerce/schema.ts",
   "ia-commerce/service.ts",
+  "probe-paths-guard.ts",
+  "professional-marketplace/index.ts",
+  "professional-marketplace/schema.ts",
   "services/campaign-engine.ts"
 ];
 

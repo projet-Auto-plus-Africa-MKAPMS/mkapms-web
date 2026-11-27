@@ -496,6 +496,7 @@ export const CLIENT_ROUTES: readonly string[] = [
   "/marketing/publicites-pro",
   "/messagerie",
   "/mission",
+  "/missions-professionnelles",
   "/mk-direction",
   "/mk-global-engine",
   "/mobile",

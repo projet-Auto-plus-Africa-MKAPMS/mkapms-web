@@ -7,6 +7,7 @@
 import { db } from "../../db.js";
 import { smartActivityLog, smartUserMemory } from "../schema.js";
 import { desc, eq, sql, gte, and } from "drizzle-orm";
+import { clip } from "./activity-log.js";
 
 const TRAFFIC_SOURCES = ["google", "social", "direct", "other"] as const;
 type TrafficSource = (typeof TRAFFIC_SOURCES)[number];
@@ -51,9 +52,11 @@ export async function trackPageVisit(visit: PageVisit) {
 
 export async function trackUserAction(action: UserAction) {
   return db.insert(smartActivityLog).values({
-    action: `user.${action.action}`,
+    // action/target_type sont bornés en base (varchar 64/32) : un target plus long que 32 caractères
+    // faisait échouer l'insertion entière, perdant la trace de l'action au lieu de juste la tronquer.
+    action: clip(`user.${action.action}`, 64)!,
     userId: action.userId ?? null,
-    targetType: action.target ?? null,
+    targetType: clip(action.target, 32),
     data: { ...action.metadata, at: new Date().toISOString() },
     result: "tracked",
   }).returning();
