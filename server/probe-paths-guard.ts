@@ -52,12 +52,26 @@ const KNOWN_ATTACK_PATHS = new Set([
   "actuator",
 ]);
 
+/** Décode un segment sans jamais faire planter l'appelant sur un %-encodage invalide. */
+function decodeSegment(segment: string): string {
+  try {
+    return decodeURIComponent(segment);
+  } catch {
+    return segment;
+  }
+}
+
 export function looksLikeProbePath(pathname: string): boolean {
   const lower = pathname.toLowerCase();
   if (lower.startsWith("/.well-known/")) return false;
-  const segments = lower.split("/").filter(Boolean);
+  // Découpage sur les "/" bruts d'abord (un "%2f" encodé reste donc à l'intérieur de son
+  // segment, jamais une nouvelle limite), puis décodage de chaque segment — trouvé par la revue
+  // Devin sur #717 : une barre oblique finale (/backup.zip/) ou un point encodé (%2e) faisait
+  // passer la vérification d'extension sur la chaîne entière plutôt que sur le dernier segment.
+  const segments = lower.split("/").filter(Boolean).map(decodeSegment);
   if (segments.some((s) => s.startsWith("."))) return true;
-  if (SENSITIVE_EXTENSIONS.some((ext) => lower.endsWith(ext))) return true;
+  const lastSegment = segments[segments.length - 1] ?? "";
+  if (SENSITIVE_EXTENSIONS.some((ext) => lastSegment.endsWith(ext))) return true;
   if (segments.some((s) => KNOWN_ATTACK_PATHS.has(s))) return true;
   return false;
 }

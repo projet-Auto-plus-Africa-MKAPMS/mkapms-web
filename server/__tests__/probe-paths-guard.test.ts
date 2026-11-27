@@ -46,3 +46,11 @@ test("laisse .well-known/ intact (déjà traité au cas par cas dans index.ts)",
   assert.equal(looksLikeProbePath("/.well-known/assetlinks.json"), false);
   assert.equal(looksLikeProbePath("/.well-known/apple-app-site-association"), false);
 });
+
+// Revue Devin sur #717 : une barre oblique finale ou un point encodé faisait passer la
+// vérification d'extension sur la chaîne entière plutôt que sur le dernier segment réel.
+test("une barre oblique finale ou un point encodé ne contournent pas le filtre d'extension", () => {
+  for (const p of ["/backup.zip/", "/dump.sql/", "/backup%2ezip", "/.git/HEAD/"]) {
+    assert.equal(looksLikeProbePath(p), true, p);
+  }
+});
