@@ -13,7 +13,7 @@ export default function ProfessionalMarketplace(){
  const save=trpc.professionalMarketplace.profileSave.useMutation({onSuccess:()=>utils.professionalMarketplace.profileMine.invalidate()});
  const submit=trpc.professionalMarketplace.profileSubmit.useMutation({onSuccess:()=>utils.professionalMarketplace.profileMine.invalidate()});
  const create=trpc.professionalMarketplace.missionCreate.useMutation();
- const apply=trpc.professionalMarketplace.apply.useMutation();
+ const apply=trpc.professionalMarketplace.applyToMission.useMutation();
  const skillList=skills.split(",").map(x=>x.trim()).filter(Boolean);
  return <main className="min-h-screen bg-[#f7f6f3] pb-20"><header className="bg-[#111] px-5 py-14 text-white"><div className="mx-auto max-w-6xl"><p className="mb-3 flex items-center gap-2 text-sm text-[#d6b75b]"><Globe2 size={17}/> MKA.P-MS · Portail mondial des compétences</p><h1 className="text-3xl font-black sm:text-5xl">Les compétences et les entreprises, sans frontières.</h1><p className="mt-4 text-white/70">Missions temporaires, prestations et emplois durables dans tous les secteurs et tous les pays.</p><div className="mt-8 flex gap-3"><button onClick={()=>setTab("professional")} className="rounded-lg bg-[#d6b75b] px-5 py-3 font-semibold text-black"><UserRound className="mr-2 inline" size={17}/>Professionnel</button><button onClick={()=>setTab("company")} className="rounded-lg bg-white/10 px-5 py-3 font-semibold"><Building2 className="mr-2 inline" size={17}/>Entreprise</button></div></div></header>
  <div className="mx-auto grid max-w-6xl gap-6 px-5 py-8 lg:grid-cols-[minmax(0,1fr)_340px]"><section className="rounded-2xl border bg-white p-6 shadow-sm">
