@@ -40,7 +40,7 @@ export interface AnomalieCliquable {
   readonly motif: MotifAnomalie;
 }
 
-export const CLIQUABLES_TOTAL = 2950;
+export const CLIQUABLES_TOTAL = 2957;
 
 export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/components/AccessDenied.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
@@ -607,6 +607,7 @@ export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/pages/ProduitLocation.tsx", total: 9, moteur: 0, liens: 1, boutonsLocaux: 7, sansAction: 0, zones: 1 },
   { fichier: "client/src/pages/ProduitParticulier.tsx", total: 12, moteur: 0, liens: 1, boutonsLocaux: 10, sansAction: 0, zones: 1 },
   { fichier: "client/src/pages/ProduitVtcTaxi.tsx", total: 24, moteur: 0, liens: 1, boutonsLocaux: 22, sansAction: 0, zones: 1 },
+  { fichier: "client/src/pages/ProfessionalMarketplace.tsx", total: 7, moteur: 0, liens: 1, boutonsLocaux: 6, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/ProgrammeVTC.tsx", total: 3, moteur: 0, liens: 1, boutonsLocaux: 2, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/PubliciteDetail.tsx", total: 4, moteur: 0, liens: 1, boutonsLocaux: 3, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/PubliciteInterne.tsx", total: 2, moteur: 0, liens: 1, boutonsLocaux: 1, sansAction: 0, zones: 0 },
