@@ -46,16 +46,24 @@ a {
   .btn-outline {
     @apply btn border border-slate-300 bg-white text-slate-700 hover:border-brand hover:text-brand;
   }
-  /* Premium or */
+  /* Premium or — couleur du texte écrite en dur (pas "@apply text-noir") :
+     @apply reprend N'IMPORTE QUELLE règle du fichier dont le sélecteur est
+     .text-noir, y compris notre propre bascule sombre de .text-noir plus
+     bas (un comportement réel de Tailwind, pas une erreur de frappe) — ce
+     qui ferait passer ce texte presque blanc sur fond or (contraste
+     illisible), alors que .text-noir doit rester #111111 ici dans les
+     deux thèmes, quel que soit le réglage de l'appareil. */
   .btn-gold {
-    @apply btn bg-gold text-noir hover:bg-gold-dark;
+    @apply btn bg-gold hover:bg-gold-dark;
+    color: #111111;
   }
   /* Mapping d'action standardisé (page véhicule & produits) */
   .btn-acheter {
     @apply btn bg-success text-white hover:bg-success-dark;
   }
   .btn-reserver {
-    @apply btn bg-gold text-noir hover:bg-gold-dark;
+    @apply btn bg-gold hover:bg-gold-dark;
+    color: #111111;
   }
   .btn-message {
     @apply btn bg-info text-white hover:brightness-95;
@@ -83,6 +91,41 @@ a {
   }
   .badge-premium {
     @apply badge bg-gold-soft text-gold-dark;
+  }
+
+  /* Bascule sombre de CES classes partagées spécifiquement : elles sont
+     composées via @apply, donc leurs couleurs sont déjà fixées sur leur
+     propre sélecteur (.card, .input…) — les règles génériques .bg-white/
+     .text-slate-* plus bas dans le fichier ne les atteignent pas. Rester
+     dans @layer components (et non après @tailwind utilities) est
+     indispensable : une carte de statut comme
+     `<div class="card bg-emerald-50 border-emerald-200">` doit garder son
+     vert — l'utilitaire bg-emerald-50 doit continuer à l'emporter sur la
+     bascule sombre de .card, exactement comme il l'emporte déjà sur son
+     bg-white par défaut en mode clair. .btn-gold/.btn-reserver sont
+     délibérément absents ici : leur texte noir sur fond or doit rester
+     fixe dans les deux thèmes (texte presque blanc sur or = contraste
+     illisible), ce n'est pas "le thème clair forcé". */
+  @media (prefers-color-scheme: dark) {
+    .card {
+      background-color: #1e293b;
+      border-color: #334155;
+    }
+    .input {
+      background-color: #1e293b;
+      border-color: #475569;
+    }
+    .btn-outline {
+      background-color: #1e293b;
+      border-color: #475569;
+      color: #e2e8f0;
+    }
+    .btn-signaler {
+      background-color: #1e293b;
+    }
+    .label {
+      color: #e2e8f0;
+    }
   }
 }
 
@@ -120,14 +163,11 @@ a {
   .bg-\[\#E8F8FB\] { background-color: rgb(30 41 59 / var(--tw-bg-opacity, 1)); }
   .bg-\[\#E8FAFD\] { background-color: rgb(30 41 59 / var(--tw-bg-opacity, 1)); }
   .bg-\[\#E9E7F8\] { background-color: rgb(30 41 59 / var(--tw-bg-opacity, 1)); }
-  .bg-\[\#E9F7EF\] { background-color: rgb(30 41 59 / var(--tw-bg-opacity, 1)); }
   .bg-\[\#EAF2F7\] { background-color: rgb(30 41 59 / var(--tw-bg-opacity, 1)); }
   .bg-\[\#eaf4ff\] { background-color: rgb(30 41 59 / var(--tw-bg-opacity, 1)); }
   .bg-\[\#EAF8FA\] { background-color: rgb(30 41 59 / var(--tw-bg-opacity, 1)); }
   .bg-\[\#edf5fa\] { background-color: rgb(30 41 59 / var(--tw-bg-opacity, 1)); }
   .bg-\[\#f0f2f5\] { background-color: rgb(30 41 59 / var(--tw-bg-opacity, 1)); }
-  .bg-\[\#F0F7EC\] { background-color: rgb(30 41 59 / var(--tw-bg-opacity, 1)); }
-  .bg-\[\#F0FDF4\] { background-color: rgb(15 23 42 / var(--tw-bg-opacity, 1)); }
   .bg-\[\#F3F3F3\] { background-color: rgb(30 41 59 / var(--tw-bg-opacity, 1)); }
   .bg-\[\#F3F4F6\] { background-color: rgb(30 41 59 / var(--tw-bg-opacity, 1)); }
   .bg-\[\#F3F8FA\] { background-color: rgb(15 23 42 / var(--tw-bg-opacity, 1)); }
@@ -159,10 +199,8 @@ a {
   .bg-\[\#FAFAFA\] { background-color: rgb(15 23 42 / var(--tw-bg-opacity, 1)); }
   .bg-\[\#FAFCFD\] { background-color: rgb(15 23 42 / var(--tw-bg-opacity, 1)); }
   .bg-\[\#fbfdff\] { background-color: rgb(15 23 42 / var(--tw-bg-opacity, 1)); }
-  .bg-\[\#FEF2F2\] { background-color: rgb(30 41 59 / var(--tw-bg-opacity, 1)); }
   .bg-\[\#FEF9E7\] { background-color: rgb(15 23 42 / var(--tw-bg-opacity, 1)); }
   .bg-\[\#FEFCE8\] { background-color: rgb(15 23 42 / var(--tw-bg-opacity, 1)); }
-  .bg-\[\#FFF0F0\] { background-color: rgb(30 41 59 / var(--tw-bg-opacity, 1)); }
   .bg-\[\#FFF8E7\] { background-color: rgb(15 23 42 / var(--tw-bg-opacity, 1)); }
   .bg-\[\#FFF9E8\] { background-color: rgb(15 23 42 / var(--tw-bg-opacity, 1)); }
   .bg-\[\#FFFBEA\] { background-color: rgb(15 23 42 / var(--tw-bg-opacity, 1)); }
@@ -203,16 +241,6 @@ a {
   .border-slate-200 { border-color: rgb(30 41 59 / var(--tw-border-opacity, 1)); }
   .border-slate-300 { border-color: rgb(71 85 105 / var(--tw-border-opacity, 1)); }
   .border-slate-50 { border-color: rgb(30 41 59 / var(--tw-border-opacity, 1)); }
-  .btn-gold { color: rgb(248 250 252 / var(--tw-text-opacity, 1)); }
-  .btn-outline { background-color: rgb(15 23 42 / var(--tw-bg-opacity, 1)); }
-  .btn-outline { border-color: rgb(71 85 105 / var(--tw-border-opacity, 1)); }
-  .btn-outline { color: rgb(248 250 252 / var(--tw-text-opacity, 1)); }
-  .btn-reserver { color: rgb(248 250 252 / var(--tw-text-opacity, 1)); }
-  .card { background-color: rgb(15 23 42 / var(--tw-bg-opacity, 1)); }
-  .card { border-color: rgb(30 41 59 / var(--tw-border-opacity, 1)); }
-  .input { background-color: rgb(15 23 42 / var(--tw-bg-opacity, 1)); }
-  .input { border-color: rgb(71 85 105 / var(--tw-border-opacity, 1)); }
-  .label { color: rgb(248 250 252 / var(--tw-text-opacity, 1)); }
   .text-\[\#07111F\] { color: rgb(248 250 252 / var(--tw-text-opacity, 1)); }
   .text-\[\#080811\] { color: rgb(248 250 252 / var(--tw-text-opacity, 1)); }
   .text-\[\#09152C\] { color: rgb(248 250 252 / var(--tw-text-opacity, 1)); }
