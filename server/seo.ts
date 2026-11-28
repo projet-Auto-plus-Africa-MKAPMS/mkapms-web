@@ -107,6 +107,7 @@ const DOMAIN_SEO: Record<DomainKey, DomainSeoMeta> = {
       "/confiance",
       "/aide",
       "/confidentialite",
+      "/mission",
     ],
   },
   pro: {
@@ -133,7 +134,8 @@ const DOMAIN_SEO: Record<DomainKey, DomainSeoMeta> = {
       "/partenaires/inscription-partenaire",
       "/rejoindre",
       "/devis",
-      "/vente/tableau-bord-vendeur",
+      "/vente/resume-vendeur",
+      "/mission",
     ],
   },
   site: {
@@ -161,6 +163,11 @@ const DOMAIN_SEO: Record<DomainKey, DomainSeoMeta> = {
       "/abonnements",
       "/partenaires/inscription-partenaire",
       "/rejoindre",
+      "/aide",
+      "/confiance",
+      "/confidentialite",
+      "/devis",
+      "/mission",
     ],
   },
 };
