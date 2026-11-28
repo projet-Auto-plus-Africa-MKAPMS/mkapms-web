@@ -3,16 +3,39 @@ apply plugin: 'com.android.application'
 // Signature de publication : jamais dans le dépôt. Le trousseau et ses mots de passe
 // viennent de android/keystore.properties (ignoré par git) ou des variables
 // d'environnement MKAPMS_KEYSTORE_* pour une signature automatisée.
+//
+// Play App Signing attribue une clé d'upload À CHAQUE APPLICATION (package
+// name) séparément : rien n'empêche qu'une seule des cinq applications (ex.
+// com.mkapms.command, après une réinitialisation de clé d'upload demandée
+// via la Play Console) ait besoin d'un trousseau différent des quatre
+// autres, qui continuent d'utiliser le trousseau partagé. Chaque variante a
+// donc SA PROPRE signingConfig ci-dessous : les variables
+// MKAPMS_KEYSTORE_FILE_<FLAVOR> (ex. MKAPMS_KEYSTORE_FILE_COMMAND, en
+// majuscules) redirigent une variante précise vers un trousseau dédié ;
+// sans elles, chaque variante retombe sur le trousseau partagé ci-dessous
+// (comportement inchangé pour les applications qui n'ont jamais eu besoin
+// d'un trousseau distinct).
 def keystorePropsFile = rootProject.file("keystore.properties")
 def keystoreProps = new Properties()
 if (keystorePropsFile.exists()) {
     keystoreProps.load(new FileInputStream(keystorePropsFile))
 }
-def ksPath = keystoreProps['storeFile'] ?: System.getenv("MKAPMS_KEYSTORE_FILE")
-def ksPassword = keystoreProps['storePassword'] ?: System.getenv("MKAPMS_KEYSTORE_PASSWORD")
-def ksAlias = keystoreProps['keyAlias'] ?: System.getenv("MKAPMS_KEY_ALIAS")
-def ksKeyPassword = keystoreProps['keyPassword'] ?: System.getenv("MKAPMS_KEY_PASSWORD")
-def hasSigning = ksPath != null && file(ksPath).exists()
+def sharedKsPath = keystoreProps['storeFile'] ?: System.getenv("MKAPMS_KEYSTORE_FILE")
+def sharedKsPassword = keystoreProps['storePassword'] ?: System.getenv("MKAPMS_KEYSTORE_PASSWORD")
+def sharedKsAlias = keystoreProps['keyAlias'] ?: System.getenv("MKAPMS_KEY_ALIAS")
+def sharedKsKeyPassword = keystoreProps['keyPassword'] ?: System.getenv("MKAPMS_KEY_PASSWORD")
+
+def signingForFlavor = { flavorKey ->
+    def upper = flavorKey.toUpperCase()
+    def ksPath = System.getenv("MKAPMS_KEYSTORE_FILE_${upper}") ?: sharedKsPath
+    [
+        path: ksPath,
+        password: System.getenv("MKAPMS_KEYSTORE_PASSWORD_${upper}") ?: sharedKsPassword,
+        alias: System.getenv("MKAPMS_KEY_ALIAS_${upper}") ?: sharedKsAlias,
+        keyPassword: System.getenv("MKAPMS_KEY_PASSWORD_${upper}") ?: sharedKsKeyPassword,
+        hasSigning: ksPath != null && file(ksPath).exists(),
+    ]
+}
 
 // Cinq applications, un seul projet : mobile/variants.json est l'unique
 // source de vérité (comme pour tout autre catalogue de la plateforme). Chaque
@@ -54,6 +77,19 @@ android {
     // reçoivent un hôte inexistant ("*.invalid"), donc aucun lien ne leur est
     // jamais proposé.
     flavorDimensions "app"
+    signingConfigs {
+        variants.each { key, v ->
+            def sign = signingForFlavor(key)
+            if (sign.hasSigning) {
+                "$key" {
+                    storeFile file(sign.path)
+                    storePassword sign.password
+                    keyAlias sign.alias
+                    keyPassword sign.keyPassword
+                }
+            }
+        }
+    }
     productFlavors {
         variants.each { key, v ->
             "$key" {
@@ -68,16 +104,10 @@ android {
                     appLinksHostAlt: v.appLinksHostAlt,
                     appLinksAutoVerify: v.appLinksHost.endsWith(".invalid") ? "false" : "true",
                 ]
-            }
-        }
-    }
-    signingConfigs {
-        if (hasSigning) {
-            release {
-                storeFile file(ksPath)
-                storePassword ksPassword
-                keyAlias ksAlias
-                keyPassword ksKeyPassword
+                def flavorSigningConfig = signingConfigs.findByName(key)
+                if (flavorSigningConfig != null) {
+                    signingConfig flavorSigningConfig
+                }
             }
         }
     }
@@ -85,9 +115,6 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-            if (hasSigning) {
-                signingConfig signingConfigs.release
-            }
         }
     }
 }

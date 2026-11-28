@@ -34,13 +34,22 @@ for (const nom of demandees) {
 }
 
 const aConstruire = demandees.length > 0 ? demandees : Object.keys(variantes);
-const signature = existsSync(join(racine, "android/keystore.properties"))
+const signaturePartagee = existsSync(join(racine, "android/keystore.properties"))
   || Boolean(process.env.MKAPMS_KEYSTORE_FILE);
 
-if (!signature) {
-  console.warn(
-    "[mkapms] Aucun trousseau de signature : les paquets produits ne seront PAS publiables sur le Play Store.",
-  );
+// Chaque variante peut retomber sur le trousseau partagé OU utiliser le
+// sien (MKAPMS_KEYSTORE_FILE_<FLAVOR>, ex. _COMMAND) — voir
+// android/app/build.gradle. Avertir variante par variante plutôt
+// qu'une seule fois pour tout le lot : un trousseau dédié manquant pour
+// une seule application ne doit pas laisser croire que les quatre autres
+// seraient, elles aussi, non signées.
+for (const nom of aConstruire) {
+  const aSaSignature = Boolean(process.env[`MKAPMS_KEYSTORE_FILE_${nom.toUpperCase()}`]);
+  if (!signaturePartagee && !aSaSignature) {
+    console.warn(
+      `[mkapms] ${nom} : aucun trousseau de signature — le paquet produit ne sera PAS publiable sur le Play Store.`,
+    );
+  }
 }
 
 const sortie = join(racine, "mobile/dist");
