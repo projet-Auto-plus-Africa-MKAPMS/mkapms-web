@@ -26,13 +26,27 @@ def sharedKsAlias = keystoreProps['keyAlias'] ?: System.getenv("MKAPMS_KEY_ALIAS
 def sharedKsKeyPassword = keystoreProps['keyPassword'] ?: System.getenv("MKAPMS_KEY_PASSWORD")
 
 def signingForFlavor = { flavorKey ->
-    def upper = flavorKey.toUpperCase()
-    def ksPath = System.getenv("MKAPMS_KEYSTORE_FILE_${upper}") ?: sharedKsPath
+    // "Locale.ROOT" plutôt que toUpperCase() sans argument : sur une JVM
+    // configurée en turc, "investor".toUpperCase() (langue par défaut turque)
+    // produit "İNVESTOR" (I pointé), pas "INVESTOR" — la variable dédiée
+    // documentée (MKAPMS_KEY_FILE_INVESTOR) ne serait alors jamais trouvée.
+    def upper = flavorKey.toUpperCase(Locale.ROOT)
+    def dedicatedPath = System.getenv("MKAPMS_KEYSTORE_FILE_${upper}")
+    // Le chemin, l'alias et les deux mots de passe dédiés forment UN SEUL
+    // ensemble cohérent : soit les quatre viennent du trousseau dédié, soit
+    // les quatre viennent du trousseau partagé — jamais un mélange (qui
+    // ferait, par ex., échouer la signature avec le mot de passe dédié sur
+    // le fichier partagé). Un chemin dédié déclaré mais introuvable (secret
+    // mal encodé, fichier déplacé) retombe donc intégralement sur le
+    // trousseau partagé, au lieu de laisser la variante non signée alors
+    // qu'un trousseau partagé valide existe.
+    def useDedicated = dedicatedPath != null && file(dedicatedPath).exists()
+    def ksPath = useDedicated ? dedicatedPath : sharedKsPath
     [
         path: ksPath,
-        password: System.getenv("MKAPMS_KEYSTORE_PASSWORD_${upper}") ?: sharedKsPassword,
-        alias: System.getenv("MKAPMS_KEY_ALIAS_${upper}") ?: sharedKsAlias,
-        keyPassword: System.getenv("MKAPMS_KEY_PASSWORD_${upper}") ?: sharedKsKeyPassword,
+        password: useDedicated ? System.getenv("MKAPMS_KEYSTORE_PASSWORD_${upper}") : sharedKsPassword,
+        alias: useDedicated ? System.getenv("MKAPMS_KEY_ALIAS_${upper}") : sharedKsAlias,
+        keyPassword: useDedicated ? System.getenv("MKAPMS_KEY_PASSWORD_${upper}") : sharedKsKeyPassword,
         hasSigning: ksPath != null && file(ksPath).exists(),
     ]
 }

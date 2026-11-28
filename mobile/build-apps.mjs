@@ -34,8 +34,14 @@ for (const nom of demandees) {
 }
 
 const aConstruire = demandees.length > 0 ? demandees : Object.keys(variantes);
+// Reflète exactement la résolution faite par android/app/build.gradle
+// (signingForFlavor) : une variable d'environnement présente mais pointant
+// vers un fichier absent ne compte pas comme un trousseau valide — sinon cet
+// avertissement resterait silencieux alors que Gradle, lui, retombe sur le
+// trousseau partagé (ou produit un paquet non signé si celui-ci est, lui
+// aussi, absent).
 const signaturePartagee = existsSync(join(racine, "android/keystore.properties"))
-  || Boolean(process.env.MKAPMS_KEYSTORE_FILE);
+  || (Boolean(process.env.MKAPMS_KEYSTORE_FILE) && existsSync(process.env.MKAPMS_KEYSTORE_FILE));
 
 // Chaque variante peut retomber sur le trousseau partagé OU utiliser le
 // sien (MKAPMS_KEYSTORE_FILE_<FLAVOR>, ex. _COMMAND) — voir
@@ -44,7 +50,8 @@ const signaturePartagee = existsSync(join(racine, "android/keystore.properties")
 // une seule application ne doit pas laisser croire que les quatre autres
 // seraient, elles aussi, non signées.
 for (const nom of aConstruire) {
-  const aSaSignature = Boolean(process.env[`MKAPMS_KEYSTORE_FILE_${nom.toUpperCase()}`]);
+  const cheminDedie = process.env[`MKAPMS_KEYSTORE_FILE_${nom.toUpperCase()}`];
+  const aSaSignature = Boolean(cheminDedie) && existsSync(cheminDedie);
   if (!signaturePartagee && !aSaSignature) {
     console.warn(
       `[mkapms] ${nom} : aucun trousseau de signature — le paquet produit ne sera PAS publiable sur le Play Store.`,
