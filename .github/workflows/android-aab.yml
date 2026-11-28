@@ -22,6 +22,16 @@ name: Android — App Bundles (5 applications)
 # version signée n'a pas encore de clé d'upload Play App Signing : la créer
 # est une décision humaine distincte (Direction / propriétaire du compte
 # Play Console), jamais improvisée par ce workflow.
+#
+# Play App Signing attribue une clé d'upload à CHAQUE application
+# séparément : si une seule des cinq (ex. command, après une
+# réinitialisation de clé d'upload) a besoin d'un trousseau différent des
+# quatre autres, des secrets dédiés MKAPMS_KEYSTORE_BASE64_COMMAND /
+# MKAPMS_KEYSTORE_PASSWORD_COMMAND / MKAPMS_KEY_ALIAS_COMMAND /
+# MKAPMS_KEY_PASSWORD_COMMAND la redirigent vers ce trousseau dédié (voir
+# android/app/build.gradle) ; sans eux, "command" retombe sur le trousseau
+# partagé comme les autres. Même mécanisme à répliquer pour une autre
+# variante si le besoin se présente un jour.
 
 on:
   workflow_dispatch:
@@ -89,16 +99,33 @@ jobs:
             fi
           fi
 
+      - name: Restaurer le trousseau dédié de "command" (si le secret existe)
+        env:
+          MKAPMS_KEYSTORE_BASE64_COMMAND: ${{ secrets.MKAPMS_KEYSTORE_BASE64_COMMAND }}
+        run: |
+          if [ -n "$MKAPMS_KEYSTORE_BASE64_COMMAND" ]; then
+            if printf '%s' "$MKAPMS_KEYSTORE_BASE64_COMMAND" | tr -d '[:space:]' | tr '_-' '/+' | base64 -d > "$RUNNER_TEMP/mkapms-release-command.keystore" 2>/dev/null \
+              && [ -s "$RUNNER_TEMP/mkapms-release-command.keystore" ]; then
+              echo "MKAPMS_KEYSTORE_FILE_COMMAND=$RUNNER_TEMP/mkapms-release-command.keystore" >> "$GITHUB_ENV"
+            else
+              rm -f "$RUNNER_TEMP/mkapms-release-command.keystore"
+              echo "::warning::MKAPMS_KEYSTORE_BASE64_COMMAND n'est pas du base64 valide : command retombe sur le trousseau partagé. Régénérer le secret (base64 -w0 keystore.jks)."
+            fi
+          fi
+
       - name: Construire les Android App Bundles
         env:
           MKAPMS_KEYSTORE_PASSWORD: ${{ secrets.MKAPMS_KEYSTORE_PASSWORD }}
           MKAPMS_KEY_ALIAS: ${{ secrets.MKAPMS_KEY_ALIAS }}
           MKAPMS_KEY_PASSWORD: ${{ secrets.MKAPMS_KEY_PASSWORD }}
+          MKAPMS_KEYSTORE_PASSWORD_COMMAND: ${{ secrets.MKAPMS_KEYSTORE_PASSWORD_COMMAND }}
+          MKAPMS_KEY_ALIAS_COMMAND: ${{ secrets.MKAPMS_KEY_ALIAS_COMMAND }}
+          MKAPMS_KEY_PASSWORD_COMMAND: ${{ secrets.MKAPMS_KEY_PASSWORD_COMMAND }}
         run: npm run mobile:build -- ${{ inputs.variant }}
 
-      - name: Supprimer le trousseau restauré
+      - name: Supprimer les trousseaux restaurés
         if: always()
-        run: rm -f "$RUNNER_TEMP/mkapms-release.keystore"
+        run: rm -f "$RUNNER_TEMP/mkapms-release.keystore" "$RUNNER_TEMP/mkapms-release-command.keystore"
 
       - name: Publier les .aab en artefact
         uses: actions/upload-artifact@v4
